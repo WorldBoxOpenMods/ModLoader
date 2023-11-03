@@ -5,6 +5,7 @@ using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.services;
 using UnityEngine;
+using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
 namespace NeoModLoader.utils;
@@ -48,7 +49,25 @@ internal static class ResourcesPatch
             return direct_objects.TryGetValue(path.ToLower(), out Object o) ? o : null;
         }
 
-        public void Add(string path, string absPath)
+        public void Add(string path, Object obj)
+        {
+            string lower_path = path.ToLower();
+            direct_objects[lower_path] = obj;
+            string[] parts = lower_path.Split('/');
+            var node = root;
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                if (!node.children.ContainsKey(parts[i]))
+                {
+                    node.children[parts[i]] = new ResourceTreeNode();
+                }
+
+                node = node.children[parts[i]];
+            }
+            node.objects[parts[parts.Length - 1]] = obj;
+
+        }
+        public void AddFromFile(string path, string absPath)
         {
             string lower_path = path.ToLower();
             if (lower_path.EndsWith(".meta")) return;
@@ -112,6 +131,14 @@ internal static class ResourcesPatch
     internal static void Initialize()
     {
         tree = new ResourceTree();
+        SpriteAtlas atlas = Resources.FindObjectsOfTypeAll<SpriteAtlas>().FirstOrDefault(x => x.name == "SpriteAtlasUI");
+
+        Sprite[] sprites = new Sprite[atlas.spriteCount];
+        atlas.GetSprites(sprites);
+        foreach (var sprite in sprites)
+        {
+            tree.Add($"ui/special/{sprite.name}", sprite);
+        }
     }
 
     public static UnityEngine.Object[] LoadResourceFile(ref string path, ref string pLowerPath)
@@ -149,7 +176,7 @@ internal static class ResourcesPatch
         var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
         foreach (var file in files)
         {
-            tree.Add(file.Replace(path, ""), file);
+            tree.AddFromFile(file.Replace(path, ""), file);
         }
     }
     [HarmonyPostfix]
