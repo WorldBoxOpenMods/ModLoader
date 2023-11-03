@@ -1,0 +1,13 @@
+﻿.*
+!.gitignore
+!.gitattributes
+!.editorconfig
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Pp]roperties/
+assemblies
+*.csproj
+*.user
+App.config
