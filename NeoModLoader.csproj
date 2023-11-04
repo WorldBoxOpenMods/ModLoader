@@ -1,0 +1,640 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net481</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <LangVersion>11</LangVersion>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <DebugType>portable</DebugType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <DebugType>portable</DebugType>
+    </PropertyGroup>
+  
+    <ItemGroup>
+      <Reference Include="0Harmony">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\0Harmony.dll</HintPath>
+      </Reference>
+      <Reference Include="Assembly-CSharp">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Assembly-CSharp-firstpass">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\Microsoft.CodeAnalysis.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Mono.Cecil">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\Mono.Cecil.dll</HintPath>
+      </Reference>
+      <Reference Include="MonoMod.RuntimeDetour">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\MonoMod.RuntimeDetour.dll</HintPath>
+      </Reference>
+      <Reference Include="MonoMod.Utils">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\MonoMod.Utils.dll</HintPath>
+      </Reference>
+      <Reference Include="mscorlib">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\mscorlib.dll</HintPath>
+      </Reference>
+      <Reference Include="netstandard">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\netstandard.dll</HintPath>
+      </Reference>
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+      <Reference Include="Newtonsoft.Json.Schema">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\Newtonsoft.Json.Schema.dll</HintPath>
+      </Reference>
+      <Reference Include="System.AppContext">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.AppContext.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Buffers">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Buffers.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Collections.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections.Concurrent">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Collections.Concurrent.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections.Immutable">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Collections.Immutable.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections.NonGeneric">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Collections.NonGeneric.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections.Specialized">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Collections.Specialized.dll</HintPath>
+      </Reference>
+      <Reference Include="System.ComponentModel">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.ComponentModel.dll</HintPath>
+      </Reference>
+      <Reference Include="System.ComponentModel.EventBasedAsync">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.ComponentModel.EventBasedAsync.dll</HintPath>
+      </Reference>
+      <Reference Include="System.ComponentModel.Primitives">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.ComponentModel.Primitives.dll</HintPath>
+      </Reference>
+      <Reference Include="System.ComponentModel.TypeConverter">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.ComponentModel.TypeConverter.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Console">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Console.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Data.Common">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Data.Common.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Data.DataSetExtensions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Data.DataSetExtensions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.Contracts">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.Contracts.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.Debug">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.Debug.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.FileVersionInfo">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.FileVersionInfo.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.Process">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.Process.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.StackTrace">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.StackTrace.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.TextWriterTraceListener">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.TextWriterTraceListener.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.Tools">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.Tools.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.TraceSource">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.TraceSource.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Diagnostics.Tracing">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Diagnostics.Tracing.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Drawing.Primitives">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Drawing.Primitives.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Dynamic.Runtime">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Dynamic.Runtime.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Globalization">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Globalization.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Globalization.Calendars">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Globalization.Calendars.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Globalization.Extensions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Globalization.Extensions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.Compression">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.Compression.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.Compression.ZipFile">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.Compression.ZipFile.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.FileSystem">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.FileSystem.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.FileSystem.DriveInfo">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.FileSystem.DriveInfo.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.FileSystem.Primitives">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.FileSystem.Primitives.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.FileSystem.Watcher">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.FileSystem.Watcher.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.IsolatedStorage">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.IsolatedStorage.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.MemoryMappedFiles">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.MemoryMappedFiles.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.Pipes">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.Pipes.dll</HintPath>
+      </Reference>
+      <Reference Include="System.IO.UnmanagedMemoryStream">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.IO.UnmanagedMemoryStream.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Linq">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Linq.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Linq.Expressions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Linq.Expressions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Linq.Parallel">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Linq.Parallel.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Linq.Queryable">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Linq.Queryable.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Memory">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Memory.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Http">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.Http.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.NameResolution">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.NameResolution.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.NetworkInformation">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.NetworkInformation.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Ping">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.Ping.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Primitives">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.Primitives.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Requests">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.Requests.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Security">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.Security.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Sockets">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.Sockets.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.WebHeaderCollection">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.WebHeaderCollection.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.WebSockets">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.WebSockets.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.WebSockets.Client">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Net.WebSockets.Client.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Numerics.Vectors">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Numerics.Vectors.dll</HintPath>
+      </Reference>
+      <Reference Include="System.ObjectModel">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.ObjectModel.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Reflection">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Reflection.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Reflection.Extensions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Reflection.Extensions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Reflection.Metadata">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Reflection.Metadata.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Reflection.Primitives">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Reflection.Primitives.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Resources.Reader">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Resources.Reader.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Resources.ResourceManager">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Resources.ResourceManager.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Resources.Writer">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Resources.Writer.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.CompilerServices.Unsafe">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.CompilerServices.VisualC">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.CompilerServices.VisualC.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.Extensions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.Extensions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.Handles">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.Handles.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.InteropServices">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.InteropServices.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.Numerics">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.Numerics.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.Serialization.Formatters">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.Serialization.Formatters.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.Serialization.Json">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.Serialization.Json.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.Serialization.Primitives">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.Serialization.Primitives.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.Serialization.Xml">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Runtime.Serialization.Xml.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.Claims">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.Claims.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.Cryptography.Algorithms">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.Cryptography.Algorithms.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.Cryptography.Csp">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.Cryptography.Csp.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.Cryptography.Encoding">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.Cryptography.Encoding.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.Cryptography.Primitives">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.Cryptography.Primitives.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.Cryptography.X509Certificates">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.Cryptography.X509Certificates.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.Principal">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.Principal.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Security.SecureString">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Security.SecureString.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Text.Encoding">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Text.Encoding.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Text.Encoding.CodePages">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Text.Encoding.CodePages.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Text.Encoding.Extensions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Text.Encoding.Extensions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Text.RegularExpressions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Text.RegularExpressions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.Overlapped">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.Overlapped.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.Tasks">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.Tasks.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.Tasks.Extensions">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.Tasks.Extensions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.Tasks.Parallel">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.Tasks.Parallel.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.Thread">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.Thread.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.ThreadPool">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.ThreadPool.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.Timer">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Threading.Timer.dll</HintPath>
+      </Reference>
+      <Reference Include="System.ValueTuple">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.ValueTuple.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Xml.ReaderWriter">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Xml.ReaderWriter.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Xml.XDocument">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Xml.XDocument.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Xml.XmlDocument">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Xml.XmlDocument.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Xml.XmlSerializer">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Xml.XmlSerializer.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Xml.XPath">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Xml.XPath.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Xml.XPath.XDocument">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NCMS\Core\Assemblies\System.Xml.XPath.XDocument.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.AssetBundleModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.ClothModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.ClothModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.CoreModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.ImageConversionModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.JSONSerializeModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.LocalizationModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.LocalizationModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.TextCoreModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.TextCoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.TextRenderingModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIElementsModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UIElementsModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIElementsNativeModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UIElementsNativeModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIModule">
+        <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+  
+    <ItemGroup>
+      <PackageReference Include="YamlDotNet" Version="13.7.1" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <None Remove="resources\assemblies\0Harmony.dll" />
+      <EmbeddedResource Include="resources\assemblies\0Harmony.dll" />
+      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.dll" />
+      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.dll" />
+      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
+      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
+      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.CSharp.Scripting.dll" />
+      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.CSharp.Scripting.dll" />
+      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.Scripting.dll" />
+      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.Scripting.dll" />
+      <None Remove="resources\assemblies\Mono.Cecil.dll" />
+      <EmbeddedResource Include="resources\assemblies\Mono.Cecil.dll" />
+      <None Remove="resources\assemblies\MonoMod.RuntimeDetour.dll" />
+      <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll" />
+      <None Remove="resources\assemblies\MonoMod.Utils.dll" />
+      <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll" />
+      <None Remove="resources\assemblies\mscorlib.dll" />
+      <EmbeddedResource Include="resources\assemblies\mscorlib.dll" />
+      <None Remove="resources\assemblies\netstandard.dll" />
+      <EmbeddedResource Include="resources\assemblies\netstandard.dll" />
+      <None Remove="resources\assemblies\Newtonsoft.Json.Schema.dll" />
+      <EmbeddedResource Include="resources\assemblies\Newtonsoft.Json.Schema.dll" />
+      <None Remove="resources\assemblies\System.AppContext.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.AppContext.dll" />
+      <None Remove="resources\assemblies\System.Buffers.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Buffers.dll" />
+      <None Remove="resources\assemblies\System.Collections.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Collections.dll" />
+      <None Remove="resources\assemblies\System.Collections.Concurrent.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Collections.Concurrent.dll" />
+      <None Remove="resources\assemblies\System.Collections.Immutable.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Collections.Immutable.dll" />
+      <None Remove="resources\assemblies\System.Collections.NonGeneric.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Collections.NonGeneric.dll" />
+      <None Remove="resources\assemblies\System.Collections.Specialized.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Collections.Specialized.dll" />
+      <None Remove="resources\assemblies\System.ComponentModel.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.dll" />
+      <None Remove="resources\assemblies\System.ComponentModel.EventBasedAsync.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.EventBasedAsync.dll" />
+      <None Remove="resources\assemblies\System.ComponentModel.Primitives.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.Primitives.dll" />
+      <None Remove="resources\assemblies\System.ComponentModel.TypeConverter.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.TypeConverter.dll" />
+      <None Remove="resources\assemblies\System.Console.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Console.dll" />
+      <None Remove="resources\assemblies\System.Data.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Data.dll" />
+      <None Remove="resources\assemblies\System.Data.Common.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Data.Common.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.Contracts.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Contracts.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.Debug.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Debug.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.FileVersionInfo.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.FileVersionInfo.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.Process.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Process.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.StackTrace.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.StackTrace.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.TextWriterTraceListener.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.TextWriterTraceListener.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.Tools.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Tools.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.TraceSource.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.TraceSource.dll" />
+      <None Remove="resources\assemblies\System.Diagnostics.Tracing.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Tracing.dll" />
+      <None Remove="resources\assemblies\System.Drawing.Primitives.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Drawing.Primitives.dll" />
+      <None Remove="resources\assemblies\System.Dynamic.Runtime.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Dynamic.Runtime.dll" />
+      <None Remove="resources\assemblies\System.Globalization.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Globalization.dll" />
+      <None Remove="resources\assemblies\System.Globalization.Calendars.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Globalization.Calendars.dll" />
+      <None Remove="resources\assemblies\System.Globalization.Extensions.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Globalization.Extensions.dll" />
+      <None Remove="resources\assemblies\System.IO.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.dll" />
+      <None Remove="resources\assemblies\System.IO.Compression.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.Compression.dll" />
+      <None Remove="resources\assemblies\System.IO.Compression.FileSystem.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.Compression.FileSystem.dll" />
+      <None Remove="resources\assemblies\System.IO.Compression.ZipFile.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.Compression.ZipFile.dll" />
+      <None Remove="resources\assemblies\System.IO.FileSystem.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.dll" />
+      <None Remove="resources\assemblies\System.IO.FileSystem.DriveInfo.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.DriveInfo.dll" />
+      <None Remove="resources\assemblies\System.IO.FileSystem.Primitives.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.Primitives.dll" />
+      <None Remove="resources\assemblies\System.IO.FileSystem.Watcher.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.Watcher.dll" />
+      <None Remove="resources\assemblies\System.IO.IsolatedStorage.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.IsolatedStorage.dll" />
+      <None Remove="resources\assemblies\System.IO.MemoryMappedFiles.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.MemoryMappedFiles.dll" />
+      <None Remove="resources\assemblies\System.IO.Pipes.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.Pipes.dll" />
+      <None Remove="resources\assemblies\System.IO.UnmanagedMemoryStream.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.IO.UnmanagedMemoryStream.dll" />
+      <None Remove="resources\assemblies\System.Linq.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Linq.dll" />
+      <None Remove="resources\assemblies\System.Linq.Expressions.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Linq.Expressions.dll" />
+      <None Remove="resources\assemblies\System.Linq.Parallel.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Linq.Parallel.dll" />
+      <None Remove="resources\assemblies\System.Linq.Queryable.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Linq.Queryable.dll" />
+      <None Remove="resources\assemblies\System.Memory.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Memory.dll" />
+      <None Remove="resources\assemblies\System.Net.Http.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.Http.dll" />
+      <None Remove="resources\assemblies\System.Net.NameResolution.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.NameResolution.dll" />
+      <None Remove="resources\assemblies\System.Net.NetworkInformation.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.NetworkInformation.dll" />
+      <None Remove="resources\assemblies\System.Net.Ping.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.Ping.dll" />
+      <None Remove="resources\assemblies\System.Net.Primitives.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.Primitives.dll" />
+      <None Remove="resources\assemblies\System.Net.Requests.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.Requests.dll" />
+      <None Remove="resources\assemblies\System.Net.Security.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.Security.dll" />
+      <None Remove="resources\assemblies\System.Net.Sockets.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.Sockets.dll" />
+      <None Remove="resources\assemblies\System.Net.WebHeaderCollection.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.WebHeaderCollection.dll" />
+      <None Remove="resources\assemblies\System.Net.WebSockets.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.WebSockets.dll" />
+      <None Remove="resources\assemblies\System.Net.WebSockets.Client.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Net.WebSockets.Client.dll" />
+      <None Remove="resources\assemblies\System.Numerics.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Numerics.dll" />
+      <None Remove="resources\assemblies\System.Numerics.Vectors.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Numerics.Vectors.dll" />
+      <None Remove="resources\assemblies\System.ObjectModel.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.ObjectModel.dll" />
+      <None Remove="resources\assemblies\System.Reflection.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Reflection.dll" />
+      <None Remove="resources\assemblies\System.Reflection.Extensions.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Reflection.Extensions.dll" />
+      <None Remove="resources\assemblies\System.Reflection.Metadata.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata.dll" />
+      <None Remove="resources\assemblies\System.Reflection.Primitives.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Reflection.Primitives.dll" />
+      <None Remove="resources\assemblies\System.Resources.Reader.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Resources.Reader.dll" />
+      <None Remove="resources\assemblies\System.Resources.ResourceManager.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Resources.ResourceManager.dll" />
+      <None Remove="resources\assemblies\System.Resources.Writer.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Resources.Writer.dll" />
+      <None Remove="resources\assemblies\System.Runtime.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.dll" />
+      <None Remove="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
+      <None Remove="resources\assemblies\System.Runtime.CompilerServices.VisualC.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.CompilerServices.VisualC.dll" />
+      <None Remove="resources\assemblies\System.Runtime.Extensions.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.Extensions.dll" />
+      <None Remove="resources\assemblies\System.Runtime.Handles.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.Handles.dll" />
+      <None Remove="resources\assemblies\System.Runtime.InteropServices.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.InteropServices.dll" />
+      <None Remove="resources\assemblies\System.Runtime.InteropServices.RuntimeInformation.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.InteropServices.RuntimeInformation.dll" />
+      <None Remove="resources\assemblies\System.Runtime.Numerics.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.Numerics.dll" />
+      <None Remove="resources\assemblies\System.Runtime.Serialization.Formatters.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Formatters.dll" />
+      <None Remove="resources\assemblies\System.Runtime.Serialization.Json.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Json.dll" />
+      <None Remove="resources\assemblies\System.Runtime.Serialization.Primitives.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Primitives.dll" />
+      <None Remove="resources\assemblies\System.Runtime.Serialization.Xml.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Xml.dll" />
+      <None Remove="resources\assemblies\System.Security.Claims.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.Claims.dll" />
+      <None Remove="resources\assemblies\System.Security.Cryptography.Algorithms.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Algorithms.dll" />
+      <None Remove="resources\assemblies\System.Security.Cryptography.Csp.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Csp.dll" />
+      <None Remove="resources\assemblies\System.Security.Cryptography.Encoding.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Encoding.dll" />
+      <None Remove="resources\assemblies\System.Security.Cryptography.Primitives.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Primitives.dll" />
+      <None Remove="resources\assemblies\System.Security.Cryptography.X509Certificates.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.X509Certificates.dll" />
+      <None Remove="resources\assemblies\System.Security.Principal.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.Principal.dll" />
+      <None Remove="resources\assemblies\System.Security.SecureString.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Security.SecureString.dll" />
+      <None Remove="resources\assemblies\System.Text.Encoding.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.dll" />
+      <None Remove="resources\assemblies\System.Text.Encoding.CodePages.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.CodePages.dll" />
+      <None Remove="resources\assemblies\System.Text.Encoding.Extensions.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.Extensions.dll" />
+      <None Remove="resources\assemblies\System.Text.RegularExpressions.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Text.RegularExpressions.dll" />
+      <None Remove="resources\assemblies\System.Threading.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.dll" />
+      <None Remove="resources\assemblies\System.Threading.Overlapped.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.Overlapped.dll" />
+      <None Remove="resources\assemblies\System.Threading.Tasks.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.dll" />
+      <None Remove="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
+      <None Remove="resources\assemblies\System.Threading.Tasks.Parallel.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.Parallel.dll" />
+      <None Remove="resources\assemblies\System.Threading.Thread.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.Thread.dll" />
+      <None Remove="resources\assemblies\System.Threading.ThreadPool.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.ThreadPool.dll" />
+      <None Remove="resources\assemblies\System.Threading.Timer.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Threading.Timer.dll" />
+      <None Remove="resources\assemblies\System.ValueTuple.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.ValueTuple.dll" />
+      <None Remove="resources\assemblies\YamlDotNet.dll" />
+      <EmbeddedResource Include="resources\assemblies\YamlDotNet.dll" />
+      <None Remove="resources\logo.png" />
+      <EmbeddedResource Include="resources\logo.png" />
+    </ItemGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="pwsh -File prepare_debug.ps1" />
+    </Target>
+
+</Project>
