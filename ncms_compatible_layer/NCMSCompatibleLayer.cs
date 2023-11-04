@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using NCMS;
 using NeoModLoader.api;
+using NeoModLoader.General;
+using NeoModLoader.services;
+using NeoModLoader.utils;
 
 namespace NeoModLoader.ncms_compatible_layer
 {
@@ -28,7 +31,10 @@ namespace NeoModLoader.ncms_compatible_layer
                 });
             }
 
+            NCMS.Utils.ResourcesPatch.modsResources = ResourcesPatch.GetAllPatchedResources();
             NCMS.Utils.Windows.init();
+            
+            LogService.LogInfo($"NCMS Compatible Layer has been initialized.");
         }
     }
 }
