@@ -96,7 +96,7 @@ public static class ModCompileLoadService
             $"{pModDecl.UUID}",
             syntaxTrees,
             list,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)
         );
         
         using MemoryStream dllms = new MemoryStream();
@@ -279,11 +279,13 @@ public static class ModCompileLoadService
                 File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{mod.UUID}.dll")), 
                 File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{mod.UUID}.pdb"))
                 );
+            bool type_found = false;
             foreach(var type in mod_assembly.GetTypes())
             {
                 if(type.GetInterface(nameof(IMod)) == null) continue;
                 if (type.IsSubclassOf(typeof(MonoBehaviour)))
                 {
+                    type_found = true;
                     var mod_instance = new GameObject(mod.Name, type)
                     {
                         transform =
@@ -316,6 +318,11 @@ public static class ModCompileLoadService
                     WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
                     break;
                 }
+            }
+            
+            if (!type_found)
+            {
+                LogService.LogWarning($"Cannot find Implement of IMod in {mod.UUID}, this mod will be executed as a lib mod?");
             }
         }
     }
