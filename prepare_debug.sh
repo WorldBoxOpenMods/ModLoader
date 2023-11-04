@@ -15,3 +15,5 @@ if [ -e $GAMEMODFOLDER/NeoModLoader.pdb ]; then
 else
   ln -s $BUILDFOLDER/NeoModLoader.pdb $GAMEMODFOLDER/NeoModLoader.pdb
 fi
+
+rm $GAMEMODFOLDER/NML/mod_compile_records.json
