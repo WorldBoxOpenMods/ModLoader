@@ -115,7 +115,7 @@ public static class SpriteLoadUtils
             {
                 if (setting.Path == Path.GetFileName(path))
                 {
-                    LogService.LogInfo($"Specific NCMSSetting {setting.Path} found for {path}");
+                    //LogService.LogInfo($"Specific NCMSSetting {setting.Path} found for {path}");
                     return setting;
                 }
             }
