@@ -5,4 +5,4 @@
 
 ![Icon](resources/logo.png)
 
-为Worldbox提供继NCMS后的新模组加载器
+为[Worldbox](http://www.superworldbox.com/)提供继[NCMS](https://denq04.github.io/ncms/)后的新模组加载器
