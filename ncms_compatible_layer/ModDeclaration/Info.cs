@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NCMS;
 using NeoModLoader.constants;
 using UnityEngine;
 
@@ -30,5 +31,14 @@ namespace ModDeclaration
         public readonly string IconPath;
 
         public readonly string Path;
+        internal Info(NCMod mod)
+        {
+            this.Name = mod.name;
+            this.Author = mod.author;
+            this.Version = mod.version;
+            this.Description = mod.description;
+            this.IconPath = mod.iconPath;
+            this.Path = mod.path;
+        }
     }
 }
