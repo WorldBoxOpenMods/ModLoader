@@ -51,6 +51,7 @@ public static class SpriteLoadUtils
     {
         byte[] raw_data = File.ReadAllBytes(path);
         Texture2D texture = new(0, 0);
+        texture.filterMode = FilterMode.Point;
         texture.LoadImage(raw_data);
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 1);
     }
@@ -58,6 +59,7 @@ public static class SpriteLoadUtils
     private static Sprite[] loadSpriteWithMeta(string path, TextureImporter textureImporter)
     {
         Texture2D texture = new(0, 0);
+        texture.filterMode = FilterMode.Point;
         texture.LoadImage(File.ReadAllBytes(path));
         Sprite[] sprites = new Sprite[textureImporter.spriteSheet.sprites.Count];
         for(int i = 0; i < sprites.Length; i++)
