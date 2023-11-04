@@ -34,6 +34,8 @@ namespace NCMS.Utils
             window.name = pWindowID;
 
             window.titleText.GetComponent<LocalizedText>().key = pWindowTitleKey;
+
+            ReflectionUtility.Reflection.CallMethod(window, "create", true);
             _all_windows[pWindowID] = window;
 
             return window;

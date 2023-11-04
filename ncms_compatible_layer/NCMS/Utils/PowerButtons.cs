@@ -52,6 +52,7 @@ namespace NCMS.Utils
                 obj = GameObject.Instantiate(prefab, parent);
             }
             prefab.SetActive(found_active);
+            obj.transform.localPosition = position;
 
 
             PowerButton asPowerButton = obj.GetComponent<PowerButton>();
@@ -64,7 +65,7 @@ namespace NCMS.Utils
             asPowerButton.name = name;
 
             // Set sprite
-            asPowerButton.GetComponent<Image>().sprite = sprite;
+            obj.transform.Find("Icon").GetComponent<Image>().sprite = sprite;
 
             // Set custom click callback
             if (call != null)
@@ -83,6 +84,7 @@ namespace NCMS.Utils
                     asPowerButton.type = PowerButtonType.Special;
                     break;
             }
+            obj.gameObject.SetActive(true);
 
             return asPowerButton;
         }

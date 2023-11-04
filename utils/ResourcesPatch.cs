@@ -91,7 +91,7 @@ internal static class ResourcesPatch
                     }
                     else
                     {
-                        direct_objects[Path.Combine(parent_path, obj.name)] = obj;
+                        direct_objects[Path.Combine(parent_path, obj.name).Replace('\\','/').ToLower()] = obj;
                     }
                 }
             }
@@ -116,7 +116,7 @@ internal static class ResourcesPatch
 
             foreach (var obj in objs)
             {
-                node.objects[obj.name] = obj;
+                node.objects[obj.name.ToLower()] = obj;
             }
         }
     }
@@ -187,7 +187,7 @@ internal static class ResourcesPatch
         var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
         foreach (var file in files)
         {
-            tree.AddFromFile(file.Replace(path, ""), file);
+            tree.AddFromFile(file.Replace(path, "").Replace('\\', '/').Substring(1), file);
         }
     }
     [HarmonyPostfix]

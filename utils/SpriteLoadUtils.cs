@@ -52,7 +52,7 @@ public static class SpriteLoadUtils
         byte[] raw_data = File.ReadAllBytes(path);
         Texture2D texture = new(0, 0);
         texture.LoadImage(raw_data);
-        return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 1);
     }
 
     private static Sprite[] loadSpriteWithMeta(string path, TextureImporter textureImporter)
@@ -63,7 +63,7 @@ public static class SpriteLoadUtils
         for(int i = 0; i < sprites.Length; i++)
         {
             var sprite = textureImporter.spriteSheet.sprites[i];
-            sprites[i] = Sprite.Create(texture, sprite.rect, sprite.pivot, 100, 0, SpriteMeshType.FullRect, sprite.border);
+            sprites[i] = Sprite.Create(texture, sprite.rect, sprite.pivot, 1, 0, SpriteMeshType.FullRect, sprite.border);
             sprites[i].name = sprite.name;
         }
         return sprites;
