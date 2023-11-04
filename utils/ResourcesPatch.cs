@@ -15,7 +15,7 @@ internal static class ResourcesPatch
     class ResourceTree
     {
         private ResourceTreeNode root = new();
-        private Dictionary<string, UnityEngine.Object> direct_objects = new();
+        internal Dictionary<string, UnityEngine.Object> direct_objects = new();
         public ResourceTreeNode Find(string path)
         {
             path = path.ToLower();
@@ -128,6 +128,11 @@ internal static class ResourcesPatch
     }
 
     private static ResourceTree tree;
+
+    public static Dictionary<string, UnityEngine.Object> GetAllPatchedResources()
+    {
+        return tree.direct_objects;
+    }
     internal static void Initialize()
     {
         tree = new ResourceTree();
@@ -140,7 +145,13 @@ internal static class ResourcesPatch
             tree.Add($"ui/special/{sprite.name}", sprite);
         }
     }
-
+    /// <summary>
+    /// Load a resource file from path, and named by pLowerPath.
+    /// </summary>
+    /// <param name="path">the path to the resource file to load</param>
+    /// <param name="pLowerPath">the lower of path with <see cref="CultureInfo.CurrentCulture"/></param>
+    /// <returns>The Objects loaded, if single Object, an array with single one; if no Objects, an empty array</returns>
+    /// <exception cref="UnrecognizableResourceFileException">It can recognize jpg, png, jpeg, txt, json, yml, prefab by postfix now</exception>
     public static UnityEngine.Object[] LoadResourceFile(ref string path, ref string pLowerPath)
     {
         if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
@@ -163,7 +174,7 @@ internal static class ResourcesPatch
 
     private static TextAsset LoadTextAsset(string path)
     {
-        TextAsset textAsset = Resources.Load<TextAsset>(path);
+        TextAsset textAsset = new TextAsset(File.ReadAllText(path));
         textAsset.name = Path.GetFileNameWithoutExtension(path);
         return textAsset;
     }
