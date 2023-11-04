@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ReflectionUtility
 {
+    [Obsolete("Compatible Layer will not be maintained and be removed in the future")]
     public static class Reflection
     {
         public static object CallMethod(this object o, string methodName, params object[] args)

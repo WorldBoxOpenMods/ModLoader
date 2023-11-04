@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace ModDeclaration
 {
+    [Obsolete("Compatible Layer will not be maintained and be removed in the future")]
     public class Info
     {
         public static readonly string DataPath = Application.dataPath;
