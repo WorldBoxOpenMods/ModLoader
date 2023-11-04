@@ -8,6 +8,7 @@
 [Oo]ut/
 [Pp]roperties/
 assemblies
+!resources/assemblies
 *.csproj
 *.user
 App.config

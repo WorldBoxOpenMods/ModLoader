@@ -78,6 +78,21 @@ public class WorldBoxMod : MonoBehaviour
         {
             Directory.CreateDirectory(Paths.NMLAssembliesPath);
             LogService.LogInfo($"Create NMLAssemblies folder at {Paths.NMLAssembliesPath}");
+            
+            var assembly = Assembly.GetExecutingAssembly();
+            var resources = assembly.GetManifestResourceNames();
+            foreach (var resource in resources)
+            {
+                if (resource.EndsWith(".dll"))
+                {
+                    var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
+                    var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name);
+                    using var stream = assembly.GetManifestResourceStream(resource);
+                    using var file = new FileStream(file_path, FileMode.Create, FileAccess.Write);
+                    stream.CopyTo(file);
+                    // LogService.LogInfo($"Extract {file_name} to {file_path}");
+                }
+            }
         }
         
         foreach (var file_full_path in Directory.GetFiles(
