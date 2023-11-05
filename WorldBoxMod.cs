@@ -59,7 +59,9 @@ public class WorldBoxMod : MonoBehaviour
         NCMSCompatibleLayer.Init();
         ModWorkshopService.Init();
         
-        ui.UIManager.init();;
+        ui.UIManager.init();
+
+        NMLAutoUpdateService.CheckUpdate();
     }
 
     private void LoadLocales()

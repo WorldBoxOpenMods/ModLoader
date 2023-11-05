@@ -9,6 +9,7 @@
 [Pp]roperties/
 assemblies
 !resources/assemblies
+resources/commit
 *.csproj
 *.user
 App.config

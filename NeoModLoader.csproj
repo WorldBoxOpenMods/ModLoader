@@ -649,9 +649,14 @@
       <EmbeddedResource Include="resources\locales\tc.json" />
       <None Remove="resources\square_frame_only.png" />
       <EmbeddedResource Include="resources\square_frame_only.png" />
+      <None Remove="resources\commit" />
+      <EmbeddedResource Include="resources\commit" />
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="pwsh -File prepare_debug.ps1" />
+    </Target>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="pwsh -File before_build.ps1" />
     </Target>
 
 </Project>
