@@ -149,7 +149,7 @@ public class ModListWindow : AbstractWindow<ModListWindow>
             RemoveModFromList(mod);
         }
         showedMods.Clear();
-        showedMods.UnionWith(showedMods);
+        showedMods.UnionWith(mods);
     }
 
     private void AddModToList(IMod mod)
