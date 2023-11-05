@@ -64,6 +64,62 @@ public class ModDependencyGraph
 }
 internal static class ModDependencyUtils
 {
+    public static ModDependencyNode TryToAppendMod(ModDependencyGraph pGraph, ModDeclare pModAppend)
+    {
+        bool success = true;
+        if (pModAppend.IncompatibleWith != null && pModAppend.IncompatibleWith.Length > 0)
+        {
+            bool incom_headLog = false;
+            foreach (var gnode in pGraph.nodes)
+            {
+                if (pModAppend.IncompatibleWith.Contains(gnode.mod_decl.UUID))
+                {
+                    LogService.LogError($"Mod {pModAppend.UUID} is incompatible with mod {gnode.mod_decl.UUID}");
+                    success = false;
+                }
+            }
+        }
+        ModDependencyNode node = new(pModAppend);
+        bool mis_depen_headLog = false;
+        foreach(string dependency in pModAppend.Dependencies)
+        {
+            try
+            {
+                ModDependencyNode depen_node = pGraph.nodes.First(n => n.mod_decl.UUID == dependency);
+                if(mis_depen_headLog || !success) continue;
+                node.necessary_depend_on.Add(depen_node);
+                depen_node.depend_by.Add(node);
+            }
+            catch (InvalidOperationException)
+            {
+                if (!mis_depen_headLog)
+                {
+                    LogService.LogError($"Mod {pModAppend.UUID} has missing dependencies:");
+                    mis_depen_headLog = true;
+                    success = false;
+                    continue;
+                }
+                LogService.LogError($"    {dependency}");
+            }
+        }
+
+        if (!success) return null;
+
+        foreach (string option_depen in pModAppend.OptionalDependencies)
+        {
+            foreach (var gnode in pGraph.nodes)
+            {
+                if(gnode.mod_decl.UUID == option_depen)
+                {
+                    node.depend_on.Add(gnode);
+                    gnode.depend_by.Add(node);
+                }
+            }
+        }
+
+        pGraph.nodes.Add(node);
+        return node;
+    }
     public static void RemoveCircleDependencies(ModDependencyGraph pGraph)
     {
         // Remove circle dependencies and make sure more mods load.
@@ -106,7 +162,15 @@ internal static class ModDependencyUtils
                 LogService.LogError($"Mod {curr_node.mod_decl.UUID} has missing dependencies:");
                 foreach (var dependency in curr_node.mod_decl.Dependencies)
                 {
-                    if (!curr_node.necessary_depend_on.Contains(pGraph.nodes.First(node => node.mod_decl.UUID == dependency)))
+                    try
+                    {
+                        var depen_node = pGraph.nodes.First(node => node.mod_decl.UUID == dependency);
+                        if (!curr_node.necessary_depend_on.Contains(depen_node))
+                        {
+                            LogService.LogError($"    {dependency}");
+                        }
+                    }
+                    catch (InvalidOperationException)
                     {
                         LogService.LogError($"    {dependency}");
                     }

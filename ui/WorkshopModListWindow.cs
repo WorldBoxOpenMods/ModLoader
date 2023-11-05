@@ -24,10 +24,38 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
             Image icon = transform.Find("Icon").GetComponent<Image>();
             icon.sprite = sprite;
             
-            Button downloadButton = transform.Find("Load").GetComponent<Button>();
-            downloadButton.onClick.AddListener(() =>
+            Button loadButton = transform.Find("Load").GetComponent<Button>();
+            loadButton.onClick.AddListener(() =>
             {
-                //ModConfigureWindow.ShowWindow(mod);
+                if (ModCompileLoadService.IsModLoaded(modDeclare.UUID))
+                {
+                    ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
+                                               $"Mod already loaded.";
+                    ScrollWindow.get("error_with_reason").clickShow();
+                    return;
+                }
+
+                ModDependencyNode node = ModDepenSolveService.SolveModDependencyRuntime(modDeclare);
+                if (node == null)
+                {
+                    ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
+                                               $"Failed to solve mod dependency." +
+                                               $"Check Incompatible mods and dependencies, then try again.";
+                    ScrollWindow.get("error_with_reason").clickShow();
+                    return;
+                }
+                
+                bool success = ModCompileLoadService.compileMod(node);
+                if (!success)
+                {
+                    ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
+                                               $"Failed to compile mod." +
+                                               $"Check Incompatible mods and dependencies, then try again.";
+                    ScrollWindow.get("error_with_reason").clickShow();
+                    return;
+                }
+                
+                ModCompileLoadService.LoadMod(node.mod_decl);
             });
             Button websiteButton = transform.Find("Website").GetComponent<Button>();
             websiteButton.onClick.AddListener(() =>

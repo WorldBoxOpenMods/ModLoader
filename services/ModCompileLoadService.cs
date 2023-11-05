@@ -193,15 +193,8 @@ public static class ModCompileLoadService
     {
         foreach (var mod_node in pModNodes)
         {
-            try
-            {
-                mod_inc_path.Add(mod_node.mod_decl.UUID,
-                    Path.Combine(Paths.CompiledModsPath, $"{mod_node.mod_decl.UUID}.dll"));
-            }
-            catch (ArgumentException)
-            {
-                LogService.LogError($"Error when get mod {mod_node.mod_decl.Name} compile path: {mod_node.mod_decl.UUID}");
-            }
+            mod_inc_path.Add(mod_node.mod_decl.UUID,
+                Path.Combine(Paths.CompiledModsPath, $"{mod_node.mod_decl.UUID}.dll"));
         }
 
         var default_ref_path_list = new List<string>();
@@ -225,6 +218,12 @@ public static class ModCompileLoadService
             }
         }
         #endif
+    }
+
+    public static void prepareCompileRuntime(ModDependencyNode pModNode)
+    {
+        mod_inc_path.Add(pModNode.mod_decl.UUID,
+            Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UUID}.dll"));
     }
     public static bool compileMod(ModDependencyNode pModNode)
     {
@@ -275,55 +274,72 @@ public static class ModCompileLoadService
         // It can be sure that all mods are compiled successfully.
         foreach (var mod in mods_to_load)
         {
-            Assembly mod_assembly = Assembly.Load(
-                File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{mod.UUID}.dll")), 
-                File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{mod.UUID}.pdb"))
+            LoadMod(mod);
+        }
+    }
+
+    public static void LoadMod(ModDeclare pMod)
+    {
+        Assembly mod_assembly = Assembly.Load(
+                File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UUID}.dll")), 
+                File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UUID}.pdb"))
                 );
-            bool type_found = false;
-            foreach(var type in mod_assembly.GetTypes())
+        bool type_found = false;
+        foreach(var type in mod_assembly.GetTypes())
+        {
+            if(type.GetInterface(nameof(IMod)) == null) continue;
+            if (type.IsSubclassOf(typeof(MonoBehaviour)))
             {
-                if(type.GetInterface(nameof(IMod)) == null) continue;
-                if (type.IsSubclassOf(typeof(MonoBehaviour)))
+                type_found = true;
+                var mod_instance = new GameObject(pMod.Name, type)
                 {
-                    type_found = true;
-                    var mod_instance = new GameObject(mod.Name, type)
+                    transform =
                     {
-                        transform =
-                        {
-                            parent = GameObject.Find("Services/ModLoader").transform
-                        }
-                    };
-                    try
-                    {
-                        IMod mod_interface = (IMod)mod_instance.GetComponent(type);
-
-                        if (mod_interface == null)
-                        {
-                            LogService.LogError($"Some Errors happen, Mod component cannot be attached");
-                            break;
-                        }
-
-                        mod_interface.OnLoad(mod, mod_instance);
+                        parent = GameObject.Find("Services/ModLoader").transform
                     }
-                    catch (Exception e)
+                };
+                try
+                {
+                    IMod mod_interface = (IMod)mod_instance.GetComponent(type);
+
+                    if (mod_interface == null)
                     {
-                        LogService.LogError(e.Message);
-                        if (e.StackTrace != null) LogService.LogError(e.StackTrace);
-                        
-                        mod_instance.SetActive(false);
-                        LogService.LogError($"{mod.Name} has been disabled due to an error. Please check the log for details.");
-                        
-                        continue;
+                        LogService.LogError($"Some Errors happen, Mod component cannot be attached");
+                        break;
                     }
-                    WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
-                    break;
+
+                    mod_interface.OnLoad(pMod, mod_instance);
                 }
-            }
-            
-            if (!type_found)
-            {
-                LogService.LogWarning($"Cannot find Implement of IMod in {mod.UUID}, this mod will be executed as a lib mod?");
+                catch (Exception e)
+                {
+                    LogService.LogError(e.Message);
+                    if (e.StackTrace != null) LogService.LogError(e.StackTrace);
+                    
+                    mod_instance.SetActive(false);
+                    LogService.LogError($"{pMod.Name} has been disabled due to an error. Please check the log for details.");
+                    
+                    continue;
+                }
+                WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
+                break;
             }
         }
+        
+        if (!type_found)
+        {
+            LogService.LogWarning($"Cannot find Implement of IMod in {pMod.UUID}, this mod will be executed as a lib mod?");
+        }
+    }
+    public static bool IsModLoaded(string uuid)
+    {
+        foreach (var mod in WorldBoxMod.LoadedMods)
+        {
+            if (mod.GetDeclaration().UUID == uuid)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -3,11 +3,12 @@ using NeoModLoader.utils;
 
 namespace NeoModLoader.services;
 
-public static class ModDepenSolveService
+internal static class ModDepenSolveService
 {
+    private static ModDependencyGraph graph;
     public static List<ModDependencyNode> SolveModDependencies(List<api.ModDeclare> mods)
     {
-        ModDependencyGraph graph = new ModDependencyGraph(mods);
+        graph = new ModDependencyGraph(mods);
         
         mods.Clear();
         // Remove circle dependencies, make sure more mods load.
@@ -22,5 +23,14 @@ public static class ModDepenSolveService
         var ret = ModDependencyUtils.SortModsCompileOrderFromDependencyTopology(graph);
         ret.Reverse();
         return ret; 
+    }
+    /// <summary>
+    /// Get a mod's dependency node at runtime.
+    /// </summary>
+    /// <param name="mod"></param>
+    /// <returns>The dependency node</returns>
+    public static ModDependencyNode SolveModDependencyRuntime(ModDeclare mod)
+    {
+        return ModDependencyUtils.TryToAppendMod(graph, mod);
     }
 }
