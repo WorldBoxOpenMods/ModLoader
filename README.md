@@ -22,3 +22,7 @@
 3. 添加BepInEx支持
 4. 根据mod.json直接加载Mods文件夹下的已编译模组
 5. 加载zip等压缩包中的模组
+
+## 安装方法
+1. 下载NeoModLoader.dll(和NeoModLoader.pdb)放入GAMEPATH/worldbox_Data/StreamingAssets/mods文件夹
+2. 在开启实验模式的情况下启动游戏

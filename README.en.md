@@ -22,3 +22,7 @@ Provide a new mod loader for [Worldbox](http://www.superworldbox.com/) after [NC
 3. Add BepInEx support
 4. Load compiled mods under Mods folder directly according to mod.json
 5. Load mods in zip and other compressed packages
+
+## How to install
+1. Download NeoModLoader.dll (and NeoModLoader.pdb) and put it in GAMEPATH/worldbox_Data/StreamingAssets/mods folder
+2. Start the game with experimental mode enabled
