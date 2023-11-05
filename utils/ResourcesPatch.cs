@@ -142,7 +142,7 @@ internal static class ResourcesPatch
         atlas.GetSprites(sprites);
         foreach (var sprite in sprites)
         {
-            tree.Add($"ui/special/{sprite.name}", sprite);
+            tree.Add($"ui/special/{sprite.name.Replace("(Clone)", "")}", sprite);
         }
     }
     /// <summary>
