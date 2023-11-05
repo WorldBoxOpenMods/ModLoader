@@ -636,6 +636,12 @@
       <EmbeddedResource Include="resources\assemblies\YamlDotNet.dll" />
       <None Remove="resources\logo.png" />
       <EmbeddedResource Include="resources\logo.png" />
+      <None Remove="resources\locales\cz.json" />
+      <EmbeddedResource Include="resources\locales\cz.json" />
+      <None Remove="resources\locales\en.json" />
+      <EmbeddedResource Include="resources\locales\en.json" />
+      <None Remove="resources\locales\tc.json" />
+      <EmbeddedResource Include="resources\locales\tc.json" />
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="pwsh -File prepare_debug.ps1" />
