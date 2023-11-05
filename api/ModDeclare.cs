@@ -11,10 +11,11 @@ public class ModDeclare
     {
         
     }
-    public ModDeclare(string pName, string pAuthor, string pVersion, string pDescription, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
+    public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
     {
         Name = pName;
         Author = pAuthor;
+        IconPath = pIconPath;
         Version = pVersion;
         Description = pDescription;
         Dependencies = pDependencies;
@@ -34,6 +35,7 @@ public class ModDeclare
         Name = modDeclare.Name;
         Author = modDeclare.Author;
         Version = modDeclare.Version;
+        IconPath = modDeclare.IconPath;
         Description = modDeclare.Description;
         Dependencies = modDeclare.Dependencies;
         OptionalDependencies = modDeclare.OptionalDependencies;

@@ -14,10 +14,12 @@ public class WorldBoxMod : MonoBehaviour
 {
     private bool initialized = false;
     public static List<IMod> LoadedMods = new();
+    internal static Transform Transform;
     internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
     private void Start()
     {
         Others.unity_player_enabled = true;
+        Transform = transform;
         fileSystemInitialize();
     }
     private void Update()
@@ -56,6 +58,8 @@ public class WorldBoxMod : MonoBehaviour
 
         ModCompileLoadService.loadMods(mods_to_load);
         NCMSCompatibleLayer.Init();
+        
+        ui.UIManager.init();
     }
 
     private void LoadLocales()
