@@ -59,11 +59,22 @@ public static class SpriteLoadUtils
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
     }
+    private static Dictionary<string, Sprite> singleSpriteCache = new();
+    public static Sprite LoadSingleSprite(string path)
+    {
+        if (singleSpriteCache.TryGetValue(path, out Sprite s))
+        {
+            return s;
+        }
 
+        Sprite sprite = loadSpriteSimply(path);
+        singleSpriteCache[path] = sprite;
+        return sprite;
+    }
     private static Dictionary<string, NCMSSpritesSettings> dirNCMSSettings = new();
     private static HashSet<string> ignoreNCMSSettingsSearchPath = new();
     private static NCMSSpritesSettings.SpecificSetting defaultNCMSSetting = new();
-
+    
     public static Sprite[] LoadSprites(string path)
     {
         TextureImporter textureImporter = loadMeta($"{path}.meta");

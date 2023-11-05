@@ -15,9 +15,11 @@ public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow
     protected bool Initialized;
     protected bool IsOpened;
     protected bool IsFirstOpen = true;
+    public static string WindowId { get; protected set; }
 
     public static T CreateAndInit(string pWindowId)
     {
+        WindowId = pWindowId;
         ScrollWindow scroll_window = WindowCreator.CreateEmptyWindow(pWindowId, pWindowId + " Title");
         
         GameObject window_object = scroll_window.gameObject;

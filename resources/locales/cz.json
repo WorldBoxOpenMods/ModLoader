@@ -4,5 +4,6 @@
   "NeoModList Title": "模组列表",
   "WorkshopMods Title": "创意工坊订阅模组",
   "NeoModLoader Update Title": "NeoModLoader 更新",
-  "NeoModLoader Update Complete": "NeoModLoader 更新至{0},\n 重启游戏以应用更新。"
+  "NeoModLoader Update Complete": "NeoModLoader 更新至{0},\n 重启游戏以应用更新。",
+  "ModUpload Title": "上传模组"
 }

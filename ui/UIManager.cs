@@ -11,6 +11,7 @@ internal static class UIManager
     {
         ModListWindow.CreateAndInit("NeoModList");
         WorkshopModListWindow.CreateAndInit("WorkshopMods");
+        ModUploadWindow.CreateAndInit("ModUpload");
         PowerButtonCreator.CreateWindowButton("NML_ModsList", "NeoModList", InternalResourcesGetter.GetIcon(),
             PowerTabs.Main, new Vector2(403.2f, -18));
     }

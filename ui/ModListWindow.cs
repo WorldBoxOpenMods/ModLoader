@@ -8,6 +8,9 @@ namespace NeoModLoader.ui;
 
 public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 {
+    private ModDeclare clickedMod;
+    private int clickTimes;
+    private float lastClickTime;
     public class ModListItem : AbstractListWindowItem<IMod>
     {
         public override void Setup(IMod mod)
@@ -18,13 +21,35 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             
             LogService.LogInfo($"Try to load icon for mod {modDeclare.Name} from {modDeclare.FolderPath}/{modDeclare.IconPath}");
             if(string.IsNullOrEmpty(modDeclare.IconPath)) return;
-            Sprite sprite = SpriteLoadUtils.LoadSprites(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath))[0];
+            Sprite sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath));
             if (sprite == null)
             {
                 return;
             }
             Image icon = transform.Find("Icon").GetComponent<Image>();
             icon.sprite = sprite;
+            icon.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                float currentTime = Time.time;
+                if (currentTime - Instance.lastClickTime > 1)
+                {
+                    Instance.clickTimes = 0;
+                }
+
+                if (modDeclare != Instance.clickedMod)
+                {
+                    Instance.clickedMod = modDeclare;
+                    Instance.clickTimes = 0;
+                }
+                Instance.lastClickTime = currentTime;
+                Instance.clickTimes++;
+                if (Instance.clickTimes >= 8)
+                {
+                    Instance.clickTimes = 0;
+                    Instance.clickedMod = null;
+                    ModUploadWindow.ShowWindow(mod);
+                }
+            });
             
             Button configureButton = transform.Find("Configure").GetComponent<Button>();
             configureButton.onClick.AddListener(() =>
@@ -107,7 +132,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         bg.sprite = Resources.Load<Sprite>("ui/special/windowInnerSliced");
         bg.type = Image.Type.Sliced;
 
-        GameObject icon = new GameObject("Icon", typeof(Image));
+        GameObject icon = new GameObject("Icon", typeof(Image), typeof(Button));
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = new(-75, 0);
         icon.transform.localScale = Vector3.one;
