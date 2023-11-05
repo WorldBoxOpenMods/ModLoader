@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text;
 using NeoModLoader.api;
 using NeoModLoader.services;
 
@@ -67,6 +68,7 @@ internal static class ModDependencyUtils
     public static ModDependencyNode TryToAppendMod(ModDependencyGraph pGraph, ModDeclare pModAppend)
     {
         bool success = true;
+        StringBuilder sb = new StringBuilder();
         if (pModAppend.IncompatibleWith != null && pModAppend.IncompatibleWith.Length > 0)
         {
             bool incom_headLog = false;
@@ -74,8 +76,13 @@ internal static class ModDependencyUtils
             {
                 if (pModAppend.IncompatibleWith.Contains(gnode.mod_decl.UUID))
                 {
-                    LogService.LogError($"Mod {pModAppend.UUID} is incompatible with mod {gnode.mod_decl.UUID}");
-                    success = false;
+                    if (!incom_headLog)
+                    {
+                        sb.AppendLine($"Mod {pModAppend.UUID} is incompatible with mods:");
+                        incom_headLog = true;
+                        success = false;
+                    }
+                    sb.AppendLine($"    {gnode.mod_decl.UUID}");
                 }
             }
         }
@@ -94,16 +101,20 @@ internal static class ModDependencyUtils
             {
                 if (!mis_depen_headLog)
                 {
-                    LogService.LogError($"Mod {pModAppend.UUID} has missing dependencies:");
+                    sb.AppendLine($"Mod {pModAppend.UUID} has missing dependencies:");
                     mis_depen_headLog = true;
                     success = false;
                     continue;
                 }
-                LogService.LogError($"    {dependency}");
+                sb.AppendLine($"    {dependency}");
             }
         }
 
-        if (!success) return null;
+        if (!success)
+        {
+            LogService.LogError(sb.ToString());
+            return null;
+        }
 
         foreach (string option_depen in pModAppend.OptionalDependencies)
         {
@@ -159,7 +170,8 @@ internal static class ModDependencyUtils
                     check_nodes.Enqueue(depend_by_node);
                 }
                 pGraph.nodes.Remove(curr_node);
-                LogService.LogError($"Mod {curr_node.mod_decl.UUID} has missing dependencies:");
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Mod {curr_node.mod_decl.UUID} has missing dependencies:");
                 foreach (var dependency in curr_node.mod_decl.Dependencies)
                 {
                     try
@@ -167,14 +179,15 @@ internal static class ModDependencyUtils
                         var depen_node = pGraph.nodes.First(node => node.mod_decl.UUID == dependency);
                         if (!curr_node.necessary_depend_on.Contains(depen_node))
                         {
-                            LogService.LogError($"    {dependency}");
+                            sb.AppendLine($"    {dependency}");
                         }
                     }
                     catch (InvalidOperationException)
                     {
-                        LogService.LogError($"    {dependency}");
+                        sb.AppendLine($"    {dependency}");
                     }
                 }
+                LogService.LogError(sb.ToString());
                 
             }
             else
