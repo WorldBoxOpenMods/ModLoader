@@ -642,6 +642,8 @@
       <EmbeddedResource Include="resources\locales\en.json" />
       <None Remove="resources\locales\tc.json" />
       <EmbeddedResource Include="resources\locales\tc.json" />
+      <None Remove="resources\square_frame_only.png" />
+      <EmbeddedResource Include="resources\square_frame_only.png" />
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="pwsh -File prepare_debug.ps1" />

@@ -25,6 +25,17 @@ public class ModListWindow : AbstractWindow<ModListWindow>
             }
             Image icon = transform.Find("Icon").GetComponent<Image>();
             icon.sprite = sprite;
+            
+            Button configureButton = transform.Find("Configure").GetComponent<Button>();
+            configureButton.onClick.AddListener(() =>
+            {
+                //ModConfigureWindow.ShowWindow(mod);
+            });
+            Button websiteButton = transform.Find("Website").GetComponent<Button>();
+            websiteButton.onClick.AddListener(() =>
+            {
+                Application.OpenURL(mod.GetUrl());
+            });
         }
     }
     private HashSet<IMod> showedMods = new();
@@ -60,20 +71,64 @@ public class ModListWindow : AbstractWindow<ModListWindow>
 
         GameObject icon = new GameObject("Icon", typeof(Image));
         icon.transform.SetParent(obj.transform);
-        icon.transform.localPosition = new(-70, 0);
+        icon.transform.localPosition = new(-75, 0);
         icon.transform.localScale = Vector3.one;
         icon.GetComponent<RectTransform>().sizeDelta = new(40, 40);
         Image iconImage = icon.GetComponent<Image>();
         iconImage.sprite = InternalResourcesGetter.GetIcon();
         
+        GameObject iconFrame = new GameObject("IconFrame", typeof(Image));
+        iconFrame.transform.SetParent(icon.transform);
+        iconFrame.transform.localPosition = Vector3.zero;
+        iconFrame.transform.localScale = Vector3.one;
+        iconFrame.GetComponent<RectTransform>().sizeDelta = icon.GetComponent<RectTransform>().sizeDelta + new Vector2(5, 5);
+        Image iconFrameImage = iconFrame.GetComponent<Image>();
+        iconFrameImage.sprite = InternalResourcesGetter.GetIconFrame();
+        iconFrameImage.type = Image.Type.Sliced;
+        
         GameObject text = new GameObject("Text", typeof(Text));
         text.transform.SetParent(obj.transform);
-        text.GetComponent<RectTransform>().sizeDelta = new(100, 50);
+        text.transform.localPosition = new(12.5f, 0);
+        text.transform.localScale = Vector3.one;
+        text.GetComponent<RectTransform>().sizeDelta = new(125, 50);
         Text textText = text.GetComponent<Text>();
         textText.font = LocalizedTextManager.currentFont;
         textText.fontSize = 6;
         textText.text = "{0}\t{1}\n{2}\n{3}";
         textText.supportRichText = true;
+        
+        Vector2 single_button_size = new(22, 22);
+        GameObject configure = new GameObject("Configure", typeof(Image), typeof(Button));
+        configure.transform.SetParent(obj.transform);
+        configure.transform.localPosition = new(87, 12);
+        configure.transform.localScale = Vector3.one;
+        configure.GetComponent<RectTransform>().sizeDelta = single_button_size;
+        Image configureImageBG = configure.GetComponent<Image>();
+        configureImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
+        configureImageBG.type = Image.Type.Sliced;
+        GameObject configureIcon = new GameObject("Icon", typeof(Image));
+        configureIcon.transform.SetParent(configure.transform);
+        configureIcon.transform.localPosition = Vector3.zero;
+        configureIcon.transform.localScale = Vector3.one;
+        configureIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
+        Image configureIconImage = configureIcon.GetComponent<Image>();
+        configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconOptions");
+        
+        GameObject website = new GameObject("Website", typeof(Image), typeof(Button));
+        website.transform.SetParent(obj.transform);
+        website.transform.localPosition = new(87, -12);
+        website.transform.localScale = Vector3.one;
+        website.GetComponent<RectTransform>().sizeDelta = single_button_size;
+        Image websiteImageBG = website.GetComponent<Image>();
+        websiteImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
+        websiteImageBG.type = Image.Type.Sliced;
+        GameObject websiteIcon = new GameObject("Icon", typeof(Image));
+        websiteIcon.transform.SetParent(website.transform);
+        websiteIcon.transform.localPosition = Vector3.zero;
+        websiteIcon.transform.localScale = Vector3.one;
+        websiteIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
+        Image websiteIconImage = websiteIcon.GetComponent<Image>();
+        websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconCommunity");
     }
 
     public override void OnNormalEnable()

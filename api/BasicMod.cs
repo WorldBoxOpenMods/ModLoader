@@ -1,3 +1,4 @@
+using NeoModLoader.constants;
 using NeoModLoader.services;
 using UnityEngine;
 
@@ -9,6 +10,11 @@ public abstract class BasicMod : MonoBehaviour, IMod
     public GameObject GetGameObject()
     {
         return gameObject;
+    }
+
+    public virtual string GetUrl()
+    {
+        return CoreConstants.OrgURL;
     }
 
 
