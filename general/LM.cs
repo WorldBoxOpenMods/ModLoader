@@ -16,6 +16,29 @@ public static class LM
         return LocalizedTextManager.getText(key);
     }
     /// <summary>
+    /// Load locale from a stream (It must be a json file)
+    /// </summary>
+    /// <param name="pLanguage">Target save language</param>
+    /// <param name="pStream">Stream of locale file</param>
+    /// <exception cref="FormatException">Text in <see cref="pStream"/> is not in correct format to its file name extension</exception>
+    public static void LoadLocale(string pLanguage, Stream pStream)
+    {
+        string text = new StreamReader(pStream).ReadToEnd();
+        Dictionary<string, string> locale =
+            Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(text);
+
+        if (locale == null)
+        {
+            throw new FormatException($"Failed to load locale file for stream as json");
+        }
+
+        foreach (var (key, value) in locale)
+        {
+            Add(pLanguage, key, value);
+        }
+    }
+
+    /// <summary>
     /// Load locale from a file
     /// </summary>
     /// <param name="pLanguage">Target save language</param>
@@ -27,7 +50,7 @@ public static class LM
         if (pFilePath.ToLower().EndsWith(".json"))
         {
             Dictionary<string, string> locale =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(pFilePath);
+                Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(pFilePath));
 
             if (locale == null)
             {
@@ -90,7 +113,7 @@ public static class LM
     /// </summary>
     private static Dictionary<string, Dictionary<string, string>> locales = new();
     /// <summary>
-    /// Apply all locales loaded by this mod to current locale.
+    /// Apply all locales loaded by this mod to target locale.
     /// <remarks>It will be called automatically by NML when language is changed.</remarks>
     /// </summary>
     /// <param name="language">Language to apply</param>
@@ -107,6 +130,32 @@ public static class LM
         }
         
         foreach (var (key, value) in locales[language])
+        {
+            localized_text[key] = value;
+        }
+    }
+    /// <summary>
+    /// Apply all locales loaded by this mod to current locale.
+    /// <remarks>It will be called automatically by NML when language is changed.</remarks>
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public static void ApplyLocale()
+    {
+        if (string.IsNullOrEmpty(current_language))
+        {
+            current_language = LocalizedTextManager.instance.GetField<string>("language");
+        }
+        if (!locales.ContainsKey(current_language))
+        {
+            return;
+        }
+        // It can be sured that localized_text points to LocalizedTextManager.localizedText because of the patch of LocalizedTextManager.setLanguage
+        if (localized_text == null) 
+        {
+            localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>>("localizedText");
+        }
+        
+        foreach (var (key, value) in locales[current_language])
         {
             localized_text[key] = value;
         }

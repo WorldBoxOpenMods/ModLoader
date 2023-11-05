@@ -14,6 +14,7 @@ public class WorldBoxMod : MonoBehaviour
 {
     private bool initialized = false;
     public static List<IMod> LoadedMods = new();
+    internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
     private void Start()
     {
         Others.unity_player_enabled = true;
@@ -28,6 +29,9 @@ public class WorldBoxMod : MonoBehaviour
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
         
         ResourcesPatch.Initialize();
+
+        LoadLocales();
+        LM.ApplyLocale();
 
         var mods = ModInfoUtils.findMods();
 
@@ -52,6 +56,18 @@ public class WorldBoxMod : MonoBehaviour
 
         ModCompileLoadService.loadMods(mods_to_load);
         NCMSCompatibleLayer.Init();
+    }
+
+    private void LoadLocales()
+    {
+        string[] resources = NeoModLoaderAssembly.GetManifestResourceNames();
+        string locale_path = "NeoModLoader.resources.locales.";
+        foreach (string resource_path in resources)
+        {
+            if(!resource_path.StartsWith(locale_path)) continue;
+            
+            LM.LoadLocale(resource_path.Replace(locale_path, "").Replace(".json", ""), NeoModLoaderAssembly.GetManifestResourceStream(resource_path));
+        }
     }
 
     private void fileSystemInitialize()
@@ -79,15 +95,14 @@ public class WorldBoxMod : MonoBehaviour
             Directory.CreateDirectory(Paths.NMLAssembliesPath);
             LogService.LogInfo($"Create NMLAssemblies folder at {Paths.NMLAssembliesPath}");
             
-            var assembly = Assembly.GetExecutingAssembly();
-            var resources = assembly.GetManifestResourceNames();
+            var resources = NeoModLoaderAssembly.GetManifestResourceNames();
             foreach (var resource in resources)
             {
                 if (resource.EndsWith(".dll"))
                 {
                     var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
                     var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name);
-                    using var stream = assembly.GetManifestResourceStream(resource);
+                    using var stream = NeoModLoaderAssembly.GetManifestResourceStream(resource);
                     using var file = new FileStream(file_path, FileMode.Create, FileAccess.Write);
                     stream.CopyTo(file);
                     // LogService.LogInfo($"Extract {file_name} to {file_path}");
