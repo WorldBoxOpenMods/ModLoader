@@ -154,6 +154,7 @@ public static class SpriteLoadUtils
             }
 
             dir = Path.GetDirectoryName(dir);
+            if(string.IsNullOrEmpty(dir)) return null;
         }
     }
 

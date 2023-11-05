@@ -6,17 +6,15 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
 
-public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
+public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, ModDeclare>
 {
-    public class ModListItem : AbstractListWindowItem<IMod>
+    public class WorkshopModListItem : AbstractListWindowItem<ModDeclare>
     {
-        public override void Setup(IMod mod)
+        public override void Setup(ModDeclare modDeclare)
         {
-            ModDeclare modDeclare = mod.GetDeclaration();
             Text text = transform.Find("Text").GetComponent<Text>();
             text.text = string.Format(text.text, modDeclare.Name, modDeclare.Version, modDeclare.Author, modDeclare.Description);
-            
-            LogService.LogInfo($"Try to load icon for mod {modDeclare.Name} from {modDeclare.FolderPath}/{modDeclare.IconPath}");
+            LogService.LogInfo($"Try to load icon for mod {modDeclare.Name}'s icon from {modDeclare.FolderPath??"null"}/{modDeclare.IconPath??"null"}");
             if(string.IsNullOrEmpty(modDeclare.IconPath)) return;
             Sprite sprite = SpriteLoadUtils.LoadSprites(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath))[0];
             if (sprite == null)
@@ -26,78 +24,80 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             Image icon = transform.Find("Icon").GetComponent<Image>();
             icon.sprite = sprite;
             
-            Button configureButton = transform.Find("Configure").GetComponent<Button>();
-            configureButton.onClick.AddListener(() =>
+            Button downloadButton = transform.Find("Load").GetComponent<Button>();
+            downloadButton.onClick.AddListener(() =>
             {
                 //ModConfigureWindow.ShowWindow(mod);
             });
             Button websiteButton = transform.Find("Website").GetComponent<Button>();
             websiteButton.onClick.AddListener(() =>
             {
-                Application.OpenURL(mod.GetUrl());
+                //Application.OpenURL(mod.GetUrl());
             });
         }
     }
-    private HashSet<IMod> showedMods = new();
-    private List<IMod> to_add;
-    private List<IMod> to_remove;
     protected override void Init()
     {
-        GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image), typeof(Button));
-        workshopButton.transform.SetParent(BackgroundTransform);
-        workshopButton.transform.localPosition = new(125, 0);
-        workshopButton.transform.localScale = Vector3.one;
-        workshopButton.GetComponent<RectTransform>().sizeDelta = new(20, 20);
-        Image workshopButtonImage = workshopButton.GetComponent<Image>();
-        workshopButtonImage.sprite = Resources.Load<Sprite>("ui/icons/iconSteam");
-        Button workshopButtonButton = workshopButton.GetComponent<Button>();
-        workshopButtonButton.onClick.AddListener(() =>
-        {
-            ScrollWindow.showWindow("WorkshopMods");
-        });
-    }
-    private bool needRefresh = false;
-    public override void OnNormalEnable()
-    {
-        var mods = WorldBoxMod.LoadedMods;
-        if(showedMods.IsSubsetOf(mods) && showedMods.IsSupersetOf(mods)) return;
-        needRefresh = true;
-        to_add = mods.Except(showedMods).ToList();
-        to_remove = showedMods.Except(mods).ToList();
         
-        showedMods.Clear();
-        showedMods.UnionWith(mods);
     }
 
+    public override void OnNormalEnable()
+    {
+        ModWorkshopService.steamWorkshopPromise.Then(prepareModsOrdered).Catch(delegate(Exception err)
+        {
+            Debug.LogError(err);
+            ErrorWindow.errorMessage = "Error happened while connecting to Steam Workshop:\n" + err.Message.ToString();
+            ScrollWindow.get("error_with_reason").clickShow();
+        });
+    }
+    private float checkTimer = 0.015f;
     private void Update()
     {
-        if(!IsOpened) return;
-        if (needRefresh)
+        if(checkTimer > 0)
         {
-            if (to_add.Any())
-            {
-                AddItemToList(to_add[to_add.Count-1]);
-                to_add.RemoveAt(to_add.Count - 1);
-                return;
-            }
-            if (to_remove.Any())
-            {
-                RemoveModFromList(to_remove[to_remove.Count-1]);
-                to_remove.RemoveAt(to_remove.Count - 1);
-                return;
-            }
-            needRefresh = false;
+            checkTimer -= Time.deltaTime;
+            return;
+        }
+        checkTimer = 0.015f;
+        showNextMod();
+    }
+    private Queue<Steamworks.Ugc.Item> modsOrderedQueue = new();
+    private void showNextMod()
+    {
+        if (modsOrderedQueue.Count == 0) return;
+        
+        Steamworks.Ugc.Item item = modsOrderedQueue.Dequeue();
+        ModDeclare mod = ModWorkshopService.GetModFromWorkshopItem(item);
+        if (mod == null)
+        {
+            return;
+        }
+        AddItemToList(mod);
+    }
+    private HashSet<string> showedMods = new();
+    protected override void AddItemToList(ModDeclare item)
+    {
+        if (showedMods.Contains(item.UUID))
+        {
+            return;
+        }
+
+        showedMods.Add(item.UUID);
+        base.AddItemToList(item);
+    }
+
+    private async void prepareModsOrdered()
+    {
+        List<Steamworks.Ugc.Item> items = await ModWorkshopService.GetSubscribedItems();
+        foreach (var item in items)
+        {
+            modsOrderedQueue.Enqueue(item);
         }
     }
 
-    private void RemoveModFromList(IMod mod)
+    protected override AbstractListWindowItem<ModDeclare> CreateItemPrefab()
     {
-        
-    }
-
-    protected override AbstractListWindowItem<IMod> CreateItemPrefab()
-    {
-        GameObject obj = new GameObject("ModListItemPrefab", typeof(Image), typeof(ModListItem));
+        GameObject obj = new GameObject("WorkshopModListItemPrefab", typeof(Image), typeof(WorkshopModListItem));
         obj.SetActive(false);
         
         obj.transform.SetParent(WorldBoxMod.Transform);
@@ -136,21 +136,21 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         textText.supportRichText = true;
         
         Vector2 single_button_size = new(22, 22);
-        GameObject configure = new GameObject("Configure", typeof(Image), typeof(Button));
-        configure.transform.SetParent(obj.transform);
-        configure.transform.localPosition = new(87, 12);
-        configure.transform.localScale = Vector3.one;
-        configure.GetComponent<RectTransform>().sizeDelta = single_button_size;
-        Image configureImageBG = configure.GetComponent<Image>();
-        configureImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
-        configureImageBG.type = Image.Type.Sliced;
-        GameObject configureIcon = new GameObject("Icon", typeof(Image));
-        configureIcon.transform.SetParent(configure.transform);
-        configureIcon.transform.localPosition = Vector3.zero;
-        configureIcon.transform.localScale = Vector3.one;
-        configureIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
-        Image configureIconImage = configureIcon.GetComponent<Image>();
-        configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconOptions");
+        GameObject download = new GameObject("Load", typeof(Image), typeof(Button));
+        download.transform.SetParent(obj.transform);
+        download.transform.localPosition = new(87, 12);
+        download.transform.localScale = Vector3.one;
+        download.GetComponent<RectTransform>().sizeDelta = single_button_size;
+        Image downloadImageBG = download.GetComponent<Image>();
+        downloadImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
+        downloadImageBG.type = Image.Type.Sliced;
+        GameObject downloadIcon = new GameObject("Icon", typeof(Image));
+        downloadIcon.transform.SetParent(download.transform);
+        downloadIcon.transform.localPosition = Vector3.zero;
+        downloadIcon.transform.localScale = Vector3.one;
+        downloadIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
+        Image configureIconImage = downloadIcon.GetComponent<Image>();
+        configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconGameServices");
         
         GameObject website = new GameObject("Website", typeof(Image), typeof(Button));
         website.transform.SetParent(obj.transform);
@@ -168,6 +168,6 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image websiteIconImage = websiteIcon.GetComponent<Image>();
         websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconCommunity");
 
-        return obj.GetComponent<ModListItem>();
+        return obj.GetComponent<WorkshopModListItem>();
     }
 }

@@ -29,7 +29,7 @@ public class WorldBoxMod : MonoBehaviour
         
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        
+        Harmony.CreateAndPatchAll(typeof(ModWorkshopService), Others.harmony_id);
         ResourcesPatch.Initialize();
 
         LoadLocales();
@@ -58,8 +58,9 @@ public class WorldBoxMod : MonoBehaviour
 
         ModCompileLoadService.loadMods(mods_to_load);
         NCMSCompatibleLayer.Init();
+        ModWorkshopService.Init();
         
-        ui.UIManager.init();
+        ui.UIManager.init();;
     }
 
     private void LoadLocales()

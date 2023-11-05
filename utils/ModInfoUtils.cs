@@ -17,27 +17,34 @@ internal static class ModInfoUtils
         var mod_folders = Directory.GetDirectories(Paths.ModsPath);
         foreach (var mod_folder in mod_folders)
         {
-            var mod_config_path = Path.Combine(mod_folder, Paths.ModConfigFileName);
-            
-            if(!File.Exists(mod_config_path))
+            var mod = recogMod(mod_folder);
+            if (mod != null)
             {
-                LogService.LogWarning($"No mod.json file for folder {mod_folder} in Mods");
-                continue;
-            }
-            try
-            {
-                var mod = new api.ModDeclare(mod_config_path);
                 mods.Add(mod);
-            }
-            catch (Exception e)
-            {
-                LogService.LogError($"Error occurs when loading mod config file {mod_config_path}");
-                LogService.LogError(e.Message);
-                LogService.LogError(e.StackTrace);
-                continue;
             }
         }
         return mods;
+    }
+    public static ModDeclare recogMod(string pModFolderPath)
+    {
+        var mod_config_path = Path.Combine(pModFolderPath, Paths.ModConfigFileName);
+        if(!File.Exists(mod_config_path))
+        {
+            LogService.LogWarning($"No mod.json file for folder {pModFolderPath} in Mods");
+            return null;
+        }
+        try
+        {
+            var mod = new api.ModDeclare(mod_config_path);
+            return mod;
+        }
+        catch (Exception e)
+        {
+            LogService.LogError($"Error occurs when loading mod config file {mod_config_path}");
+            LogService.LogError(e.Message);
+            LogService.LogError(e.StackTrace);
+            return null;
+        }
     }
     // ReSharper disable once InconsistentNaming
     public static bool isModNeedRecompile(string pModUUID, string pModFolderPath)
