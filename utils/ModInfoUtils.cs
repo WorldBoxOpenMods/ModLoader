@@ -13,6 +13,7 @@ internal static class ModInfoUtils
 {
     public static List<api.ModDeclare> findMods()
     {
+        HashSet<string> findModsIDs = new();
         var mods = new List<api.ModDeclare>();
         if (!NCMSHere())
         {
@@ -22,7 +23,13 @@ internal static class ModInfoUtils
                 var mod = recogMod(mod_folder);
                 if (mod != null)
                 {
+                    if (findModsIDs.Contains(mod.UUID))
+                    {
+                        LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                        continue;
+                    }
                     mods.Add(mod);
+                    findModsIDs.Add(mod.UUID);
                 }
             }
         }
@@ -38,11 +45,17 @@ internal static class ModInfoUtils
             var mod = recogMod(mod_folder, false);
             if (mod != null)
             {
+                if (findModsIDs.Contains(mod.UUID))
+                {
+                    LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                    continue;
+                }
                 if (string.IsNullOrEmpty(mod.RepoUrl))
                 {
                     mod.SetRepoUrlToWorkshopPage(Path.GetFileName(mod_folder));
                 }
                 mods.Add(mod);
+                findModsIDs.Add(mod.UUID);
             }
         }
         return mods;
