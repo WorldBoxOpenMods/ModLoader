@@ -27,7 +27,7 @@ namespace NCMS.Utils
                     prefab_name = "inspect";
                     break;
                 case ButtonType.Click:
-                    prefab_name = "WorldLaws";
+                    prefab_name = "worldlaws";
                     break;
                 case ButtonType.Toggle:
                     prefab_name = "kingsAndLeaders";
