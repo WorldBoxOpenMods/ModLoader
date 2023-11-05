@@ -1,21 +1,20 @@
 using NeoModLoader.General;
+using RSG;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace NeoModLoader.api;
-/// <summary>
-/// An abstract window class that should be only one instance.
-/// </summary>
-/// <typeparam name="T"></typeparam>
-public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow<T>
-{
-    public static T Instance { get; protected set; }
-    protected Transform ContentTransform { get; set; }
-    protected Transform BackgroundTransform { get; set; }
-    protected bool Initialized;
-    protected bool IsOpened;
-    protected bool IsFirstOpen = true;
 
+public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
+{
+    public abstract void Setup(TItem pObject);
+}
+
+public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T> 
+    where T : AbstractListWindow<T, TItem>
+{
+    protected static AbstractListWindowItem<TItem> ItemPrefab;
+    
     public static T CreateAndInit(string pWindowId)
     {
         ScrollWindow scroll_window = WindowCreator.CreateEmptyWindow(pWindowId, pWindowId + " Title");
@@ -35,43 +34,26 @@ public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow
 
         Instance.ContentTransform = Instance.BackgroundTransform.Find("Scroll View/Viewport/Content");
 
+        
+        VerticalLayoutGroup layoutGroup = Instance.ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
+        ContentSizeFitter sizeFitter = Instance.ContentTransform.gameObject.AddComponent<ContentSizeFitter>();
+        
+        layoutGroup.childControlWidth = true;
+        layoutGroup.childControlHeight = false;
+        layoutGroup.childForceExpandWidth = true;
+        layoutGroup.childForceExpandHeight = false;
+        layoutGroup.childAlignment = TextAnchor.MiddleCenter;
+        layoutGroup.spacing = 10;
+        layoutGroup.padding = new(30, 30, 10, 10);
+
+        sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        
+        ItemPrefab = Instance.CreateItemPrefab();
         Instance.Init();
 
         Instance.Initialized = true;
         
         return Instance;
     }
-
-    protected abstract void Init();
-
-    private void OnEnable()
-    {
-        if (!Initialized) return;
-        if (IsFirstOpen)
-        {
-            IsFirstOpen = false;
-            OnFirstEnable();
-        }
-        OnNormalEnable();
-        IsOpened = true;
-    }
-
-    private void OnDisable()
-    {
-        if (!Initialized) return;
-        IsOpened = false;
-        OnNormalDisable();
-    }
-
-    public virtual void OnNormalDisable()
-    {
-    }
-
-    public virtual void OnFirstEnable()
-    {
-    }
-
-    public virtual void OnNormalEnable()
-    {
-    }
+    protected abstract AbstractListWindowItem<TItem> CreateItemPrefab();
 }

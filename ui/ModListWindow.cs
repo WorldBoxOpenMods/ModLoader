@@ -6,11 +6,11 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
 
-public class ModListWindow : AbstractWindow<ModListWindow>
+public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 {
-    class ModListItem : MonoBehaviour
+    public class ModListItem : AbstractListWindowItem<IMod>
     {
-        public void SetMod(IMod mod)
+        public override void Setup(IMod mod)
         {
             ModDeclare modDeclare = mod.GetDeclaration();
             Text text = transform.Find("Text").GetComponent<Text>();
@@ -39,28 +39,63 @@ public class ModListWindow : AbstractWindow<ModListWindow>
         }
     }
     private HashSet<IMod> showedMods = new();
-    private static ModListItem modListItemPrefab;
+    private List<IMod> to_add;
+    private List<IMod> to_remove;
     protected override void Init()
     {
-        VerticalLayoutGroup layoutGroup = ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
-        ContentSizeFitter sizeFitter = ContentTransform.gameObject.AddComponent<ContentSizeFitter>();
         
-        layoutGroup.childControlWidth = true;
-        layoutGroup.childControlHeight = false;
-        layoutGroup.childForceExpandWidth = true;
-        layoutGroup.childForceExpandHeight = false;
-        layoutGroup.childAlignment = TextAnchor.MiddleCenter;
-        layoutGroup.spacing = 10;
-        layoutGroup.padding = new(30, 30, 10, 10);
+    }
+    private bool needRefresh = false;
+    public override void OnNormalEnable()
+    {
+        var mods = WorldBoxMod.LoadedMods;
+        if(showedMods.IsSubsetOf(mods) && showedMods.IsSupersetOf(mods)) return;
+        needRefresh = true;
+        to_add = mods.Except(showedMods).ToList();
+        to_remove = showedMods.Except(mods).ToList();
+        
+        showedMods.Clear();
+        showedMods.UnionWith(mods);
+    }
 
-        sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+    private void Update()
+    {
+        if(!IsOpened) return;
+        if (needRefresh)
+        {
+            if (to_add.Any())
+            {
+                AddModToList(to_add[to_add.Count-1]);
+                to_add.RemoveAt(to_add.Count - 1);
+                return;
+            }
+            if (to_remove.Any())
+            {
+                RemoveModFromList(to_remove[to_remove.Count-1]);
+                to_remove.RemoveAt(to_remove.Count - 1);
+                return;
+            }
+            needRefresh = false;
+        }
+    }
+
+    private void AddModToList(IMod mod)
+    {
+        ModListItem item = Instantiate((ModListItem)ItemPrefab, ContentTransform);
+        item.transform.localScale = Vector3.one;
+        item.Setup(mod);
+        item.gameObject.SetActive(true);
+    }
+
+    private void RemoveModFromList(IMod mod)
+    {
         
-        
-        
+    }
+
+    protected override AbstractListWindowItem<IMod> CreateItemPrefab()
+    {
         GameObject obj = new GameObject("ModListItemPrefab", typeof(Image), typeof(ModListItem));
         obj.SetActive(false);
-        
-        modListItemPrefab = obj.GetComponent<ModListItem>();
         
         obj.transform.SetParent(WorldBoxMod.Transform);
 
@@ -129,39 +164,7 @@ public class ModListWindow : AbstractWindow<ModListWindow>
         websiteIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
         Image websiteIconImage = websiteIcon.GetComponent<Image>();
         websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconCommunity");
-    }
 
-    public override void OnNormalEnable()
-    {
-        var mods = WorldBoxMod.LoadedMods;
-        if(showedMods.IsSubsetOf(mods) && showedMods.IsSupersetOf(mods)) return;
-
-        var added = mods.Except(showedMods);
-        var removed = showedMods.Except(mods);
-        
-        foreach (var mod in added)
-        {
-            AddModToList(mod);
-        }
-
-        foreach (var mod in removed)
-        {
-            RemoveModFromList(mod);
-        }
-        showedMods.Clear();
-        showedMods.UnionWith(mods);
-    }
-
-    private void AddModToList(IMod mod)
-    {
-        ModListItem item = Instantiate(modListItemPrefab, ContentTransform);
-        item.transform.localScale = Vector3.one;
-        item.SetMod(mod);
-        item.gameObject.SetActive(true);
-    }
-
-    private void RemoveModFromList(IMod mod)
-    {
-        
+        return obj.GetComponent<ModListItem>();
     }
 }
