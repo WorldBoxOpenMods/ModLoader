@@ -14,15 +14,24 @@ internal static class ModInfoUtils
     public static List<api.ModDeclare> findMods()
     {
         var mods = new List<api.ModDeclare>();
-        var mod_folders = Directory.GetDirectories(Paths.ModsPath);
-        foreach (var mod_folder in mod_folders)
+        if (!NCMSHere())
         {
-            var mod = recogMod(mod_folder);
-            if (mod != null)
+            var mod_folders = Directory.GetDirectories(Paths.ModsPath);
+            foreach (var mod_folder in mod_folders)
             {
-                mods.Add(mod);
+                var mod = recogMod(mod_folder);
+                if (mod != null)
+                {
+                    mods.Add(mod);
+                }
             }
         }
+
+        bool NCMSHere()
+        {
+            return Directory.GetFiles(Path.Combine(Paths.NMLModPath, ".."), "NCMS*.dll").Length > 0;
+        }
+
         var workshop_mod_folders = Directory.GetDirectories(Paths.ModsWorkshopPath);
         foreach (var mod_folder in workshop_mod_folders)
         {
