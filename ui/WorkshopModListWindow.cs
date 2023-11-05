@@ -60,7 +60,8 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
             Button websiteButton = transform.Find("Website").GetComponent<Button>();
             websiteButton.onClick.AddListener(() =>
             {
-                //Application.OpenURL(mod.GetUrl());
+                string name = Path.GetFileName(modDeclare.FolderPath);
+                Application.OpenURL($"https://steamcommunity.com/sharedfiles/filedetails/?id={name}");
             });
         }
     }
