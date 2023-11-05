@@ -65,5 +65,5 @@ public class ModDeclare
     [JsonProperty("targetGameBuild")]
     public int TargetGameBuild { get; private set; }
 
-    [JsonProperty("iconPath")] public string IconPath { get; private set; } = "icon.png";
+    [JsonProperty("iconPath")] public string IconPath { get; private set; }
 }
