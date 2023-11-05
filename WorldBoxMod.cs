@@ -29,7 +29,6 @@ public class WorldBoxMod : MonoBehaviour
         
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        Harmony.CreateAndPatchAll(typeof(ModWorkshopService), Others.harmony_id);
         ResourcesPatch.Initialize();
 
         LoadLocales();
