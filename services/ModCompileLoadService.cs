@@ -287,7 +287,37 @@ public static class ModCompileLoadService
         bool type_found = false;
         foreach(var type in mod_assembly.GetTypes())
         {
-            if(type.GetInterface(nameof(IMod)) == null) continue;
+            if (type.GetInterface(nameof(IMod)) == null)
+            {
+                // Check if it is a NCMS Mod
+                if (Attribute.GetCustomAttribute(type, typeof(NCMS.ModEntry)) != null && type.IsSubclassOf(typeof(MonoBehaviour)))
+                {
+                    var mod_instance = new GameObject(pMod.Name, type)
+                    {
+                        transform =
+                        {
+                            parent = GameObject.Find("Services/ModLoader").transform
+                        }
+                    };
+                    try
+                    {
+                        AttachedModComponent mod_interface = mod_instance.AddComponent<AttachedModComponent>();
+                        mod_interface.OnLoad(pMod, mod_instance);
+                    }
+                    catch (Exception e)
+                    {
+                        LogService.LogError(e.Message);
+                        if (e.StackTrace != null) LogService.LogError(e.StackTrace);
+                        
+                        mod_instance.SetActive(false);
+                        LogService.LogError($"{pMod.Name} has been disabled due to an error. Please check the log for details.");
+                        
+                        continue;
+                    }
+                    WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<AttachedModComponent>());
+                }
+                continue;
+            }
             if (type.IsSubclassOf(typeof(MonoBehaviour)))
             {
                 type_found = true;
