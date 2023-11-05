@@ -48,6 +48,11 @@ public class ModDeclare
         UUID = $"{Author}.{Name}".Replace(" ", "_");
         FolderPath = Path.GetDirectoryName(pFilePath) ?? throw new Exception("Cannot get folder path from input file path");
     }
+
+    internal void SetRepoUrlToWorkshopPage(string id)
+    {
+        RepoUrl = $"https://steamcommunity.com/sharedfiles/filedetails/?id={id}";
+    }
     [JsonProperty("name")]
     public string Name { get; private set; }
     public string UUID { get; private set; }
@@ -57,7 +62,8 @@ public class ModDeclare
     public string Version { get; private set; }
     [JsonProperty("description")]
     public string Description { get; private set; }
-
+    [JsonProperty("RepoUrl")]
+    public string RepoUrl { get; private set; }
     [JsonProperty("Dependencies")] public string[] Dependencies { get; private set; }
     [JsonProperty("OptionalDependencies")]
     public string[] OptionalDependencies { get; private set; }

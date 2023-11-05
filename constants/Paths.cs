@@ -21,4 +21,5 @@ public static class Paths
     public static readonly string ModCompileRecordPath = Path.Combine(NMLPath, "mod_compile_records.json");
     public static readonly string ModConfigFileName = "mod.json";
     public static readonly string ModResourceFolderName = "GameResources";
+    public static readonly string ModsWorkshopPath = Path.Combine(GamePath, "..", "..", "workshop", "content", "1206560");
 }

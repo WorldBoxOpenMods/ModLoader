@@ -14,7 +14,7 @@ public abstract class BasicMod : MonoBehaviour, IMod
 
     public virtual string GetUrl()
     {
-        return CoreConstants.OrgURL;
+        return string.IsNullOrEmpty(_declare.RepoUrl) ? CoreConstants.OrgURL : _declare.RepoUrl;
     }
 
 

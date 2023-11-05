@@ -140,7 +140,14 @@ internal static class ModWorkshopService
     }
     public static ModDeclare GetModFromWorkshopItem(Steamworks.Ugc.Item item)
     {
-        return ModInfoUtils.recogMod(item.Directory);
+        ModDeclare modDeclare = ModInfoUtils.recogMod(item.Directory);
+        if (string.IsNullOrEmpty(modDeclare.RepoUrl))
+        {
+            string id = Path.GetFileName(item.Directory);
+            modDeclare.SetRepoUrlToWorkshopPage(id);
+        }
+
+        return modDeclare;
     }
     static List<Steamworks.Ugc.Item> subscribedItems = new();
     public static async Task<List<Steamworks.Ugc.Item>> GetSubscribedItems()

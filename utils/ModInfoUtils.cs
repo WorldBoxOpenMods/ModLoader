@@ -23,14 +23,28 @@ internal static class ModInfoUtils
                 mods.Add(mod);
             }
         }
+        var workshop_mod_folders = Directory.GetDirectories(Paths.ModsWorkshopPath);
+        foreach (var mod_folder in workshop_mod_folders)
+        {
+            var mod = recogMod(mod_folder, false);
+            if (mod != null)
+            {
+                if (string.IsNullOrEmpty(mod.RepoUrl))
+                {
+                    mod.SetRepoUrlToWorkshopPage(Path.GetFileName(mod_folder));
+                }
+                mods.Add(mod);
+            }
+        }
         return mods;
     }
-    public static ModDeclare recogMod(string pModFolderPath)
+    public static ModDeclare recogMod(string pModFolderPath, bool pLogModJsonNotFound = true)
     {
         var mod_config_path = Path.Combine(pModFolderPath, Paths.ModConfigFileName);
         if(!File.Exists(mod_config_path))
         {
-            LogService.LogWarning($"No mod.json file for folder {pModFolderPath} in Mods");
+            if(pLogModJsonNotFound) 
+                LogService.LogWarning($"No mod.json file for folder {pModFolderPath} in Mods");
             return null;
         }
         try
