@@ -27,12 +27,6 @@ public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow
         Instance.BackgroundTransform = scroll_window.transform.Find("Background");
         Instance.BackgroundTransform.Find("Scroll View").gameObject.SetActive(true);
 
-        LocalizedText localized_text = Instance.BackgroundTransform.Find("Title").gameObject.GetComponent<LocalizedText>();
-        if(localized_text == null){
-            localized_text = Instance.BackgroundTransform.Find("Title").gameObject.AddComponent<LocalizedText>();
-        }
-        localized_text.key = pWindowId + " Title";
-
         Instance.ContentTransform = Instance.BackgroundTransform.Find("Scroll View/Viewport/Content");
 
         Instance.Init();

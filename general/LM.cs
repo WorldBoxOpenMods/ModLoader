@@ -127,12 +127,14 @@ public static class LM
         if(current_language != language)
         {
             localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>>("localizedText");
+            current_language = language;
         }
         
         foreach (var (key, value) in locales[language])
         {
             localized_text[key] = value;
         }
+        LocalizedTextManager.updateTexts();
     }
     /// <summary>
     /// Apply all locales loaded by this mod to current locale.
