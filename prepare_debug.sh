@@ -16,4 +16,10 @@ else
   ln -s $BUILDFOLDER/NeoModLoader.pdb $GAMEMODFOLDER/NeoModLoader.pdb
 fi
 
+if [ -e $GAMEMODFOLDER/NeoModLoader.xml ]; then
+  echo "Skip"
+else
+  ln -s $BUILDFOLDER/NeoModLoader.xml $GAMEMODFOLDER/NeoModLoader.xml
+fi
+
 rm $GAMEMODFOLDER/NML/mod_compile_records.json
