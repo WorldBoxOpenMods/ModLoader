@@ -9,5 +9,7 @@
   "Information Title": "Information",
   "ModLinkRequest": "Request for privilege to install BepInEx mods",
   "ModUploadingProgress Title": "Uploading",
-  "ModUploadFinish": "Success"
+  "ModUploadFinish": "Success",
+  "NML_InvalidParam": "Invalid FileID (InvalidParam)",
+  "NML_FileNotFound": "Invalid FileID (FileNotFound)"
 }

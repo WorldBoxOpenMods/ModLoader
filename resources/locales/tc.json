@@ -9,5 +9,7 @@
   "Information": "提示",
   "ModLinkRequest": "5s后请求提升权限以安装BepInEx模组",
   "ModUploadingProgress Title": "上传进度",
-  "ModUploadFinish": "上传完成"
+  "ModUploadFinish": "上传完成",
+  "NML_InvalidParam": "无效ID(InvalidParam)",
+  "NML_FileNotFound": "无效ID(FileNotFound)"
 }

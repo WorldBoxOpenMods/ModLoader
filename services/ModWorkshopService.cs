@@ -96,6 +96,7 @@ internal static class ModWorkshopService
                 return;
             }
             PublishResult result = taskResult.Result;
+            // Result process refer to: https://partner.steamgames.com/doc/api/steam_api#EResult
             if (!result.Success)
             {
                 LogService.LogError("!result.Success");
@@ -119,9 +120,87 @@ internal static class ModWorkshopService
 
         return promise;
     }
-    public static Promise TryEditMod(string fileID, IMod mod, string changelog)
+    public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
     {
-        throw new NotImplementedException();
+        ModDeclare mod_decl = mod.GetDeclaration();
+        string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UUID);
+        if (Directory.Exists(workshopPath))
+        {
+            Directory.Delete(workshopPath, true);
+        }
+        Directory.CreateDirectory(workshopPath);
+        // Prepare files to upload
+        List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
+            (filename) =>
+            {   // To ignore .git and .vscode and so on files
+                return !filename.StartsWith(".");
+            },
+            (dirname) =>
+            {   // To ignore .git and .vscode and so on files
+                return !dirname.StartsWith(".");
+            });
+        foreach (string file_full_path in files_to_upload)
+        {
+            string path = Path.Combine(workshopPath,
+                file_full_path.Replace(mod_decl.FolderPath, "").Replace("\\", "/").Substring(1));
+
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            }
+            File.Copy(file_full_path, path);
+        }
+        string previewImagePath;
+        if (string.IsNullOrEmpty(mod_decl.IconPath))
+        {
+            using Stream icon_stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NeoModLoader.resources.logo.png");
+            using FileStream icon_file = File.Create(Path.Combine(workshopPath, "preview.png"));
+            icon_stream.Seek(0, SeekOrigin.Begin);
+            icon_stream.CopyTo(icon_file);
+            previewImagePath = Path.Combine(workshopPath, "preview.png");
+        }
+        else
+        {
+            previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
+        }
+        // This works for BepInEx mods
+        if(!File.Exists(Path.Combine(workshopPath, "mod.json")))
+        {
+            File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
+        }
+        
+        // Create Upload Files Descriptor
+        Editor editor = new Editor(fileID)
+            .WithPreviewFile(previewImagePath)
+            .WithContent(workshopPath).WithChangeLog(changelog);
+        
+        Promise promise = new();
+        editor.SubmitAsync(ModUploadingProgressWindow.ShowWindow()).ContinueWith(delegate(Task<PublishResult> taskResult)
+        {
+            if (taskResult.Status != TaskStatus.RanToCompletion)
+            {
+                promise.Reject(taskResult.Exception.GetBaseException());
+                return;
+            }
+            PublishResult result = taskResult.Result;
+            // Result process refer to: https://partner.steamgames.com/doc/api/steam_api#EResult
+            if (result.NeedsWorkshopAgreement)
+            {
+                LogService.LogWarning("Needs Workshop Agreement");
+                // TODO: Open Workshop Agreement
+                Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
+            }
+            if (result.Result != Result.OK)
+            {
+                promise.Reject(new Exception(result.Result.ToString()));
+                return;
+            }
+
+            // result.FileId;
+            promise.Resolve();
+        }, TaskScheduler.FromCurrentSynchronizationContext());
+
+        return promise;
     }
     public static ModDeclare GetModFromWorkshopItem(Steamworks.Ugc.Item item)
     {

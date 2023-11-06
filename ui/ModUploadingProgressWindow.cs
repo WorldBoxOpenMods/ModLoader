@@ -33,9 +33,13 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
         RectTransform percentTransform = percent.GetComponent<RectTransform>();
         percentTransform.SetParent(ContentTransform);
         percentTransform.localScale = Vector3.one;
-        percentTransform.localPosition = new(130, -50);
-        percentTransform.sizeDelta = new(100, 30);
+        percentTransform.localPosition = new(130, -100);
+        percentTransform.sizeDelta = new(180, 30);
         OT.InitializeCommonText(percent);
+        percent.alignment = TextAnchor.MiddleCenter;
+        percent.resizeTextMaxSize = 14;
+        percent.resizeTextMinSize = 6;
+        percent.resizeTextForBestFit = true;
     }
 
     public static UploadProgress ShowWindow()
@@ -48,6 +52,7 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
     {
         base.OnNormalEnable();
         this.progress = 0f;
+        Instance.percent.color = Color.white;
     }
 
     public override void OnNormalDisable()
@@ -66,10 +71,13 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
     {
         Instance.uploading = false;
         Instance.percent.text = LM.Get("ModUploadFinish");
+        Instance.percent.color = Color.green;
     }
 
     public static void ErrorUpload(Exception obj)
     {
-        
+        Instance.uploading = false;
+        Instance.percent.text = LM.Get("NML_"+obj.Message);
+        Instance.percent.color = Color.red;
     }
 }

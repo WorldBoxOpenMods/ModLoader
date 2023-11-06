@@ -243,7 +243,8 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
                 .Then(ModUploadingProgressWindow.FinishUpload);
             return;
         }
-        ModWorkshopService.TryEditMod(fileId, selected_mod, changelog_text.text)
+        ulong fileIdLong = ulong.Parse(fileId);
+        ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
             .Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload);
     }
 }
