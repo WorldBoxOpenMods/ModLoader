@@ -93,4 +93,18 @@ public static class PowerButtonCreator
             
         }
     }
+
+    public static void AddButtonToTab(PowerButton button, PowersTab tab, Vector2 position)
+    {
+        if (position == default)
+        {
+            position = tab.GetNextButtonPosition();
+        }
+
+        Transform transform;
+        (transform = button.transform).SetParent(tab.transform);
+        transform.localPosition = position;
+        transform.localScale = Vector3.one;
+        tab.powerButtons.Add(button);
+    }
 }
