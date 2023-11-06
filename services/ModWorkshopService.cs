@@ -27,7 +27,7 @@ internal static class ModWorkshopService
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
     /// </summary>
-    public static Promise UploadMod(IMod mod, string changelog)
+    public static Promise UploadMod(IMod mod, string changelog, bool verified = false)
     {
         ModDeclare mod_decl = mod.GetDeclaration();
         string name = mod_decl.Name;
@@ -83,7 +83,7 @@ internal static class ModWorkshopService
         }
         
         // Create Upload Files Descriptor
-        Editor editor = Editor.NewCommunityFile.WithTag("Mod")
+        Editor editor = Editor.NewCommunityFile.WithTag(verified ? "Mod" : "Unverified Mod")
             .WithTitle(name).WithDescription(description).WithPreviewFile(previewImagePath)
             .WithContent(workshopPath).WithChangeLog(changelog);
         
