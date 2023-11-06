@@ -4,9 +4,11 @@ using NeoModLoader.api;
 using NeoModLoader.api.attributes;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.ui;
 using NeoModLoader.utils;
 using RSG;
 using Steamworks;
+using Steamworks.Data;
 using Steamworks.Ugc;
 using UnityEngine;
 using Item = Steamworks.Ugc.Item;
@@ -22,101 +24,78 @@ internal static class ModWorkshopService
     {
         steamWorkshopPromise = Reflection.GetStaticField<Promise, SteamSDK>("steamInitialized");
     }
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(WorkshopMaps), "uploadMap")]
-    public static bool uploadMapPrefix(ref Promise __result)
-    {
-        LogService.LogWarning("uploadMapPrefix");
-        __result = UploadMod(WorldBoxMod.LoadedMods.First((mod)=>!mod.GetDeclaration().Name.Contains("启源")));
-        return false;
-    }
     /// <summary>
-    /// Try to Upload a mod as map to Steam Workshop
+    /// Try to Upload a mod to Steam Workshop
     /// </summary>
-    /// <param name="path">Path to mod's dll</param>
-    /// <returns>Success or not</returns>
-    public static Promise UploadMod(IMod mod)
+    public static Promise UploadMod(IMod mod, string changelog)
     {
-        LogService.LogWarning("Enter UploadMod");
-        
         ModDeclare mod_decl = mod.GetDeclaration();
         string name = mod_decl.Name;
-        string description = $"{name} Uploaded by NeoModLoader\n\n" +
+        string description = $"{name} Uploaded by NeoModLoader\n" +
+                             $"{name} 由NeoModLoader上传\n\n" +
                              $"{mod_decl.Description}\n\n" +
-                             $"NOTE: MOD CANNOT BE LOAD CURRENTLY. ATTENTIONTO: {CoreConstants.RepoURL}\n\n" +
-                             $"{name} 模组由NeoModLoader上传\n\n" +
-                             $"注意: 该模组目前无法加载. " +
-                             $"加载器关注仓库动态: {CoreConstants.RepoURL}";
+                             $"ModLoader: {CoreConstants.RepoURL}\n\n" +
+                             $"模组加载器: {CoreConstants.RepoURL}";
         string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UUID);
         if (Directory.Exists(workshopPath))
         {
             Directory.Delete(workshopPath, true);
         }
         Directory.CreateDirectory(workshopPath);
-        
-        LogService.LogWarning("Create workshopPath");
-        
-        foreach (string file_full_path in Directory.GetFiles(mod_decl.FolderPath, "*.*", SearchOption.AllDirectories))
+        // Prepare files to upload
+        List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
+            (filename) =>
+            {   // To ignore .git and .vscode and so on files
+                return !filename.StartsWith(".");
+            },
+            (dirname) =>
+            {   // To ignore .git and .vscode and so on files
+                return !dirname.StartsWith(".");
+            });
+        foreach (string file_full_path in files_to_upload)
         {
             string path = Path.Combine(workshopPath,
                 file_full_path.Replace(mod_decl.FolderPath, "").Replace("\\", "/").Substring(1));
+
             if (!Directory.Exists(Path.GetDirectoryName(path)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             }
             File.Copy(file_full_path, path);
         }
-        
         string previewImagePath;
         if (string.IsNullOrEmpty(mod_decl.IconPath))
         {
             using Stream icon_stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NeoModLoader.resources.logo.png");
-            FileStream icon_file = File.Create(Path.Combine(workshopPath, "preview.png"));
+            using FileStream icon_file = File.Create(Path.Combine(workshopPath, "preview.png"));
             icon_stream.Seek(0, SeekOrigin.Begin);
             icon_stream.CopyTo(icon_file);
-            icon_file.Close();
             previewImagePath = Path.Combine(workshopPath, "preview.png");
         }
         else
         {
             previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
         }
-        //string mainPath = Path.Combine(workshopPath, Path.GetFileName(path));
-
-        LogService.LogWarning($"To upload {name}, {description}, {workshopPath}, {previewImagePath}");
-        
-        Editor editor = Editor.NewCommunityFile.WithTag("Mod");
-        editor = editor.WithTitle(name).WithDescription(description).WithPreviewFile(previewImagePath)
-            .WithContent(workshopPath);
-        Promise promise = new();
-/*
-        object progressTracker = Type.GetType("WorkshopUploadProgress")
-            .GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[0], null).Invoke(null);
-        ReflectionUtility.Reflection.SetStaticField(typeof(WorkshopMaps), "uploadProgressTracker", progressTracker);
-*/
-
-        
-        editor.SubmitAsync(null).ContinueWith(delegate(Task<PublishResult> taskResult)
+        // This works for BepInEx mods
+        if(!File.Exists(Path.Combine(workshopPath, "mod.json")))
         {
-            if (taskResult == null)
-            {
-                LogService.LogError("taskResult is null");
-            }
+            File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
+        }
+        
+        // Create Upload Files Descriptor
+        Editor editor = Editor.NewCommunityFile.WithTag("Mod")
+            .WithTitle(name).WithDescription(description).WithPreviewFile(previewImagePath)
+            .WithContent(workshopPath).WithChangeLog(changelog);
+        
+        Promise promise = new();
+        editor.SubmitAsync(ModUploadingProgressWindow.ShowWindow()).ContinueWith(delegate(Task<PublishResult> taskResult)
+        {
             if (taskResult.Status != TaskStatus.RanToCompletion)
             {
-                LogService.LogError("Status != TaskStatus.RanToCompletion");
-                try
-                {
-                    promise.Reject(taskResult.Exception.GetBaseException());
-                }
-                catch (Exception e)
-                {
-                    LogService.LogError("Status != TaskStatus.RanToCompletion and taskResult is null");
-                }
+                promise.Reject(taskResult.Exception.GetBaseException());
                 return;
             }
             PublishResult result = taskResult.Result;
-            LogService.LogInfo("Get taskresult.result");
             if (!result.Success)
             {
                 LogService.LogError("!result.Success");
@@ -124,8 +103,8 @@ internal static class ModWorkshopService
             if (result.NeedsWorkshopAgreement)
             {
                 LogService.LogError("w: Needs Workshop Agreement");
-                WorkshopUploadingWorldWindow.needsWorkshopAgreement = true;
-                WorkshopOpenSteamWorkshop.fileID = result.FileId.ToString();
+                // TODO: Open Workshop Agreement
+                Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
             }
             if (result.Result != Result.OK)
             {
@@ -133,10 +112,16 @@ internal static class ModWorkshopService
                 promise.Reject(new Exception("Something went wrong: " + result.Result.ToString()));
                 return;
             }
-            WorkshopMaps.uploaded_file_id = result.FileId;
+
+            // result.FileId;
             promise.Resolve();
         }, TaskScheduler.FromCurrentSynchronizationContext());
+
         return promise;
+    }
+    public static Promise TryEditMod(string fileID, IMod mod, string changelog)
+    {
+        throw new NotImplementedException();
     }
     public static ModDeclare GetModFromWorkshopItem(Steamworks.Ugc.Item item)
     {

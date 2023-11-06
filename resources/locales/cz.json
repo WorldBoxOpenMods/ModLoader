@@ -7,5 +7,7 @@
   "NeoModLoader Update Complete": "NeoModLoader 更新至{0},\n 重启游戏以应用更新。",
   "ModUpload Title": "上传模组",
   "Information Title": "信息",
-  "ModLinkRequest": "5s后请求提升权限以安装BepInEx模组"
+  "ModLinkRequest": "5s后请求提升权限以安装BepInEx模组",
+  "ModUploadingProgress Title": "上传进度",
+  "ModUploadFinish": "上传完成"
 }

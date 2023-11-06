@@ -1,5 +1,6 @@
 using NeoModLoader.api;
 using NeoModLoader.General;
+using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,6 +32,10 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
                     mod_decl.IconPath));
         }
         Instance.mod_name_text.text = mod_decl.Name;
+        Instance.mod_author_text.text = mod_decl.Author;
+        Instance.mod_version_text.text = mod_decl.Version;
+        Instance.mod_description_text.text = mod_decl.Description;
+        
         ScrollWindow.showWindow(WindowId);
     }
 
@@ -75,6 +80,7 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         Text input_fileid_inputfield_text = input_fileid_inputfield.GetComponent<Text>();
         input_fileid_inputfield.GetComponent<InputField>().textComponent = input_fileid_inputfield_text;
         input_fileid_inputfield_text.text = "";
+        mod_fileid_text = input_fileid_inputfield_text;
         OT.InitializeCommonText(input_fileid_inputfield_text);
         input_fileid_inputfield_text.alignment = TextAnchor.MiddleLeft;
         input_fileid_inputfield_text.resizeTextForBestFit = true;
@@ -131,15 +137,26 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         info_grids_layout.constraintCount = 1;
         info_grids_layout.spacing = new Vector2(0, 1);
         info_grids_layout.cellSize = new Vector2(92, 15);
-        
-        GameObject mod_name = new GameObject("ModName", typeof(Text));
-        mod_name.transform.SetParent(info_grids.transform);
-        mod_name.transform.localScale = Vector3.one;
-        mod_name_text = mod_name.GetComponent<Text>();
-        OT.InitializeCommonText(mod_name_text);
-        mod_name_text.resizeTextForBestFit = true;
-        mod_name_text.text = "Mod Name";
-        mod_name_text.alignment = TextAnchor.MiddleLeft;
+
+        Text create_grid_text(string name)
+        {
+            Text _tmp = new GameObject(name, typeof(Text)).GetComponent<Text>();
+            Transform transform1;
+            (transform1 = _tmp.transform).SetParent(info_grids.transform);
+            transform1.localScale = Vector3.one;
+            
+            OT.InitializeCommonText(_tmp);
+            _tmp.resizeTextForBestFit = true;
+            _tmp.resizeTextMaxSize = 10;
+            _tmp.resizeTextMinSize = 6;
+            _tmp.text = name;
+            _tmp.alignment = TextAnchor.MiddleLeft;
+            return _tmp;
+        }
+        mod_name_text = create_grid_text("Mod Name");
+        mod_author_text = create_grid_text("Mod Author");
+        mod_version_text = create_grid_text("Mod Version");
+        mod_description_text = create_grid_text("Mod Description");
 
 
 
@@ -158,6 +175,7 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         Text input_changelog_inputfield_text = input_changelog_inputfield.GetComponent<Text>();
         input_changelog_inputfield.GetComponent<InputField>().textComponent = input_changelog_inputfield_text;
         input_changelog_inputfield_text.text = "#CHANGELOG";
+        changelog_text = input_changelog_inputfield_text;
         OT.InitializeCommonText(input_changelog_inputfield_text);
         input_changelog_inputfield_text.alignment = TextAnchor.UpperLeft;
         input_changelog_inputfield_text.resizeTextForBestFit = true;
@@ -208,6 +226,24 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         LocalizedText upload_button_text_localized = upload_button_text.GetComponent<LocalizedText>();
         upload_button_text_localized.key = "ModUpload Title";
 
+        upload_button.GetComponent<Button>().onClick.AddListener(uploadSelectedMod);
         LocalizedTextManager.addTextField(upload_button_text_localized);
+    }
+
+    private void uploadSelectedMod()
+    {
+        string fileId = mod_fileid_text.text;
+        if (fileId.Any(c => !char.IsDigit(c)))
+        {
+            fileId = null;
+        }
+        if (string.IsNullOrEmpty(fileId))
+        {
+            ModWorkshopService.UploadMod(selected_mod, changelog_text.text)
+                .Then(ModUploadingProgressWindow.FinishUpload);
+            return;
+        }
+        ModWorkshopService.TryEditMod(fileId, selected_mod, changelog_text.text)
+            .Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload);
     }
 }

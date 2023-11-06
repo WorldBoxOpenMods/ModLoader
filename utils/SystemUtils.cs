@@ -13,4 +13,27 @@ public static class SystemUtils
         startInfo.Verb = "runas";
         System.Diagnostics.Process.Start(startInfo);
     }
+
+    public static List<string> SearchFileRecursive(string path, Func<string, bool> fileNameJudge,
+        Func<string, bool> dirNameJudge)
+    {
+        DirectoryInfo dir = new DirectoryInfo(path);
+        List<string> result = new List<string>();
+        foreach (var file in dir.GetFiles())
+        {
+            if (fileNameJudge(file.Name))
+            {
+                result.Add(file.FullName);
+            }
+        }
+        foreach(var subDir in dir.GetDirectories())
+        {
+            if (dirNameJudge(subDir.Name))
+            {
+                result.AddRange(SearchFileRecursive(subDir.FullName, fileNameJudge, dirNameJudge));
+            }
+        }
+
+        return result;
+    }
 }

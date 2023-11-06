@@ -9,8 +9,17 @@ public static class Reflection
         return (T) obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic)?.GetValue(obj);
     }
 
-    public static TO GetStaticField<TO, TI>(string name)
+    public static TF GetStaticField<TF, TO>(string name)
     {
-        return (TO) typeof(TI).GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(null);
+        return (TF) typeof(TO).GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(null);
+    }
+
+    public static void SetField<TO, TV>(this TO obj, string name, TV value)
+    {
+        typeof(TO).GetField(name, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.SetValue(obj, value);
+    }
+    public static void SetStaticField<TV>(Type TO, string name, TV value)
+    {
+        TO.GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.SetValue(null, value);
     }
 }
