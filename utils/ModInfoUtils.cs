@@ -162,17 +162,15 @@ internal static class ModInfoUtils
         {
             try
             {
-                bepinex_plugin_files = folder.GetFiles("*.dll", SearchOption.AllDirectories);
+                bepinex_plugin_files = folder.GetFiles("*.dll");
             }
             catch (DirectoryNotFoundException)
             {
                 // Just because this directory linked to workshop and workshop mod not downloaded yet or unordered.
                 continue;
             }
-            foreach (var file in bepinex_plugin_files)
-            {
-                bepinex_plugin_file_locs.Add(file.FullName);
-            }
+            if(bepinex_plugin_files.Length == 0) continue;
+            bepinex_plugin_file_locs.Add(bepinex_plugin_files[0].FullName);
         }
         
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
