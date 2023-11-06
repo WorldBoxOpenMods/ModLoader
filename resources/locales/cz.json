@@ -11,5 +11,6 @@
   "ModUploadingProgress Title": "上传进度",
   "ModUploadFinish": "上传完成",
   "NML_InvalidParam": "无效ID(InvalidParam)",
-  "NML_FileNotFound": "无效ID(FileNotFound)"
+  "NML_FileNotFound": "无效ID(FileNotFound)",
+  "ModUploadAuthentication Title": "模组上传验证"
 }

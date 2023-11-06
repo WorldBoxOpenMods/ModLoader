@@ -1,5 +1,6 @@
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ internal static class UIManager
         WorkshopModListWindow.CreateAndInit("WorkshopMods");
         ModUploadWindow.CreateAndInit("ModUpload");
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
+        ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         PowerButtonCreator.CreateWindowButton("NML_ModsList", "NeoModList", InternalResourcesGetter.GetIcon(),
             PowerTabs.Main, new Vector2(403.2f, -18));
     }

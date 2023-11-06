@@ -88,7 +88,8 @@ internal static class ModWorkshopService
             .WithContent(workshopPath).WithChangeLog(changelog);
         
         Promise promise = new();
-        editor.SubmitAsync(ModUploadingProgressWindow.ShowWindow()).ContinueWith(delegate(Task<PublishResult> taskResult)
+        ModUploadingProgressWindow.UploadProgress uploadProgress = ModUploadingProgressWindow.ShowWindow();
+        editor.SubmitAsync(uploadProgress).ContinueWith(delegate(Task<PublishResult> taskResult)
         {
             if (taskResult.Status != TaskStatus.RanToCompletion)
             {
@@ -103,20 +104,17 @@ internal static class ModWorkshopService
             }
             if (result.NeedsWorkshopAgreement)
             {
-                LogService.LogError("w: Needs Workshop Agreement");
-                // TODO: Open Workshop Agreement
                 Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
             }
             if (result.Result != Result.OK)
             {
-                LogService.LogError(result.Result.ToString());
                 promise.Reject(new Exception("Something went wrong: " + result.Result.ToString()));
                 return;
             }
 
-            // result.FileId;
+            ModUploadingProgressWindow.Instance.fileId = result.FileId;
             promise.Resolve();
-        }, TaskScheduler.FromCurrentSynchronizationContext());
+        }, TaskScheduler.Default);
 
         return promise;
     }

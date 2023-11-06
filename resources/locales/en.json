@@ -11,5 +11,6 @@
   "ModUploadingProgress Title": "Uploading",
   "ModUploadFinish": "Success",
   "NML_InvalidParam": "Invalid FileID (InvalidParam)",
-  "NML_FileNotFound": "Invalid FileID (FileNotFound)"
+  "NML_FileNotFound": "Invalid FileID (FileNotFound)",
+  "ModUploadAuthentication Title": "Upload Authentication"
 }

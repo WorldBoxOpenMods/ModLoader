@@ -20,12 +20,17 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
             Instance.progress = value;
         }
 
+        public void Reset()
+        {
+            lastvalue = 0;
+        }
         private float lastvalue;
     }
     private float progress = 0f;
     private Image bar;
     private Text percent;
     private bool uploading = false;
+    internal ulong fileId;
     protected override void Init()
     {
         percent = new GameObject("Percent", typeof(Text)).GetComponent<Text>();
@@ -42,17 +47,20 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
         percent.resizeTextForBestFit = true;
     }
 
+    private UploadProgress uploadProgress = new();
     public static UploadProgress ShowWindow()
     {
         Instance.uploading = true;
         ScrollWindow.showWindow(WindowId);
-        return new UploadProgress();
+        return Instance.uploadProgress;
     }
     public override void OnNormalEnable()
     {
         base.OnNormalEnable();
-        this.progress = 0f;
-        Instance.percent.color = Color.white;
+        progress = 0f;
+        fileId = 0;
+        percent.color = Color.white;
+        uploadProgress.Reset();
     }
 
     public override void OnNormalDisable()
@@ -72,6 +80,10 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
         Instance.uploading = false;
         Instance.percent.text = LM.Get("ModUploadFinish");
         Instance.percent.color = Color.green;
+        if (Instance.fileId > 0)
+        {
+            Application.OpenURL("steam://url/CommunityFilePage/" + Instance.fileId);
+        }
     }
 
     public static void ErrorUpload(Exception obj)
