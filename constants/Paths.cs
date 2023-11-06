@@ -14,6 +14,7 @@ public static class Paths
     public static readonly string StreamingAssetsPath = Path.Combine(NMLPath, "..", "..");
     public static readonly string ManagedPath = Path.Combine(StreamingAssetsPath, "..", "Managed");
     public static readonly string GamePath = Path.Combine(StreamingAssetsPath, "..", "..");
+    public static readonly string BepInExPluginsPath = Path.Combine(GamePath, "BepInEx", "plugins");
     public static readonly string ModsPath = Path.Combine(GamePath , "Mods");
 
     public static readonly string NMLAssembliesPath = Path.Combine(NMLPath, "Assemblies");

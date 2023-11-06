@@ -372,4 +372,25 @@ public static class ModCompileLoadService
 
         return false;
     }
+
+    public static void loadInfoOfBepInExPlugins()
+    {
+        //AppDomain inspect_domain = AppDomain.CreateDomain("InspectDomain");
+
+        List<ModDeclare> bepInExMods = ModInfoUtils.recogBepInExMods(null);
+        
+        foreach (var mod in bepInExMods)
+        {
+            if (IsModLoaded(mod.UUID))
+            {
+                LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                continue;
+            }
+            VirtualMod virtualMod = new();
+            virtualMod.OnLoad(mod, null);
+            WorldBoxMod.LoadedMods.Add(virtualMod);
+        }
+        
+        //AppDomain.Unload(inspect_domain);
+    }
 }

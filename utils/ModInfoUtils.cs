@@ -1,3 +1,4 @@
+using System.Reflection;
 using MonoMod.Utils;
 using NeoModLoader.api;
 using NeoModLoader.constants;
@@ -5,6 +6,7 @@ using NeoModLoader.services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Steamworks.Data;
 using UnityEngine;
 
 namespace NeoModLoader.utils;
@@ -81,6 +83,70 @@ internal static class ModInfoUtils
             LogService.LogError(e.StackTrace);
             return null;
         }
+    }
+
+    public static List<ModDeclare> recogBepInExMods(AppDomain pInspectDomain)
+    {
+        // TODO: Check repeat or not? Does BepInEx check it?
+        var mods = new List<ModDeclare>();
+        if (!Directory.Exists(Paths.BepInExPluginsPath))
+        {
+            return mods;
+        }
+        
+        DirectoryInfo bepinex_plugin_folder = new DirectoryInfo(Paths.BepInExPluginsPath);
+        FileInfo[] bepinex_plugin_files = bepinex_plugin_folder.GetFiles("*.dll", SearchOption.AllDirectories);
+        HashSet<string> bepinex_plugin_file_locs = new HashSet<string>();
+        foreach (var file in bepinex_plugin_files)
+        {
+            bepinex_plugin_file_locs.Add(file.FullName);
+        }
+        
+        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        
+        
+        foreach (var assembly in assemblies)
+        {
+            if (bepinex_plugin_file_locs.Contains(assembly.Location))
+            {
+                var mod = recogBepInExMod(Path.GetDirectoryName(assembly.Location), assembly);
+                if (mod == null)
+                {
+                    continue;
+                }
+                mods.Add(mod);
+            }
+        }
+
+
+        return mods;
+    }
+    public static ModDeclare recogBepInExMod(string folder, Assembly pAssembly)
+    {
+        AssemblyName[] referenced_assemblies = pAssembly.GetReferencedAssemblies();
+        bool is_mod = false;
+        LogService.LogWarning($"Checking {pAssembly.FullName}");
+        foreach (AssemblyName assemblyName in referenced_assemblies)
+        {
+            if(assemblyName.FullName!= "Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null") continue;
+            is_mod = true;
+            break;
+        }
+
+        if (!is_mod) return null;
+
+        string mod_name = pAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title;
+        string mod_author = pAssembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company;
+        string mod_version = pAssembly.GetCustomAttribute<AssemblyVersionAttribute>()?.Version;
+        if (string.IsNullOrEmpty(mod_version))
+        {
+            // TODO: I dont know why this happens for an assembly with AssemblyVersionAttribute, but it happens.
+            mod_version = pAssembly.GetName().Version.ToString();
+        }
+        string mod_description = pAssembly.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description;
+
+        var mod = new ModDeclare(mod_name, mod_author, null, mod_version, mod_description, folder, null, null, null);
+        return mod;
     }
     // ReSharper disable once InconsistentNaming
     public static bool isModNeedRecompile(string pModUUID, string pModFolderPath)

@@ -11,18 +11,19 @@ public class ModDeclare
     {
         
     }
-    public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
+    public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription, string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
     {
         Name = pName;
         Author = pAuthor;
         IconPath = pIconPath;
         Version = pVersion;
         Description = pDescription;
-        Dependencies = pDependencies;
-        OptionalDependencies = pOptionalDependencies;
-        IncompatibleWith = pIncompatibleWith;
+        Dependencies = pDependencies ?? new string[0];
+        OptionalDependencies = pOptionalDependencies ?? new string[0];
+        IncompatibleWith = pIncompatibleWith ?? new string[0];
 
-        UUID = $"{Author}.{Name}";
+        UUID = $"{Author}.{Name}".Replace(" ", "_");
+        FolderPath = pFolderPath;
     }
 
     public ModDeclare(string pFilePath)
