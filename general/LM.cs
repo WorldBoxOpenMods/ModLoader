@@ -83,7 +83,7 @@ public static class LM
     {
         if (string.IsNullOrEmpty(current_language))
         {
-            current_language = LocalizedTextManager.instance.GetField<string>("language")!;
+            current_language = LocalizedTextManager.instance.GetField<string, LocalizedTextManager>("language")!;
         }
         
         Add(current_language, key, value);
@@ -126,7 +126,7 @@ public static class LM
         }
         if(current_language != language)
         {
-            localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>>("localizedText");
+            localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>, LocalizedTextManager>("localizedText");
             current_language = language;
         }
         
@@ -145,7 +145,7 @@ public static class LM
     {
         if (string.IsNullOrEmpty(current_language))
         {
-            current_language = LocalizedTextManager.instance.GetField<string>("language");
+            current_language = LocalizedTextManager.instance.GetField<string, LocalizedTextManager>("language");
         }
         if (!locales.ContainsKey(current_language))
         {
@@ -154,7 +154,7 @@ public static class LM
         // It can be sured that localized_text points to LocalizedTextManager.localizedText because of the patch of LocalizedTextManager.setLanguage
         if (localized_text == null) 
         {
-            localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>>("localizedText");
+            localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>, LocalizedTextManager>("localizedText");
         }
         
         foreach (var (key, value) in locales[current_language])

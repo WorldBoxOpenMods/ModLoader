@@ -10,7 +10,7 @@ public static class WindowCreator
     internal static void init()
     {
         _all_windows = Reflection.GetStaticField<Dictionary<string, ScrollWindow>, ScrollWindow>("allWindows");
-        _all_localized_texts = LocalizedTextManager.instance.GetField<List<LocalizedText>>("texts");
+        _all_localized_texts = LocalizedTextManager.instance.GetField<List<LocalizedText>, LocalizedTextManager>("texts");
     }
     public static ScrollWindow GetWindow(string pWindowID)
     {
