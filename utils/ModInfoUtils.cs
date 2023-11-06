@@ -270,12 +270,14 @@ internal static class ModInfoUtils
     private static long getModNewestUpdateTimestamp(string pModFolderPath)
     {
         var dir = new DirectoryInfo(pModFolderPath);
-        var files = dir.GetFiles("*", SearchOption.AllDirectories);
+        var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
+            dirname => !dirname.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dirname));
 
         long newest_timestamp = 0;
         
-        foreach (var file_info in files)
+        foreach (var filepath in files)
         {
+            var file_info = new FileInfo(filepath);
             newest_timestamp = Math.Max(newest_timestamp, file_info.LastWriteTimeUtc.Ticks);
         }
         return newest_timestamp;

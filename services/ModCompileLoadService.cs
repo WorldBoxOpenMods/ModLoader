@@ -38,7 +38,9 @@ public static class ModCompileLoadService
         }
         
         var syntaxTrees = new List<SyntaxTree>();
-        var code_files = Directory.GetFiles(pModDecl.FolderPath, "*.cs", SearchOption.AllDirectories);
+        var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
+            file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
+            dir_name => !dir_name.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dir_name));
         var parse_option = new CSharpParseOptions(LanguageVersion.Latest);
         foreach (var code_file in code_files)
         {
