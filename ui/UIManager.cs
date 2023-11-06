@@ -9,6 +9,7 @@ internal static class UIManager
 {
     public static void init()
     {
+        InformationWindow.CreateAndInit("Information");
         ModListWindow.CreateAndInit("NeoModList");
         WorkshopModListWindow.CreateAndInit("WorkshopMods");
         ModUploadWindow.CreateAndInit("ModUpload");

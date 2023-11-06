@@ -2,6 +2,12 @@
 using Newtonsoft.Json;
 
 namespace NeoModLoader.api;
+
+public enum ModTypeEnum
+{
+    NORMAL,
+    BEPINEX
+}
 [Serializable]
 public class ModDeclare
 {
@@ -41,6 +47,7 @@ public class ModDeclare
         Dependencies = modDeclare.Dependencies;
         OptionalDependencies = modDeclare.OptionalDependencies;
         IncompatibleWith = modDeclare.IncompatibleWith;
+        ModType = modDeclare.ModType;
 
         Dependencies ??= new string[0];
         OptionalDependencies ??= new string[0];
@@ -53,6 +60,12 @@ public class ModDeclare
     internal void SetRepoUrlToWorkshopPage(string id)
     {
         RepoUrl = $"https://steamcommunity.com/sharedfiles/filedetails/?id={id}";
+    }
+    internal void SetModType(ModTypeEnum modType)
+    {
+        if(modType < ModTypeEnum.NORMAL || modType > ModTypeEnum.BEPINEX)
+            throw new ArgumentOutOfRangeException(nameof(modType), modType, null);
+        ModType = modType;
     }
     [JsonProperty("name")]
     public string Name { get; private set; }
@@ -75,4 +88,5 @@ public class ModDeclare
     public int TargetGameBuild { get; private set; }
 
     [JsonProperty("iconPath")] public string IconPath { get; private set; }
+    [JsonProperty("ModType")] public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NORMAL;
 }

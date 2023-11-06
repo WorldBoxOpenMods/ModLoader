@@ -2,7 +2,9 @@ using System.Reflection;
 using MonoMod.Utils;
 using NeoModLoader.api;
 using NeoModLoader.constants;
+using NeoModLoader.General;
 using NeoModLoader.services;
+using NeoModLoader.ui;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -13,7 +15,7 @@ namespace NeoModLoader.utils;
 
 internal static class ModInfoUtils
 {
-    public static List<api.ModDeclare> findMods()
+    public static List<api.ModDeclare> findAndPrepareMods()
     {
         HashSet<string> findModsIDs = new();
         var mods = new List<api.ModDeclare>();
@@ -47,21 +49,77 @@ internal static class ModInfoUtils
             var mod = recogMod(mod_folder, false);
             if (mod != null)
             {
-                if (findModsIDs.Contains(mod.UUID))
+                if (mod.ModType == ModTypeEnum.NORMAL)
                 {
-                    LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
-                    continue;
+                    if (findModsIDs.Contains(mod.UUID))
+                    {
+                        LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                        continue;
+                    }
+                    if (string.IsNullOrEmpty(mod.RepoUrl))
+                    {
+                        mod.SetRepoUrlToWorkshopPage(Path.GetFileName(mod_folder));
+                    }
+                    mods.Add(mod);
+                    findModsIDs.Add(mod.UUID);
                 }
-                if (string.IsNullOrEmpty(mod.RepoUrl))
+                else if (mod.ModType == ModTypeEnum.BEPINEX)
                 {
-                    mod.SetRepoUrlToWorkshopPage(Path.GetFileName(mod_folder));
+                    LinkBepInExModToLocalRequest(mod);
                 }
-                mods.Add(mod);
-                findModsIDs.Add(mod.UUID);
             }
         }
         return mods;
     }
+    private static Queue<ModDeclare> link_request_mods = new();
+    
+    internal static void DealWithBepInExModLinkRequests()
+    {
+        if (link_request_mods.Count == 0) return;
+        InformationWindow.ShowWindow(LM.Get("ModLinkRequest"));
+        new Task(() =>
+        {
+            Task.Delay(15000);
+            List<string> parameters = new List<string>();
+            parameters.Add("/c");
+            while (link_request_mods.Count > 0)
+            {
+                var mod = link_request_mods.Dequeue();
+                if (parameters.Count != 1)
+                {
+                    parameters.Add("&&");
+                }
+                parameters.Add("mklink");
+                parameters.Add("/D");
+                parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
+                parameters.Add($"\"{mod.FolderPath}\"");
+            }
+            SystemUtils.CmdRunAs(parameters.ToArray());
+        }).Start();
+    }
+    internal static void LinkBepInExModToLocalRequest(ModDeclare mod)
+    {
+        if (!Directory.Exists(Paths.BepInExPluginsPath))
+        {
+            LogService.LogWarning($"Failed to load mod {mod.Name} which is a BepInEx mod, but BepInEx not found");
+            return;
+        }
+        
+        bool already_loaded = false;
+        foreach (var loaded_mod in WorldBoxMod.LoadedMods)
+        {
+            if (loaded_mod.GetDeclaration().UUID == mod.UUID)
+            {
+                // Just because this mod's folder linked to workshop and already loaded from local folder link.
+                //LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                already_loaded = true;
+                break;
+            }
+        }
+        if (already_loaded) return;
+        link_request_mods.Enqueue(mod);
+    }
+
     public static ModDeclare recogMod(string pModFolderPath, bool pLogModJsonNotFound = true)
     {
         var mod_config_path = Path.Combine(pModFolderPath, Paths.ModConfigFileName);
@@ -95,11 +153,26 @@ internal static class ModInfoUtils
         }
         
         DirectoryInfo bepinex_plugin_folder = new DirectoryInfo(Paths.BepInExPluginsPath);
-        FileInfo[] bepinex_plugin_files = bepinex_plugin_folder.GetFiles("*.dll", SearchOption.AllDirectories);
+        FileInfo[] bepinex_plugin_files;
+        
+        DirectoryInfo[] bepinex_plugin_sub_folders = bepinex_plugin_folder.GetDirectories();
+        
         HashSet<string> bepinex_plugin_file_locs = new HashSet<string>();
-        foreach (var file in bepinex_plugin_files)
+        foreach (var folder in bepinex_plugin_sub_folders)
         {
-            bepinex_plugin_file_locs.Add(file.FullName);
+            try
+            {
+                bepinex_plugin_files = folder.GetFiles("*.dll", SearchOption.AllDirectories);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // Just because this directory linked to workshop and workshop mod not downloaded yet or unordered.
+                continue;
+            }
+            foreach (var file in bepinex_plugin_files)
+            {
+                bepinex_plugin_file_locs.Add(file.FullName);
+            }
         }
         
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -146,6 +219,7 @@ internal static class ModInfoUtils
         string mod_description = pAssembly.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description;
 
         var mod = new ModDeclare(mod_name, mod_author, null, mod_version, mod_description, folder, null, null, null);
+        mod.SetModType(ModTypeEnum.BEPINEX);
         return mod;
     }
     // ReSharper disable once InconsistentNaming

@@ -35,6 +35,13 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
                     return;
                 }
 
+                if (modDeclare.ModType == ModTypeEnum.BEPINEX)
+                {
+                    ModInfoUtils.LinkBepInExModToLocalRequest(modDeclare);
+                    ModInfoUtils.DealWithBepInExModLinkRequests();
+                    return;
+                }
+
                 ModDependencyNode node = ModDepenSolveService.SolveModDependencyRuntime(modDeclare);
                 if (node == null)
                 {
