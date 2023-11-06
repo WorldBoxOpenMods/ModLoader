@@ -33,8 +33,10 @@ public class WorldBoxMod : MonoBehaviour
 
         LoadLocales();
         LM.ApplyLocale();
+        
+        ModCompileLoadService.loadInfoOfBepInExPlugins();
 
-        var mods = ModInfoUtils.findMods();
+        var mods = ModInfoUtils.findAndPrepareMods();
 
         var mod_nodes = ModDepenSolveService.SolveModDependencies(mods);
 
@@ -62,6 +64,7 @@ public class WorldBoxMod : MonoBehaviour
         ui.UIManager.init();
 
         NMLAutoUpdateService.CheckUpdate();
+        ModInfoUtils.DealWithBepInExModLinkRequests();
     }
 
     private void LoadLocales()
