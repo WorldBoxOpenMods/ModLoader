@@ -33,10 +33,15 @@ public class WorldBoxMod : MonoBehaviour
 
         LoadLocales();
         LM.ApplyLocale();
-        
+        BenchUtils.Start("Load Mods Info");
         ModCompileLoadService.loadInfoOfBepInExPlugins();
 
         var mods = ModInfoUtils.findAndPrepareMods();
+        float time = BenchUtils.End("Load Mods Info");
+        if (time > 0)
+        {
+            LogService.LogInfo($"Load mods info successfully, cost {time} seconds.");
+        }
 
         var mod_nodes = ModDepenSolveService.SolveModDependencies(mods);
 
@@ -48,7 +53,14 @@ public class WorldBoxMod : MonoBehaviour
             if (ModCompileLoadService.compileMod(mod))
             {
                 mods_to_load.Add(mod.mod_decl);
+                
+                BenchUtils.Start("Load Resources");
                 ResourcesPatch.LoadResourceFromMod(mod.mod_decl.FolderPath);
+                time = BenchUtils.End("Load Resources");
+                if (time > 0)
+                {
+                    LogService.LogInfo($"Load resources of mod {mod.mod_decl.Name} successfully, cost {time} seconds.");
+                }
                 LogService.LogInfo($"Successfully compile mod {mod.mod_decl.Name}");
             }
             else

@@ -36,7 +36,7 @@ public static class ModCompileLoadService
         {
             return true;
         }
-        
+        BenchUtils.Start($"{pModDecl.UUID}");
         var syntaxTrees = new List<SyntaxTree>();
         var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
             file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
@@ -134,6 +134,11 @@ public static class ModCompileLoadService
         pdbms.Seek(0, SeekOrigin.Begin);
         pdbms.WriteTo(pdb_fs);
 
+        float time = BenchUtils.End($"{pModDecl.UUID}");
+        if (time > 0)
+        {
+            LogService.LogInfo($"Time used to compile {pModDecl.UUID}: {time}");
+        }
         return true;
     }
 #else
