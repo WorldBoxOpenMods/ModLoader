@@ -9,18 +9,28 @@ public static class Paths
 
     //public static readonly string NMLModPath =
     //    @"C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NeoModLoader.dll";
-    public static readonly string NMLPath = Path.Combine(NMLModPath, "..", "NML");
+    public static readonly string NMLPath = Combine(NMLModPath, "..", "NML");
 
-    public static readonly string StreamingAssetsPath = Path.Combine(NMLPath, "..", "..");
-    public static readonly string ManagedPath = Path.Combine(StreamingAssetsPath, "..", "Managed");
-    public static readonly string GamePath = Path.Combine(StreamingAssetsPath, "..", "..");
-    public static readonly string BepInExPluginsPath = Path.Combine(GamePath, "BepInEx", "plugins");
-    public static readonly string ModsPath = Path.Combine(GamePath , "Mods");
+    public static readonly string StreamingAssetsPath = Combine(NMLPath, "..", "..");
+    public static readonly string ManagedPath = Combine(StreamingAssetsPath, "..", "Managed");
+    public static readonly string GamePath = Combine(StreamingAssetsPath, "..", "..");
+    public static readonly string BepInExPluginsPath = Combine(GamePath, "BepInEx", "plugins");
+    public static readonly string ModsPath = Combine(GamePath , "Mods");
 
-    public static readonly string NMLAssembliesPath = Path.Combine(NMLPath, "Assemblies");
-    public static readonly string CompiledModsPath = Path.Combine(NMLPath , "CompiledMods");
-    public static readonly string ModCompileRecordPath = Path.Combine(NMLPath, "mod_compile_records.json");
+    public static readonly string NMLAssembliesPath = Combine(NMLPath, "Assemblies");
+    public static readonly string CompiledModsPath = Combine(NMLPath , "CompiledMods");
+    public static readonly string ModCompileRecordPath = Combine(NMLPath, "mod_compile_records.json");
     public static readonly string ModConfigFileName = "mod.json";
     public static readonly string ModResourceFolderName = "GameResources";
-    public static readonly string ModsWorkshopPath = Path.Combine(GamePath, "..", "..", "workshop", "content", "1206560");
+    public static readonly string ModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
+    private static string Combine(params string [] paths)
+    {
+        string result = "";
+        foreach (var path in paths)
+        {
+            result = Path.Combine(result, path);
+        }
+
+        return new FileInfo(result).FullName;
+    }
 }
