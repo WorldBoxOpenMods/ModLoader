@@ -111,11 +111,8 @@ public class WorldBoxMod : MonoBehaviour
             LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModCompileRecordPath}");
         }
 
-        if (!Directory.Exists(Paths.NMLAssembliesPath))
+        void extractAssemblies()
         {
-            Directory.CreateDirectory(Paths.NMLAssembliesPath);
-            LogService.LogInfo($"Create NMLAssemblies folder at {Paths.NMLAssembliesPath}");
-            
             var resources = NeoModLoaderAssembly.GetManifestResourceNames();
             foreach (var resource in resources)
             {
@@ -123,6 +120,7 @@ public class WorldBoxMod : MonoBehaviour
                 {
                     var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
                     var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name);
+                
                     using var stream = NeoModLoaderAssembly.GetManifestResourceStream(resource);
                     using var file = new FileStream(file_path, FileMode.Create, FileAccess.Write);
                     stream.CopyTo(file);
@@ -130,7 +128,25 @@ public class WorldBoxMod : MonoBehaviour
                 }
             }
         }
-        
+        if (!Directory.Exists(Paths.NMLAssembliesPath))
+        {
+            Directory.CreateDirectory(Paths.NMLAssembliesPath);
+            LogService.LogInfo($"Create NMLAssemblies folder at {Paths.NMLAssembliesPath}");
+            extractAssemblies();
+        }
+        else
+        {
+            var modupdate_time = new FileInfo(Paths.NMLModPath).CreationTime;
+            var assemblyupdate_time = new DirectoryInfo(Paths.NMLAssembliesPath).CreationTime;
+            if(modupdate_time > assemblyupdate_time)
+            {
+                LogService.LogInfo($"NeoModLoader.dll is newer than assemblies in NMLAssemblies folder, " +
+                                   $"re-extract assemblies from NeoModLoader.dll");
+                Directory.Delete(Paths.NMLAssembliesPath, true);
+                extractAssemblies();
+            }
+        }
+
         foreach (var file_full_path in Directory.GetFiles(
                      Paths.NMLAssembliesPath, "*.dll"))
         {
