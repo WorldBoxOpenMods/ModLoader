@@ -14,11 +14,14 @@ public static class ModUploadAuthenticationService
         ScrollWindow.showWindow(ModUploadAuthenticationWindow.WindowId);
         new Task(() =>
         {
-            // TODO: Authenticate here
             while (true)
             {
-
-                if (ModUploadAuthenticationWindow.Instance.AuthSkipped || !ModUploadAuthenticationWindow.Instance.Opened())
+                if (!ModUploadAuthenticationWindow.Instance.Opened())
+                {
+                    promise.Reject(new Exception("Canceled"));
+                    break;
+                }
+                if (ModUploadAuthenticationWindow.Instance.AuthSkipped)
                 {
                     promise.Resolve();
                     break;
@@ -32,9 +35,11 @@ public static class ModUploadAuthenticationService
                     if (auth_result)
                     {
                         Authed = true;
+                        ModUploadAuthenticationWindow.SetState(true);
                         promise.Resolve();
                         break;
                     }
+                    ModUploadAuthenticationWindow.SetState(false);
                 }
             }
 

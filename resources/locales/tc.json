@@ -12,5 +12,8 @@
   "ModUploadFinish": "上传完成",
   "NML_InvalidParam": "无效ID(InvalidParam)",
   "NML_FileNotFound": "无效ID(FileNotFound)",
-  "ModUploadAuthentication Title": "模组上传验证"
+  "ModUploadAuthentication Title": "模组上传验证",
+  "NML_AUTHENTICATION": "选择验证方式或跳过验证",
+  "NML_AUTHENTICATED": "验证成功",
+  "NML_AUTHENTICATION_FAILED": "验证失败, 重试其他方式或跳过验证"
 }
