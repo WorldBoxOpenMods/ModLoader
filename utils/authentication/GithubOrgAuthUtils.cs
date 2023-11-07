@@ -56,8 +56,33 @@ public static class GithubOrgAuthUtils
         listener.Start();
         
         System.Diagnostics.Process.Start("https://github.com/login/oauth/authorize?client_id=" + client_id);
-        
-        HttpListenerContext context = listener.GetContext();
+        new Task(() =>
+        {
+            HttpListener listener_ref = listener;
+            int waitTime = 0;
+            while(waitTime < 30000)
+            {
+                if (listener_ref.IsListening)
+                {
+                    waitTime += 100;
+                    Thread.Sleep(100);
+                }
+                else
+                {
+                    return;
+                }
+            }
+            listener_ref.Close();
+        }).RunSynchronously();
+        HttpListenerContext context;
+        try
+        {
+            context = listener.GetContext();
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
         HttpListenerRequest request = context.Request;
         HttpListenerResponse response = context.Response;
         string code = request.QueryString["code"];
