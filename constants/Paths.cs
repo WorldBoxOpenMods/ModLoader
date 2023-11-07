@@ -22,6 +22,7 @@ public static class Paths
     public static readonly string ModCompileRecordPath = Combine(NMLPath, "mod_compile_records.json");
     public static readonly string ModConfigFileName = "mod.json";
     public static readonly string ModResourceFolderName = "GameResources";
+    public static readonly string NCMSModEmbededResourceFolderName = "EmbededResources";
     public static readonly string ModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
     public static readonly HashSet<string> IgnoreSearchDirectories = new HashSet<string>()
     {

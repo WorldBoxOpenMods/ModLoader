@@ -89,4 +89,5 @@ public class ModDeclare
 
     [JsonProperty("iconPath")] public string IconPath { get; private set; }
     [JsonProperty("ModType")] public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NORMAL;
+    public bool IsNCMSMod { get; internal set; } = false;
 }

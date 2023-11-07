@@ -5,18 +5,17 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Emit;
     using Microsoft.CodeAnalysis.Text;
+    using NeoModLoader.ncms_compatible_layer;
 #else
     using System.CodeDom.Compiler;
 #endif
 using System.Reflection;
-    using System.Text;
-    using NeoModLoader.api;
+using System.Text;
+using ModDeclaration;
+using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
 
 namespace NeoModLoader.services;
 
@@ -41,17 +40,58 @@ public static class ModCompileLoadService
         var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
             file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
             dir_name => !dir_name.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dir_name));
+        var embeded_resources = new List<ResourceDescription>();
+        
+        bool is_ncms_mod = false;
         var parse_option = new CSharpParseOptions(LanguageVersion.Latest);
         foreach (var code_file in code_files)
         {
             SourceText sourceText = SourceText.From(File.ReadAllText(code_file), Encoding.UTF8);
-            syntaxTrees.Add(
+            SyntaxTree syntaxTree =
                 CSharpSyntaxTree.ParseText(
                     sourceText, 
                     parse_option, 
-                    code_file.Substring(pModDecl.FolderPath.Length + 1))
-                );
+                    code_file.Substring(pModDecl.FolderPath.Length + 1)
+                    );
+            syntaxTrees.Add(syntaxTree);
+            if (!is_ncms_mod)
+            {
+                is_ncms_mod = NCMSCompatibleLayer.IsNCMSMod(syntaxTree);
+            }
         }
+
+        
+        if (is_ncms_mod)
+        {
+            // Load Manifest Files
+            string embeded_resource_folder = Path.Combine(pModDecl.FolderPath, Paths.NCMSModEmbededResourceFolderName);
+            if (Directory.Exists(embeded_resource_folder))
+            {
+                var embeded_resource_files = Directory.GetFiles(
+                    embeded_resource_folder, "*", SearchOption.AllDirectories);
+                foreach (var file in embeded_resource_files)
+                {
+                    var relative_path = file.Substring(embeded_resource_folder.Length + 1);
+                    var resource_name = $"{pModDecl.Name}.Resources.{relative_path.Replace('\\', '.').Replace('/', '.')}";
+                    var resource_desc = new ResourceDescription(
+                        resource_name, 
+                        () => File.OpenRead(file), 
+                        true
+                    );
+                    embeded_resources.Add(resource_desc);
+                }
+            }
+            // Load Global Object
+            SourceText global_object_sourceText = SourceText.From(NCMSCompatibleLayer.modGlobalObject, Encoding.UTF8);
+            SyntaxTree global_object_syntaxTree =
+                CSharpSyntaxTree.ParseText(
+                    global_object_sourceText, 
+                    parse_option, 
+                    $"{pModDecl.Name}.GlobalObject.cs"
+                );
+            syntaxTrees.Add(global_object_syntaxTree);
+        }
+        pModDecl.IsNCMSMod = is_ncms_mod;
 
         List<MetadataReference> list = pDefaultInc.ToList();
         foreach(var inc in pAddInc)
@@ -108,6 +148,7 @@ public static class ModCompileLoadService
         string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{pModDecl.UUID}.pdb");
 
         var result = compilation.Emit(dllms, pdbms, 
+            manifestResources: embeded_resources,
             options: new EmitOptions(
                     debugInformationFormat: DebugInformationFormat.PortablePdb,
                     pdbFilePath: pdb_path
@@ -299,13 +340,19 @@ public static class ModCompileLoadService
                 // Check if it is a NCMS Mod
                 if (Attribute.GetCustomAttribute(type, typeof(NCMS.ModEntry)) != null && type.IsSubclassOf(typeof(MonoBehaviour)))
                 {
-                    var mod_instance = new GameObject(pMod.Name, type)
+                    var mod_instance = new GameObject(pMod.Name)
                     {
                         transform =
                         {
                             parent = GameObject.Find("Services/ModLoader").transform
                         }
                     };
+                    mod_instance.SetActive(false);
+                    Type ncmsGlobalObjectType = mod_assembly.GetType("Mod");
+                    ncmsGlobalObjectType.GetField("Info")?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
+                    ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
+                    mod_instance.AddComponent(type);
+                    mod_instance.SetActive(true);
                     try
                     {
                         AttachedModComponent mod_interface = mod_instance.AddComponent<AttachedModComponent>();
