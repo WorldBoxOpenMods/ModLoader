@@ -382,9 +382,7 @@ public static class ModCompileLoadService
 
     public static void loadInfoOfBepInExPlugins()
     {
-        //AppDomain inspect_domain = AppDomain.CreateDomain("InspectDomain");
-
-        List<ModDeclare> bepInExMods = ModInfoUtils.recogBepInExMods(null);
+        List<ModDeclare> bepInExMods = ModInfoUtils.recogBepInExMods();
         
         foreach (var mod in bepInExMods)
         {

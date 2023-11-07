@@ -151,25 +151,19 @@ internal static class ResourcesPatch
     /// <param name="path">the path to the resource file to load</param>
     /// <param name="pLowerPath">the lower of path with <see cref="CultureInfo.CurrentCulture"/></param>
     /// <returns>The Objects loaded, if single Object, an array with single one; if no Objects, an empty array</returns>
-    /// <exception cref="UnrecognizableResourceFileException">It can recognize jpg, png, jpeg, txt, json, yml, prefab by postfix now</exception>
+    /// <exception cref="UnrecognizableResourceFileException">It can recognize jpg, png, jpeg, txt, json, yml, ab by postfix now</exception>
     public static UnityEngine.Object[] LoadResourceFile(ref string path, ref string pLowerPath)
     {
         if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
             return SpriteLoadUtils.LoadSprites(path);
         if (pLowerPath.EndsWith(".txt") || pLowerPath.EndsWith(".json") || pLowerPath.EndsWith(".yml"))
             return new Object[]{LoadTextAsset(path)};
-        if (pLowerPath.EndsWith(".prefab"))
+        if (pLowerPath.EndsWith(".ab"))
         {
             return Array.Empty<Object>();
-            GameObject obj = PrefabLoadUtils.LoadPrefab(path);
-            return obj == null ? Array.Empty<Object>() : new Object[] { obj };
         }
-        throw new UnrecognizableResourceFileException();
-    }
 
-    private static Object LoadPrefab(string path)
-    {
-        throw new UnrecognizableResourceFileException();
+        return new Object[]{LoadTextAsset(path)};
     }
 
     private static TextAsset LoadTextAsset(string path)
@@ -183,8 +177,9 @@ internal static class ResourcesPatch
     {
         string path = Path.Combine(pModFolder, Paths.ModResourceFolderName);
         if (!Directory.Exists(path)) return;
-        
-        var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+
+        var files = SystemUtils.SearchFileRecursive(pModFolder, filename => !filename.StartsWith("."),
+            dirname => !dirname.StartsWith("."));
         foreach (var file in files)
         {
             tree.AddFromFile(file.Replace(path, "").Replace('\\', '/').Substring(1), file);
@@ -203,6 +198,7 @@ internal static class ResourcesPatch
         if (node == null || node.objects.Count == 0) return __result;
         
         var list = new List<UnityEngine.Object>(__result);
+        // Use a list to store names, because it is faster to get name of an GameObject repeatedly.
         var names = new List<string>(__result.Length);
         foreach (var obj in list)
         {
