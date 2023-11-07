@@ -657,12 +657,15 @@
       <None Remove="resources\github.png" />
       <EmbeddedResource Include="resources\github.png" />
     </ItemGroup>
-  <!-- TODO: UNCOMMENT THIS AGAIN
+  
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="pwsh -File prepare_debug.ps1" />
+      <Exec Command="pwsh -File prepare_debug.ps1" Condition=" '$(OS)' == 'Windows_NT' " />
+      <!-- commenting this out as it seems to only apply to one specific device/file structure -->
+      <!-- <Exec Command="sh ./prepare_debug.sh" Condition=" '$(OS)' != 'Windows_NT' " /> -->
     </Target>
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-      <Exec Command="pwsh -File before_build.ps1" />
+      <Exec Command="pwsh -File before_build.ps1" Condition=" '$(OS)' == 'Windows_NT' " />
+      <Exec Command="sh ./before_build.sh" Condition=" '$(OS)' != 'Windows_NT' " />
     </Target>
-  -->
+  
 </Project>
