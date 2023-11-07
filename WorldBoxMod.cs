@@ -136,13 +136,14 @@ public class WorldBoxMod : MonoBehaviour
         }
         else
         {
-            var modupdate_time = new FileInfo(Paths.NMLModPath).CreationTime;
+            var modupdate_time = new FileInfo(Paths.NMLModPath).LastWriteTime;
             var assemblyupdate_time = new DirectoryInfo(Paths.NMLAssembliesPath).CreationTime;
             if(modupdate_time > assemblyupdate_time)
             {
                 LogService.LogInfo($"NeoModLoader.dll is newer than assemblies in NMLAssemblies folder, " +
                                    $"re-extract assemblies from NeoModLoader.dll");
                 Directory.Delete(Paths.NMLAssembliesPath, true);
+                Directory.CreateDirectory(Paths.NMLAssembliesPath);
                 extractAssemblies();
             }
         }
