@@ -16,11 +16,11 @@ namespace NCMS.Utils
         internal static void init()
         {
             WindowCreator.init();
-            _all_windows = Reflection.GetStaticField<Dictionary<string, ScrollWindow>, ScrollWindow>("allWindows");
+            _all_windows = RF.GetStaticField<Dictionary<string, ScrollWindow>, ScrollWindow>("allWindows");
         }
         public static ScrollWindow GetWindow(string pWindowID)
         {
-            return WindowCreator.GetWindow(pWindowID);
+            return ScrollWindow.get(pWindowID);
         }
 
         public static ScrollWindow CreateNewWindow(string pWindowID, string pWindowTitleKey)

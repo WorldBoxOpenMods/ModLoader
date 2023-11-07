@@ -12,5 +12,8 @@
   "ModUploadFinish": "Success",
   "NML_InvalidParam": "Invalid FileID (InvalidParam)",
   "NML_FileNotFound": "Invalid FileID (FileNotFound)",
-  "ModUploadAuthentication Title": "Upload Authentication"
+  "ModUploadAuthentication Title": "Upload Authentication",
+  "NML_AUTHENTICATION": "Select a way to authenticate",
+  "NML_AUTHENTICATED": "Authenticated",
+  "NML_AUTHENTICATION_FAILED": "Authentication failed, please try again."
 }

@@ -136,7 +136,7 @@ public class WorldBoxMod : MonoBehaviour
         }
         else
         {
-            var modupdate_time = new FileInfo(Paths.NMLModPath).CreationTime;
+            var modupdate_time = new FileInfo(Paths.NMLModPath).LastWriteTime;
             var assemblyupdate_time = new DirectoryInfo(Paths.NMLAssembliesPath).CreationTime;
             if(modupdate_time > assemblyupdate_time)
             {

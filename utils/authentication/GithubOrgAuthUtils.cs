@@ -16,8 +16,8 @@ public static class GithubOrgAuthUtils
     {
         public string login;
     }
-    private const string client_id = "3d20eea783f2c4855b20";
-    private const string client_secret = "193f46b1d026d88c99645bc86caa87e93bf4dc4d";
+    private const string client_id = Setting.github_auth_client_id;
+    private const string client_secret = Setting.github_auth_client_secret;
     public static bool Authenticate()
     {
         string token = GetToken();
@@ -56,8 +56,33 @@ public static class GithubOrgAuthUtils
         listener.Start();
         
         System.Diagnostics.Process.Start("https://github.com/login/oauth/authorize?client_id=" + client_id);
-        
-        HttpListenerContext context = listener.GetContext();
+        new Task(() =>
+        {
+            HttpListener listener_ref = listener;
+            int waitTime = 0;
+            while(waitTime < 30000)
+            {
+                if (listener_ref.IsListening)
+                {
+                    waitTime += 100;
+                    Thread.Sleep(100);
+                }
+                else
+                {
+                    return;
+                }
+            }
+            listener_ref.Close();
+        }).Start();
+        HttpListenerContext context;
+        try
+        {
+            context = listener.GetContext();
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
         HttpListenerRequest request = context.Request;
         HttpListenerResponse response = context.Response;
         string code = request.QueryString["code"];

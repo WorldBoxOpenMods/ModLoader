@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NeoModLoader.General;
+using ReflectionUtility;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.U2D;
@@ -15,6 +16,7 @@ namespace NCMS.Utils
     public class PowerButtons
     {
         private static Dictionary<string, PowerButton> toggle_buttons = new Dictionary<string, PowerButton>();
+        private static Dictionary<string, bool> bak_toggle_values = new Dictionary<string, bool>();
         public static PowerButton CreateButton(string name, Sprite sprite, string title, string description,
             Vector2 position, ButtonType type = ButtonType.Click, Transform parent = null, UnityAction call = null)
         {
@@ -82,8 +84,11 @@ namespace NCMS.Utils
                     asPowerButton.type = PowerButtonType.Active;
                     break;
                 case ButtonType.Toggle:
-                    asPowerButton.type = PowerButtonType.Special;
+                    asPowerButton.type = PowerButtonType.Library;
                     toggle_buttons.Add(name, asPowerButton);
+                    bak_toggle_values.Add(name, false);
+                    asButton.onClick.AddListener(()=>ToggleButton(name));
+                    obj.transform.Find("ToggleIcon").GetComponent<ToggleIcon>().CallMethod("updateIcon", bak_toggle_values[name]);
                     break;
             }
             obj.gameObject.SetActive(true);
@@ -125,9 +130,9 @@ namespace NCMS.Utils
             return button_obj.GetComponent<Button>();
         }
 
-        public static void AddButtonToTab(PowerButton button, PowersTab tab, Vector2 position)
+        public static void AddButtonToTab(PowerButton button, PowerTab tab, Vector2 position)
         {
-            PowerButtonCreator.AddButtonToTab(button, tab, position);
+            PowerButtonCreator.AddButtonToTab(button, PowerButtonCreator.GetTab("Tab_"+tab.ToString()), position);
         }
         
         public static bool GetToggleValue(string name)
@@ -137,19 +142,20 @@ namespace NCMS.Utils
                 Transform toggle = button.transform.Find("ToggleIcon");
                 if (toggle == null)
                 {
-                    throw new Exception("Toggle button added by NCMS Method is invalid");
+                    throw new Exception($"Toggle button added by NCMS Method is invalid for {name}");
                 }
 
                 GodPower power = AssetManager.powers.get(name);
                 if (power == null)
                 {
-                    throw new Exception("Toggle button added by NCMS Method is invalid, GodPower not found");
+                    return bak_toggle_values[name];
+                    throw new Exception($"Toggle button added by NCMS Method is invalid, GodPower not found for {name}");
                 }
 
                 return PlayerConfig.dict[power.toggle_name].boolVal;
             }
 
-            throw new Exception("Toggle button added by NCMS Method not found");
+            throw new Exception($"Toggle button added by NCMS Method not found for {name}");
         }
 
         public static void ToggleButton(string name)
@@ -159,13 +165,16 @@ namespace NCMS.Utils
                 Transform toggle = button.transform.Find("ToggleIcon");
                 if (toggle == null)
                 {
-                    throw new Exception("Toggle button added by NCMS Method is invalid");
+                    throw new Exception($"Toggle button added by NCMS Method is invalid for {name}");
                 }
 
                 GodPower power = AssetManager.powers.get(name);
                 if (power == null)
                 {
-                    throw new Exception("Toggle button added by NCMS Method is invalid, GodPower not found");
+                    bak_toggle_values[name] = !bak_toggle_values[name];
+                    toggle.GetComponent<ToggleIcon>().CallMethod("updateIcon", bak_toggle_values[name]);
+                    return;
+                    throw new Exception($"Toggle button added by NCMS Method is invalid, GodPower not found for {name}");
                 }
 
                 PlayerConfig.dict[power.toggle_name].boolVal = !PlayerConfig.dict[power.toggle_name].boolVal;
@@ -173,7 +182,7 @@ namespace NCMS.Utils
             }
             else
             {
-                throw new Exception("Toggle button added by NCMS Method not found");
+                throw new Exception($"Toggle button added by NCMS Method not found for {name}");
             }
         }
     }

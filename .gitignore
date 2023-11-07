@@ -13,3 +13,4 @@ resources/commit
 *.csproj
 *.user
 App.config
+constants/Setting.cs

@@ -9,14 +9,15 @@ public static class WindowCreator
 
     internal static void init()
     {
-        _all_windows = Reflection.GetStaticField<Dictionary<string, ScrollWindow>, ScrollWindow>("allWindows");
+        _all_windows = RF.GetStaticField<Dictionary<string, ScrollWindow>, ScrollWindow>("allWindows");
         _all_localized_texts = LocalizedTextManager.instance.GetField<List<LocalizedText>, LocalizedTextManager>("texts");
     }
-    public static ScrollWindow GetWindow(string pWindowID)
-    {
-        return ScrollWindow.get(pWindowID);
-    }
-
+    /// <summary>
+    /// Create an empty window with a title auto localized
+    /// </summary>
+    /// <param name="pWindowID">It should be unique, suggest start with your own mod's UUID</param>
+    /// <param name="pWindowTitleKey">It should be unique, suggest start with your own mod's UUID</param>
+    /// <returns></returns>
     public static ScrollWindow CreateEmptyWindow(string pWindowID, string pWindowTitleKey)
     {
         if (_all_windows.TryGetValue(pWindowID, out ScrollWindow emptyWindow))

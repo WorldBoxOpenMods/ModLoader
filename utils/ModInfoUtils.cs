@@ -155,7 +155,7 @@ internal static class ModInfoUtils
         }
     }
 
-    public static List<ModDeclare> recogBepInExMods(AppDomain pInspectDomain)
+    public static List<ModDeclare> recogBepInExMods()
     {
         // TODO: Check repeat or not? Does BepInEx check it?
         var mods = new List<ModDeclare>();

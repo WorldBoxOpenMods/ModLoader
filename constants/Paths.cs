@@ -30,6 +30,7 @@ public static class Paths
     public static readonly string ModResourceFolderName = "GameResources";
     public static readonly string WindowsModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
     public static readonly string OsxModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
+    public static readonly string NCMSModEmbededResourceFolderName = "EmbededResources";
     public static readonly HashSet<string> IgnoreSearchDirectories = new HashSet<string>()
     {
         "bin", "obj", "Properties", "packages", "packages.config", "packages-lock.json", "packages-lock.xml",

@@ -22,7 +22,7 @@ internal static class ModWorkshopService
 
     public static void Init()
     {
-        steamWorkshopPromise = Reflection.GetStaticField<Promise, SteamSDK>("steamInitialized");
+        steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
     }
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
