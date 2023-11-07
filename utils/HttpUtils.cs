@@ -6,6 +6,34 @@ namespace NeoModLoader.utils;
 
 public static class HttpUtils
 {
+    public static HttpResponseMessage Get(string url, Dictionary<string, string> headers)
+    {
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.Clear();
+        foreach (var header in headers)
+        {
+            client.DefaultRequestHeaders.Add(header.Key, header.Value);
+        }
+        return client.GetAsync(url).Result;
+    }
+
+    public static string Post(string url, Dictionary<string, string> @params,
+        Dictionary<string, string> headers = null)
+    {
+        using var client = new HttpClient();
+        var content = new FormUrlEncodedContent(@params);
+        if(headers != null)
+        {
+            client.DefaultRequestHeaders.Clear();
+            foreach (var header in headers)
+            {
+                client.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
+        }
+        
+        var response = client.PostAsync(url, content).Result;
+        return response.Content.ReadAsStringAsync().Result;
+    }
     public static string Request(string url, string param = "", string method = "get")
     {
         ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;//TLS1.2=3702

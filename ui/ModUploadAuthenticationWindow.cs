@@ -1,5 +1,7 @@
 using NeoModLoader.api;
 using NeoModLoader.services;
+using NeoModLoader.utils;
+using NeoModLoader.utils.authentication;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,15 +31,16 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
         auth_button_icon_obj.transform.localScale = Vector3.one;
         auth_button_icon_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(42, 42);
 
-        CreateAuthButton("ui/icons/iconDiscordWhite", () => false);
-        CreateAuthButton("ui/icons/iconArrowBack", null, new (42, 30.7f));
+        CreateAuthButton("ui/icons/iconDiscordWhite", () => false, new (42, 30.7f));
+        CreateAuthButton(InternalResourcesGetter.GetGitHubIcon(), GithubOrgAuthUtils.Authenticate);
+        CreateAuthButton("ui/icons/iconArrowBack", null);
     }
     internal Func<bool> AuthFunc;
     internal bool AuthFuncSelected = false;
-    private Button CreateAuthButton(string pIconPath, Func<bool> pAuthFunc, Vector2 pIconSize = default)
+    private Button CreateAuthButton(Sprite pIcon, Func<bool> pAuthFunc, Vector2 pIconSize = default)
     {
         Button button = Instantiate(prefab_auth_button, ContentTransform);
-        button.transform.Find("Icon").GetComponent<Image>().sprite = SpriteTextureLoader.getSprite(pIconPath);
+        button.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
         if (pIconSize != default)
         {
             button.transform.Find("Icon").GetComponent<RectTransform>().sizeDelta = pIconSize;
@@ -55,6 +58,10 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
             }
         });
         return button;
+    }
+    private Button CreateAuthButton(string pIconPath, Func<bool> pAuthFunc, Vector2 pIconSize = default)
+    {
+        return CreateAuthButton(SpriteTextureLoader.getSprite(pIconPath), pAuthFunc, pIconSize);
     }
 
     public bool Opened()

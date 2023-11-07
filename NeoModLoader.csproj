@@ -651,6 +651,8 @@
       <EmbeddedResource Include="resources\square_frame_only.png" />
       <None Remove="resources\commit" />
       <EmbeddedResource Include="resources\commit" />
+      <None Remove="resources\github.png" />
+      <EmbeddedResource Include="resources\github.png" />
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="pwsh -File prepare_debug.ps1" />
