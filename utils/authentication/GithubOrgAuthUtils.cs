@@ -73,7 +73,7 @@ public static class GithubOrgAuthUtils
                 }
             }
             listener_ref.Close();
-        }).RunSynchronously();
+        }).Start();
         HttpListenerContext context;
         try
         {
