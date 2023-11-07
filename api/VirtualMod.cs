@@ -2,7 +2,9 @@ using NeoModLoader.constants;
 using UnityEngine;
 
 namespace NeoModLoader.api;
-
+/// <summary>
+/// This class is used to represent a mod that is not loaded by NeoModLoader.
+/// </summary>
 public class VirtualMod : IMod
 {
     private ModDeclare _declare;

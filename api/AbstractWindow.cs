@@ -9,12 +9,33 @@ namespace NeoModLoader.api;
 /// <typeparam name="T"></typeparam>
 public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow<T>
 {
+    /// <summary>
+    /// The only instance of this class.
+    /// </summary>
     public static T Instance { get; protected set; }
+    /// <summary>
+    /// Transform of Background/Scroll View/Viewport/Content of Instance
+    /// </summary>
     protected Transform ContentTransform { get; set; }
+    /// <summary>
+    /// Transform of Background of Instance
+    /// </summary>
     protected Transform BackgroundTransform { get; set; }
+    /// <summary>
+    /// It will be set to true after <see cref="Init"/> is called.
+    /// </summary>
     protected bool Initialized;
+    /// <summary>
+    /// It will be set to true after <see cref="OnFirstEnable"/> and <see cref="OnNormalEnable"/> called.
+    /// </summary>
     protected bool IsOpened;
+    /// <summary>
+    /// It will be set to false after <see cref="OnFirstEnable"/> called.
+    /// </summary>
     protected bool IsFirstOpen = true;
+    /// <summary>
+    /// WindowId of <see cref="Instance"/>
+    /// </summary>
     public static string WindowId { get; protected set; }
 
     public static T CreateAndInit(string pWindowId)

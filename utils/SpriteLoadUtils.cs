@@ -24,6 +24,12 @@ class SingleSpriteMetaData
     public Vector2 pivot;
     public Vector4 border;
 }
+/// <summary>
+/// A utility class for loading sprites.
+/// </summary>
+/// <remarks>
+/// All parameter path should be path in actual file system.
+/// </remarks>
 public static class SpriteLoadUtils
 {
     class MetaFile

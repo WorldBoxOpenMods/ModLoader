@@ -1,5 +1,9 @@
 namespace NeoModLoader.utils;
 
+/// <summary>
+/// A simple PriorityQueue implementation with binary heap, not thread-safe
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public class PriorityQueue<T>
 {
     private IComparer<T> comparer;
