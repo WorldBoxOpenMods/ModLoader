@@ -147,8 +147,7 @@ public class WorldBoxMod : MonoBehaviour
             }
         }
 
-        foreach (var file_full_path in Directory.GetFiles(
-                     Paths.NMLAssembliesPath, "*.dll"))
+        foreach (var file_full_path in Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"))
         {
             try
             {
