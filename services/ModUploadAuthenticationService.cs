@@ -10,7 +10,15 @@ public static class ModUploadAuthenticationService
     public static Promise Authenticate()
     {
         Promise promise = new Promise();
-
+        if (Authed)
+        {
+            new Task(() =>
+            {
+                Thread.Sleep(100);
+                promise.Resolve();
+            }).Start();
+            return promise;
+        }
         ScrollWindow.showWindow(ModUploadAuthenticationWindow.WindowId);
         new Task(() =>
         {

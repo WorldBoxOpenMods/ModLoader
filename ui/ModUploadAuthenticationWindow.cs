@@ -35,8 +35,9 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
         auth_text.resizeTextForBestFit = true;
         auth_text.resizeTextMinSize = 6;
         auth_text.resizeTextMaxSize = 14;
+        auth_text.color = Color.white;
         localized_auth_text = auth_text_obj.GetComponent<LocalizedText>();
-        localized_auth_text.key = "NML_AUTHENTICATION";
+        localized_auth_text.setKeyAndUpdate("NML_AUTHENTICATION");
         LocalizedTextManager.addTextField(localized_auth_text);
         
         
@@ -110,8 +111,6 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
     public override void OnNormalEnable()
     {
         base.OnNormalEnable();
-        localized_auth_text.key = "NML_AUTHENTICATION";
-        auth_text.color = Color.white;
         AuthSkipped = false;
         AuthFuncSelected = false;
         AuthFunc = null;
