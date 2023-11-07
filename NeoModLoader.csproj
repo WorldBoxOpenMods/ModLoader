@@ -32,6 +32,9 @@
       <Reference Include="Assembly-CSharp-firstpass">
         <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
       </Reference>
+      <Reference Include="Facepunch.Steamworks.Posix">
+        <HintPath>assembly-dependencies\Facepunch.Steamworks.Posix.dll</HintPath>
+      </Reference>
       <Reference Include="Facepunch.Steamworks.Win64">
         <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
       </Reference>
@@ -654,11 +657,12 @@
       <None Remove="resources\github.png" />
       <EmbeddedResource Include="resources\github.png" />
     </ItemGroup>
+  <!-- TODO: UNCOMMENT THIS AGAIN
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="pwsh -File prepare_debug.ps1" />
     </Target>
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
       <Exec Command="pwsh -File before_build.ps1" />
     </Target>
-
+  -->
 </Project>

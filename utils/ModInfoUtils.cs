@@ -261,8 +261,10 @@ internal static class ModInfoUtils
                 mod_compile_timestamps.Add(pModUUID, 0);
             }
         }
-
-        mod_compile_timestamps.TryAdd(pModUUID, 0);
+        if (!mod_compile_timestamps.ContainsKey(pModUUID))
+        {
+            mod_compile_timestamps.Add(pModUUID, 0);
+        }
 
         return mod_compile_timestamps[pModUUID];
     }
