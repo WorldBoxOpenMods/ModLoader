@@ -16,8 +16,8 @@ public static class GithubOrgAuthUtils
     {
         public string login;
     }
-    private const string client_id = "3d20eea783f2c4855b20";
-    private const string client_secret = "193f46b1d026d88c99645bc86caa87e93bf4dc4d";
+    private const string client_id = Setting.github_auth_client_id;
+    private const string client_secret = Setting.github_auth_client_secret;
     public static bool Authenticate()
     {
         string token = GetToken();
