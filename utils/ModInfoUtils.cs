@@ -43,7 +43,19 @@ internal static class ModInfoUtils
             return Directory.GetFiles(Path.Combine(Paths.NMLModPath, ".."), "NCMS*.dll").Length > 0;
         }
 
-        var workshop_mod_folders = Directory.GetDirectories(Paths.ModsWorkshopPath);
+        string[] workshop_mod_folders;
+        switch (Application.platform) {
+            case RuntimePlatform.WindowsPlayer:
+                workshop_mod_folders = Directory.GetDirectories(Paths.WindowsModsWorkshopPath);
+                break;
+            case RuntimePlatform.OSXPlayer:
+                workshop_mod_folders = Directory.GetDirectories(Paths.OsxModsWorkshopPath);
+                break;
+            default:
+                Debug.LogWarning("Your platform doesn't have defined behaviour, trying to handle it like Windows...");
+                workshop_mod_folders = Directory.GetDirectories(Paths.WindowsModsWorkshopPath);
+                break;
+        }
         foreach (var mod_folder in workshop_mod_folders)
         {
             var mod = recogMod(mod_folder, false);
@@ -261,8 +273,10 @@ internal static class ModInfoUtils
                 mod_compile_timestamps.Add(pModUUID, 0);
             }
         }
-
-        mod_compile_timestamps.TryAdd(pModUUID, 0);
+        if (!mod_compile_timestamps.ContainsKey(pModUUID))
+        {
+            mod_compile_timestamps.Add(pModUUID, 0);
+        }
 
         return mod_compile_timestamps[pModUUID];
     }

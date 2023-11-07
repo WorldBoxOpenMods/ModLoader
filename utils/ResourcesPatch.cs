@@ -205,7 +205,7 @@ internal static class ResourcesPatch
             names.Add(obj.name);
         }
         
-        foreach (var (key, value) in node.objects)
+        foreach (var (key, value) in node.objects.Select<KeyValuePair<string, Object>, (string key, Object value)>(pair => (pair.Key, pair.Value)))
         {
             int idx = names.IndexOf(key);
             if (idx < 0)

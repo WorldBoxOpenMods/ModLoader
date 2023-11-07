@@ -32,7 +32,7 @@ public static class LM
             throw new FormatException($"Failed to load locale file for stream as json");
         }
 
-        foreach (var (key, value) in locale)
+        foreach (var (key, value) in locale.Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
             Add(pLanguage, key, value);
         }
@@ -57,7 +57,7 @@ public static class LM
                 throw new FormatException($"Failed to load locale file at {pFilePath} as json");
             }
 
-            foreach (var (key, value) in locale)
+            foreach (var (key, value) in locale.Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
             {
                 Add(pLanguage, key, value);
             }
@@ -130,7 +130,7 @@ public static class LM
             current_language = language;
         }
         
-        foreach (var (key, value) in locales[language])
+        foreach (var (key, value) in locales[language].Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
             localized_text[key] = value;
         }
@@ -157,7 +157,7 @@ public static class LM
             localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>, LocalizedTextManager>("localizedText");
         }
         
-        foreach (var (key, value) in locales[current_language])
+        foreach (var (key, value) in locales[current_language].Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
             localized_text[key] = value;
         }

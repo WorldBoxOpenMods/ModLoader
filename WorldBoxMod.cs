@@ -142,25 +142,33 @@ public class WorldBoxMod : MonoBehaviour
             {
                 LogService.LogInfo($"NeoModLoader.dll is newer than assemblies in NMLAssemblies folder, " +
                                    $"re-extract assemblies from NeoModLoader.dll");
+                Debug.Log(Paths.NMLAssembliesPath);
                 Directory.Delete(Paths.NMLAssembliesPath, true);
                 Directory.CreateDirectory(Paths.NMLAssembliesPath);
+                LogService.LogInfo($"Create new NMLAssemblies folder at {Paths.NMLAssembliesPath}");
                 extractAssemblies();
             }
         }
 
-        foreach (var file_full_path in Directory.GetFiles(
-                     Paths.NMLAssembliesPath, "*.dll"))
+        foreach (var file_full_path in Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"))
         {
-            try
-            {
+            try {
                 Assembly.LoadFrom(file_full_path);
                 // LogService.LogInfo($"Load assembly {file_full_path} successfully.");
-            }
-            catch (BadImageFormatException)
-            {
+            } catch (BadImageFormatException) {
                 LogService.LogError($"" +
                                     $"BadImageFormatException: " +
                                     $"The file {file_full_path} is not a valid assembly.");
+            } catch (FileNotFoundException e) {
+                LogService.LogError($"FileNotFoundException: " +
+                                    $"The file {file_full_path} is not found.");
+                LogService.LogError(e.Message);
+                LogService.LogError(e.StackTrace);
+            } catch (Exception e) {
+                LogService.LogError($"Exception: " +
+                                    $"Failed to load assembly {file_full_path}.");
+                LogService.LogError(e.Message);
+                LogService.LogError(e.StackTrace);
             }
         }
     }
