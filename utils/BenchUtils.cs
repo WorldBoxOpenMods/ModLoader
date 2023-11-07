@@ -16,7 +16,9 @@ internal static class BenchUtils
     public static void Start(string key)
     {
 #if BENCHENABLED
-        bench.TryAdd(key, 0);
+        if (!bench.ContainsKey(key)) {
+            bench.Add(key, 0);
+        }
         float current = Time.realtimeSinceStartup;
         bench[key] = current;
 #endif
