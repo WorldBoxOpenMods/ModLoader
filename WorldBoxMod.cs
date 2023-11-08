@@ -20,6 +20,7 @@ public class WorldBoxMod : MonoBehaviour
     {
         Others.unity_player_enabled = true;
         Transform = transform;
+        LogService.Init();
         fileSystemInitialize();
     }
     private void Update()

@@ -1,8 +1,10 @@
 //#define TEST
 
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using NeoModLoader.constants;
 using NeoModLoader.utils;
+using UnityEngine;
 
 namespace NeoModLoader.services;
 /// <summary>
@@ -10,6 +12,112 @@ namespace NeoModLoader.services;
 /// </summary>
 public static class LogService
 {
+    private enum LogType
+    {
+        Info,
+        Warning,
+        Error
+    }
+
+    private class WrappedMessage
+    {
+        public string message;
+        public LogType type;
+
+        public WrappedMessage(string message, LogType type)
+        {
+            this.message = message;
+            this.type = type;
+        }
+        public void Reset(string message, LogType type)
+        {
+            this.message = message;
+            this.type = type;
+        }
+    }
+    private static readonly ConcurrentQueue<WrappedMessage> concurrent_log_queue = new();
+    private static ConcurrentBag<WrappedMessage> _pool = new();
+    private const int pool_size = 100;
+
+    private class ConcurrentLogHandle : MonoBehaviour
+    {
+        private void Update()
+        {
+            int log_count = 0;
+            while (log_count <= 32 && concurrent_log_queue.TryDequeue(out WrappedMessage message))
+            {
+                log_count++;
+                switch (message.type)
+                {
+                    case LogType.Info:
+                        LogInfo(message.message);
+                        break;
+                    case LogType.Warning:
+                        LogInfo(message.message);
+                        break;
+                    case LogType.Error:
+                        LogInfo(message.message);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                if(_pool.Count >= pool_size) continue;
+                _pool.Add(message);
+            }
+        }
+    }
+    internal static void Init()
+    {
+        WorldBoxMod.Transform.gameObject.AddComponent<ConcurrentLogHandle>();
+    }
+    /// <summary>
+    /// Log Info message with [NML] prefix for sub thread
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void LogInfoConcurrent(string message)
+    {
+        if (_pool.TryTake(out WrappedMessage result))
+        {
+            result.Reset(message, LogType.Info);
+        }
+        else
+        {
+            result = new WrappedMessage(message, LogType.Info);
+        }
+        concurrent_log_queue.Enqueue(result);
+    }
+    /// <summary>
+    /// Log Warning message with [NML] prefix for sub thread
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void LogWarningConcurrent(string message)
+    {
+        if (_pool.TryTake(out WrappedMessage result))
+        {
+            result.Reset(message, LogType.Warning);
+        }
+        else
+        {
+            result = new WrappedMessage(message, LogType.Warning);
+        }
+        concurrent_log_queue.Enqueue(result);
+    }
+    /// <summary>
+    /// Log Error message with [NML] prefix for sub thread
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void LogErrorConcurrent(string message)
+    {
+        if (_pool.TryTake(out WrappedMessage result))
+        {
+            result.Reset(message, LogType.Error);
+        }
+        else
+        {
+            result = new WrappedMessage(message, LogType.Error);
+        }
+        concurrent_log_queue.Enqueue(result);
+    }
     /// <summary>
     /// Log Error message with [NML] prefix
     /// </summary>
