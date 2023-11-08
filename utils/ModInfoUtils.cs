@@ -46,14 +46,13 @@ internal static class ModInfoUtils
         string[] workshop_mod_folders;
         switch (Application.platform) {
             case RuntimePlatform.WindowsPlayer:
-                workshop_mod_folders = Directory.GetDirectories(Paths.WindowsModsWorkshopPath);
-                break;
+            case RuntimePlatform.LinuxPlayer:
             case RuntimePlatform.OSXPlayer:
-                workshop_mod_folders = Directory.GetDirectories(Paths.OsxModsWorkshopPath);
+                workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
                 break;
             default:
                 Debug.LogWarning("Your platform doesn't have defined behaviour, trying to handle it like Windows...");
-                workshop_mod_folders = Directory.GetDirectories(Paths.WindowsModsWorkshopPath);
+                workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
                 break;
         }
         foreach (var mod_folder in workshop_mod_folders)
