@@ -33,7 +33,8 @@
         <HintPath>assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
       </Reference>
       <Reference Include="Facepunch.Steamworks.Posix">
-        <HintPath>..\..\..\Library\Application Support\Steam\steamapps\common\worldbox\worldbox.app\Contents\Resources\Data\Managed\Facepunch.Steamworks.Posix.dll</HintPath>
+        <HintPath Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))'">..\..\..\Library\Application Support\Steam\steamapps\common\worldbox\worldbox.app\Contents\Resources\Data\Managed\Facepunch.Steamworks.Posix.dll</HintPath>
+        <HintPath Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">$(HOME)\.steam\steam\steamapps\common\worldbox\worldbox_Data\Managed\Facepunch.Steamworks.Posix.dll</HintPath>
       </Reference>
       <Reference Include="Facepunch.Steamworks.Win64">
         <HintPath>assembly-dependencies\Facepunch.Steamworks.Win64.dll</HintPath>
