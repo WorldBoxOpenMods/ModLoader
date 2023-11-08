@@ -14,6 +14,15 @@ public static class SystemUtils
         System.Diagnostics.Process.Start(startInfo);
     }
 
+    public static void BashRun(string[] parameters)
+    {
+        var startInfo = new System.Diagnostics.ProcessStartInfo();
+        startInfo.FileName = "bash";
+        startInfo.Arguments = String.Join(" ", parameters);
+        Console.WriteLine(startInfo.Arguments);
+        System.Diagnostics.Process.Start(startInfo);
+    }
+
     public static List<string> SearchFileRecursive(string path, Func<string, bool> fileNameJudge,
         Func<string, bool> dirNameJudge)
     {
