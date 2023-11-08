@@ -14,10 +14,10 @@ public static class PowerButtonCreator
     /// </remarks>
     /// <param name="pId">PowerButton's name, determines title and desc key of tooltip</param>
     /// <param name="pWindowId">Id of the window to open</param>
-    /// <param name="pIcon"></param>
-    /// <param name="pAttachTab"></param>
-    /// <param name="pLocalPosition"></param>
-    /// <returns></returns>
+    /// <param name="pIcon">The icon of the button</param>
+    /// <param name="pAttachTab">Which tab the button attached to, <see cref="PowerTabNames"/></param>
+    /// <param name="pLocalPosition">The button position in <see cref="pAttachTab"/></param>
+    /// <returns>The PowerButton created</returns>
     public static PowerButton CreateWindowButton([NotNull]string pId, [NotNull]string pWindowId,
         Sprite pIcon, [CanBeNull]string pAttachTab = null, Vector2 pLocalPosition = default)
     {
@@ -59,6 +59,11 @@ public static class PowerButtonCreator
         obj.gameObject.SetActive(true);
         return obj;
     }
+    /// <summary>
+    /// Get a tab by its Object Name
+    /// </summary>
+    /// <param name="pId">The Name of the tab to find</param>
+    /// <returns>Tab found, null if not find</returns>
     public static PowersTab GetTab(string pId)
     {
         if (string.IsNullOrEmpty(pId)) return null;
@@ -72,7 +77,9 @@ public static class PowerButtonCreator
 
         return tabTransform.GetComponent<PowersTab>();
     }
-
+    /// <summary>
+    /// Add a button to a tab
+    /// </summary>
     public static void AddButtonToTab(PowerButton button, PowersTab tab, Vector2 position)
     {
         Transform transform;

@@ -3,7 +3,9 @@ using HarmonyLib;
 using NeoModLoader.api.exceptions;
 
 namespace NeoModLoader.General;
-
+/// <summary>
+/// LM is short for Localization Manager
+/// </summary>
 public static class LM
 {
     /// <summary>
