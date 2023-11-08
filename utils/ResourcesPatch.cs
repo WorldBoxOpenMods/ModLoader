@@ -144,19 +144,10 @@ internal static class ResourcesPatch
 
         public List<Object> GetAllObjects(Type systemTypeInstance)
         {
-            var result = new List<Object>();
-            foreach (var obj in objects.Values)
-            {
-                if (systemTypeInstance.IsInstanceOfType(obj))
-                {
-                    result.Add(obj);
-                }
-            }
-            Queue<ResourceTreeNode> queue = new Queue<ResourceTreeNode>();
-            foreach (var child in children.Values)
-            {
-                queue.Enqueue(child);
-            }
+            var result = new List<Object>(objects.Count);
+            
+            Queue<ResourceTreeNode> queue = new Queue<ResourceTreeNode>(children.Count);
+            queue.Enqueue(this);
 
             while (queue.Count > 0)
             {
@@ -167,6 +158,10 @@ internal static class ResourcesPatch
                     {
                         result.Add(obj);
                     }
+                }
+                foreach(WrappedAssetBundle ab in node.assetBundles)
+                {
+                    result.AddRange(ab.GetAllObjects(systemTypeInstance));
                 }
                 foreach(var child in node.children.Values)
                 {
@@ -247,7 +242,10 @@ internal static class ResourcesPatch
         if (node == null || node.objects.Count == 0) return __result;
         
         var list = new List<UnityEngine.Object>(__result);
+        list.AddRange(node.GetAllObjects(systemTypeInstance));
+        // No replace now.
         // Use a list to store names, because it is faster to get name of an GameObject repeatedly.
+        /*
         var names = new List<string>(__result.Length);
         foreach (var obj in list)
         {
@@ -272,6 +270,7 @@ internal static class ResourcesPatch
         {
             list.AddRange(child.Value.GetAllObjects(systemTypeInstance));
         }
+        */
         return list.ToArray();
     }
     [HarmonyPostfix]
@@ -284,7 +283,18 @@ internal static class ResourcesPatch
         Type systemTypeInstance)
     {
         var new_result = tree.Get(path);
-        if(new_result == null) return __result;
-        return new_result;
+        if (new_result == null)
+        {
+            var node = tree.Find(path, false, false);
+            if (node == null)
+                return __result;
+            foreach (var ab in node.assetBundles)
+            {
+                new_result = ab.GetObject(Path.GetFileName(path));
+                if (new_result != null)
+                    break;
+            }
+        }
+        return systemTypeInstance.IsInstanceOfType(new_result) ? new_result : __result;
     }
 }

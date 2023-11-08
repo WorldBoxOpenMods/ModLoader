@@ -1,4 +1,5 @@
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace NeoModLoader.utils;
 
@@ -9,6 +10,14 @@ public class WrappedAssetBundle
     public WrappedAssetBundle(AssetBundle ab)
     {
         assetBundle = ab;
+    }
+    public Object GetObject(string name)
+    {
+        return assetBundle.LoadAsset(name);
+    }
+    public Object[] GetAllObjects(Type systemTypeInstance)
+    {
+        return assetBundle.LoadAllAssets(systemTypeInstance);
     }
 }
 /// <summary>
