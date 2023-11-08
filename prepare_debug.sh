@@ -1,25 +1,28 @@
 #!/bin/bash
 
-export GAMEMODFOLDER=/home/inmny/Games/steam/worldbox/worldbox_Data/StreamingAssets/Mods
+case "$OSTYPE" in
+  darwin*)
+    export GMF=$HOME/Library/Application\ Support/Steam/steamapps/common/worldbox/worldbox_Data/StreamingAssets/Mods
+    export BDF=$(pwd)/bin/Debug/net48
+    ;; 
+  linux*)
+    export GMF=$HOME/Games/steam/worldbox/worldbox_Data/StreamingAssets/Mods
+    export BDF=$(pwd)/bin/Debug/net48
+    ;;
+esac
 
-export BUILDFOLDER=/home/inmny/source/repo/NeoModLoader/NeoModLoader/bin/Debug/net48
-
-if [ -e $GAMEMODFOLDER/NeoModLoader.dll ]; then
-  echo "Skip"
-else
-  ln -s $BUILDFOLDER/NeoModLoader.dll $GAMEMODFOLDER/NeoModLoader.dll
+if [ ! -e $GMF/NeoModLoader.dll ]; then
+  ln -s $BDF/NeoModLoader.dll $GMF/NeoModLoader.dll
 fi
 
-if [ -e $GAMEMODFOLDER/NeoModLoader.pdb ]; then
-  echo "Skip"
-else
-  ln -s $BUILDFOLDER/NeoModLoader.pdb $GAMEMODFOLDER/NeoModLoader.pdb
+if [ ! -e $GMF/NeoModLoader.pdb ]; then
+  ln -s $BDF/NeoModLoader.pdb $GMF/NeoModLoader.pdb
 fi
 
-if [ -e $GAMEMODFOLDER/NeoModLoader.xml ]; then
-  echo "Skip"
-else
-  ln -s $BUILDFOLDER/NeoModLoader.xml $GAMEMODFOLDER/NeoModLoader.xml
+if [ ! -e $GMF/NeoModLoader.xml ]; then
+  ln -s $BDF/NeoModLoader.xml $GMF/NeoModLoader.xml
 fi
 
-rm $GAMEMODFOLDER/NML/mod_compile_records.json
+if [ -e $GMF/NML/mod_compile_records.json ]; then
+  rm $GMF/NML/mod_compile_records.json
+fi
