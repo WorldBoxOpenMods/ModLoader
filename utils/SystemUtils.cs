@@ -17,20 +17,25 @@ public static class SystemUtils
     public static List<string> SearchFileRecursive(string path, Func<string, bool> fileNameJudge,
         Func<string, bool> dirNameJudge)
     {
-        DirectoryInfo dir = new DirectoryInfo(path);
         List<string> result = new List<string>();
-        foreach (var file in dir.GetFiles())
+        Queue<DirectoryInfo> queue = new Queue<DirectoryInfo>();
+        queue.Enqueue(new DirectoryInfo(path));
+        while (queue.Count > 0)
         {
-            if (fileNameJudge(file.Name))
+            DirectoryInfo dir = queue.Dequeue();
+            foreach (var file in dir.GetFiles())
             {
-                result.Add(file.FullName);
+                if (fileNameJudge(file.Name))
+                {
+                    result.Add(file.FullName);
+                }
             }
-        }
-        foreach(var subDir in dir.GetDirectories())
-        {
-            if (dirNameJudge(subDir.Name))
+            foreach(var subDir in dir.GetDirectories())
             {
-                result.AddRange(SearchFileRecursive(subDir.FullName, fileNameJudge, dirNameJudge));
+                if (dirNameJudge(subDir.Name))
+                {
+                    queue.Enqueue(subDir);
+                }
             }
         }
 
