@@ -11,17 +11,9 @@ case "$OSTYPE" in
     ;;
 esac
 
-if [ ! -e $GMF/NeoModLoader.dll ]; then
-  ln -s $BDF/NeoModLoader.dll $GMF/NeoModLoader.dll
-fi
-
-if [ ! -e $GMF/NeoModLoader.pdb ]; then
-  ln -s $BDF/NeoModLoader.pdb $GMF/NeoModLoader.pdb
-fi
-
-if [ ! -e $GMF/NeoModLoader.xml ]; then
-  ln -s $BDF/NeoModLoader.xml $GMF/NeoModLoader.xml
-fi
+cp -f $BDF/NeoModLoader.dll $GMF/NeoModLoader.dll
+cp -f $BDF/NeoModLoader.pdb $GMF/NeoModLoader.pdb
+cp -f $BDF/NeoModLoader.xml $GMF/NeoModLoader.xml
 
 if [ -e $GMF/NML/mod_compile_records.json ]; then
   rm $GMF/NML/mod_compile_records.json
