@@ -50,11 +50,6 @@ public static class PowerButtonCreator
         obj.icon.sprite = pIcon;
         obj.open_window_id = pWindowId;
         obj.type = PowerButtonType.Window;
-        
-        if(pLocalPosition == default && tab != null)
-        {
-            pLocalPosition = tab.GetNextButtonPosition();
-        }
 
         var transform = obj.transform;
         
@@ -77,30 +72,9 @@ public static class PowerButtonCreator
 
         return tabTransform.GetComponent<PowersTab>();
     }
-    /// <summary>
-    /// Auto find empty position for button
-    /// </summary>
-    /// <remarks>
-    ///     This method cost a lot of time, please use it carefully.
-    /// </remarks>
-    /// <param name="pTab">Search Tab</param>
-    /// <returns></returns>
-    public static Vector2 GetNextButtonPosition(this PowersTab pTab)
-    {
-        return default;
-        foreach (PowerButton button in pTab.powerButtons)
-        {
-            
-        }
-    }
 
     public static void AddButtonToTab(PowerButton button, PowersTab tab, Vector2 position)
     {
-        if (position == default)
-        {
-            position = tab.GetNextButtonPosition();
-        }
-
         Transform transform;
         (transform = button.transform).SetParent(tab.transform);
         transform.localPosition = position;
