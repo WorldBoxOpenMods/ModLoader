@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NCMS;
 using NeoModLoader.api;
 using NeoModLoader.General;
@@ -46,9 +47,10 @@ namespace NeoModLoader.ncms_compatible_layer
         public static bool IsNCMSMod(SyntaxTree syntaxTree)
         {
             var root = syntaxTree.GetCompilationUnitRoot();
-            foreach(var usingDirective in root.Usings)
+            foreach (var classdecl in root.DescendantNodes())
             {
-                if (usingDirective.Name.ToString().Contains("NCMS"))
+                if (classdecl is not ClassDeclarationSyntax classDeclarationSyntax) continue;
+                if (classDeclarationSyntax.AttributeLists.Any(a => a.Attributes.Any(a => a.Name.ToString().Contains("ModEntry"))))
                     return true;
             }
             return false;
