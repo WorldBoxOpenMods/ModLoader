@@ -27,16 +27,16 @@
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
       <Reference Include="Assembly-CSharp">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Assembly-CSharp.dll</HintPath>
+        <HintPath>assembly-dependencies\Assembly-CSharp.dll</HintPath>
       </Reference>
       <Reference Include="Assembly-CSharp-firstpass">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+        <HintPath>assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
       </Reference>
       <Reference Include="Facepunch.Steamworks.Posix">
         <HintPath>..\..\..\Library\Application Support\Steam\steamapps\common\worldbox\worldbox.app\Contents\Resources\Data\Managed\Facepunch.Steamworks.Posix.dll</HintPath>
       </Reference>
       <Reference Include="Facepunch.Steamworks.Win64">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
+        <HintPath>assembly-dependencies\Facepunch.Steamworks.Win64.dll</HintPath>
       </Reference>
       <Reference Include="Microsoft.CodeAnalysis, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
         <HintPath>resources\assemblies\Microsoft.CodeAnalysis.dll</HintPath>
@@ -60,7 +60,7 @@
         <HintPath>resources\assemblies\netstandard.dll</HintPath>
       </Reference>
       <Reference Include="Newtonsoft.Json">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Newtonsoft.Json.dll</HintPath>
+        <HintPath>assembly-dependencies\Newtonsoft.Json.dll</HintPath>
       </Reference>
       <Reference Include="Newtonsoft.Json.Schema">
         <HintPath>resources\assemblies\Newtonsoft.Json.Schema.dll</HintPath>
@@ -375,43 +375,43 @@
         <HintPath>resources\assemblies\System.Xml.XPath.XDocument.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.AssetBundleModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.AssetBundleModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.ClothModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.ClothModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.ClothModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.CoreModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.CoreModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.ImageConversionModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.ImageConversionModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.JSONSerializeModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.JSONSerializeModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.LocalizationModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.LocalizationModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.LocalizationModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.TextCoreModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.TextCoreModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.TextCoreModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.TextRenderingModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.TextRenderingModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.UI">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UI.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.UI.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.UIElementsModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UIElementsModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.UIElementsModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.UIElementsNativeModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UIElementsNativeModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.UIElementsNativeModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.UIModule">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+        <HintPath>assembly-dependencies\UnityEngine.UIModule.dll</HintPath>
       </Reference>
     </ItemGroup>
   
