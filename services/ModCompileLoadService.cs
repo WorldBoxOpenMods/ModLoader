@@ -352,11 +352,11 @@ public static class ModCompileLoadService
                     ncmsGlobalObjectType.GetField("Info")?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
                     ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
                     mod_instance.AddComponent(type);
-                    mod_instance.SetActive(true);
                     try
                     {
                         AttachedModComponent mod_interface = mod_instance.AddComponent<AttachedModComponent>();
                         mod_interface.OnLoad(pMod, mod_instance);
+                        mod_instance.SetActive(true);
                     }
                     catch (Exception e)
                     {
@@ -375,16 +375,17 @@ public static class ModCompileLoadService
             if (type.IsSubclassOf(typeof(MonoBehaviour)))
             {
                 type_found = true;
-                var mod_instance = new GameObject(pMod.Name, type)
+                var mod_instance = new GameObject(pMod.Name)
                 {
                     transform =
                     {
                         parent = GameObject.Find("Services/ModLoader").transform
                     }
                 };
+                mod_instance.SetActive(false);
                 try
                 {
-                    IMod mod_interface = (IMod)mod_instance.GetComponent(type);
+                    IMod mod_interface = (IMod)mod_instance.AddComponent(type);
 
                     if (mod_interface == null)
                     {
@@ -393,6 +394,7 @@ public static class ModCompileLoadService
                     }
 
                     mod_interface.OnLoad(pMod, mod_instance);
+                    mod_instance.SetActive(true);
                 }
                 catch (Exception e)
                 {
