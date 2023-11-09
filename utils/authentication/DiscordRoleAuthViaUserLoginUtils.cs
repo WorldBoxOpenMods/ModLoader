@@ -17,16 +17,33 @@ public class DiscordRoleAuthViaUserLoginUtils
     }
     private const string client_id = Setting.discord_auth_client_id;
 
-    public static bool Authenticate()
-    {
-        return false;
-    }
+    public static bool Authenticate() => DiscordCommonAuthLogic.ModderIsInRolesList(DiscordCommonAuthLogic.GetRolesOfUser(GetUserID(GetAuthToken())));
 
     public static void Test()
     {
-        TokenInfo tokenInfo = GetAuthToken();
-        System.Diagnostics.Debug.WriteLine(tokenInfo.access_token);
+        TokenInfo token_info = GetAuthToken();
+        System.Diagnostics.Debug.WriteLine(token_info.access_token);
+        string user_id = GetUserID(token_info);
+        System.Diagnostics.Debug.WriteLine(user_id);
+        var roles = DiscordCommonAuthLogic.GetRolesOfUser(user_id);
+        bool result = DiscordCommonAuthLogic.ModderIsInRolesList(roles);
     }
+
+    private static string GetUserID(TokenInfo token_info)
+    {
+        HttpResponseMessage response = HttpUtils.Get("https://discordapp.com/api/users/@me", new Dictionary<string, string>()
+        {
+            { "Authorization", token_info.token_type + " " + token_info.access_token }
+        });
+        string res_json = response.Content.ReadAsStringAsync().Result;
+        string[] res_segments = res_json.Trim(' ', 'd', 'a', 't', 'a', ':', '{', '}').Split(',');
+        foreach (string[] pair in res_segments.Select(segment => segment.Split(':')).Where(pair => pair[0].Trim('"', ' ') == "id"))
+        {
+            return pair[1].Trim('"', ' ');
+        }
+        return "";
+    }
+    
     private static TokenInfo GetAuthToken()
     {
         HttpListener listener = new HttpListener();
@@ -69,20 +86,34 @@ public class DiscordRoleAuthViaUserLoginUtils
         string code = request.QueryString["code"];
         System.Diagnostics.Debug.WriteLine(code);
         listener.Close();
-        string res = HttpUtils.Post("https://discord.com/api/oauth2/token", new Dictionary<string, string>()
+        var parameters = new Dictionary<string, string>()
         {
             { "code", code },
             { "grant_type", "authorization_code" },
             { "redirect_uri", "http://localhost:36549" },
             { "scope", "identify" }
-        }, new Dictionary<string, string>()
+        };
+        var headers = new Dictionary<string, string>()
         {
             { "Accept", "application/json" },
-            { "Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + "NOT_COMMITING_THIS_THING :3")) }, // TODO: MY GOD PLEASE STORE THIS SECRET MORE SAFELY BEFORE COMMITING
-        });
-        System.Diagnostics.Debug.WriteLine(res);
-        Console.WriteLine(res);
-        string[] resSegments = res.Split(',');
+            { "Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + "yet again, not revealing this :3")) }, // TODO: MY GOD PLEASE STORE THIS SECRET MORE SAFELY BEFORE COMMITING
+        };
+        HttpResponseMessage res;
+        using (HttpClient client = new HttpClient())
+        {
+            FormUrlEncodedContent content = new FormUrlEncodedContent(parameters);
+            client.DefaultRequestHeaders.Clear();
+            foreach (var header in headers)
+            {
+                client.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
+
+            res = client.PostAsync("https://discord.com/api/oauth2/token", content).Result;
+        }
+        string resJson = res.Content.ReadAsStringAsync().Result;
+        System.Diagnostics.Debug.WriteLine(resJson);
+        Console.WriteLine(resJson);
+        string[] resSegments = resJson.Split(',');
         TokenInfo result = new TokenInfo
         {
             token_type = resSegments[0].Split(':')[1].Trim('"', ' '),
