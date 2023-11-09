@@ -27,13 +27,13 @@ internal static class ModInfoUtils
                 var mod = recogMod(mod_folder);
                 if (mod != null)
                 {
-                    if (findModsIDs.Contains(mod.UUID))
+                    if (findModsIDs.Contains(mod.UID))
                     {
-                        LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                        LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
                         continue;
                     }
                     mods.Add(mod);
-                    findModsIDs.Add(mod.UUID);
+                    findModsIDs.Add(mod.UID);
                 }
             }
         }
@@ -62,9 +62,9 @@ internal static class ModInfoUtils
             {
                 if (mod.ModType == ModTypeEnum.NORMAL)
                 {
-                    if (findModsIDs.Contains(mod.UUID))
+                    if (findModsIDs.Contains(mod.UID))
                     {
-                        LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                        LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
                         continue;
                     }
                     if (string.IsNullOrEmpty(mod.RepoUrl))
@@ -72,7 +72,7 @@ internal static class ModInfoUtils
                         mod.SetRepoUrlToWorkshopPage(Path.GetFileName(mod_folder));
                     }
                     mods.Add(mod);
-                    findModsIDs.Add(mod.UUID);
+                    findModsIDs.Add(mod.UID);
                 }
                 else if (mod.ModType == ModTypeEnum.BEPINEX)
                 {
@@ -141,7 +141,7 @@ internal static class ModInfoUtils
         bool already_loaded = false;
         foreach (var loaded_mod in WorldBoxMod.LoadedMods)
         {
-            if (loaded_mod.GetDeclaration().UUID == mod.UUID)
+            if (loaded_mod.GetDeclaration().UID == mod.UID)
             {
                 // Just because this mod's folder linked to workshop and already loaded from local folder link.
                 //LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");

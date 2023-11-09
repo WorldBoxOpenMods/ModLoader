@@ -27,7 +27,7 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
             Button loadButton = transform.Find("Load").GetComponent<Button>();
             loadButton.onClick.AddListener(() =>
             {
-                if (ModCompileLoadService.IsModLoaded(modDeclare.UUID))
+                if (ModCompileLoadService.IsModLoaded(modDeclare.UID))
                 {
                     ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
                                                $"Mod already loaded.";
@@ -113,12 +113,12 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
     private HashSet<string> showedMods = new();
     protected override void AddItemToList(ModDeclare item)
     {
-        if (showedMods.Contains(item.UUID))
+        if (showedMods.Contains(item.UID))
         {
             return;
         }
 
-        showedMods.Add(item.UUID);
+        showedMods.Add(item.UID);
         base.AddItemToList(item);
     }
 

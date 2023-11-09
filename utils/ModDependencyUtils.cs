@@ -29,12 +29,12 @@ public class ModDependencyGraph
         
         foreach (api.ModDeclare mod in mods)
         {
-            node_map.Add(mod.UUID, new ModDependencyNode(mod));
+            node_map.Add(mod.UID, new ModDependencyNode(mod));
         }
         
         foreach(api.ModDeclare mod in mods)
         {
-            ModDependencyNode node = node_map[mod.UUID];
+            ModDependencyNode node = node_map[mod.UID];
             
             foreach (string dependency in mod.Dependencies)
             {
@@ -74,15 +74,15 @@ internal static class ModDependencyUtils
             bool incom_headLog = false;
             foreach (var gnode in pGraph.nodes)
             {
-                if (pModAppend.IncompatibleWith.Contains(gnode.mod_decl.UUID))
+                if (pModAppend.IncompatibleWith.Contains(gnode.mod_decl.UID))
                 {
                     if (!incom_headLog)
                     {
-                        sb.AppendLine($"Mod {pModAppend.UUID} is incompatible with mods:");
+                        sb.AppendLine($"Mod {pModAppend.UID} is incompatible with mods:");
                         incom_headLog = true;
                         success = false;
                     }
-                    sb.AppendLine($"    {gnode.mod_decl.UUID}");
+                    sb.AppendLine($"    {gnode.mod_decl.UID}");
                 }
             }
         }
@@ -92,7 +92,7 @@ internal static class ModDependencyUtils
         {
             try
             {
-                ModDependencyNode depen_node = pGraph.nodes.First(n => n.mod_decl.UUID == dependency);
+                ModDependencyNode depen_node = pGraph.nodes.First(n => n.mod_decl.UID == dependency);
                 if(mis_depen_headLog || !success) continue;
                 node.necessary_depend_on.Add(depen_node);
                 depen_node.depend_by.Add(node);
@@ -101,7 +101,7 @@ internal static class ModDependencyUtils
             {
                 if (!mis_depen_headLog)
                 {
-                    sb.AppendLine($"Mod {pModAppend.UUID} has missing dependencies:");
+                    sb.AppendLine($"Mod {pModAppend.UID} has missing dependencies:");
                     mis_depen_headLog = true;
                     success = false;
                     continue;
@@ -120,7 +120,7 @@ internal static class ModDependencyUtils
         {
             foreach (var gnode in pGraph.nodes)
             {
-                if(gnode.mod_decl.UUID == option_depen)
+                if(gnode.mod_decl.UID == option_depen)
                 {
                     node.depend_on.Add(gnode);
                     gnode.depend_by.Add(node);
@@ -173,12 +173,12 @@ internal static class ModDependencyUtils
                 }
                 pGraph.nodes.Remove(curr_node);
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Mod {curr_node.mod_decl.UUID} is incompatible with mods:");
+                sb.AppendLine($"Mod {curr_node.mod_decl.UID} is incompatible with mods:");
                 foreach (var incompatible_with in curr_node.mod_decl.IncompatibleWith)
                 {
                     try
                     {
-                        var incompatible_node = pGraph.nodes.First(node => node.mod_decl.UUID == incompatible_with);
+                        var incompatible_node = pGraph.nodes.First(node => node.mod_decl.UID == incompatible_with);
                         if (curr_node.necessary_depend_on.Contains(incompatible_node))
                         {
                             sb.AppendLine($"    {incompatible_with}");
@@ -224,12 +224,12 @@ internal static class ModDependencyUtils
                 }
                 pGraph.nodes.Remove(curr_node);
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Mod {curr_node.mod_decl.UUID} has missing dependencies:");
+                sb.AppendLine($"Mod {curr_node.mod_decl.UID} has missing dependencies:");
                 foreach (var dependency in curr_node.mod_decl.Dependencies)
                 {
                     try
                     {
-                        var depen_node = pGraph.nodes.First(node => node.mod_decl.UUID == dependency);
+                        var depen_node = pGraph.nodes.First(node => node.mod_decl.UID == dependency);
                         if (!curr_node.necessary_depend_on.Contains(depen_node))
                         {
                             sb.AppendLine($"    {dependency}");
@@ -250,9 +250,9 @@ internal static class ModDependencyUtils
                 // If any optional dependency is missing, just cancel dependency.
                 foreach(var optional_dependency in curr_node.mod_decl.OptionalDependencies)
                 {
-                    if (pGraph.nodes.All(node => node.mod_decl.UUID != optional_dependency))
+                    if (pGraph.nodes.All(node => node.mod_decl.UID != optional_dependency))
                     {
-                        curr_node.depend_on.Remove(pGraph.nodes.First(node => node.mod_decl.UUID == optional_dependency));
+                        curr_node.depend_on.Remove(pGraph.nodes.First(node => node.mod_decl.UID == optional_dependency));
                     }
                 }
             }
