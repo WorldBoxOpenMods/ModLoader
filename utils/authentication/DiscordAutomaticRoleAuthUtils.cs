@@ -6,9 +6,9 @@ public class DiscordAutomaticRoleAuthUtils
     {
         if (Config.gameLoaded)
         {
-            if (typeof(Config).GetField("discordId")?.GetValue(null) is string user_id)
+            if (Config.discordId != null)
             {
-                return DiscordCommonAuthLogic.ModderIsInRolesList(DiscordCommonAuthLogic.GetRolesOfUser(user_id));
+                return DiscordCommonAuthLogic.ModderIsInRolesList(DiscordCommonAuthLogic.GetRolesOfUser(Config.discordId));
             }
             throw new AuthenticaticationException("The game was unable to fetch a Discord ID.");
         }
