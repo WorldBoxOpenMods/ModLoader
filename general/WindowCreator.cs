@@ -4,13 +4,9 @@ namespace NeoModLoader.General;
 
 public static class WindowCreator
 {
-    private static Dictionary<string, ScrollWindow> _all_windows;
-    private static List<LocalizedText> _all_localized_texts;
 
-    internal static void init()
-    {
-        _all_windows = RF.GetStaticField<Dictionary<string, ScrollWindow>, ScrollWindow>("allWindows");
-        _all_localized_texts = LocalizedTextManager.instance.GetField<List<LocalizedText>, LocalizedTextManager>("texts");
+    internal static void init(){
+    
     }
     /// <summary>
     /// Create an empty window with a title auto localized
@@ -20,7 +16,7 @@ public static class WindowCreator
     /// <returns></returns>
     public static ScrollWindow CreateEmptyWindow(string pWindowID, string pWindowTitleKey)
     {
-        if (_all_windows.TryGetValue(pWindowID, out ScrollWindow emptyWindow))
+        if (ScrollWindow.allWindows.TryGetValue(pWindowID, out ScrollWindow emptyWindow))
         {
             return emptyWindow;
         }
@@ -31,10 +27,10 @@ public static class WindowCreator
 
         LocalizedText titleText = window.titleText.GetComponent<LocalizedText>();
         titleText.key = pWindowTitleKey;
-        _all_localized_texts.Add(titleText);
+        LocalizedTextManager.instance.texts.Add(titleText);
         
-        ReflectionUtility.Reflection.CallMethod(window, "create", true);
-        _all_windows[pWindowID] = window;
+        window.create(true);
+        ScrollWindow.allWindows[pWindowID] = window;
 
         return window;
     }
