@@ -70,6 +70,9 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
         CreateAuthButton(InternalResourcesGetter.GetGitHubIcon(), GithubOrgAuthUtils.Authenticate);
         CreateAuthButton("ui/icons/iconArrowBack", null);
     }
+    /// <summary>
+    /// The function to be called when the button is clicked. Methods in it might throw an AuthenticationException if something goes wrong with the authentication process.
+    /// </summary>
     internal Func<bool> AuthFunc;
     internal bool AuthFuncSelected = false;
     private Button CreateAuthButton(Sprite pIcon, Func<bool> pAuthFunc, Vector2 pIconSize = default)

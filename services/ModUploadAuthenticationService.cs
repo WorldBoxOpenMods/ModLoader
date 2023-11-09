@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using NeoModLoader.ui;
 using RSG;
 
@@ -39,7 +40,15 @@ public static class ModUploadAuthenticationService
                 {
                     // TODO: Maybe memory error when Auth Button clicked too fast?
                     ModUploadAuthenticationWindow.Instance.AuthFuncSelected = false;
-                    bool auth_result = ModUploadAuthenticationWindow.Instance.AuthFunc();
+                    bool auth_result;
+                    try
+                    {
+                        auth_result = ModUploadAuthenticationWindow.Instance.AuthFunc();
+                    } catch (AuthenticationException e)
+                    {
+                        // TODO: Handle the error in some way
+                        break;
+                    }
                     if (auth_result)
                     {
                         Authed = true;
