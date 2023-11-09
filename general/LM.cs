@@ -3,7 +3,9 @@ using HarmonyLib;
 using NeoModLoader.api.exceptions;
 
 namespace NeoModLoader.General;
-
+/// <summary>
+/// LM is short for Localization Manager
+/// </summary>
 public static class LM
 {
     /// <summary>
@@ -81,12 +83,7 @@ public static class LM
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.Synchronized)]
     public static void AddToCurrentLocale(string key, string value)
     {
-        if (string.IsNullOrEmpty(current_language))
-        {
-            current_language = LocalizedTextManager.instance.GetField<string, LocalizedTextManager>("language")!;
-        }
-        
-        Add(current_language, key, value);
+        Add(LocalizedTextManager.instance.language, key, value);
     }
     /// <summary>
     /// Add a key-value pair to language locale
@@ -104,11 +101,6 @@ public static class LM
         locales[language][key] = value;
     }
     /// <summary>
-    /// Reference cache of <see cref="LocalizedTextManager.localizedText"/>
-    /// </summary>
-    private static Dictionary<string, string> localized_text;
-    private static string current_language = "";
-    /// <summary>
     /// Store all locales loaded by NML.
     /// </summary>
     private static Dictionary<string, Dictionary<string, string>> locales = new();
@@ -124,15 +116,10 @@ public static class LM
         {
             return;
         }
-        if(current_language != language)
-        {
-            localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>, LocalizedTextManager>("localizedText");
-            current_language = language;
-        }
         
         foreach (var (key, value) in locales[language].Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
-            localized_text[key] = value;
+            LocalizedTextManager.instance.localizedText[key] = value;
         }
         LocalizedTextManager.updateTexts();
     }
@@ -143,23 +130,14 @@ public static class LM
     [MethodImpl(MethodImplOptions.Synchronized)]
     public static void ApplyLocale()
     {
-        if (string.IsNullOrEmpty(current_language))
-        {
-            current_language = LocalizedTextManager.instance.GetField<string, LocalizedTextManager>("language");
-        }
-        if (!locales.ContainsKey(current_language))
+        if (!locales.ContainsKey(LocalizedTextManager.instance.language))
         {
             return;
         }
-        // It can be sured that localized_text points to LocalizedTextManager.localizedText because of the patch of LocalizedTextManager.setLanguage
-        if (localized_text == null) 
-        {
-            localized_text = LocalizedTextManager.instance.GetField<Dictionary<string, string>, LocalizedTextManager>("localizedText");
-        }
         
-        foreach (var (key, value) in locales[current_language].Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
+        foreach (var (key, value) in locales[LocalizedTextManager.instance.language].Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
-            localized_text[key] = value;
+            LocalizedTextManager.instance.localizedText[key] = value;
         }
     }
     /// <summary>

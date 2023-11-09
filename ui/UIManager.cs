@@ -17,6 +17,6 @@ internal static class UIManager
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
         ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         PowerButtonCreator.CreateWindowButton("NML_ModsList", "NeoModList", InternalResourcesGetter.GetIcon(),
-            PowerTabs.Main, new Vector2(403.2f, -18));
+            PowerTabNames.Main, new Vector2(403.2f, -18));
     }
 }

@@ -27,13 +27,13 @@ internal static class ModInfoUtils
                 var mod = recogMod(mod_folder);
                 if (mod != null)
                 {
-                    if (findModsIDs.Contains(mod.UUID))
+                    if (findModsIDs.Contains(mod.UID))
                     {
-                        LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                        LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
                         continue;
                     }
                     mods.Add(mod);
-                    findModsIDs.Add(mod.UUID);
+                    findModsIDs.Add(mod.UID);
                 }
             }
         }
@@ -46,14 +46,13 @@ internal static class ModInfoUtils
         string[] workshop_mod_folders;
         switch (Application.platform) {
             case RuntimePlatform.WindowsPlayer:
-                workshop_mod_folders = Directory.GetDirectories(Paths.WindowsModsWorkshopPath);
-                break;
+            case RuntimePlatform.LinuxPlayer:
             case RuntimePlatform.OSXPlayer:
-                workshop_mod_folders = Directory.GetDirectories(Paths.OsxModsWorkshopPath);
+                workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
                 break;
             default:
                 Debug.LogWarning("Your platform doesn't have defined behaviour, trying to handle it like Windows...");
-                workshop_mod_folders = Directory.GetDirectories(Paths.WindowsModsWorkshopPath);
+                workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
                 break;
         }
         foreach (var mod_folder in workshop_mod_folders)
@@ -63,9 +62,9 @@ internal static class ModInfoUtils
             {
                 if (mod.ModType == ModTypeEnum.NORMAL)
                 {
-                    if (findModsIDs.Contains(mod.UUID))
+                    if (findModsIDs.Contains(mod.UID))
                     {
-                        LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+                        LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
                         continue;
                     }
                     if (string.IsNullOrEmpty(mod.RepoUrl))
@@ -73,7 +72,7 @@ internal static class ModInfoUtils
                         mod.SetRepoUrlToWorkshopPage(Path.GetFileName(mod_folder));
                     }
                     mods.Add(mod);
-                    findModsIDs.Add(mod.UUID);
+                    findModsIDs.Add(mod.UID);
                 }
                 else if (mod.ModType == ModTypeEnum.BEPINEX)
                 {
@@ -93,20 +92,42 @@ internal static class ModInfoUtils
         {
             Task.Delay(15000);
             List<string> parameters = new List<string>();
-            parameters.Add("/c");
-            while (link_request_mods.Count > 0)
+            switch (Application.platform)
             {
-                var mod = link_request_mods.Dequeue();
-                if (parameters.Count != 1)
-                {
-                    parameters.Add("&&");
-                }
-                parameters.Add("mklink");
-                parameters.Add("/D");
-                parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
-                parameters.Add($"\"{mod.FolderPath}\"");
+                case RuntimePlatform.WindowsPlayer:
+                    parameters.Add("/c");
+                    while (link_request_mods.Count > 0)
+                    {
+                        var mod = link_request_mods.Dequeue();
+                        if (parameters.Count != 1)
+                        {
+                            parameters.Add("&&");
+                        }
+                        parameters.Add("mklink");
+                        parameters.Add("/D");
+                        parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
+                        parameters.Add($"\"{mod.FolderPath}\"");
+                    }
+                    SystemUtils.CmdRunAs(parameters.ToArray());
+                    break;
+                case RuntimePlatform.LinuxPlayer:
+                case RuntimePlatform.OSXPlayer:
+                    parameters.Add("-c");
+                    while (link_request_mods.Count > 0)
+                    {
+                        var mod = link_request_mods.Dequeue();
+                        if (parameters.Count != 1)
+                        {
+                            parameters.Add("&&");
+                        }
+                        parameters.Add("ln");
+                        parameters.Add("-s");
+                        parameters.Add($"\"{mod.FolderPath}\"");
+                        parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
+                    }
+                    SystemUtils.BashRun(parameters.ToArray());
+                    break;
             }
-            SystemUtils.CmdRunAs(parameters.ToArray());
         }).Start();
     }
     internal static void LinkBepInExModToLocalRequest(ModDeclare mod)
@@ -120,7 +141,7 @@ internal static class ModInfoUtils
         bool already_loaded = false;
         foreach (var loaded_mod in WorldBoxMod.LoadedMods)
         {
-            if (loaded_mod.GetDeclaration().UUID == mod.UUID)
+            if (loaded_mod.GetDeclaration().UID == mod.UID)
             {
                 // Just because this mod's folder linked to workshop and already loaded from local folder link.
                 //LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");

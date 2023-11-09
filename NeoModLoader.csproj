@@ -27,7 +27,7 @@
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
       <Reference Include="Assembly-CSharp">
-        <HintPath>assembly-dependencies\Assembly-CSharp.dll</HintPath>
+        <HintPath>assembly-dependencies\Assembly-CSharp-Publicized.dll</HintPath>
       </Reference>
       <Reference Include="Assembly-CSharp-firstpass">
         <HintPath>assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
@@ -37,7 +37,7 @@
         <HintPath Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">$(HOME)\.steam\steam\steamapps\common\worldbox\worldbox_Data\Managed\Facepunch.Steamworks.Posix.dll</HintPath>
       </Reference>
       <Reference Include="Facepunch.Steamworks.Win64">
-        <HintPath>assembly-dependencies\Facepunch.Steamworks.Win64.dll</HintPath>
+        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
       </Reference>
       <Reference Include="Microsoft.CodeAnalysis, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
         <HintPath>resources\assemblies\Microsoft.CodeAnalysis.dll</HintPath>

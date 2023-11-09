@@ -28,7 +28,7 @@ public class ModDeclare
         OptionalDependencies = pOptionalDependencies ?? new string[0];
         IncompatibleWith = pIncompatibleWith ?? new string[0];
 
-        UUID = $"{Author}.{Name}".Replace(" ", "_");
+        UID = $"{Author}.{Name}".Replace(" ", "_");
         FolderPath = pFolderPath;
     }
 
@@ -53,7 +53,7 @@ public class ModDeclare
         OptionalDependencies ??= new string[0];
         IncompatibleWith ??= new string[0];
         
-        UUID = $"{Author}.{Name}".Replace(" ", "_");
+        UID = $"{Author}.{Name}".Replace(" ", "_");
         FolderPath = Path.GetDirectoryName(pFilePath) ?? throw new Exception("Cannot get folder path from input file path");
     }
 
@@ -69,7 +69,7 @@ public class ModDeclare
     }
     [JsonProperty("name")]
     public string Name { get; private set; }
-    public string UUID { get; private set; }
+    public string UID { get; private set; }
     [JsonProperty("author")]
     public string Author { get; private set; }
     [JsonProperty("version")]

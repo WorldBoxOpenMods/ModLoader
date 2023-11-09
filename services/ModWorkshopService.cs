@@ -36,7 +36,7 @@ internal static class ModWorkshopService
                              $"{mod_decl.Description}\n\n" +
                              $"ModLoader: {CoreConstants.RepoURL}\n\n" +
                              $"模组加载器: {CoreConstants.RepoURL}";
-        string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UUID);
+        string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UID);
         if (Directory.Exists(workshopPath))
         {
             Directory.Delete(workshopPath, true);
@@ -121,7 +121,7 @@ internal static class ModWorkshopService
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
     {
         ModDeclare mod_decl = mod.GetDeclaration();
-        string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UUID);
+        string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UID);
         if (Directory.Exists(workshopPath))
         {
             Directory.Delete(workshopPath, true);

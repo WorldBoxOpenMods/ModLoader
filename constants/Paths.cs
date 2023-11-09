@@ -15,6 +15,7 @@ public static class Paths
     public static readonly string ManagedPath = Combine(StreamingAssetsPath, "..", "Managed");
     public static string GamePath => Application.platform switch {
         RuntimePlatform.WindowsPlayer => Combine(StreamingAssetsPath, "..", ".."),
+        RuntimePlatform.LinuxPlayer => Combine(StreamingAssetsPath, "..", ".."),
         RuntimePlatform.OSXPlayer => Combine(StreamingAssetsPath, "..", "..", "..", "..", ".."),
         _ => Combine(StreamingAssetsPath, "..", "..")
     };
@@ -27,8 +28,7 @@ public static class Paths
     public static readonly string ModCompileRecordPath = Combine(NMLPath, "mod_compile_records.json");
     public static readonly string ModConfigFileName = "mod.json";
     public static readonly string ModResourceFolderName = "GameResources";
-    public static readonly string WindowsModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
-    public static readonly string OsxModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
+    public static readonly string CommonModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
     public static readonly string NCMSModEmbededResourceFolderName = "EmbededResources"; // note that this typo in "Embedded" has to stay, as NCMS also has it
     public static readonly HashSet<string> IgnoreSearchDirectories = new HashSet<string>()
     {

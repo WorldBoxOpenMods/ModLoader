@@ -4,9 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace NeoModLoader.api;
-
+/// <summary>
+/// Abstract List Window Item
+/// </summary>
+/// <typeparam name="TItem">The type of the parameter passed into to setup the item</typeparam>
 public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
 {
+    /// <summary>
+    /// Configure the item with the given object before added to the list
+    /// </summary>
     public abstract void Setup(TItem pObject);
 }
 /// <summary>
