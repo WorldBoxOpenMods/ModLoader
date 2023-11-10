@@ -12,17 +12,17 @@ Provide a new mod loader for [Worldbox](http://www.superworldbox.com/) after [NC
 1. Search mod.json and load mod under GAMEPATH/Mods
 2. Simple dependency management for mods (some boundary conditions are not handled, circular dependency is not handled)
 3. Cache of mod compilation results
-4. Support for NCMS mods (partially)
-5. Upload mods to Steam Workshop (still in experimental testing phase)
-6. Browse subscribed mods (still in experimental testing phase)
+4. Support for NCMS mods (nearly all)
+5. Recognize BepInEx mods loaded (You need to install BepInEx manually)
+6. Upload mods to and Order mods from Steam Workshop (still in experimental testing phase)
 
 ## Recent plans
-1. Complete Steam Workshop mod management
-2. Complete compatibility layer for NCMS mods
-3. Add BepInEx support
-4. Load compiled mods under Mods folder directly according to mod.json
-5. Load mods in zip and other compressed packages
+1. Complete Steam Workshop mod upload authentication
+2. Mod Loader auto-update based on Steam Workshop
+3. Load compiled mods under Mods folder directly according to mod.json
+4. Load mods in zip and other compressed packages
 
 ## How to install
 1. Download NeoModLoader.dll (and NeoModLoader.pdb) and put it in GAMEPATH/worldbox_Data/StreamingAssets/mods folder
-2. Start the game with experimental mode enabled
+2. Delete NCMS_memload.dll
+3. Start the game with experimental mode enabled
