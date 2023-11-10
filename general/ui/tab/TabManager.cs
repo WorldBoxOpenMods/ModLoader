@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Reflection.Emit;
+using HarmonyLib;
 using NeoModLoader.api;
 using NeoModLoader.services;
 using Steamworks.Data;
@@ -27,18 +29,7 @@ public static class TabManager
     private const float default_tab_y = 49.62f;
     internal static void _init()
     {
-        var next_tab = AssetManager.hotkey_library.get("next_tab");
-        var prev_tab = AssetManager.hotkey_library.get("prev_tab");
-        next_tab.just_pressed_action = _ =>
-        {
-            PowersTab.showTabFromButton(PowerTabController.instance._getNext_Overwrite(PowersTab.getActiveTab().name),
-                false);
-        };
-        prev_tab.just_pressed_action = _ =>
-        {
-            PowersTab.showTabFromButton(PowerTabController.instance._getPrev_Overwrite(PowersTab.getActiveTab().name),
-                false);
-        };
+        Harmony.CreateAndPatchAll(typeof(TabManager), constants.Others.harmony_id);
         var _tab_names = PowerTabNames.GetNames();
         for (int i = 1; i < _tab_names.Count; i++)
         {
@@ -47,6 +38,34 @@ public static class TabManager
         }
     }
 
+    [HarmonyTranspiler]
+    [HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getNext))]
+    private static IEnumerable<CodeInstruction> _getNext_Patch(IEnumerable<CodeInstruction> instr)
+    {
+        List<CodeInstruction> codes = new()
+        {
+            new CodeInstruction(OpCodes.Ldarg_0),
+            new CodeInstruction(OpCodes.Ldarg_1),
+            new CodeInstruction(OpCodes.Call,
+                AccessTools.Method(typeof(TabManager), nameof(_getNext_Overwrite))),
+            new CodeInstruction(OpCodes.Ret)
+        };
+        return codes;
+    }
+
+    [HarmonyTranspiler]
+    [HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getPrev))]
+    private static IEnumerable<CodeInstruction> _getPrev_Patch(IEnumerable<CodeInstruction> instr)
+    {
+        List<CodeInstruction> codes = new()
+        {
+            new CodeInstruction(OpCodes.Ldarg_0),
+            new CodeInstruction(OpCodes.Ldarg_1),
+            new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(TabManager), nameof(_getPrev_Overwrite))),
+            new CodeInstruction(OpCodes.Ret)
+        };
+        return codes;
+    }
     private static Button _getNext_Overwrite(this PowerTabController instance, string pActiveTab)
     {
         return tab_entries[(tab_names.IndexOf(pActiveTab) + 1) % tab_entries.Count];
