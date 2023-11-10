@@ -3,6 +3,8 @@ using HarmonyLib;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.General.Reflections.Unity;
+using NeoModLoader.General.UI.Tab;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.services;
 using NeoModLoader.utils;
@@ -27,6 +29,7 @@ public class WorldBoxMod : MonoBehaviour
     {
         if (initialized || !Config.gameLoaded) return;
         initialized = true;
+        PersistentEventHelper._init();
         
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
@@ -34,6 +37,8 @@ public class WorldBoxMod : MonoBehaviour
 
         LoadLocales();
         LM.ApplyLocale();
+        TabManager._init();
+        
         BenchUtils.Start("Load Mods Info");
         ModCompileLoadService.loadInfoOfBepInExPlugins();
 
