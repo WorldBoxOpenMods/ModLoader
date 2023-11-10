@@ -49,7 +49,6 @@ public static class TabManager
 
     private static Button _getNext_Overwrite(this PowerTabController instance, string pActiveTab)
     {
-        LogService.LogInfo($"Current active {pActiveTab}: {tab_names.IndexOf(pActiveTab)}");
         return tab_entries[(tab_names.IndexOf(pActiveTab) + 1) % tab_entries.Count];
     }
 
@@ -65,7 +64,6 @@ public static class TabManager
         {
             index = tab_entries.Count;
         }
-        LogService.LogInfo($"Current active {pActiveTab}: {tab_names.IndexOf(pActiveTab)}");
         return tab_entries[index-1];
     }
 
@@ -89,15 +87,12 @@ public static class TabManager
         foreach (var tab in curr_tabs)
         {
             string tab_name = tab.name;
-            LogService.LogInfo($"Check tab: {tab_name}");
             if(tab_names_set.Contains(tab_name)) continue;
 
             string assumed_entry_button_name = tab_name.Replace("Tab_", "Button_");
 
-            LogService.LogInfo($"\t Assume button name: {assumed_entry_button_name}");
             foreach (var tab_entry in curr_tab_entries)
             {
-                LogService.LogInfo($"\t\t Check button name: {tab_entry.name}");
                 if (tab_entry.name != assumed_entry_button_name) continue;
                 need_update = true;
                 _addTabEntry(tab_entry.gameObject, tab_name);
