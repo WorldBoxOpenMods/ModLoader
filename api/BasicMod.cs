@@ -14,7 +14,7 @@ namespace NeoModLoader.api;
 /// OnModLoad -> Awake -> OnEnable -> Start -> Update
 /// </remarks>
 /// </summary>
-public abstract class BasicMod<T> : MonoBehaviour, IMod where T : BasicMod<T>
+public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable where T : BasicMod<T>
 {
     private ModDeclare _declare = null!;
     /// <summary>
@@ -71,5 +71,13 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod where T : BasicMod<T>
     public ModDeclare GetDeclaration()
     {
         return _declare;
+    }
+    /// <summary>
+    /// If you need to add locale files for your mod, create locale files written by JSON under `Locales` directory in your mod 
+    /// </summary>
+    /// <returns>The path to the directory of your locale files</returns>
+    public string GetLocaleFilesDirectory(ModDeclare pModDeclare)
+    {
+        return Path.Combine(pModDeclare.FolderPath, "Locales");
     }
 }

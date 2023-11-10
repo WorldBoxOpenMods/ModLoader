@@ -14,7 +14,8 @@ using System.Text;
 using ModDeclaration;
 using NeoModLoader.api;
 using NeoModLoader.constants;
-using NeoModLoader.utils;
+    using NeoModLoader.General;
+    using NeoModLoader.utils;
 using UnityEngine;
 
 namespace NeoModLoader.services;
@@ -333,6 +334,7 @@ public static class ModCompileLoadService
                 File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
                 );
         bool type_found = false;
+        GameObject mod_instance;
         foreach(var type in mod_assembly.GetTypes())
         {
             if (type.GetInterface(nameof(IMod)) == null)
@@ -340,7 +342,7 @@ public static class ModCompileLoadService
                 // Check if it is a NCMS Mod
                 if (Attribute.GetCustomAttribute(type, typeof(NCMS.ModEntry)) != null && type.IsSubclassOf(typeof(MonoBehaviour)))
                 {
-                    var mod_instance = new GameObject(pMod.Name)
+                    mod_instance = new GameObject(pMod.Name)
                     {
                         transform =
                         {
@@ -375,7 +377,7 @@ public static class ModCompileLoadService
             if (type.IsSubclassOf(typeof(MonoBehaviour)))
             {
                 type_found = true;
-                var mod_instance = new GameObject(pMod.Name)
+                mod_instance = new GameObject(pMod.Name)
                 {
                     transform =
                     {
@@ -393,6 +395,20 @@ public static class ModCompileLoadService
                         break;
                     }
 
+                    if (mod_interface is ILocalizable localizable)
+                    {
+                        string locales_dir = localizable.GetLocaleFilesDirectory(pMod);
+                        if (Directory.Exists(locales_dir))
+                        {
+                            var files = Directory.GetFiles(locales_dir);
+                            foreach (var locale_file in files)
+                            {
+                                LogService.LogInfo($"Load {locale_file} as {Path.GetFileNameWithoutExtension(locale_file)}");
+                                LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
+                            }
+                            LM.ApplyLocale();
+                        }
+                    }
                     mod_interface.OnLoad(pMod, mod_instance);
                     mod_instance.SetActive(true);
                 }
