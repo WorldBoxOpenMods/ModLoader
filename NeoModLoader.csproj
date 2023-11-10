@@ -649,8 +649,8 @@
       <EmbeddedResource Include="resources\locales\cz.json" />
       <None Remove="resources\locales\en.json" />
       <EmbeddedResource Include="resources\locales\en.json" />
-      <None Remove="resources\locales\tc.json" />
-      <EmbeddedResource Include="resources\locales\tc.json" />
+      <None Remove="resources\locales\ch.json" />
+      <EmbeddedResource Include="resources\locales\ch.json" />
       <None Remove="resources\square_frame_only.png" />
       <EmbeddedResource Include="resources\square_frame_only.png" />
       <None Remove="resources\commit" />
