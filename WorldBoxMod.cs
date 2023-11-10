@@ -14,6 +14,7 @@ namespace NeoModLoader;
 public class WorldBoxMod : MonoBehaviour
 {
     private bool initialized = false;
+    private bool initialized_successfully = false;
     public static List<IMod> LoadedMods = new();
     internal static Transform Transform;
     internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
@@ -26,7 +27,15 @@ public class WorldBoxMod : MonoBehaviour
     }
     private void Update()
     {
-        if (initialized || !Config.gameLoaded) return;
+        if (!Config.gameLoaded) return;
+        if (initialized_successfully)
+        {
+            TabManager._checkNewTabs();
+        }
+        if (initialized)
+        {
+            return;
+        }
         initialized = true;
         
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
@@ -81,6 +90,8 @@ public class WorldBoxMod : MonoBehaviour
 
         NMLAutoUpdateService.CheckUpdate();
         ModInfoUtils.DealWithBepInExModLinkRequests();
+
+        initialized_successfully = true;
     }
 
     private void LoadLocales()

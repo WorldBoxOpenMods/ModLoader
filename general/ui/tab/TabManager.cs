@@ -16,7 +16,9 @@ public static class TabManager
     private static readonly Transform tab_container = CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/buttons");
     private static readonly List<Button> tab_entries = new (PowerTabController.instance._buttons); // To avoid other mods' modifies
     private static readonly List<string> tab_names = new();
+    private static readonly HashSet<string> tab_names_set = new();
     private const int tab_count_each_line = 10;
+    private const float check_new_tabs_interval = 1;
     private const float shrink_coef = 0.79f;
     private const float default_tab_width = 43f;
     private const float default_tab_height = 18f;
@@ -37,10 +39,11 @@ public static class TabManager
             PowersTab.showTabFromButton(PowerTabController.instance._getPrev_Overwrite(PowersTab.getActiveTab().name),
                 false);
         };
-        var _tab_names = typeof(PowerTabNames).GetFields();
-        for (int i = 1; i < _tab_names.Length; i++)
+        var _tab_names = PowerTabNames.GetNames();
+        for (int i = 1; i < _tab_names.Count; i++)
         {
-            tab_names.Add(_tab_names[i].GetValue(null).ToString());
+            tab_names.Add(_tab_names[i]);
+            tab_names_set.Add(_tab_names[i]);
         }
     }
 
@@ -52,12 +55,60 @@ public static class TabManager
 
     private static Button _getPrev_Overwrite(this PowerTabController instance, string pActiveTab)
     {
-        int index = tab_names.IndexOf(pActiveTab) - 1;
+        int index = tab_names.IndexOf(pActiveTab);
         if (index < 0)
         {
-            index = tab_entries.Count - 1;
+            index = 1;
         }
-        return tab_entries[index];
+
+        if (index == 0)
+        {
+            index = tab_entries.Count;
+        }
+        LogService.LogInfo($"Current active {pActiveTab}: {tab_names.IndexOf(pActiveTab)}");
+        return tab_entries[index-1];
+    }
+
+    private static float _check_timer = 0;
+    internal static void _checkNewTabs()
+    {
+        if (_check_timer > 0)
+        {
+            _check_timer -= Time.deltaTime;
+            return;
+        }
+
+        _check_timer = check_new_tabs_interval;
+
+        PowersTab[] curr_tabs = tab_container.GetComponentsInChildren<PowersTab>(true);
+        Button[] curr_tab_entries = tab_entry_container.GetComponentsInChildren<Button>(false);
+
+        if (curr_tab_entries.Length == tab_entries.Count) return;
+        
+        bool need_update = false;
+        foreach (var tab in curr_tabs)
+        {
+            string tab_name = tab.name;
+            LogService.LogInfo($"Check tab: {tab_name}");
+            if(tab_names_set.Contains(tab_name)) continue;
+
+            string assumed_entry_button_name = tab_name.Replace("Tab_", "Button_");
+
+            LogService.LogInfo($"\t Assume button name: {assumed_entry_button_name}");
+            foreach (var tab_entry in curr_tab_entries)
+            {
+                LogService.LogInfo($"\t\t Check button name: {tab_entry.name}");
+                if (tab_entry.name != assumed_entry_button_name) continue;
+                need_update = true;
+                _addTabEntry(tab_entry.gameObject, tab_name);
+                break;
+            }
+        }
+
+        if (need_update)
+        {
+            _updateTabLayout();
+        }
     }
     private static void _updateTabLayout()
     {
@@ -103,6 +154,7 @@ public static class TabManager
             tab_entries.Add(pTabEntry.GetComponent<Button>());
             tab_names.Add(pTabId);
         }
+        tab_names_set.Add(pTabId);
     }
     /// <summary>
     /// Create a tab which can act as vanilla tabs
