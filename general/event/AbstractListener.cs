@@ -16,6 +16,6 @@ public abstract class AbstractListener<T> : BaseListener where T : AbstractHandl
 {
     protected static void AppendCallHandleCode(List<CodeInstruction> codes, int pos)
     {
-        codes.Insert(pos, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(T), nameof(AbstractHandler<T>.HandleAll))));
+        codes.Insert(pos, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(T), "HandleAll")));
     }
 }

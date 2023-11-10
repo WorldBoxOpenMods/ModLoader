@@ -1,5 +1,6 @@
 using System.Reflection;
 using HarmonyLib;
+using NeoModLoader.General.Event.Handlers;
 using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event;
@@ -38,5 +39,6 @@ internal static class ListenerManager
             }
             _listeners.Add(listener);
         }
+        CultureCreateHandler.Register(new CultureCreateHandler());
     }
 }
