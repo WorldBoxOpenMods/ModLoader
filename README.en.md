@@ -15,7 +15,7 @@ Provide a new mod loader for [Worldbox](http://www.superworldbox.com/) after [NC
 4. Support for NCMS mods (nearly all)
 5. Recognize BepInEx mods loaded (You need to install BepInEx manually)
 6. Upload mods to and Order mods from Steam Workshop (still in experimental testing phase)
-7. Give up compiling and loading mods under GAMEPATH/Mods when NCMS existing
+7. Give up compiling and loading mods under GAMEPATH/Mods when NCMS existed
 
 ## Recent plans
 
