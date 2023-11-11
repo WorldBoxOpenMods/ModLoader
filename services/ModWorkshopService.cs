@@ -27,11 +27,6 @@ internal static class ModWorkshopService
 
     private static void UploadModLoader()
     {
-        string name = CoreConstants.ModName;
-        string description = $"{name} Uploaded by NeoModLoader\n" +
-                             $"{name} 由NeoModLoader上传\n\n" +
-                             $"ModLoader: {CoreConstants.RepoURL}\n\n" +
-                             $"模组加载器: {CoreConstants.RepoURL}";
         string workshopPath = SaveManager.generateWorkshopPath(CoreConstants.ModName);
         
         string previewImagePath = Path.Combine(workshopPath, "preview.png");
@@ -42,8 +37,7 @@ internal static class ModWorkshopService
         Directory.CreateDirectory(workshopPath);
         // Prepare files to upload
         File.Copy(Paths.NMLModPath, Path.Combine(workshopPath, "NeoModLoader.dll"));
-        File.Copy(Paths.NMLModPath.Replace(".dll",".pdb"), Path.Combine(workshopPath, "NeoModLoader.pdb"));
-        File.Create(Path.Combine(workshopPath, "v0.0.1")).Close();
+        File.Copy(Paths.NMLModPath.Replace(".dll", ".pdb"), Path.Combine(workshopPath, "NeoModLoader.pdb"));
         
         using Stream icon_stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NeoModLoader.resources.logo.png");
         using FileStream icon_file = File.Create(previewImagePath);
@@ -52,7 +46,7 @@ internal static class ModWorkshopService
         icon_file.Close();
         
         
-        Editor editor = new Editor(3079189261).WithContent(workshopPath)
+        Editor editor = new Editor(CoreConstants.WorkshopFileId).WithContent(workshopPath)
             .WithChangeLog("Update test")
             .WithPrivateVisibility();
         
