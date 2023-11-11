@@ -1,11 +1,9 @@
 namespace NeoModLoader.General.Event;
 
-public abstract class AbstractHandler<HandlerType> where HandlerType : AbstractHandler<HandlerType>
+public abstract class AbstractHandler<THandler> where THandler : AbstractHandler<THandler>
 {
-    protected static List<HandlerType> _handlers = new();
     public bool enabled { get; private set; } = true;
     private int error_hit = 0;
-
     internal void HitException()
     {
         error_hit++;
@@ -13,9 +11,5 @@ public abstract class AbstractHandler<HandlerType> where HandlerType : AbstractH
         {
             enabled = false;
         }
-    }
-    public static void Register(HandlerType handler)
-    {
-        _handlers.Add(handler);
     }
 }

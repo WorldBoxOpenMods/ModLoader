@@ -1,6 +1,7 @@
 using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.General.Event.Handlers;
+using NeoModLoader.General.Event.Listeners;
 using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event;
@@ -18,16 +19,15 @@ internal static class ListenerManager
         {
             if(type.Namespace != ListenerNamespace) continue;
 
-            if (type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null)
-                    ?.Invoke(null) is not BaseListener listener)
-            {
-                LogService.LogWarning($"Failed to construct listener instance of {type.FullName}");
-                continue;
-            }
-
             try
             {
-                listener.Patch();
+                if (type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[0], null)
+                        ?.Invoke(null) is not BaseListener listener)
+                {
+                    LogService.LogWarning($"Failed to construct listener instance of {type.FullName}");
+                    continue;
+                }
+                _listeners.Add(listener);
             }
             catch (Exception e)
             {
@@ -35,10 +35,7 @@ internal static class ListenerManager
                 LogService.LogError($"Failed to patch listener: {type.FullName}");
                 LogService.LogError(e.Message);
                 LogService.LogError(e.StackTrace);
-                continue;
             }
-            _listeners.Add(listener);
         }
-        CultureCreateHandler.Register(new CultureCreateHandler());
     }
 }
