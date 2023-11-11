@@ -15,14 +15,17 @@
 4. 支持NCMS的模组(几乎所有)
 5. 支持识别BepInEx模组(仍需手动安装BepInEx)
 6. 上传, 订阅Steam创意工坊模组(仍在实验测试阶段)
+7. NCMS存在时放弃编译加载游戏路径下Mods中的模组
 
 ## 近期计划
+
 1. 较为完善的上传验证机制
 2. 基于创意工坊的加载器自动更新
 3. 根据mod.json直接加载Mods文件夹下的已编译模组
 4. 加载zip等压缩包中的模组
 
 ## 安装方法
+
 1. 下载NeoModLoader.dll(和NeoModLoader.pdb)放入GAMEPATH/worldbox_Data/StreamingAssets/mods文件夹
-2. 删除NCMS_memload.dll
+2. 删除NCMS_memload.dll (它们可以同时安装, 但不推荐)
 3. 在开启实验模式的情况下启动游戏
