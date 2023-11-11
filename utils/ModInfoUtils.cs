@@ -272,6 +272,13 @@ internal static class ModInfoUtils
         File.WriteAllText(Paths.ModCompileRecordPath,
             JsonConvert.SerializeObject(mod_compile_timestamps, mod_compile_timestamps_serializer_settings));
     }
+    public static void clearModCompileTimestamp(string pModUUID)
+    {
+        mod_compile_timestamps[pModUUID] = DateTime.UtcNow.Ticks;
+
+        File.WriteAllText(Paths.ModCompileRecordPath,
+            JsonConvert.SerializeObject(mod_compile_timestamps, mod_compile_timestamps_serializer_settings));
+    }
     // ReSharper disable once InconsistentNaming
     private static long getModLastCompileTimestamp(string pModUUID)
     {

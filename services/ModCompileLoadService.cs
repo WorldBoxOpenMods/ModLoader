@@ -340,6 +340,7 @@ public static class ModCompileLoadService
                 {
                     File.Delete(pdb_path);
                 }
+                ModInfoUtils.clearModCompileTimestamp(mod.UID);
             }
         }
     }
