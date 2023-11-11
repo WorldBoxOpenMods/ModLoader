@@ -27,6 +27,12 @@ public class DiscordRoleAuthViaUserLoginUtils
         System.Diagnostics.Debug.WriteLine(user_id);
         var roles = DiscordCommonAuthLogic.GetRolesOfUser(user_id);
         bool result = DiscordCommonAuthLogic.ModderIsInRolesList(roles);
+        System.Diagnostics.Debug.WriteLine(result);
+        Console.WriteLine("Tests:");
+        roles = DiscordCommonAuthLogic.GetRolesOfUser("1171719697557880892");
+        roles.ToList().ForEach(Console.WriteLine);
+        roles = DiscordCommonAuthLogic.GetRolesOfUser("0000000000000000000");
+        roles.ToList().ForEach(Console.WriteLine);
     }
 
     private static string GetUserID(TokenInfo token_info)
@@ -96,7 +102,7 @@ public class DiscordRoleAuthViaUserLoginUtils
         var headers = new Dictionary<string, string>()
         {
             { "Accept", "application/json" },
-            { "Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + "yet again, not revealing this :3")) }, // TODO: MY GOD PLEASE STORE THIS SECRET MORE SAFELY BEFORE COMMITING
+            { "Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + "Still not giving this away, I'll keep removing it for commits until I finally get this logic moved over onto a server :3")) }, // TODO: MY GOD PLEASE STORE THIS SECRET MORE SAFELY BEFORE COMMITING
         };
         HttpResponseMessage res;
         using (HttpClient client = new HttpClient())
