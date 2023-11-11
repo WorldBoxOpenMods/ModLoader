@@ -178,19 +178,28 @@ internal static class NMLAutoUpdateService
         {
             return;
         }
+
+        bool updated = false;
         FileInfo dll_info = new FileInfo(dll_path);
-        
-        if(dll_info.LastWriteTime > new FileInfo(Paths.NMLModPath).LastWriteTime)
+        FileInfo last_info = new FileInfo(Paths.NMLModPath);
+        if(dll_info.LastWriteTime > last_info.LastWriteTime)
         {
+            updated = true;
+            LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
             File.Copy(dll_path, Paths.NMLModPath, true);
         }
         
         FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
         if(pdb_info != null && pdb_info.LastWriteTime > new FileInfo(Paths.NMLModPath.Replace(".dll", ".pdb")).LastWriteTime)
         {
+            updated = true;
             File.Copy(pdb_path, Paths.NMLModPath.Replace(".dll", ".pdb"), true);
         }
-        InformationWindow.ShowWindow(LM.Get("NeoModLoader Updated"));
+
+        if (updated)
+        {
+            InformationWindow.ShowWindow(LM.Get("NeoModLoader Updated"));
+        }
     }
     public static bool CheckUpdate()
     {
