@@ -2,6 +2,7 @@ using System.Net;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.ui;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -150,6 +151,46 @@ internal static class NMLAutoUpdateService
             });
             ScrollWindow.showWindow("NeoModLoader Update");
         }
+    }
+
+    public static void CheckWorkshopUpdate()
+    {
+        string workshopPath = Path.Combine(Paths.CommonModsWorkshopPath, CoreConstants.WorkshopFileId.ToString());
+        if (!Directory.Exists(workshopPath))
+        {
+            return;
+        }
+        string[] files = Directory.GetFiles(workshopPath);
+        string dll_path = null;
+        string pdb_path = null;
+        foreach (string file in files)
+        {
+            if (file.EndsWith(".dll"))
+            {
+                dll_path = file;
+            }
+            if (file.EndsWith(".pdb"))
+            {
+                pdb_path = file;
+            }
+        }
+        if (dll_path == null)
+        {
+            return;
+        }
+        FileInfo dll_info = new FileInfo(dll_path);
+        
+        if(dll_info.LastWriteTime > new FileInfo(Paths.NMLModPath).LastWriteTime)
+        {
+            File.Copy(dll_path, Paths.NMLModPath, true);
+        }
+        
+        FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
+        if(pdb_info != null && pdb_info.LastWriteTime > new FileInfo(Paths.NMLModPath.Replace(".dll", ".pdb")).LastWriteTime)
+        {
+            File.Copy(pdb_path, Paths.NMLModPath.Replace(".dll", ".pdb"), true);
+        }
+        InformationWindow.ShowWindow(LM.Get("NeoModLoader Updated"));
     }
     public static bool CheckUpdate()
     {

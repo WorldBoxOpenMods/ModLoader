@@ -90,7 +90,7 @@ public class WorldBoxMod : MonoBehaviour
         
         ui.UIManager.init();
 
-        NMLAutoUpdateService.CheckUpdate();
+        NMLAutoUpdateService.CheckWorkshopUpdate();
         ModInfoUtils.DealWithBepInExModLinkRequests();
 
         initialized_successfully = true;
