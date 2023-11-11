@@ -6,9 +6,9 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
-public class CultureCreateListener : AbstractListener<CultureCreateListener, CultureCreateHandler>
+public class KingdomSetupListener : AbstractListener<KingdomSetupListener, KingdomSetupHandler>
 {
-    protected static void HandleAll(Culture pCulture, Race pRace, City pCity)
+    protected static void HandleAll(Kingdom pKingdom, bool pCiv)
     {
         StringBuilder sb = null;
         foreach (var handler in instance.handlers)
@@ -16,7 +16,7 @@ public class CultureCreateListener : AbstractListener<CultureCreateListener, Cul
             if(!handler.enabled) continue;
             try
             {
-                handler.Handle(pCulture, pRace, pCity);
+                handler.Handle(pKingdom, pCiv);
             }
             catch (Exception e)
             {
@@ -34,13 +34,12 @@ public class CultureCreateListener : AbstractListener<CultureCreateListener, Cul
         }
     }
     [HarmonyTranspiler]
-    [HarmonyPatch(typeof(Culture), nameof(Culture.createCulture))]
-    private static IEnumerable<CodeInstruction> _createCulture_Patch(IEnumerable<CodeInstruction> instr)
+    [HarmonyPatch(typeof(KingdomManager), nameof(KingdomManager.setupKingdom))]
+    private static IEnumerable<CodeInstruction> _setupKingdom_Patch(IEnumerable<CodeInstruction> instr)
     {
         List<CodeInstruction> codes = new(instr);
-
-        int insert_index = 42;
-        codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_0));
+        
+        int insert_index = 28;
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_2));
         

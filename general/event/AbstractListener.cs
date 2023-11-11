@@ -14,7 +14,7 @@ public abstract class AbstractListener<TListener, THandler> : BaseListener
     protected static TListener instance { get; private set; }
     protected List<THandler> handlers { get; } = new();
 
-    protected AbstractListener()
+    public AbstractListener()
     {
         instance = (TListener)this;
         Type type = GetType();

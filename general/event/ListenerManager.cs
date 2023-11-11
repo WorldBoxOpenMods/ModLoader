@@ -21,8 +21,14 @@ internal static class ListenerManager
 
             try
             {
-                if (type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[0], null)
-                        ?.Invoke(null) is not BaseListener listener)
+                var constructor =
+                    type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null);
+                if (constructor == null)
+                {
+                    LogService.LogWarning($"Cannot find constructor of {type.FullName}");
+                    continue;
+                }
+                if (constructor.Invoke(null) is not BaseListener listener)
                 {
                     LogService.LogWarning($"Failed to construct listener instance of {type.FullName}");
                     continue;
