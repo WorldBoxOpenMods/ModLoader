@@ -47,6 +47,7 @@ public class WorldBoxMod : MonoBehaviour
         LM.ApplyLocale();
         TabManager._init();
         ListenerManager._init();
+        WrappedPowersTab._init();
         
         BenchUtils.Start("Load Mods Info");
         ModCompileLoadService.loadInfoOfBepInExPlugins();

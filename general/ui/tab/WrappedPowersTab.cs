@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using NeoModLoader.services;
 using UnityEngine;
-using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
 
 namespace NeoModLoader.General.UI.Tab;
 
@@ -80,13 +80,12 @@ internal class WrappedPowersTab
     private Queue<GameObject> _active_lines;
 
     private static readonly RectTransform _empty_button_placehold =
-        new GameObject("Empty Button Placehold", typeof(RectTransform))
-        {
-            transform =
-            {
-                parent = WorldBoxMod.Transform
-            }
-        }.GetComponent<RectTransform>();
+        new GameObject("Empty Button Placehold", typeof(RectTransform)).GetComponent<RectTransform>();
+
+    public static void _init()
+    {
+        _empty_button_placehold.SetParent(WorldBoxMod.Transform);
+    }
     public WrappedPowersTab(PowersTab pPowersTab)
     {
         Tab = pPowersTab;
