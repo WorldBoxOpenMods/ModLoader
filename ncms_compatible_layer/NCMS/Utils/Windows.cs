@@ -27,5 +27,10 @@ namespace NCMS.Utils
         {
             return WindowCreator.CreateEmptyWindow(pWindowID, pWindowTitleKey);
         }
+
+        public static void ShowWindow(string pWindowID)
+        {
+            ScrollWindow.showWindow(pWindowID);
+        }
     }
 }
