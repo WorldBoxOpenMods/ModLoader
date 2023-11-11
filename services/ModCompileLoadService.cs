@@ -323,7 +323,24 @@ public static class ModCompileLoadService
         // It can be sure that all mods are compiled successfully.
         foreach (var mod in mods_to_load)
         {
-            LoadMod(mod);
+            try
+            {
+                LoadMod(mod);
+            }
+            catch(ReflectionTypeLoadException)
+            {
+                LogService.LogError($"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unorder it");
+                string dll_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.dll");
+                string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.pdb");
+                if(File.Exists(dll_path))
+                {
+                    File.Delete(dll_path);
+                }
+                if(File.Exists(pdb_path))
+                {
+                    File.Delete(pdb_path);
+                }
+            }
         }
     }
 
