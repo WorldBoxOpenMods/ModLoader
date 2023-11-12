@@ -26,16 +26,16 @@ class ModConfigItem
             switch (Type)
             {
                 case ConfigItemType.SWITCH:
-                    BoolVal = (bool)val;
+                    BoolVal = Convert.ToBoolean(val);
                     break;
                 case ConfigItemType.SLIDER:
-                    FloatVal = (float)val;
+                    FloatVal = Convert.ToSingle(val);
                     break;
                 case ConfigItemType.TEXT:
-                    TextVal = (string)val;
+                    TextVal = Convert.ToString(val);
                     break;
                 case ConfigItemType.SELECT:
-                    IntVal = (int)val;
+                    IntVal = Convert.ToInt32(val);
                     break;
             }
         }

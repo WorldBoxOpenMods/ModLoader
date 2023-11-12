@@ -1,6 +1,6 @@
 using NeoModLoader.api;
 using NeoModLoader.General;
-using NeoModLoader.General.ui.prefabs;
+using NeoModLoader.General.UI.Prefabs;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -48,11 +48,35 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
                     setup_switch(pItem);
                     break;
                 case ConfigItemType.SLIDER:
+                    setup_slider(pItem);
                     break;
                 case ConfigItemType.TEXT:
                     break;
                 case ConfigItemType.SELECT:
                     break;
+            }
+        }
+
+        private void setup_slider(ModConfigItem pItem)
+        {
+            slider_area.SetActive(true);
+            Text value = slider_area.transform.Find("Info/Value").GetComponent<Text>();
+            value.text = $"{pItem.FloatVal:F2}";
+            slider_area.transform.Find("Slider").GetComponent<SliderBar>().Setup(pItem.FloatVal, 0, 1, pFloatVal =>
+            {
+                pItem.SetValue(pFloatVal);
+                value.text = $"{pItem.FloatVal:F2}";
+            });
+            slider_area.transform.Find("Info/Text").GetComponent<Text>().text = LM.Get(pItem.Id);
+            if (string.IsNullOrEmpty(pItem.IconPath))
+            {
+                slider_area.transform.Find("Info/Icon").gameObject.SetActive(false);
+            }
+            else
+            {
+                Image icon = slider_area.transform.Find("Info/Icon").GetComponent<Image>();
+                icon.gameObject.SetActive(true);
+                icon.sprite = SpriteTextureLoader.getSprite(pItem.IconPath);
             }
         }
 
@@ -129,9 +153,46 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         switch_text.resizeTextForBestFit = true;
         #endregion
         #region SLIDER
-        GameObject slider_area = new GameObject("SliderArea", typeof(RectTransform));
+        GameObject slider_area = new GameObject("SliderArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
         slider_area.transform.SetParent(config_item.transform);
         slider_area.transform.localScale = Vector3.one;
+        VerticalLayoutGroup slider_layout = slider_area.GetComponent<VerticalLayoutGroup>();
+        slider_layout.childControlWidth = true;
+        slider_layout.childControlHeight = false;
+        slider_layout.childAlignment = TextAnchor.UpperCenter;
+        
+        GameObject slider_info = new GameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        slider_info.transform.SetParent(slider_area.transform);
+        slider_info.transform.localScale = Vector3.one;
+        slider_info.GetComponent<RectTransform>().sizeDelta = new(0, 18);
+        HorizontalLayoutGroup slider_info_layout = slider_info.GetComponent<HorizontalLayoutGroup>();
+        slider_info_layout.childControlWidth = false;
+        slider_info_layout.childControlHeight = false;
+        slider_info_layout.childAlignment = TextAnchor.MiddleLeft;
+        GameObject slider_config_icon = new GameObject("Icon", typeof(Image));
+        slider_config_icon.transform.SetParent(slider_info.transform);
+        slider_config_icon.transform.localScale = Vector3.one;
+        slider_config_icon.GetComponent<RectTransform>().sizeDelta = new(16, 16);
+        GameObject slider_config_text = new GameObject("Text", typeof(Text));
+        slider_config_text.transform.SetParent(slider_info.transform);
+        slider_config_text.transform.localScale = Vector3.one;
+        slider_config_text.GetComponent<RectTransform>().sizeDelta = new(100, 16);
+        Text slider_text = slider_config_text.GetComponent<Text>();
+        OT.InitializeCommonText(slider_text);
+        slider_text.alignment = TextAnchor.MiddleLeft;
+        slider_text.resizeTextForBestFit = true;
+        GameObject slider_config_value = new GameObject("Value", typeof(Text));
+        slider_config_value.transform.SetParent(slider_info.transform);
+        slider_config_value.transform.localScale = Vector3.one;
+        slider_config_value.GetComponent<RectTransform>().sizeDelta = new(32, 16);
+        Text slider_value = slider_config_value.GetComponent<Text>();
+        OT.InitializeCommonText(slider_value);
+        slider_value.alignment = TextAnchor.MiddleRight;
+        slider_value.resizeTextForBestFit = true;
+        SliderBar slider_bar = Instantiate(SliderBar.Prefab, slider_area.transform);
+        slider_bar.transform.localScale = Vector3.one;
+        slider_bar.name = "Slider";
+        slider_bar.SetSize(new Vector2(170f, 20));
         #endregion
         #region TEXT
         GameObject text_area = new GameObject("TextArea", typeof(RectTransform));

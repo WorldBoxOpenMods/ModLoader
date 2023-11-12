@@ -4,7 +4,7 @@ using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.General.Event;
-using NeoModLoader.General.ui.prefabs;
+using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.General.UI.Tab;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.services;

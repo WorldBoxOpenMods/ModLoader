@@ -1,11 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace NeoModLoader.General.ui.prefabs;
+namespace NeoModLoader.General.UI.Prefabs;
 
-public class SwitchButton : MonoBehaviour
+public class SwitchButton : APrefab<SwitchButton>
 {
-    public static SwitchButton Prefab { get; private set; }
     private Text _text;
     private Image _icon;
     private Button _button;
