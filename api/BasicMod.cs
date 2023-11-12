@@ -80,4 +80,8 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable where T : 
     {
         return Path.Combine(pModDeclare.FolderPath, "Locales");
     }
+    public virtual ModConfig GetConfig()
+    {
+        return null;
+    }
 }

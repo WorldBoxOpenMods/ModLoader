@@ -54,7 +54,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             Button configureButton = transform.Find("Configure").GetComponent<Button>();
             configureButton.onClick.AddListener(() =>
             {
-                //ModConfigureWindow.ShowWindow(mod);
+                ModConfigureWindow.ShowWindow(mod.GetConfig());
             });
             Button websiteButton = transform.Find("Website").GetComponent<Button>();
             websiteButton.onClick.AddListener(() =>

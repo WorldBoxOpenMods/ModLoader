@@ -16,5 +16,6 @@
   "NML_AUTHENTICATION": "Select a way to authenticate",
   "NML_AUTHENTICATED": "Authenticated",
   "NML_AUTHENTICATION_FAILED": "Authentication failed, please try again.",
-  "NeoModLoader Updated": "NeoModLoader Updated, please restart the game."
+  "NeoModLoader Updated": "NeoModLoader Updated, please restart the game.",
+  "ModConfigure Title": "Mod Configure"
 }

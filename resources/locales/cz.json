@@ -16,5 +16,6 @@
   "NML_AUTHENTICATION": "选择验证方式或跳过验证",
   "NML_AUTHENTICATED": "验证成功",
   "NML_AUTHENTICATION_FAILED": "验证失败, 重试其他方式或跳过验证",
-  "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新"
+  "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新",
+  "ModConfigure Title": "模组设置"
 }

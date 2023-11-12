@@ -15,6 +15,10 @@ internal class AttachedModComponent : MonoBehaviour, IMod
     {
         return gameObject;
     }
+    public ModConfig GetConfig()
+    {
+        return null;
+    }
 
     public string GetUrl()
     {

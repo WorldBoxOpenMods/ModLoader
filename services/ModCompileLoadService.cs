@@ -107,7 +107,17 @@ public static class ModCompileLoadService
             if (!_loaded_ref.Contains(file_name))
             {
                 _loaded_ref.Add(file_name);
-                Assembly.LoadFrom(inc);
+                try
+                {
+                    var loaded_inc = Assembly.LoadFrom(inc);
+                    LogService.LogInfo($"Load {loaded_inc.FullName}");
+                }
+                catch (Exception e)
+                {
+                    LogService.LogWarning($"Failed to load Assembly {file_name} for mod {pModDecl.UID}");
+                    LogService.LogWarning(e.Message);
+                    LogService.LogWarning(e.StackTrace);
+                }
             }
         }
 
