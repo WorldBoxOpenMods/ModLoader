@@ -34,6 +34,7 @@ public static class ModCompileLoadService
     {
         if (!ModInfoUtils.isModNeedRecompile(pModDecl.UID, pModDecl.FolderPath))
         {
+            LoadAddInc();
             return true;
         }
         BenchUtils.Start($"{pModDecl.UID}");
@@ -94,18 +95,17 @@ public static class ModCompileLoadService
         }
         pModDecl.IsNCMSMod = is_ncms_mod;
 
-        List<MetadataReference> list = pDefaultInc.ToList();
-        foreach(var inc in pAddInc)
+        void LoadAddInc()
         {
-            MetadataReference reference = MetadataReference.CreateFromFile(inc);
-            list.Add(reference);
-            string file_name = Path.GetFileName(inc);
-            if (file_name == "Assembly-CSharp.dll")
+            foreach(var inc in pAddInc)
             {
-                continue;
-            }
-            if (!_loaded_ref.Contains(file_name))
-            {
+                string file_name = Path.GetFileName(inc);
+                if (file_name == "Assembly-CSharp.dll")
+                {
+                    continue;
+                }
+
+                if (_loaded_ref.Contains(file_name)) continue;
                 _loaded_ref.Add(file_name);
                 try
                 {
@@ -120,6 +120,9 @@ public static class ModCompileLoadService
                 }
             }
         }
+        List<MetadataReference> list = pDefaultInc.ToList();
+        list.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
+        LoadAddInc();
 
         foreach (var depen in pModDecl.Dependencies)
         {
