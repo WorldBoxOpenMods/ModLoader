@@ -24,7 +24,7 @@ public static class ModCompileLoadService
 {
     private static string[] _default_ref_path = null!;
     private static readonly Dictionary<string, string> mod_inc_path = new();
-
+    private static readonly HashSet<string> _loaded_ref = new();
 
 #if COMPILE_METHOD_ROSLYN
     private static MetadataReference[] _default_ref = null!;
@@ -99,10 +99,15 @@ public static class ModCompileLoadService
         {
             MetadataReference reference = MetadataReference.CreateFromFile(inc);
             list.Add(reference);
-            if (reference == null)
+            string file_name = Path.GetFileName(inc);
+            if (file_name == "Assembly-CSharp.dll")
             {
-                LogService.LogError($"{pModDecl.UID}'s additional ref of {inc} instance is null");
-                return false;
+                continue;
+            }
+            if (!_loaded_ref.Contains(file_name))
+            {
+                _loaded_ref.Add(file_name);
+                Assembly.LoadFrom(inc);
             }
         }
 
