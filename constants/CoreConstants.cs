@@ -7,5 +7,5 @@ public static class CoreConstants
     public const string RepoName = "ModLoader";
     public const string OrgURL = "https://github.com/WorldBoxOpenMods";
     public const string RepoURL = "https://github.com/WorldBoxOpenMods/ModLoader";
-    internal const ulong WorkshopFileId = 3079189261;
+    internal const ulong WorkshopFileId = 3080294469;
 }

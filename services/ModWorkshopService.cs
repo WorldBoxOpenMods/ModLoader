@@ -25,7 +25,7 @@ internal static class ModWorkshopService
         steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
     }
 
-    private static void UploadModLoader()
+    private static void UploadModLoader(string changelog)
     {
         string workshopPath = SaveManager.generateWorkshopPath(CoreConstants.ModName);
         
@@ -46,8 +46,9 @@ internal static class ModWorkshopService
         icon_file.Close();
         
         
-        Editor editor = new Editor(CoreConstants.WorkshopFileId).WithContent(workshopPath)
-            .WithChangeLog("Update test")
+        Editor editor = new Editor(CoreConstants.WorkshopFileId).WithContent(workshopPath).WithTag("Mod Loader")
+            .WithPreviewFile(previewImagePath)
+            .WithChangeLog(changelog)
             .WithPrivateVisibility();
         
         editor.SubmitAsync(null).ContinueWith(delegate(Task<PublishResult> taskResult)

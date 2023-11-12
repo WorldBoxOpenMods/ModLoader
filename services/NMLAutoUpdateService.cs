@@ -186,13 +186,16 @@ internal static class NMLAutoUpdateService
         {
             updated = true;
             LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
+            last_info.Delete();
             File.Copy(dll_path, Paths.NMLModPath, true);
         }
         
         FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
-        if(pdb_info != null && pdb_info.LastWriteTime > new FileInfo(Paths.NMLModPath.Replace(".dll", ".pdb")).LastWriteTime)
+        FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace(".dll", ".pdb"));
+        if(pdb_info != null && pdb_info.LastWriteTime > last_pdb_info.LastWriteTime)
         {
             updated = true;
+            last_pdb_info.Delete();
             File.Copy(pdb_path, Paths.NMLModPath.Replace(".dll", ".pdb"), true);
         }
 
