@@ -21,11 +21,13 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         public void Setup(string id, Dictionary<string, ModConfigItem> items)
         {
             title.text = LM.Get(id);
+            int item_idx = 0;
             foreach (var item in items)
             {
-                ModConfigListItem list_item = ModConfigureWindow._itemPool.getNext();
-                list_item.transform.SetParent(grid);
-                list_item.transform.localScale = Vector3.one;
+                ModConfigListItem list_item = ModConfigureWindow._itemPool.getNext(item_idx++);
+                Transform item_transform;
+                (item_transform = list_item.transform).SetParent(grid);
+                item_transform.localScale = Vector3.one;
                 list_item.Setup(item.Value);
             }
         }
@@ -271,9 +273,10 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
     {
         _gridPool.clear();
         _itemPool.clear();
+        int group_idx = 0;
         foreach (var group in _config._config)
         {
-            ModConfigGrid grid = _gridPool.getNext();
+            ModConfigGrid grid = _gridPool.getNext(group_idx++);
             grid.Setup(group.Key, group.Value);
         }
     }
