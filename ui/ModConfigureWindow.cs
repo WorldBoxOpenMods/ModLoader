@@ -248,6 +248,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         layout.childForceExpandWidth = false;
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.padding = new RectOffset(4, 4, 5, 5);
+        layout.spacing = 4;
         /*
         fitter = grid.GetComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
