@@ -15,29 +15,27 @@ public static class PowerButtonCreator
     /// <param name="pId">PowerButton's name, determines title and desc key of tooltip</param>
     /// <param name="pWindowId">Id of the window to open</param>
     /// <param name="pIcon">The icon of the button</param>
-    /// <param name="pAttachTab">Which tab the button attached to, <see cref="PowerTabNames"/></param>
-    /// <param name="pLocalPosition">The button position in <see cref="pAttachTab"/></param>
+    /// <param name="pParent">Which transform the button attached to</param>
+    /// <param name="pLocalPosition">The button position in <see cref="pParent"/></param>
     /// <returns>The PowerButton created</returns>
     public static PowerButton CreateWindowButton([NotNull]string pId, [NotNull]string pWindowId,
-        Sprite pIcon, [CanBeNull]string pAttachTab = null, Vector2 pLocalPosition = default)
+        Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
     {
-        PowerButton prefab = ResourcesFinder.FindResources<PowerButton>("worldlaws")[0];
+        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("worldlaws");
         
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
         {
             prefab.gameObject.SetActive(false);
         }
-        PowersTab tab = GetTab(pAttachTab);
         PowerButton obj;
-        if (tab == null)
+        if (pParent == null)
         {
             obj = GameObject.Instantiate(prefab);
         }
         else
         {
-            obj = GameObject.Instantiate(prefab, tab.transform);
-            tab.powerButtons.Add(obj);
+            obj = GameObject.Instantiate(prefab, pParent);
         }
         
         if (found_active)
