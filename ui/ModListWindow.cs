@@ -52,9 +52,13 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             });
             
             Button configureButton = transform.Find("Configure").GetComponent<Button>();
+            configureButton.gameObject.SetActive(mod is IConfigurable);
             configureButton.onClick.AddListener(() =>
             {
-                ModConfigureWindow.ShowWindow(mod.GetConfig());
+                if (mod is IConfigurable configurable)
+                {
+                    ModConfigureWindow.ShowWindow(configurable.GetConfig());
+                }
             });
             Button websiteButton = transform.Find("Website").GetComponent<Button>();
             websiteButton.onClick.AddListener(() =>
