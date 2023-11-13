@@ -6,5 +6,6 @@ internal static class PrefabManager
     {
         SwitchButton._init();
         SliderBar._init();
+        TextInput._init();
     }
 }
