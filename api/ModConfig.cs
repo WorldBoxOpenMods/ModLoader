@@ -10,7 +10,7 @@ public enum ConfigItemType
     TEXT,
     SELECT
 }
-class ModConfigItem
+public class ModConfigItem
 {
     [JsonProperty("Type")]
     public ConfigItemType Type { get; internal set; }
@@ -18,10 +18,14 @@ class ModConfigItem
     public string Id { get; internal set; }
     [JsonProperty("IconPath")]
     public string IconPath { get; internal set; }
-    public bool BoolVal;
-    public string TextVal;
-    public float FloatVal;
-    public int IntVal;
+    [JsonProperty("BoolVal")]
+    public bool BoolVal{ get; internal set; }
+    [JsonProperty("TextVal")]
+    public string TextVal{ get; internal set; }
+    [JsonProperty("FloatVal")]
+    public float FloatVal{ get; internal set; }
+    [JsonProperty("IntVal")]
+    public int IntVal{ get; internal set; }
 
     public void SetValue(object val)
     {
@@ -115,7 +119,10 @@ public class ModConfig
             }
         }
     }
-
+    public Dictionary<string, ModConfigItem> this[string pGroupId]
+    {
+        get => _config[pGroupId];
+    }
     public void MergeWith(ModConfig pDefaultConfig)
     {
         foreach (var key in pDefaultConfig._config.Keys)
