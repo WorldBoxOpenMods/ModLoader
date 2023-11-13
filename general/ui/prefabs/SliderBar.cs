@@ -15,10 +15,10 @@ public class SliderBar : APrefab<SliderBar>
 
     public void Setup(float value, float min, float max, UnityAction<float> value_update)
     {
+        _slider.onValueChanged.RemoveAllListeners();
         _slider.minValue = min;
         _slider.maxValue = max;
         _slider.value = value;
-        _slider.onValueChanged.RemoveAllListeners();
         _slider.onValueChanged.AddListener(value_update);
     }
     public void SetSize(Vector2 size)
