@@ -1,4 +1,5 @@
 using NeoModLoader.services;
+using Newtonsoft.Json;
 
 namespace NeoModLoader.api;
 
@@ -11,8 +12,11 @@ public enum ConfigItemType
 }
 class ModConfigItem
 {
+    [JsonProperty("Type")]
     public ConfigItemType Type { get; internal set; }
+    [JsonProperty("Id")]
     public string Id { get; internal set; }
+    [JsonProperty("IconPath")]
     public string IconPath { get; internal set; }
     public bool BoolVal;
     public string TextVal;
@@ -66,6 +70,30 @@ public class ModConfig
 {
     internal Dictionary<string, Dictionary<string, ModConfigItem>> _config = new();
 
+    public ModConfig(string path)
+    {
+        if (!File.Exists(path))
+        {
+            LogService.LogWarning($"ModConfig file {path} does not exist, suggest to create one");
+            return;
+        }
+        string json_text = File.ReadAllText(path);
+        var raw_config = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, List<ModConfigItem>>>(json_text);
+        if (raw_config == null)
+        {
+            LogService.LogWarning($"ModConfig file {path} is empty or in invalid format!");
+            return;
+        }
+        foreach (var key in raw_config.Keys)
+        {
+            CreateGroup(key);
+            var value = raw_config[key];
+            foreach (var item in value)
+            {
+                _config[key][item.Id] = item;
+            }
+        }
+    }
     public void CreateGroup(string pId)
     {
         if (_config.ContainsKey(pId))

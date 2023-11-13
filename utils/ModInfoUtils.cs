@@ -155,7 +155,7 @@ internal static class ModInfoUtils
 
     public static ModDeclare recogMod(string pModFolderPath, bool pLogModJsonNotFound = true)
     {
-        var mod_config_path = Path.Combine(pModFolderPath, Paths.ModConfigFileName);
+        var mod_config_path = Path.Combine(pModFolderPath, Paths.ModDeclarationFileName);
         if(!File.Exists(mod_config_path))
         {
             if(pLogModJsonNotFound) 

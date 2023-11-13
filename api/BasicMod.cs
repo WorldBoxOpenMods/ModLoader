@@ -17,6 +17,7 @@ namespace NeoModLoader.api;
 public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable where T : BasicMod<T>
 {
     private ModDeclare _declare = null!;
+    private ModConfig _config = null!;
     /// <summary>
     /// Instance of your mod.
     /// </summary>
@@ -46,6 +47,7 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
         if (_isLoaded) return;
         _declare = pModDecl;
         Instance = (T)this;
+        _config ??= new ModConfig(Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName));
         LogInfo("OnLoad");
         OnModLoad();
         LogInfo("Loaded");
@@ -80,8 +82,8 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     {
         return Path.Combine(pModDeclare.FolderPath, "Locales");
     }
-    public virtual ModConfig GetConfig()
+    public ModConfig GetConfig()
     {
-        return null;
+        return _config;
     }
 }
