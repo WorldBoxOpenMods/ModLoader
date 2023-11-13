@@ -254,7 +254,6 @@ internal class WrappedPowersTab
         }
         line.SetActive(true);
         line.transform.localPosition = new(pX, 37.2f);
-        LogService.LogInfo($"Set line to ({pX})");
         _active_lines.Enqueue(line);
     }
 }

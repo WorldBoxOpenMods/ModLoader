@@ -42,61 +42,78 @@ public class WorldBoxMod : MonoBehaviour
         
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        ResourcesPatch.Initialize();
-
-        LoadLocales();
-        LM.ApplyLocale();
-        PrefabManager._init();
-        TabManager._init();
-        ListenerManager._init();
-        WrappedPowersTab._init();
+        float time = 0;
         
-        BenchUtils.Start("Load Mods Info");
-        ModCompileLoadService.loadInfoOfBepInExPlugins();
-
-        var mods = ModInfoUtils.findAndPrepareMods();
-        float time = BenchUtils.End("Load Mods Info");
-        if (time > 0)
+        SmoothLoader.add(() =>
         {
-            LogService.LogInfo($"Load mods info successfully, cost {time} seconds.");
-        }
+            ResourcesPatch.Initialize();
+            LoadLocales();
+            LM.ApplyLocale();
+            PrefabManager._init();
+            TabManager._init();
+            ListenerManager._init();
+            WrappedPowersTab._init();
+        }, "Initialize NeoModLoader");
 
-        var mod_nodes = ModDepenSolveService.SolveModDependencies(mods);
-
-        ModCompileLoadService.prepareCompile(mod_nodes);
-
-        var mods_to_load = new List<api.ModDeclare>();
-        foreach (var mod in mod_nodes)
+        List<ModDependencyNode> mod_nodes = new();
+        SmoothLoader.add(() =>
         {
-            if (ModCompileLoadService.compileMod(mod))
+            ModCompileLoadService.loadInfoOfBepInExPlugins();
+
+            var mods = ModInfoUtils.findAndPrepareMods();
+            
+            mod_nodes.AddRange(ModDepenSolveService.SolveModDependencies(mods));
+
+            ModCompileLoadService.prepareCompile(mod_nodes);
+        }, "Load Mods Info And Prepare Mods");
+
+
+        SmoothLoader.add(() =>
+        {
+            var mods_to_load = new List<api.ModDeclare>();
+            foreach (var mod in mod_nodes)
             {
-                mods_to_load.Add(mod.mod_decl);
-                
-                BenchUtils.Start("Load Resources");
-                ResourcesPatch.LoadResourceFromMod(mod.mod_decl.FolderPath);
-                time = BenchUtils.End("Load Resources");
-                if (time > 0)
+                SmoothLoader.add(() =>
                 {
-                    LogService.LogInfo($"Load resources of mod {mod.mod_decl.Name} successfully, cost {time} seconds.");
-                }
-                LogService.LogInfo($"Successfully compile mod {mod.mod_decl.Name}");
+                    if (ModCompileLoadService.compileMod(mod))
+                    {
+                        mods_to_load.Add(mod.mod_decl);
+                    }
+                    else
+                    {
+                        LogService.LogError($"Failed to compile mod {mod.mod_decl.Name}");
+                    }
+                }, "Compile Mod " + mod.mod_decl.Name);
             }
-            else
+            foreach(var mod in mod_nodes)
             {
-                LogService.LogError($"Failed to compile mod {mod.mod_decl.Name}");
+                SmoothLoader.add(() =>
+                {
+                    if (mods_to_load.Contains(mod.mod_decl))
+                    {
+                        ResourcesPatch.LoadResourceFromMod(mod.mod_decl.FolderPath);
+                    }
+                }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
-        }
-
-        ModCompileLoadService.loadMods(mods_to_load);
-        NCMSCompatibleLayer.Init();
-        ModWorkshopService.Init();
+            SmoothLoader.add(() =>
+            {
+                ModCompileLoadService.loadMods(mods_to_load);
+                NCMSCompatibleLayer.Init();
+            }, "Load Mods");
         
-        ui.UIManager.init();
+            SmoothLoader.add(() =>
+            {
+                ModWorkshopService.Init();
+        
+                ui.UIManager.init();
 
-        NMLAutoUpdateService.CheckWorkshopUpdate();
-        ModInfoUtils.DealWithBepInExModLinkRequests();
+                NMLAutoUpdateService.CheckWorkshopUpdate();
+                ModInfoUtils.DealWithBepInExModLinkRequests();
 
-        initialized_successfully = true;
+                initialized_successfully = true;
+            }, "NeoModLoader Post Initialize");
+        }, "Compile Mods And Load resources");
+
     }
 
     private void LoadLocales()
