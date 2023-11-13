@@ -11,6 +11,7 @@ public static class Paths
     //    @"C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NeoModLoader.dll";
     public static readonly string NMLPath = Combine(NMLModPath, "..", "NML");
 
+    public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
     public static readonly string StreamingAssetsPath = Combine(Application.streamingAssetsPath);
     public static readonly string ManagedPath = Combine(StreamingAssetsPath, "..", "Managed");
     //public static readonly string GamePath = Combine(StreamingAssetsPath, "..", "..");
@@ -20,6 +21,8 @@ public static class Paths
         RuntimePlatform.OSXPlayer => Combine(StreamingAssetsPath, "..", "..", "..", "..", ".."),
         _ => Combine(StreamingAssetsPath, "..", "..")
     };
+
+    public static readonly string ModsConfigPath = Combine(PersistentDataPath, "mods_config");
 
     public static readonly string BepInExPluginsPath = Combine(GamePath, "BepInEx", "plugins");
     public static readonly string ModsPath = Combine(GamePath , "Mods");

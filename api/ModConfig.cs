@@ -65,25 +65,46 @@ class ModConfigItem
             }
         }
     }
+
+    public object GetValue()
+    {
+        return Type switch
+        {
+            ConfigItemType.SWITCH => BoolVal,
+            ConfigItemType.SLIDER => FloatVal,
+            ConfigItemType.TEXT => TextVal,
+            ConfigItemType.SELECT => IntVal,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
 }
 public class ModConfig
 {
+    private string _path;
     internal Dictionary<string, Dictionary<string, ModConfigItem>> _config = new();
-
-    public ModConfig(string path)
+    public ModConfig(string path, bool pPossibleNew = false)
     {
         if (!File.Exists(path))
         {
-            LogService.LogWarning($"ModConfig file {path} does not exist, suggest to create one");
+            if (!pPossibleNew) LogService.LogWarning($"ModConfig file {path} does not exist, suggest to create one");
+            else
+            {
+                _path = path;
+            }
             return;
         }
         string json_text = File.ReadAllText(path);
         var raw_config = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, List<ModConfigItem>>>(json_text);
         if (raw_config == null)
         {
-            LogService.LogWarning($"ModConfig file {path} is empty or in invalid format!");
+            if (!pPossibleNew) LogService.LogWarning($"ModConfig file {path} is empty or in invalid format!");
+            else
+            {
+                _path = path;
+            }
             return;
         }
+        _path = path;
         foreach (var key in raw_config.Keys)
         {
             CreateGroup(key);
@@ -93,6 +114,39 @@ public class ModConfig
                 _config[key][item.Id] = item;
             }
         }
+    }
+
+    public void MergeWith(ModConfig pDefaultConfig)
+    {
+        foreach (var key in pDefaultConfig._config.Keys)
+        {
+            if (!_config.ContainsKey(key))
+            {
+                _config[key] = new();
+            }
+            var group = _config[key];
+            var default_group = pDefaultConfig._config[key];
+            foreach (string item in default_group.Keys.Where(item => !group.ContainsKey(item)))
+            {
+                AddConfigItem(key, item, default_group[item].Type, default_group[item].GetValue(), default_group[item].IconPath);
+            }
+        }
+    }
+    public void Save(string path = null)
+    {
+        path ??= _path;
+        var raw_config = new Dictionary<string, List<ModConfigItem>>();
+        foreach (var key in _config.Keys)
+        {
+            var value = _config[key];
+            raw_config[key] = new List<ModConfigItem>();
+            foreach (var item in value)
+            {
+                raw_config[key].Add(item.Value);
+            }
+        }
+        string json_text = Newtonsoft.Json.JsonConvert.SerializeObject(raw_config);
+        File.WriteAllText(path, json_text);
     }
     public void CreateGroup(string pId)
     {

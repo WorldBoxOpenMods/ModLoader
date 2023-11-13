@@ -47,11 +47,25 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
         if (_isLoaded) return;
         _declare = pModDecl;
         Instance = (T)this;
-        _config ??= new ModConfig(Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName));
+        _config ??= LoadConfig();
         LogInfo("OnLoad");
         OnModLoad();
         LogInfo("Loaded");
         _isLoaded = true;
+    }
+
+    private ModConfig LoadConfig()
+    {
+        ModConfig persistent_config =
+            new ModConfig(Path.Combine(Paths.ModsConfigPath, $"{_declare.UID}.config"), true);
+        
+        string default_config_path = Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName);
+        if(!File.Exists(default_config_path)) return persistent_config;
+        
+        ModConfig default_config = new ModConfig(Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName), false);
+        persistent_config.MergeWith(default_config);
+
+        return persistent_config;
     }
 
     protected abstract void OnModLoad();

@@ -327,13 +327,19 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
     public override void OnNormalEnable()
     {
-        _gridPool.clear();
-        _itemPool.clear();
         int group_idx = 0;
         foreach (var group in _config._config)
         {
             ModConfigGrid grid = _gridPool.getNext(group_idx++);
             grid.Setup(group.Key, group.Value);
         }
+    }
+
+    public override void OnNormalDisable()
+    {
+        _gridPool.clear();
+        _itemPool.clear();
+        _config?.Save();
+        _config = null;
     }
 }

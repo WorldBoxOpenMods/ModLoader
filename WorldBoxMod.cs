@@ -141,6 +141,12 @@ public class WorldBoxMod : MonoBehaviour
             Directory.CreateDirectory(Paths.CompiledModsPath);
             LogService.LogInfo($"Create CompiledMods folder at {Paths.CompiledModsPath}");
         }
+
+        if (!Directory.Exists(Paths.ModsConfigPath))
+        {
+            Directory.CreateDirectory(Paths.ModsConfigPath);
+            LogService.LogInfo($"Create mods_config folder at {Paths.ModsConfigPath}");
+        }
         
         if (!File.Exists(Paths.ModCompileRecordPath))
         {
