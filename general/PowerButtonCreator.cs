@@ -57,6 +57,85 @@ public static class PowerButtonCreator
         obj.gameObject.SetActive(true);
         return obj;
     }
+    public static PowerButton CreateGodPowerButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
+    {
+        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("inspect");
+        
+        bool found_active = prefab.gameObject.activeSelf;
+        if (found_active)
+        {
+            prefab.gameObject.SetActive(false);
+        }
+        PowerButton obj;
+        if (pParent == null)
+        {
+            obj = GameObject.Instantiate(prefab);
+        }
+        else
+        {
+            obj = GameObject.Instantiate(prefab, pParent);
+        }
+        
+        if (found_active)
+        {
+            prefab.gameObject.SetActive(true);
+        }
+        
+        
+        obj.name = pGodPowerId;
+        obj.icon.sprite = pIcon;
+        obj.open_window_id = null;
+        obj.type = PowerButtonType.Active;
+        // More settings for it
+
+        var transform = obj.transform;
+        
+        transform.localPosition = pLocalPosition;
+        transform.localScale = Vector3.one;
+        
+        obj.gameObject.SetActive(true);
+        return obj;
+    }
+    
+    public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
+    {
+        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("kingsAndLeaders");
+        
+        bool found_active = prefab.gameObject.activeSelf;
+        if (found_active)
+        {
+            prefab.gameObject.SetActive(false);
+        }
+        PowerButton obj;
+        if (pParent == null)
+        {
+            obj = GameObject.Instantiate(prefab);
+        }
+        else
+        {
+            obj = GameObject.Instantiate(prefab, pParent);
+        }
+        
+        if (found_active)
+        {
+            prefab.gameObject.SetActive(true);
+        }
+        
+        
+        obj.name = pGodPowerId;
+        obj.icon.sprite = pIcon;
+        obj.open_window_id = null;
+        obj.type = PowerButtonType.Special;
+        // More settings for it
+
+        var transform = obj.transform;
+        
+        transform.localPosition = pLocalPosition;
+        transform.localScale = Vector3.one;
+        
+        obj.gameObject.SetActive(true);
+        return obj;
+    }
     /// <summary>
     /// Get a tab by its Object Name
     /// </summary>
