@@ -8,12 +8,13 @@ public class SwitchButton : APrefab<SwitchButton>
     private Text _text;
     private Image _icon;
     private Button _button;
-
+    public TipButton tip_button { get; private set; }
     private void Awake()
     {
         _button = GetComponent<Button>();
         _text = transform.Find("Text").GetComponent<Text>();
         _icon = transform.Find("Icon").GetComponent<Image>();
+        tip_button = GetComponent<TipButton>();
     }
 
     public void Setup(bool value, Action value_update)

@@ -9,11 +9,13 @@ public class TextInput : APrefab<TextInput>
     private Text _text;
     private InputField _input;
     private Image _icon;
+    public TipButton tip_button { get; private set; }
     private void Awake()
     {
         _text = transform.Find("InputField").GetComponent<Text>();
         _input = transform.Find("InputField").GetComponent<InputField>();
         _icon = transform.Find("Icon").GetComponent<Image>();
+        tip_button = GetComponent<TipButton>();
     }
 
     public void Setup(string value, UnityAction<string> value_update)

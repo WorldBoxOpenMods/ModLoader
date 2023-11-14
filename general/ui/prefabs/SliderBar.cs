@@ -7,10 +7,12 @@ namespace NeoModLoader.General.UI.Prefabs;
 public class SliderBar : APrefab<SliderBar>
 {
     private Slider _slider;
+    public TipButton tip_button { get; private set; }
 
     private void Awake()
     {
         _slider = GetComponent<Slider>();
+        tip_button = GetComponent<TipButton>();
     }
 
     public void Setup(float value, float min, float max, UnityAction<float> value_update)

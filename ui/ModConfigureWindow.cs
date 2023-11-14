@@ -65,8 +65,14 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         private void setup_text(ModConfigItem pItem)
         {
             text_area.SetActive(true);
-            text_area.transform.Find("Input").GetComponent<TextInput>().Setup(pItem.TextVal, pStringVal => pItem.SetValue(pStringVal));
+
+            TextInput text_input = text_area.transform.Find("Input").GetComponent<TextInput>();
+            
+            text_input.Setup(pItem.TextVal, pStringVal => pItem.SetValue(pStringVal));
+            text_input.tip_button.textOnClick = pItem.Id;
+            text_input.tip_button.text_description_2 = pItem.Id + " Description";
             text_area.transform.Find("Info/Text").GetComponent<Text>().text = LM.Get(pItem.Id);
+            
             if (string.IsNullOrEmpty(pItem.IconPath))
             {
                 text_area.transform.Find("Info/Icon").gameObject.SetActive(false);
@@ -84,11 +90,16 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_area.SetActive(true);
             Text value = slider_area.transform.Find("Info/Value").GetComponent<Text>();
             value.text = $"{pItem.FloatVal:F2}";
-            slider_area.transform.Find("Slider").GetComponent<SliderBar>().Setup(pItem.FloatVal, 0, 1, pFloatVal =>
+
+            SliderBar slider_bar = slider_area.transform.Find("Slider").GetComponent<SliderBar>();
+            slider_bar.Setup(pItem.FloatVal, 0, 1, pFloatVal =>
             {
                 pItem.SetValue(pFloatVal);
                 value.text = $"{pItem.FloatVal:F2}";
             });
+            slider_bar.tip_button.textOnClick = pItem.Id;
+            slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
+            
             slider_area.transform.Find("Info/Text").GetComponent<Text>().text = LM.Get(pItem.Id);
             if (string.IsNullOrEmpty(pItem.IconPath))
             {
@@ -105,7 +116,11 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         private void setup_switch(ModConfigItem pItem)
         {
             switch_area.SetActive(true);
-            switch_area.transform.Find("Button").GetComponent<SwitchButton>().Setup(pItem.BoolVal, ()=>pItem.SetValue(!pItem.BoolVal));
+            SwitchButton switch_button = switch_area.transform.Find("Button").GetComponent<SwitchButton>();
+            switch_button.Setup(pItem.BoolVal, ()=>pItem.SetValue(!pItem.BoolVal));
+            switch_button.tip_button.textOnClick = pItem.Id;
+            switch_button.tip_button.text_description_2 = pItem.Id + " Description";
+            
             switch_area.transform.Find("Text").GetComponent<Text>().text = LM.Get(pItem.Id);
             if (string.IsNullOrEmpty(pItem.IconPath))
             {
