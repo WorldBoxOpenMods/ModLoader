@@ -9,28 +9,64 @@ namespace NeoModLoader.General.Event.Listeners;
 
 public class ClanCreateListener : AbstractListener<ClanCreateListener, ClanCreateHandler>
 {
+    protected static void HandleAll(Clan pClan, Actor pActor)
+    {
+        StringBuilder sb = null;
+        int idx = 0;
+        int count = instance.handlers.Count;
+        bool finished = false;
+        while (!finished)
+        {
+            try
+            {
+                for (; idx < count; idx++)
+                {
+                    instance.handlers[idx].Handle(pClan, pActor);
+                }
+                finished = true;
+            }
+            catch (Exception e)
+            {
+                instance.handlers[idx].HitException();
+                sb ??= new();
+                sb.AppendLine($"Failed to handle event in {instance.handlers[idx].GetType().FullName}");
+                sb.AppendLine(e.Message);
+                sb.AppendLine(e.StackTrace);
+                idx++;
+            }
+        }
+        if(sb != null)
+        {
+            LogService.LogError(sb.ToString());
+        }
+    }
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(ClanManager), nameof(ClanManager.newClan))]
     private static IEnumerable<CodeInstruction> _newClan_Patch(IEnumerable<CodeInstruction> instr)
     {
         List<CodeInstruction> codes = new(instr);
 
-        //int insert_index = 4;
-        //codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_0));
+        int insert_index = 6;
+        codes.Insert(insert_index++, new CodeInstruction(OpCodes.Dup));
+        codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         
-        //InsertCallHandleCode(codes, insert_index);
+        InsertCallHandleCode(codes, insert_index);
         return codes;
     }
 
-    private static MethodInfo _createHandleAllMethod()
+    [Obsolete("Operation is not supported", true)]
+    private static MethodInfo _createHandleAllMethodByIL()
     {
         MethodInfo handle_once = AccessTools.Method(typeof(ClanCreateHandler), nameof(ClanCreateHandler.Handle));
 
         var parameters = handle_once.GetParameters();
-        Type[] parameters_types = parameters.Select(p => p.ParameterType).ToArray();
+        List<Type> parameters_types = new();
+        foreach (var parameter in parameters)
+        {
+            parameters_types.Add(parameter.ParameterType);
+        }
         
-        DynamicMethod dm = new("HandleAll", typeof(void), parameters_types, typeof(ClanCreateListener).Module);
-
+        DynamicMethod dm = new("ClanCreateListener_HandleAll", typeof(void), parameters_types.ToArray());
         ILGenerator il = dm.GetILGenerator();
         il.Emit(OpCodes.Nop);
         // sb = null
@@ -182,5 +218,6 @@ public class ClanCreateListener : AbstractListener<ClanCreateListener, ClanCreat
         
         Delegate method = dm.CreateDelegate(typeof(Delegate));
         return method.GetMethodInfo();
+        return null;
     }
 }
