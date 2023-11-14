@@ -565,8 +565,6 @@
       <EmbeddedResource Include="resources\assemblies\System.Reflection.dll" />
       <None Remove="resources\assemblies\System.Reflection.Extensions.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Reflection.Extensions.dll" />
-      <None Remove="resources\assemblies\System.Reflection.Metadata.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata.dll" />
       <None Remove="resources\assemblies\System.Reflection.Primitives.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Reflection.Primitives.dll" />
       <None Remove="resources\assemblies\System.Resources.Reader.dll" />
@@ -657,6 +655,8 @@
       <EmbeddedResource Include="resources\commit" />
       <None Remove="resources\github.png" />
       <EmbeddedResource Include="resources\github.png" />
+      <None Remove="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
     </ItemGroup>
   
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
