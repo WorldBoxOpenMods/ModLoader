@@ -11,21 +11,27 @@ public class CityCreateListener : AbstractListener<CityCreateListener, CityCreat
     protected static void HandleAll(City pCity)
     {
         StringBuilder sb = null;
-        foreach (var handler in instance.handlers)
+        int idx = 0;
+        int count = instance.handlers.Count;
+        bool finished = false;
+        while (!finished)
         {
-            if(!handler.enabled) continue;
             try
             {
-                handler.Handle(pCity);
+                for (; idx < count; idx++)
+                {
+                    instance.handlers[idx].Handle(pCity);
+                }
+                finished = true;
             }
             catch (Exception e)
             {
-                handler.HitException();
+                instance.handlers[idx].HitException();
                 sb ??= new();
-
-                sb.AppendLine($"Failed to handle event in {handler.GetType().FullName}");
+                sb.AppendLine($"Failed to handle event in {instance.handlers[idx].GetType().FullName}");
                 sb.AppendLine(e.Message);
                 sb.AppendLine(e.StackTrace);
+                idx++;
             }
         }
         if(sb != null)
