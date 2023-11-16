@@ -99,6 +99,50 @@ public static class PowerButtonCreator
     
     public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
     {
+        GodPower god_power = AssetManager.powers.get(pGodPowerId);
+        if (god_power == null)
+        {
+            LogService.LogError("Cannot find GodPower with id " + pGodPowerId);
+            return null;
+        }
+        
+        void toggleOption(string pPower)
+        {
+            GodPower power = AssetManager.powers.get(pPower);
+            WorldTip.instance.showToolbarText(power);
+
+            if (!PlayerConfig.dict.TryGetValue(power.toggle_name, out var _option))
+            {
+                _option = new PlayerOptionData(power.toggle_name)
+                {
+                    boolVal = false
+                };
+                PlayerConfig.dict.Add(power.toggle_name, _option);
+            }
+            
+            _option.boolVal = !_option.boolVal;
+            if (_option.boolVal && power.map_modes_switch)
+                AssetManager.powers.disableAllOtherMapModes(pPower);
+            PlayerConfig.saveData();
+        }
+        if (god_power.toggle_action == null)
+        {
+            god_power.toggle_action = toggleOption;
+        }
+        else
+        {
+            god_power.toggle_action = (PowerToggleAction)Delegate.Combine(god_power.toggle_action,
+                new PowerToggleAction(toggleOption));
+        }
+        if(!PlayerConfig.dict.TryGetValue(god_power.toggle_name, out var option))
+        {
+            option = new PlayerOptionData(god_power.toggle_name)
+            {
+                boolVal = false
+            };
+            PlayerConfig.dict.Add(god_power.toggle_name, option);
+        }
+        
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("kingsAndLeaders");
         
         bool found_active = prefab.gameObject.activeSelf;
@@ -126,6 +170,8 @@ public static class PowerButtonCreator
         obj.icon.sprite = pIcon;
         obj.open_window_id = null;
         obj.type = PowerButtonType.Special;
+        obj.transform.Find("ToggleIcon").GetComponent<ToggleIcon>().updateIcon(option.boolVal);
+        LogService.LogInfo($"Set {obj.name} toggle to {option.boolVal}");
         // More settings for it
 
         var transform = obj.transform;
