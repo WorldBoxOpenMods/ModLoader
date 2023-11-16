@@ -108,8 +108,10 @@ internal class WrappedPowersTab
     public void AddPowerButton(string pGroupId, PowerButton pPowerButton)
     {
         var group = ButtonGroups[pGroupId];
-        
-        pPowerButton.transform.SetParent(Tab.transform);
+
+        Transform transform;
+        (transform = pPowerButton.transform).SetParent(Tab.transform);
+        transform.localScale = Vector3.one;
         
         group.Add(pPowerButton);
     }
@@ -119,6 +121,7 @@ internal class WrappedPowersTab
         var group = CustomRectGroups[pGroupId];
         
         pRect.SetParent(Tab.transform);
+        pRect.localScale = Vector3.one;
         
         group.Add(new(pRect, pPositionInGroup, pPlacehold));
     }
