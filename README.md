@@ -1,9 +1,13 @@
-﻿# NeoModLoader
+﻿<h1 align="center">
+  <img src="https://raw.githubusercontent.com/WorldBoxOpenMods/ModLoader/master/resources/logo.png" alt="logo" width="200">
+  <br/>
+  NeoModLoader
+</h1>
 
-[![zh](https://img.shields.io/badge/zh-简体中文-red.svg)](README.md)
-[![en](https://img.shields.io/badge/en-English-green.svg)](README.en.md)
-
-![Icon](resources/logo.png)
+<p align="center">
+  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.md"><img alt="zh" src="https://img.shields.io/badge/zh-简体中文-red.svg"></a>
+  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.en.md"><img alt="en" src="https://img.shields.io/badge/en-English-green.svg"></a>
+</p>
 
 为[Worldbox](http://www.superworldbox.com/)提供继[NCMS](https://denq04.github.io/ncms/)后的新模组加载器
 
