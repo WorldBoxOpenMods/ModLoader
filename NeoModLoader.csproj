@@ -659,6 +659,11 @@
       <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
     </ItemGroup>
   
+    <ItemGroup>
+      <Content Include=".github\ISSUE_TEMPLATE\bug-report-en.yaml" />
+      <Content Include=".github\ISSUE_TEMPLATE\bug-report-zh.yaml" />
+    </ItemGroup>
+  
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="pwsh -File prepare_debug.ps1" Condition=" '$(OS)' == 'Windows_NT' " />
       <Exec Command="sh ./prepare_debug.sh" Condition=" '$(OS)' != 'Windows_NT' " />

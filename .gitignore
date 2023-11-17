@@ -1,4 +1,5 @@
 ﻿.*
+!.github
 !.gitignore
 !.gitattributes
 !.editorconfig
