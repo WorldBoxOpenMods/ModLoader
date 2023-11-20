@@ -417,6 +417,7 @@
     </ItemGroup>
   
     <ItemGroup>
+      <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
       <PackageReference Include="YamlDotNet" Version="13.7.1" />
     </ItemGroup>
   
@@ -657,6 +658,9 @@
       <EmbeddedResource Include="resources\github.png" />
       <None Remove="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+      <None Remove="resources\assemblies\VdfConverter.dll" />
+      <None Remove="resources\assemblies\Gameloop.Vdf.dll" />
+      <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
     </ItemGroup>
   
     <ItemGroup>

@@ -33,11 +33,13 @@ public static class Paths
     public static readonly string ModDeclarationFileName = "mod.json";
     public static readonly string ModDefaultConfigFileName = "default_config.json";
     public static readonly string ModResourceFolderName = "GameResources";
-    public static readonly string CommonModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", "1206560");
+    public static readonly string CommonModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", CoreConstants.GameId.ToString());
     public static readonly string NCMSModEmbededResourceFolderName = "EmbededResources";
     public static readonly HashSet<string> IgnoreSearchDirectories = new HashSet<string>()
     {
         "bin", "obj", "Properties", "packages", "packages.config", "packages-lock.json", "packages-lock.xml",
     };
+    
+    internal static readonly string LinuxSteamLocalConfigPath = "~/.local/share/Steam/userdata/{0}/config/localconfig.vdf";
     private static string Combine(params string [] paths) => new FileInfo(paths.Aggregate("", Path.Combine)).FullName;
 }
