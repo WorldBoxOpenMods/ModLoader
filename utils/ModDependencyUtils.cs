@@ -65,6 +65,15 @@ public class ModDependencyGraph
 }
 internal static class ModDependencyUtils
 {
+    public static string ParseDepenNameToPreprocessSymbol(string pDepenName)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (var ch in pDepenName)
+        {
+            sb.Append(!char.IsLetterOrDigit(ch) ? '_' : char.ToUpper(ch));
+        }
+        return sb.ToString();
+    }
     public static ModDependencyNode TryToAppendMod(ModDependencyGraph pGraph, ModDeclare pModAppend)
     {
         bool success = true;

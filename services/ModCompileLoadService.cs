@@ -14,8 +14,8 @@ using System.Text;
 using ModDeclaration;
 using NeoModLoader.api;
 using NeoModLoader.constants;
-    using NeoModLoader.General;
-    using NeoModLoader.utils;
+using NeoModLoader.General;
+using NeoModLoader.utils;
 using UnityEngine;
 
 namespace NeoModLoader.services;
@@ -37,6 +37,43 @@ public static class ModCompileLoadService
             LoadAddInc();
             return true;
         }
+        var preprocessor_symbols = new List<string>();
+        
+        List<MetadataReference> list = pDefaultInc.ToList();
+        list.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
+        LoadAddInc();
+        
+        
+        foreach (var depen in pModDecl.Dependencies)
+        {
+            if (!pModInc.ContainsKey(depen))
+            {
+                LogService.LogError($"{pModDecl.UID} miss dependency {depen}");
+                return false;
+            }
+            list.Add(pModInc[depen]);
+            if (pModInc[depen] == null)
+            {
+                LogService.LogError($"{pModDecl.UID}'s optional ref of {depen} instance is null");
+                return false;
+            }
+        }
+    
+
+        foreach (var option_depen in pModDecl.OptionalDependencies)
+        {
+            if (pModInc.TryGetValue(option_depen, out var value))
+            {
+                list.Add(value);
+                preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
+                if (value == null)
+                { 
+                    LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
+                    return false;
+                }
+            }
+        }
+        
         var syntaxTrees = new List<SyntaxTree>();
         var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
             file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
@@ -44,7 +81,8 @@ public static class ModCompileLoadService
         var embeded_resources = new List<ResourceDescription>();
         
         bool is_ncms_mod = false;
-        var parse_option = new CSharpParseOptions(LanguageVersion.Latest);
+        var parse_option = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessor_symbols);
+        
         foreach (var code_file in code_files)
         {
             SourceText sourceText = SourceText.From(File.ReadAllText(code_file), Encoding.UTF8);
@@ -119,38 +157,7 @@ public static class ModCompileLoadService
                 }
             }
         }
-        List<MetadataReference> list = pDefaultInc.ToList();
-        list.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
-        LoadAddInc();
 
-        foreach (var depen in pModDecl.Dependencies)
-        {
-            if (!pModInc.ContainsKey(depen))
-            {
-                LogService.LogError($"{pModDecl.UID} miss dependency {depen}");
-                return false;
-            }
-            list.Add(pModInc[depen]);
-            if (pModInc[depen] == null)
-            {
-                LogService.LogError($"{pModDecl.UID}'s optional ref of {depen} instance is null");
-                return false;
-            }
-        }
-    
-
-        foreach (var option_depen in pModDecl.OptionalDependencies)
-        {
-            if (pModInc.TryGetValue(option_depen, out var value))
-            {
-                list.Add(value);
-                if (value == null)
-                { 
-                    LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
-                    return false;
-                }
-            }
-        }
 
         var compilation = CSharpCompilation.Create(
             $"{pModDecl.UID}",
