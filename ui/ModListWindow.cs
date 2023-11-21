@@ -19,7 +19,6 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             Text text = transform.Find("Text").GetComponent<Text>();
             text.text = string.Format(text.text, modDeclare.Name, modDeclare.Version, modDeclare.Author, modDeclare.Description);
             
-            LogService.LogInfo($"Try to load icon for mod {modDeclare.Name} from {modDeclare.FolderPath}/{modDeclare.IconPath}");
             if(string.IsNullOrEmpty(modDeclare.IconPath)) return;
             Sprite sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath));
             if (sprite == null)

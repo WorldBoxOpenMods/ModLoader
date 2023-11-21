@@ -14,7 +14,6 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         {
             Text text = transform.Find("Text").GetComponent<Text>();
             text.text = string.Format(text.text, modDeclare.Name, modDeclare.Version, modDeclare.Author, modDeclare.Description);
-            LogService.LogInfo($"Try to load icon for mod {modDeclare.Name}'s icon from {modDeclare.FolderPath??"null"}/{modDeclare.IconPath??"null"}");
             if(string.IsNullOrEmpty(modDeclare.IconPath)) return;
             Sprite sprite = SpriteLoadUtils.LoadSprites(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath))[0];
             if (sprite == null)
