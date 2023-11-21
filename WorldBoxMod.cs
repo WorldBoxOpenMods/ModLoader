@@ -162,7 +162,7 @@ public class WorldBoxMod : MonoBehaviour
                 if (resource.EndsWith(".dll"))
                 {
                     var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
-                    var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name);
+                    var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name).Replace("-renamed", "");
                 
                     using var stream = NeoModLoaderAssembly.GetManifestResourceStream(resource);
                     using var file = new FileStream(file_path, FileMode.Create, FileAccess.Write);
