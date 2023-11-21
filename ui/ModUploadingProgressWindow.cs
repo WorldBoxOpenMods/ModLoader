@@ -12,21 +12,22 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
     {
         public void Report(float value)
         {
-            if (this.lastvalue >= value)
+            Instance.real_progress = value;
+            if (Instance.progress >= value)
             {
                 return;
             }
-            this.lastvalue = value;
             Instance.progress = value;
         }
 
         public void Reset()
         {
-            lastvalue = 0;
+            Instance.progress = 0;
+            Instance.real_progress = 0;
         }
-        private float lastvalue;
     }
     private float progress = 0f;
+    private float real_progress = 0f;
     private Image bar;
     private Text percent;
     private bool uploading = false;
@@ -45,13 +46,35 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
         percent.resizeTextMaxSize = 14;
         percent.resizeTextMinSize = 6;
         percent.resizeTextForBestFit = true;
+        
+        var bar_bg = new GameObject("Bar", typeof(Image), typeof(Mask)).GetComponent<Image>();
+        bar_bg.sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
+        bar_bg.type = Image.Type.Sliced;
+        bar_bg.color = Color.gray;
+        RectTransform bar_bg_transform;
+        (bar_bg_transform = (RectTransform)bar_bg.transform).SetParent(ContentTransform);
+        bar_bg_transform.localScale = Vector3.one;
+        bar_bg_transform.localPosition = new(130, -123);
+        bar_bg_transform.sizeDelta = new(190, 20);
+        
+        bar = new GameObject("Image", typeof(Image)).GetComponent<Image>();
+        RectTransform bar_transform;
+        (bar_transform = (RectTransform)bar.transform).SetParent(bar_bg_transform);
+        bar_transform.localScale = Vector3.one;
+        bar_transform.sizeDelta = new(190, 20);
+        bar_transform.localPosition = new(-bar_transform.sizeDelta.x / 2, 0);
+        bar_transform.pivot = new(0, 0.5f);
+        
+        bar.color = Color.green;
     }
 
     private UploadProgress uploadProgress = new();
     public static UploadProgress ShowWindow()
     {
         Instance.uploading = true;
+        Instance.uploadProgress.Reset();
         ScrollWindow.showWindow(WindowId);
+        Instance.start_time = Time.time;
         return Instance.uploadProgress;
     }
     public override void OnNormalEnable()
@@ -69,15 +92,34 @@ public class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWin
         uploading = false;
     }
 
+    private float start_time;
     private void Update()
     {
         if(!Initialized || !IsOpened || !uploading) return;
-        
-        percent.text = $"{progress * 100}%";
+
+        if (progress < 0.9f)
+        {
+            progress += Math.Max(0, real_progress / (Time.time - start_time) * Time.deltaTime);
+        }
+        else
+        {
+            progress = Math.Max(progress, Mathf.Lerp(progress, real_progress, Time.deltaTime * 0.1f));
+        }
+        UpdateDisplay();
+    }
+
+    private void UpdateDisplay()
+    {
+        bar.transform.localScale = new Vector3(progress, 1, 1);
+        percent.text = $"{(int)(progress * 100)}%";
     }
     public static void FinishUpload()
     {
         Instance.uploading = false;
+        
+        Instance.progress = 1;
+        Instance.UpdateDisplay();
+        
         Instance.percent.text = LM.Get("ModUploadFinish");
         Instance.percent.color = Color.green;
         if (Instance.fileId > 0)
