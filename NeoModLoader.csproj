@@ -244,7 +244,7 @@
         <HintPath>resources\assemblies\System.Reflection.Extensions.dll</HintPath>
       </Reference>
       <Reference Include="System.Reflection.Metadata">
-        <HintPath>resources\assemblies\System.Reflection.Metadata.dll</HintPath>
+        <HintPath>resources\assemblies\System.Reflection.Metadata-renamed.dll</HintPath>
       </Reference>
       <Reference Include="System.Reflection.Primitives">
         <HintPath>resources\assemblies\System.Reflection.Primitives.dll</HintPath>
