@@ -16,6 +16,12 @@
   "NML_AUTHENTICATION": "选择验证方式或跳过验证",
   "NML_AUTHENTICATED": "验证成功",
   "NML_AUTHENTICATION_FAILED": "验证失败, 重试其他方式或跳过验证",
+  "DiscordAuth Title": "Discord验证",
+  "DiscordAuth Description": "跳转到Discord验证你的身份组\n要求WorldBox的Modder role\n未完成",
+  "GithubAuth Title": "Github验证",
+  "GithubAuth Description": "跳转到Github验证你的组织\n要求加入WorldBoxOpenMods\nClient Secret未填入",
+  "SkipAuth Title": "跳过验证",
+  "SkipAuth Description": "跳过验证\n将上传至Unverified Mod\n鉴于目前其它验证方式未完成\n该选项能够直接上传至Mod列表",
   "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新",
   "ModConfigure Title": "模组设置"
 }
