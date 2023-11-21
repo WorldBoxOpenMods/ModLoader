@@ -92,29 +92,10 @@ public class DiscordRoleAuthViaUserLoginUtils
         string code = request.QueryString["code"];
         System.Diagnostics.Debug.WriteLine(code);
         listener.Close();
-        var parameters = new Dictionary<string, string>()
-        {
-            { "code", code },
-            { "grant_type", "authorization_code" },
-            { "redirect_uri", "http://localhost:36549" },
-            { "scope", "identify" }
-        };
-        var headers = new Dictionary<string, string>()
-        {
-            { "Accept", "application/json" },
-            { "Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + "Still not giving this away, I'll keep removing it for commits until I finally get this logic moved over onto a server :3")) }, // TODO: MY GOD PLEASE STORE THIS SECRET MORE SAFELY BEFORE COMMITING
-        };
         HttpResponseMessage res;
         using (HttpClient client = new HttpClient())
         {
-            FormUrlEncodedContent content = new FormUrlEncodedContent(parameters);
-            client.DefaultRequestHeaders.Clear();
-            foreach (var header in headers)
-            {
-                client.DefaultRequestHeaders.Add(header.Key, header.Value);
-            }
-
-            res = client.PostAsync("https://discord.com/api/oauth2/token", content).Result;
+            res = client.GetAsync("http://localhost:4000/nml/api/get-discord-access-token/" + code).Result;
         }
         string resJson = res.Content.ReadAsStringAsync().Result;
         System.Diagnostics.Debug.WriteLine(resJson);
