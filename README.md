@@ -34,3 +34,34 @@
 1. 下载NeoModLoader.dll(和NeoModLoader.pdb)放入GAMEPATH/worldbox_Data/StreamingAssets/mods文件夹
 2. 删除NCMS_memload.dll (它们可以同时安装, 但不推荐)
 3. 在开启实验模式的情况下启动游戏
+4. 从创意工坊订阅该加载器以便自动更新(自动更新只有当该加载器已安装才会生效)
+
+## 如何反馈BUG
+[提交issue](https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-zh.yaml&title=%5BBug%5D%3A+)
+
+## 如何编译
+
+简单流程:
+
+1. clone
+2. 用Visual Studio/Rider打开NeoModLoader.csproj, 点击编译
+
+用命令行编译:
+1. clone
+2. 下载[.NET Core SDK](https://dotnet.microsoft.com/download)
+3. 到NeoModLoader.csproj所在目录
+4. 执行`dotnet build NeoModLoader.csproj`
+
+## 如何贡献代码
+
+对于小修补:
+
+1. Fork
+2. 修改代码
+3. 提交PR
+4. 等待审核
+
+新特性, 重构等:
+
+1. 提交issue
+2. 讨论通过后再重复上述步骤

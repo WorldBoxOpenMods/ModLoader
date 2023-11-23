@@ -34,3 +34,7 @@ Provide a new mod loader for [Worldbox](http://www.superworldbox.com/) after [NC
 1. Download NeoModLoader.dll (and NeoModLoader.pdb) and put it in GAMEPATH/worldbox_Data/StreamingAssets/mods folder
 2. Delete NCMS_memload.dll (They can be installed together but not suggested)
 3. Start the game with experimental mode enabled
+
+## How to report bugs
+
+[Submit issue](https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-en.yaml&title=%5BBug%5D%3A+)
