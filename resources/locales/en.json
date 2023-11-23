@@ -23,5 +23,7 @@
   "SkipAuth Title": "Skip Authentication",
   "SkipAuth Description": "Skip authentication\nUpload mod to 'Unverified Mod'\nBut you can upload to 'Mod' at present\n Because other authentication methods are not available",
   "NeoModLoader Updated": "NeoModLoader Updated, please restart the game.",
-  "ModConfigure Title": "Mod Configure"
+  "ModConfigure Title": "Mod Configure",
+  "ModCommunity Title": "Mod Community",
+  "NeoModLoader Report": "Click to report bug or suggest new feature"
 }

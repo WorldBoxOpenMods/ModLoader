@@ -23,5 +23,7 @@
   "SkipAuth Title": "跳过验证",
   "SkipAuth Description": "跳过验证\n将上传至Unverified Mod\n鉴于目前其它验证方式未完成\n该选项能够直接上传至Mod列表",
   "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新",
-  "ModConfigure Title": "配置模组"
+  "ModConfigure Title": "配置模组",
+  "ModCommunity Title": "模组社区",
+  "NeoModLoader Report": "点击反馈Bug或建议"
 }

@@ -2,7 +2,7 @@
   "NML_ModsList": "模组列表",
   "NML_ModsList Description": "这里是你的模组列表。\n你可以在这里启用,禁用和配置模组。",
   "NeoModList Title": "模组列表",
-  "WorkshopMods Title": "创意工坊订阅模组",
+  "WorkshopMods Title": "创意工坊模组列表",
   "NeoModLoader Update Title": "NeoModLoader 更新",
   "NeoModLoader Update Complete": "NeoModLoader 更新至{0},\n 重启游戏以应用更新。",
   "ModUpload Title": "上传模组",
@@ -23,5 +23,7 @@
   "SkipAuth Title": "跳过验证",
   "SkipAuth Description": "跳过验证\n将上传至Unverified Mod\n鉴于目前其它验证方式未完成\n该选项能够直接上传至Mod列表",
   "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新",
-  "ModConfigure Title": "模组设置"
+  "ModConfigure Title": "模组设置",
+  "ModCommunity Title": "模组社区",
+  "NeoModLoader Report": "点击反馈Bug或建议"
 }

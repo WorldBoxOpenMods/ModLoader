@@ -1,4 +1,5 @@
 using NeoModLoader.api;
+using NeoModLoader.constants;
 using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
@@ -71,7 +72,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     private List<IMod> to_remove;
     protected override void Init()
     {
-        GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image), typeof(Button));
+        GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image), typeof(Button), typeof(TipButton));
         workshopButton.transform.SetParent(BackgroundTransform);
         workshopButton.transform.localPosition = new(125, 0);
         workshopButton.transform.localScale = Vector3.one;
@@ -82,6 +83,25 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         workshopButtonButton.onClick.AddListener(() =>
         {
             ScrollWindow.showWindow("WorkshopMods");
+        });
+        TipButton workshopButtonTipButton = workshopButton.GetComponent<TipButton>();
+        workshopButtonTipButton.textOnClick = "WorkshopMods Title";
+        
+        GameObject modloaderButton = new GameObject("ModLoaderButton", typeof(Image), typeof(Button), typeof(TipButton));
+        modloaderButton.transform.SetParent(BackgroundTransform);
+        modloaderButton.transform.localPosition = new(-125, 0);
+        modloaderButton.transform.localScale = Vector3.one;
+        modloaderButton.GetComponent<RectTransform>().sizeDelta = new(20, 20);
+        Image modloaderButtonImage = modloaderButton.GetComponent<Image>();
+        modloaderButtonImage.sprite = InternalResourcesGetter.GetIcon();
+        TipButton modloaderButtonTipButton = modloaderButton.GetComponent<TipButton>();
+        modloaderButtonTipButton.textOnClick = "NeoModLoader-v" + WorldBoxMod.NeoModLoaderAssembly.GetName().Version;
+        modloaderButtonTipButton.text_description_2 = "commit\n" + InternalResourcesGetter.GetCommit();
+        modloaderButtonTipButton.textOnClickDescription = "NeoModLoader Report";
+        Button modloaderButtonButton = modloaderButton.GetComponent<Button>();
+        modloaderButtonButton.onClick.AddListener(() =>
+        {
+            Application.OpenURL(CoreConstants.RepoURL);
         });
     }
     private bool needRefresh = false;
@@ -164,11 +184,12 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         textText.supportRichText = true;
         
         Vector2 single_button_size = new(22, 22);
-        GameObject configure = new GameObject("Configure", typeof(Image), typeof(Button));
+        GameObject configure = new GameObject("Configure", typeof(Image), typeof(Button), typeof(TipButton));
         configure.transform.SetParent(obj.transform);
         configure.transform.localPosition = new(87, 12);
         configure.transform.localScale = Vector3.one;
         configure.GetComponent<RectTransform>().sizeDelta = single_button_size;
+        configure.GetComponent<TipButton>().textOnClick = "ModConfigure Title";
         Image configureImageBG = configure.GetComponent<Image>();
         configureImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         configureImageBG.type = Image.Type.Sliced;
@@ -180,11 +201,12 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image configureIconImage = configureIcon.GetComponent<Image>();
         configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconOptions");
         
-        GameObject website = new GameObject("Website", typeof(Image), typeof(Button));
+        GameObject website = new GameObject("Website", typeof(Image), typeof(Button), typeof(TipButton));
         website.transform.SetParent(obj.transform);
         website.transform.localPosition = new(87, -12);
         website.transform.localScale = Vector3.one;
         website.GetComponent<RectTransform>().sizeDelta = single_button_size;
+        website.GetComponent<TipButton>().textOnClick = "ModCommunity Title";
         Image websiteImageBG = website.GetComponent<Image>();
         websiteImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         websiteImageBG.type = Image.Type.Sliced;
