@@ -49,6 +49,8 @@ public static class ItemAssetCreator
         asset.quality = quality;
         asset.tech_needed = tech_needed;
 
+        asset.cost_resource_id_1 = "none";
+        asset.cost_resource_id_2 = "none";
         if (cost_resources != null)
         {
             switch (cost_resources.Length)
@@ -126,17 +128,121 @@ public static class ItemAssetCreator
         return asset;
     }
 
-    public static ItemAsset CreateMeleeWeapon()
+    public static ItemAsset CreateMeleeWeapon(
+        string id,
+        BaseStats base_stats = null,
+        List<string> materials = null,
+        List<string> item_modifiers = null,
+        string name_class = null,
+        List<string> name_templates = null,
+        string tech_needed = null,
+        AttackAction action_attack_target = null,
+        WorldAction action_special_effect = null,
+        float special_effect_interval = 1f,
+        int equipment_value = 0,
+        string path_slash_animation = "effects/slashes/slash_base"
+        )
     {
-        throw new NotImplementedException();
+        ItemAsset asset = AssetManager.items.clone(id, "_melee");
+        
+        asset.base_stats = base_stats ?? asset.base_stats;
+        asset.materials = materials ?? asset.materials;
+        asset.item_modifiers = item_modifiers ?? asset.item_modifiers;
+        asset.name_class = string.IsNullOrEmpty(name_class) ? asset.name_class : name_class;
+        asset.name_templates = name_templates ?? asset.name_templates;
+        asset.tech_needed = tech_needed;
+        asset.action_attack_target = action_attack_target;
+        asset.action_special_effect = action_special_effect;
+        asset.special_effect_interval = special_effect_interval;
+        asset.equipment_value = equipment_value;
+        asset.path_slash_animation = path_slash_animation;
+
+        asset.attackType = WeaponType.Melee;
+        asset.equipmentType = EquipmentType.Weapon;
+        return asset;
     }
 
-    public static ItemAsset CreateRangeWeapon()
+    public static ItemAsset CreateRangeWeapon(
+        string id,
+        string projectile,
+        BaseStats base_stats = null,
+        List<string> materials = null,
+        List<string> item_modifiers = null,
+        string name_class = null,
+        List<string> name_templates = null,
+        string tech_needed = null,
+        AttackAction action_attack_target = null,
+        WorldAction action_special_effect = null,
+        float special_effect_interval = 1f,
+        int equipment_value = 0,
+        string path_slash_animation = "effects/slashes/slash_punch"
+        )
     {
-        throw new NotImplementedException();
+        ItemAsset asset = AssetManager.items.clone(id, "_range");
+        
+        asset.base_stats = base_stats ?? asset.base_stats;
+        asset.materials = materials ?? asset.materials;
+        asset.item_modifiers = item_modifiers ?? asset.item_modifiers;
+        asset.name_class = string.IsNullOrEmpty(name_class) ? asset.name_class : name_class;
+        asset.name_templates = name_templates ?? asset.name_templates;
+        asset.tech_needed = tech_needed;
+        asset.action_attack_target = action_attack_target;
+        asset.action_special_effect = action_special_effect;
+        asset.special_effect_interval = special_effect_interval;
+        asset.equipment_value = equipment_value;
+        asset.path_slash_animation = path_slash_animation;
+        asset.projectile = string.IsNullOrEmpty(projectile) ? "snowball" : projectile;
+        
+        StringBuilder warning_builder = new StringBuilder();
+        warning_builder.AppendLine($"Some unexpected for {id} as a range weapon:");
+        if (string.IsNullOrEmpty(projectile))
+        {
+            warning_builder.AppendLine("\t projectile is null or empty. ");
+        }
+
+        asset.attackType = WeaponType.Range;
+        asset.equipmentType = EquipmentType.Weapon;
+        
+        return asset;
     }
-    public static ItemAsset CreateArmorOrAccessory()
+    public static ItemAsset CreateArmorOrAccessory(
+        string id,
+        EquipmentType equipmentType,
+        BaseStats base_stats = null,
+        List<string> materials = null,
+        List<string> item_modifiers = null,
+        string name_class = null,
+        List<string> name_templates = null,
+        string tech_needed = null,
+        AttackAction action_attack_target = null,
+        WorldAction action_special_effect = null,
+        float special_effect_interval = 1f,
+        int equipment_value = 0
+    )
     {
-        throw new NotImplementedException();
+        string template = equipmentType switch
+        {
+            EquipmentType.Armor => "armor",
+            EquipmentType.Boots => "boots",
+            EquipmentType.Helmet => "helmet",
+            EquipmentType.Ring => "ring",
+            EquipmentType.Amulet => "amulet",
+            _ => throw new ArgumentOutOfRangeException(nameof(equipmentType), equipmentType, null)
+        };
+        ItemAsset asset = AssetManager.items.clone(id, template);
+        
+        asset.base_stats = base_stats ?? asset.base_stats;
+        asset.materials = materials ?? asset.materials;
+        asset.item_modifiers = item_modifiers ?? asset.item_modifiers;
+        asset.name_class = string.IsNullOrEmpty(name_class) ? asset.name_class : name_class;
+        asset.name_templates = name_templates ?? asset.name_templates;
+        asset.tech_needed = tech_needed;
+        asset.action_attack_target = action_attack_target;
+        asset.action_special_effect = action_special_effect;
+        asset.special_effect_interval = special_effect_interval;
+        asset.equipment_value = equipment_value;
+
+        asset.equipmentType = equipmentType;
+        return asset;
     }
 }
