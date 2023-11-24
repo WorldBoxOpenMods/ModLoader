@@ -239,38 +239,18 @@ internal static class ResourcesPatch
         Type systemTypeInstance)
     {
         ResourceTreeNode node = tree.Find(path);
-        if (node == null || node.objects.Count == 0) return __result;
+        if (node == null) return __result;
+        
+        var append_list = node.GetAllObjects(systemTypeInstance);
+        
+        if(append_list.Count == 0) return __result;
         
         var list = new List<UnityEngine.Object>(__result);
-        list.AddRange(node.GetAllObjects(systemTypeInstance));
-        // No replace now.
-        // Use a list to store names, because it is faster to get name of an GameObject repeatedly.
-        /*
-        var names = new List<string>(__result.Length);
-        foreach (var obj in list)
-        {
-            names.Add(obj.name);
-        }
         
-        foreach (var (key, value) in node.objects.Select<KeyValuePair<string, Object>, (string key, Object value)>(pair => (pair.Key, pair.Value)))
-        {
-            if(!systemTypeInstance.IsInstanceOfType(value)) continue;
-            int idx = names.IndexOf(key);
-            if (idx < 0)
-            {
-                list.Add(value);
-            }
-            else
-            {
-                list[idx] = value;
-            }
-        }
-
-        foreach (var child in node.children)
-        {
-            list.AddRange(child.Value.GetAllObjects(systemTypeInstance));
-        }
-        */
+        HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
+        list.RemoveAll(x => names.Contains(x.name));
+        
+        list.AddRange(append_list);
         return list.ToArray();
     }
     [HarmonyPostfix]
@@ -283,18 +263,17 @@ internal static class ResourcesPatch
         Type systemTypeInstance)
     {
         var new_result = tree.Get(path);
-        if (new_result == null)
+        if (new_result != null && systemTypeInstance.IsInstanceOfType(new_result))
+            return new_result;
+        var node = tree.Find(path, false, false);
+        if (node == null)
+            return __result;
+        foreach (var ab in node.assetBundles)
         {
-            var node = tree.Find(path, false, false);
-            if (node == null)
-                return __result;
-            foreach (var ab in node.assetBundles)
-            {
-                new_result = ab.GetObject(Path.GetFileName(path));
-                if (new_result != null)
-                    break;
-            }
+            new_result = ab.GetObject(Path.GetFileName(path), systemTypeInstance);
+            if (new_result != null)
+                return new_result;
         }
-        return systemTypeInstance.IsInstanceOfType(new_result) ? new_result : __result;
+        return __result;
     }
 }

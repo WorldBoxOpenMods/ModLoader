@@ -15,6 +15,10 @@ public class WrappedAssetBundle
     {
         return assetBundle.LoadAsset(name);
     }
+    public Object GetObject(string name, Type type)
+    {
+        return assetBundle.LoadAsset(name, type);
+    }
     public Object[] GetAllObjects(Type systemTypeInstance)
     {
         return assetBundle.LoadAllAssets(systemTypeInstance);
