@@ -39,6 +39,10 @@
 ## 如何反馈BUG
 [提交issue](https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-zh.yaml&title=%5BBug%5D%3A+)
 
+## 如何制作模组
+
+[模组教程](https://github.com/WorldBoxOpenMods/ModLoader/wiki/Home(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#%E5%A6%82%E4%BD%95%E5%88%B6%E4%BD%9Cmod)
+
 ## 如何编译
 
 简单流程:
