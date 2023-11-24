@@ -14,9 +14,10 @@ namespace NeoModLoader.api;
 /// OnModLoad -> Awake -> OnEnable -> Start -> Update
 /// </remarks>
 /// </summary>
-public abstract class BasicMod<T> : MonoBehaviour, IMod where T : BasicMod<T>
+public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable where T : BasicMod<T>
 {
     private ModDeclare _declare = null!;
+    private ModConfig _config = null!;
     /// <summary>
     /// Instance of your mod.
     /// </summary>
@@ -46,10 +47,25 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod where T : BasicMod<T>
         if (_isLoaded) return;
         _declare = pModDecl;
         Instance = (T)this;
+        _config ??= LoadConfig();
         LogInfo("OnLoad");
         OnModLoad();
         LogInfo("Loaded");
         _isLoaded = true;
+    }
+
+    private ModConfig LoadConfig()
+    {
+        ModConfig persistent_config =
+            new ModConfig(Path.Combine(Paths.ModsConfigPath, $"{_declare.UID}.config"), true);
+        
+        string default_config_path = Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName);
+        if(!File.Exists(default_config_path)) return persistent_config;
+        
+        ModConfig default_config = new ModConfig(Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName), false);
+        persistent_config.MergeWith(default_config);
+
+        return persistent_config;
     }
 
     protected abstract void OnModLoad();
@@ -71,5 +87,17 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod where T : BasicMod<T>
     public ModDeclare GetDeclaration()
     {
         return _declare;
+    }
+    /// <summary>
+    /// If you need to add locale files for your mod, create locale files written by JSON under `Locales` directory in your mod 
+    /// </summary>
+    /// <returns>The path to the directory of your locale files</returns>
+    public string GetLocaleFilesDirectory(ModDeclare pModDeclare)
+    {
+        return Path.Combine(pModDeclare.FolderPath, "Locales");
+    }
+    public ModConfig GetConfig()
+    {
+        return _config;
     }
 }

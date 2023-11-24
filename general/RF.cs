@@ -30,6 +30,23 @@ public static class RF
     static Dictionary<Type, Dictionary<string, Delegate>> _method_cache = new();
     static Dictionary<Type, Dictionary<string, Delegate>> _getter_cache = new();
     static Dictionary<Type, Dictionary<string, Delegate>> _setter_cache = new();
+    public static Delegate GetMethodDelegate(this Type type, string name, bool is_static = false)
+    {
+        if (_method_cache.TryGetValue(type, out var methods))
+        {
+            if(methods.TryGetValue(name, out var method))
+            {
+                return method;
+            }
+            var newMethod1 = ReflectionHelper.GetMethod(type, name, is_static);
+            methods.Add(name, newMethod1);
+            
+            return newMethod1;
+        }
+        var newMethod = ReflectionHelper.GetMethod(type, name, is_static);
+        _method_cache.Add(type, new Dictionary<string, Delegate> { { name, newMethod } });
+        return newMethod;
+    }
 
     public static TF GetField<TF, TI>(this TI obj, string name)
     {
@@ -63,6 +80,23 @@ public static class RF
         var newGetter = ReflectionHelper.CreateFieldGetter<TF>(name, TI);
         _getter_cache.Add(TI, new Dictionary<string, Delegate> { { name, newGetter } });
         return (TF)newGetter.DynamicInvoke(obj);
+    }
+    public static Object GetField(this Object obj, string name, Type field_type)
+    {
+        Type TI = obj.GetType();
+        if (_getter_cache.TryGetValue(TI, out var getters))
+        {
+            if(getters.TryGetValue(name, out var getter))
+            {
+                return getter.DynamicInvoke(obj);
+            }
+            var newGetter1 = ReflectionHelper.CreateFieldGetter(name, TI, field_type);
+            getters.Add(name, newGetter1);
+            return newGetter1.DynamicInvoke(obj);
+        }
+        var newGetter = ReflectionHelper.CreateFieldGetter(name, TI, field_type);
+        _getter_cache.Add(TI, new Dictionary<string, Delegate> { { name, newGetter } });
+        return newGetter.DynamicInvoke(obj);
     }
 
     public static TF GetStaticField<TF, TI>(string name)

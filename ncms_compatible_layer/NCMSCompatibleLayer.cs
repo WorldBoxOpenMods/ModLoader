@@ -18,14 +18,14 @@ namespace NeoModLoader.ncms_compatible_layer
     {
         public static void Init()
         {
-            NCMS.ModLoader.Mods = new();
+            NCMS.ModLoader.Mods ??= new();
             foreach (IMod mod in WorldBoxMod.LoadedMods)
             {
                 ModDeclare declare = mod.GetDeclaration();
                 NCMS.ModLoader.Mods.Add(GenerateNCMSMod(declare));
             }
 
-            NCMS.Utils.ResourcesPatch.modsResources = ResourcesPatch.GetAllPatchedResources();
+            NCMS.Utils.ResourcesPatch.modsResources ??= ResourcesPatch.GetAllPatchedResources();
             NCMS.Utils.Windows.init();
             
             LogService.LogInfo($"NCMS Compatible Layer has been initialized.");

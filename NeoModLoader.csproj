@@ -6,11 +6,11 @@
         <Nullable>disable</Nullable>
         <LangVersion>11</LangVersion>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
-        <Authors>Inmny</Authors>
+        <Authors>WorldBoxOpenMods</Authors>
         <PackageProjectUrl>https://github.com/WorldBoxOpenMods</PackageProjectUrl>
         <RepositoryUrl>https://github.com/WorldBoxOpenMods/ModLoader</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-        <AssemblyVersion>0.0.1</AssemblyVersion>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -244,7 +244,7 @@
         <HintPath>resources\assemblies\System.Reflection.Extensions.dll</HintPath>
       </Reference>
       <Reference Include="System.Reflection.Metadata">
-        <HintPath>resources\assemblies\System.Reflection.Metadata.dll</HintPath>
+        <HintPath>resources\assemblies\System.Reflection.Metadata-renamed.dll</HintPath>
       </Reference>
       <Reference Include="System.Reflection.Primitives">
         <HintPath>resources\assemblies\System.Reflection.Primitives.dll</HintPath>
@@ -417,6 +417,7 @@
     </ItemGroup>
   
     <ItemGroup>
+      <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
       <PackageReference Include="YamlDotNet" Version="13.7.1" />
     </ItemGroup>
   
@@ -565,8 +566,6 @@
       <EmbeddedResource Include="resources\assemblies\System.Reflection.dll" />
       <None Remove="resources\assemblies\System.Reflection.Extensions.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Reflection.Extensions.dll" />
-      <None Remove="resources\assemblies\System.Reflection.Metadata.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata.dll" />
       <None Remove="resources\assemblies\System.Reflection.Primitives.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Reflection.Primitives.dll" />
       <None Remove="resources\assemblies\System.Resources.Reader.dll" />
@@ -649,14 +648,27 @@
       <EmbeddedResource Include="resources\locales\cz.json" />
       <None Remove="resources\locales\en.json" />
       <EmbeddedResource Include="resources\locales\en.json" />
-      <None Remove="resources\locales\tc.json" />
-      <EmbeddedResource Include="resources\locales\tc.json" />
+      <None Remove="resources\locales\ch.json" />
+      <EmbeddedResource Include="resources\locales\ch.json" />
       <None Remove="resources\square_frame_only.png" />
       <EmbeddedResource Include="resources\square_frame_only.png" />
       <None Remove="resources\commit" />
       <EmbeddedResource Include="resources\commit" />
       <None Remove="resources\github.png" />
       <EmbeddedResource Include="resources\github.png" />
+      <None Remove="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+      <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+      <None Remove="resources\assemblies\Gameloop.Vdf.dll" />
+      <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Content Include=".github\ISSUE_TEMPLATE\bug-report-en.yaml" />
+      <Content Include=".github\ISSUE_TEMPLATE\bug-report-zh.yaml" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Folder Include=".github\ASSETS\" />
     </ItemGroup>
   
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">

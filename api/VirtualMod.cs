@@ -18,7 +18,6 @@ public class VirtualMod : IMod
     {
         return _bindedGameObject;
     }
-
     public string GetUrl()
     {
         return string.IsNullOrEmpty(_declare.RepoUrl) ? CoreConstants.OrgURL : _declare.RepoUrl;

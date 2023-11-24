@@ -13,8 +13,13 @@ internal static class ReflectionHelper
             ? typeof(T).GetMethod(method_name, BindingFlags.Static | BindingFlags.NonPublic)
             : AccessTools.Method(typeof(T), method_name));
     }
-
-    internal static Delegate CreateFieldGetter<OutType>(string field_name, Type instance_type)
+    internal static Delegate GetMethod(Type type, string method_name, bool is_static = false)
+    {
+        return createMethodDelegate(is_static
+            ? type.GetMethod(method_name, BindingFlags.Static | BindingFlags.NonPublic)
+            : AccessTools.Method(type, method_name));
+    }
+    internal static Delegate CreateFieldGetter(string field_name, Type instance_type, Type output_type)
     {
         FieldInfo field =
             instance_type.GetField(field_name,
@@ -30,7 +35,7 @@ internal static class ReflectionHelper
                     ? Expression.TypeAs(instance, field.DeclaringType)
                     : Expression.Convert(instance, field.DeclaringType);
             Delegate GetDelegate;
-            if (typeof(OutType).IsPrimitive)
+            if (output_type.IsPrimitive)
             {
                 GetDelegate =
                     Expression.Lambda<Delegate>(
@@ -44,7 +49,7 @@ internal static class ReflectionHelper
                     Expression.Lambda<Delegate>(
                             Expression.TypeAs(
                                 Expression.Field(instanceCast, field),
-                                typeof(OutType)),
+                                output_type),
                             instance)
                         .Compile();
             }
@@ -56,6 +61,10 @@ internal static class ReflectionHelper
             Debug.LogError("Expression Tree-Getter:" + field.DeclaringType + "::" + field_name);
             return null;
         }
+    }
+    internal static Delegate CreateFieldGetter<OutType>(string field_name, Type instance_type)
+    {
+        return CreateFieldGetter(field_name, instance_type, typeof(OutType));
     }
     internal static Func<InstanceType, OutType> CreateFieldGetter<InstanceType, OutType>(string field_name)
     {

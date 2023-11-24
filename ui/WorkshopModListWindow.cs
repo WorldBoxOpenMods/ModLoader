@@ -13,13 +13,15 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         public override void Setup(ModDeclare modDeclare)
         {
             Text text = transform.Find("Text").GetComponent<Text>();
-            text.text = string.Format(text.text, modDeclare.Name, modDeclare.Version, modDeclare.Author, modDeclare.Description);
-            LogService.LogInfo($"Try to load icon for mod {modDeclare.Name}'s icon from {modDeclare.FolderPath??"null"}/{modDeclare.IconPath??"null"}");
-            if(string.IsNullOrEmpty(modDeclare.IconPath)) return;
-            Sprite sprite = SpriteLoadUtils.LoadSprites(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath))[0];
+            text.text = $"{modDeclare.Name}\t{modDeclare.Version}\n{modDeclare.Author}\n{modDeclare.Description}";
+            Sprite sprite = null;
+            if(!string.IsNullOrEmpty(modDeclare.IconPath))
+            {
+                sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath));
+            }
             if (sprite == null)
             {
-                return;
+                sprite = InternalResourcesGetter.GetIcon();
             }
             Image icon = transform.Find("Icon").GetComponent<Image>();
             icon.sprite = sprite;
@@ -34,35 +36,8 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
                     ScrollWindow.get("error_with_reason").clickShow();
                     return;
                 }
-
-                if (modDeclare.ModType == ModTypeEnum.BEPINEX)
-                {
-                    ModInfoUtils.LinkBepInExModToLocalRequest(modDeclare);
-                    ModInfoUtils.DealWithBepInExModLinkRequests();
-                    return;
-                }
-
-                ModDependencyNode node = ModDepenSolveService.SolveModDependencyRuntime(modDeclare);
-                if (node == null)
-                {
-                    ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
-                                               $"Failed to solve mod dependency." +
-                                               $"Check Incompatible mods and dependencies, then try again.";
-                    ScrollWindow.get("error_with_reason").clickShow();
-                    return;
-                }
-                
-                bool success = ModCompileLoadService.compileMod(node);
-                if (!success)
-                {
-                    ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
-                                               $"Failed to compile mod." +
-                                               $"Check Incompatible mods and dependencies, then try again.";
-                    ScrollWindow.get("error_with_reason").clickShow();
-                    return;
-                }
-                
-                ModCompileLoadService.LoadMod(node.mod_decl);
+                // Check mod loaded or not has been done in the following method.
+                ModCompileLoadService.TryCompileAndLoadModAtRuntime(modDeclare);
             });
             Button websiteButton = transform.Find("Website").GetComponent<Button>();
             websiteButton.onClick.AddListener(() =>
@@ -168,7 +143,6 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         Text textText = text.GetComponent<Text>();
         textText.font = LocalizedTextManager.currentFont;
         textText.fontSize = 6;
-        textText.text = "{0}\t{1}\n{2}\n{3}";
         textText.supportRichText = true;
         
         Vector2 single_button_size = new(22, 22);

@@ -1,4 +1,9 @@
+using System.Diagnostics;
+using System.IO.Compression;
+using System.Net;
 using System.Reflection;
+using Gameloop.Vdf;
+using Gameloop.Vdf.Linq;
 using MonoMod.Utils;
 using NeoModLoader.api;
 using NeoModLoader.constants;
@@ -8,8 +13,10 @@ using NeoModLoader.ui;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace NeoModLoader.utils;
 
@@ -80,9 +87,33 @@ internal static class ModInfoUtils
                 }
             }
         }
-        return mods;
+
+        foreach (var mod in mods)
+        {
+            WorldBoxMod.AllRecognizedMods.Add(mod, ModState.FAILED);
+        }
+        
+        return removeDisabledMods(mods);
+    }
+    private static List<ModDeclare> removeDisabledMods(List<ModDeclare> mods_to_process)
+    {
+        var result = new List<ModDeclare>();
+        foreach (var mod in mods_to_process)
+        {
+            if (isModDisabled(mod.UID))
+            {
+                WorldBoxMod.AllRecognizedMods[mod] = ModState.DISABLED;
+            }
+            else
+            {
+                result.Add(mod);
+            }
+        }
+
+        return result;
     }
     private static Queue<ModDeclare> link_request_mods = new();
+    private static bool to_install_bepinex;
     
     internal static void DealWithBepInExModLinkRequests()
     {
@@ -91,6 +122,11 @@ internal static class ModInfoUtils
         new Task(() =>
         {
             Task.Delay(15000);
+            if (to_install_bepinex)
+            {
+                InstallBepInEx();
+                to_install_bepinex = false;
+            }
             List<string> parameters = new List<string>();
             switch (Application.platform)
             {
@@ -130,12 +166,78 @@ internal static class ModInfoUtils
             }
         }).Start();
     }
+
+    private static void InstallBepInEx()
+    {
+        WebClient client = new();
+        string download_path = Path.Combine(Path.GetTempPath(), "bepinex.zip");
+        string download_url = Application.platform switch
+        {
+            RuntimePlatform.WindowsPlayer =>
+                "https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip",
+            RuntimePlatform.LinuxPlayer =>
+                "https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_unix_5.4.22.0.zip",
+            RuntimePlatform.OSXPlayer => "https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_unix_5.4.22.0.zip",
+            _ => "https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip"
+        };
+        client.DownloadFile(download_url, download_path);
+        ZipFile.ExtractToDirectory(download_path, Paths.GamePath);
+        File.Delete(download_path);
+        
+        switch (Application.platform)
+        {
+            case RuntimePlatform.LinuxPlayer:
+            case RuntimePlatform.OSXPlayer:
+                
+                string bepinex_run_sh_path = Path.Combine(Paths.GamePath, "run_bepinex.sh");
+                string executable_name = "";
+                foreach(string file in Directory.GetFiles(Paths.GamePath))
+                {
+                    FileInfo file_info = new FileInfo(file);
+                    if (!file_info.Name.Contains("worldbox")) continue;
+                    executable_name = file_info.Name;
+                    break;
+                }
+                if (string.IsNullOrEmpty(executable_name))
+                {
+                    LogService.LogErrorConcurrent("Failed to find WorldBox executable file!");
+                    LogService.LogWarningConcurrent("Set it as \"worldbox\" automatically");
+                    executable_name = "worldbox";
+                }
+                
+                string sh_text = File.ReadAllText(bepinex_run_sh_path);
+                sh_text = sh_text.Replace("executable_name=\"\"", $"executable_name=\"{executable_name}\"");
+                File.WriteAllText(bepinex_run_sh_path, sh_text);
+                
+                // Write launch script
+                if (Application.platform == RuntimePlatform.LinuxPlayer)
+                {
+                    string launch_script_path = string.Format(Paths.LinuxSteamLocalConfigPath, SteamClient.SteamId.AccountId.ToString());
+                
+                    var result = VdfConvert.Deserialize(File.ReadAllText(launch_script_path));
+                    result.Value["Software"]["Valve"]["Steam"]["apps"][CoreConstants.GameId.ToString()]["LaunchOptions"] = new VValue($"{bepinex_run_sh_path} %command%");
+                    File.WriteAllText(launch_script_path, VdfConvert.Serialize(result));
+                }
+                else
+                {
+                    LogService.LogWarningConcurrent("You are using macOS, please add launch script manually");
+                }
+                
+                SystemUtils.BashRun(new string[]{"-c", "chmod", "u+x", bepinex_run_sh_path});
+                break;
+            default:
+                break;
+        }
+        LogService.LogInfo($"Install BepInEx to {Paths.GamePath}");
+    }
+
     internal static void LinkBepInExModToLocalRequest(ModDeclare mod)
     {
         if (!Directory.Exists(Paths.BepInExPluginsPath))
         {
             LogService.LogWarning($"Failed to load mod {mod.Name} which is a BepInEx mod, but BepInEx not found");
-            return;
+            LogService.LogInfo($"Add Install BepInEx Task into queue");
+            to_install_bepinex = true;
         }
         
         bool already_loaded = false;
@@ -155,7 +257,7 @@ internal static class ModInfoUtils
 
     public static ModDeclare recogMod(string pModFolderPath, bool pLogModJsonNotFound = true)
     {
-        var mod_config_path = Path.Combine(pModFolderPath, Paths.ModConfigFileName);
+        var mod_config_path = Path.Combine(pModFolderPath, Paths.ModDeclarationFileName);
         if(!File.Exists(mod_config_path))
         {
             if(pLogModJsonNotFound) 
@@ -253,6 +355,35 @@ internal static class ModInfoUtils
         mod.SetModType(ModTypeEnum.BEPINEX);
         return mod;
     }
+
+    private static HashSet<string> mods_disabled = null;
+    public static bool isModDisabled(string pModUID)
+    {
+        if (mods_disabled == null)
+        {
+            mods_disabled = new (File.ReadAllLines(Paths.ModsDisabledRecordPath));
+        }
+        return mods_disabled.Contains(pModUID);
+    }
+    /// <summary>
+    /// Toggle Mod Disabled Status
+    /// </summary>
+    /// <param name="pModUID"></param>
+    /// <returns>Enable mod and return true; or disable mod and return false</returns>
+    public static bool toggleMod(string pModUID)
+    {
+        bool result = mods_disabled.Contains(pModUID);
+        if (result)
+        {
+            mods_disabled.Remove(pModUID);
+        }
+        else
+        {
+            mods_disabled.Add(pModUID);
+        }
+        File.WriteAllLines(Paths.ModsDisabledRecordPath, mods_disabled.ToArray());
+        return result;
+    }
     // ReSharper disable once InconsistentNaming
     public static bool isModNeedRecompile(string pModUUID, string pModFolderPath)
     {
@@ -266,6 +397,13 @@ internal static class ModInfoUtils
         ContractResolver = new DefaultContractResolver()
     };
     public static void updateModCompileTimestamp(string pModUUID)
+    {
+        mod_compile_timestamps[pModUUID] = DateTime.UtcNow.Ticks;
+
+        File.WriteAllText(Paths.ModCompileRecordPath,
+            JsonConvert.SerializeObject(mod_compile_timestamps, mod_compile_timestamps_serializer_settings));
+    }
+    public static void clearModCompileTimestamp(string pModUUID)
     {
         mod_compile_timestamps[pModUUID] = DateTime.UtcNow.Ticks;
 

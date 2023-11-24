@@ -3,6 +3,9 @@ using HarmonyLib;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.General.Event;
+using NeoModLoader.General.UI.Prefabs;
+using NeoModLoader.General.UI.Tab;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.services;
 using NeoModLoader.utils;
@@ -13,7 +16,9 @@ namespace NeoModLoader;
 public class WorldBoxMod : MonoBehaviour
 {
     private bool initialized = false;
+    private bool initialized_successfully = false;
     public static List<IMod> LoadedMods = new();
+    internal static Dictionary<ModDeclare, ModState> AllRecognizedMods = new();
     internal static Transform Transform;
     internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
     private void Start()
@@ -25,59 +30,91 @@ public class WorldBoxMod : MonoBehaviour
     }
     private void Update()
     {
-        if (initialized || !Config.gameLoaded) return;
+        if (!Config.gameLoaded) return;
+        if (initialized_successfully)
+        {
+            TabManager._checkNewTabs();
+        }
+        if (initialized)
+        {
+            return;
+        }
         initialized = true;
         
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        ResourcesPatch.Initialize();
-
-        LoadLocales();
-        LM.ApplyLocale();
-        BenchUtils.Start("Load Mods Info");
-        ModCompileLoadService.loadInfoOfBepInExPlugins();
-
-        var mods = ModInfoUtils.findAndPrepareMods();
-        float time = BenchUtils.End("Load Mods Info");
-        if (time > 0)
-        {
-            LogService.LogInfo($"Load mods info successfully, cost {time} seconds.");
-        }
-
-        var mod_nodes = ModDepenSolveService.SolveModDependencies(mods);
-
-        ModCompileLoadService.prepareCompile(mod_nodes);
-
-        var mods_to_load = new List<api.ModDeclare>();
-        foreach (var mod in mod_nodes)
-        {
-            if (ModCompileLoadService.compileMod(mod))
-            {
-                mods_to_load.Add(mod.mod_decl);
-                
-                BenchUtils.Start("Load Resources");
-                ResourcesPatch.LoadResourceFromMod(mod.mod_decl.FolderPath);
-                time = BenchUtils.End("Load Resources");
-                if (time > 0)
-                {
-                    LogService.LogInfo($"Load resources of mod {mod.mod_decl.Name} successfully, cost {time} seconds.");
-                }
-                LogService.LogInfo($"Successfully compile mod {mod.mod_decl.Name}");
-            }
-            else
-            {
-                LogService.LogError($"Failed to compile mod {mod.mod_decl.Name}");
-            }
-        }
-
-        ModCompileLoadService.loadMods(mods_to_load);
-        NCMSCompatibleLayer.Init();
-        ModWorkshopService.Init();
+        float time = 0;
         
-        ui.UIManager.init();
+        SmoothLoader.add(() =>
+        {
+            ResourcesPatch.Initialize();
+            LoadLocales();
+            LM.ApplyLocale();
+            PrefabManager._init();
+            TabManager._init();
+            ListenerManager._init();
+            WrappedPowersTab._init();
+        }, "Initialize NeoModLoader");
 
-        NMLAutoUpdateService.CheckUpdate();
-        ModInfoUtils.DealWithBepInExModLinkRequests();
+        List<ModDependencyNode> mod_nodes = new();
+        SmoothLoader.add(() =>
+        {
+            ModCompileLoadService.loadInfoOfBepInExPlugins();
+
+            var mods = ModInfoUtils.findAndPrepareMods();
+            
+            mod_nodes.AddRange(ModDepenSolveService.SolveModDependencies(mods));
+
+            ModCompileLoadService.prepareCompile(mod_nodes);
+        }, "Load Mods Info And Prepare Mods");
+
+
+        SmoothLoader.add(() =>
+        {
+            var mods_to_load = new List<api.ModDeclare>();
+            foreach (var mod in mod_nodes)
+            {
+                SmoothLoader.add(() =>
+                {
+                    if (ModCompileLoadService.compileMod(mod))
+                    {
+                        mods_to_load.Add(mod.mod_decl);
+                    }
+                    else
+                    {
+                        LogService.LogError($"Failed to compile mod {mod.mod_decl.Name}");
+                    }
+                }, "Compile Mod " + mod.mod_decl.Name);
+            }
+            foreach(var mod in mod_nodes)
+            {
+                SmoothLoader.add(() =>
+                {
+                    if (mods_to_load.Contains(mod.mod_decl))
+                    {
+                        ResourcesPatch.LoadResourceFromMod(mod.mod_decl.FolderPath);
+                    }
+                }, "Load Resources From Mod " + mod.mod_decl.Name);
+            }
+            SmoothLoader.add(() =>
+            {
+                ModCompileLoadService.loadMods(mods_to_load);
+                NCMSCompatibleLayer.Init();
+            }, "Load Mods");
+        
+            SmoothLoader.add(() =>
+            {
+                ModWorkshopService.Init();
+        
+                ui.UIManager.init();
+
+                NMLAutoUpdateService.CheckWorkshopUpdate();
+                ModInfoUtils.DealWithBepInExModLinkRequests();
+
+                initialized_successfully = true;
+            }, "NeoModLoader Post Initialize");
+        }, "Compile Mods And Load resources");
+
     }
 
     private void LoadLocales()
@@ -105,11 +142,23 @@ public class WorldBoxMod : MonoBehaviour
             Directory.CreateDirectory(Paths.CompiledModsPath);
             LogService.LogInfo($"Create CompiledMods folder at {Paths.CompiledModsPath}");
         }
+
+        if (!Directory.Exists(Paths.ModsConfigPath))
+        {
+            Directory.CreateDirectory(Paths.ModsConfigPath);
+            LogService.LogInfo($"Create mods_config folder at {Paths.ModsConfigPath}");
+        }
         
         if (!File.Exists(Paths.ModCompileRecordPath))
         {
             File.Create(Paths.ModCompileRecordPath).Close();
             LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModCompileRecordPath}");
+        }
+        
+        if (!File.Exists(Paths.ModsDisabledRecordPath))
+        {
+            File.Create(Paths.ModsDisabledRecordPath).Close();
+            LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModsDisabledRecordPath}");
         }
 
         void extractAssemblies()
@@ -120,7 +169,7 @@ public class WorldBoxMod : MonoBehaviour
                 if (resource.EndsWith(".dll"))
                 {
                     var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
-                    var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name);
+                    var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name).Replace("-renamed", "");
                 
                     using var stream = NeoModLoaderAssembly.GetManifestResourceStream(resource);
                     using var file = new FileStream(file_path, FileMode.Create, FileAccess.Write);

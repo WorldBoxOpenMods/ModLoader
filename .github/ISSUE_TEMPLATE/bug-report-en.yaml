@@ -1,0 +1,129 @@
+name: Bug Report
+description: Report a bug you encountered while using NeoModLoader
+title: '[Bug]: '
+labels: [ "bug" ]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for reporting a bug!
+        ## Here are some notes, please read them carefully so that we can process it more easily.
+
+        ### ❗ | Make sure that no ISSUE with the same problem has been raised.
+        ### 🌎| Please fill in the environment information accurately.
+        ### ❔ | Provide at least 10 seconds of complete log content before and after the problem occurs. Please delete personal information and sensitive content in the log by yourself.
+        ### If you don't know how to express it effectively and accurately, we recommend that you read "How to ask questions"
+
+        #### Find the log file in Windows
+        
+        1. Enter C:/Users/user-name/AppData/LocalLow/mkarpenko/WorldBox in the path bar of the file explorer and press `Enter`. Where user-name is your computer username, you need to replace it yourself.
+        2. Find the file named "Player.log", right-click and select "Open with" -> "Notepad".
+        3. Press `Ctrl` + `A` to select all the content in Notepad, and then press `Ctrl` + `C` to copy all the content.
+        4. Fill in the "Logging" column below, and be sure to delete personal information and sensitive content in it.
+        
+        #### Find the log file in Arch Linux with Wayland
+        
+        1. `~/.config/unity3d/mkarpenko/WorldBox/Player.log`. You should know how to find and open it.
+        2. Fill in the "Logging" column below, and be sure to delete personal information and sensitive content in it.
+
+        ### Find the log file in MacOS
+
+        1. I don't know how to find it, please help to supplement
+
+        ---
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Please make sure you have read the above notes and check the confirmation box below.
+      options:
+        - label: "I have tested with a clean environment without any other non-essential mods, and the problem still exists."
+          required: true
+        - label: "I have searched for the problem I want to raise in [Issue Tracker](https://github.com/WorldBoxOpenMods/ModLoader/issues) and did not find an ISSUE with the same problem."
+          required: true
+        - label: I am aware and agree that this is only used to report problems in the main program. If this Issue is about other non-program issues, my Issue may be automatically closed or/and locked unconditionally.
+          required: true
+        - label: I am aware and agree that if I do not fill in according to the instructions provided by the template, my Issue may be deleted unconditionally.
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment Information
+
+  - type: input
+    id: env-wb-ver
+    attributes:
+      label: WorldBox Version
+    validations:
+      required: true
+
+  - type: input
+    id: env-NeoModLoader-ver
+    attributes:
+      label: NeoModLoader Version
+    validations:
+      required: true
+
+  - type: dropdown
+    id: env-vm-ver
+    attributes:
+      label: System Version
+      description: Select the system version
+      options:
+        - Windows (64)
+        - Windows (32/x84)
+        - MacOS
+        - Linux
+        - Ubuntu
+        - CentOS
+        - ArchLinux
+        - UNIX (Android)
+        - Other (Please explain below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: env-vm-arch
+    attributes:
+      label: System Architecture
+      description: Select the system architecture
+      options:
+        - AMD64
+        - x86
+        - ARM [32] (Alias：AArch32 / ARMv7）
+        - ARM [64] (Alias：AArch64 / ARMv8）
+        - 其它
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: How to reproduce the problem?
+      description: |
+        Please provide a clear and concise reproduction steps to help us locate the problem more quickly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What is the expected result?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What is the actual result?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logging
+    attributes:
+      label: Log Content
+
+  - type: textarea
+    id: extra-desc
+    attributes:
+      label: Other Description

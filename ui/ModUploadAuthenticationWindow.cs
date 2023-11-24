@@ -54,7 +54,7 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
         layoutGroup.padding = new RectOffset(5, 5, 5, 5);
         layoutGroup.childAlignment = TextAnchor.MiddleCenter;
         
-        GameObject auth_button_obj = new GameObject("AuthButton", typeof(Image), typeof(Button));
+        GameObject auth_button_obj = new GameObject("AuthButton", typeof(Image), typeof(Button), typeof(TipButton));
         auth_button_obj.transform.SetParent(WorldBoxMod.Transform);
         prefab_auth_button = auth_button_obj.GetComponent<Button>();
         prefab_auth_button.image.sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonred");
@@ -66,16 +66,16 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
         auth_button_icon_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(42, 42);
         
 
-        CreateAuthButton("ui/icons/iconDiscordWhite", () => false, new (42, 30.7f));
-        CreateAuthButton(InternalResourcesGetter.GetGitHubIcon(), GithubOrgAuthUtils.Authenticate);
-        CreateAuthButton("ui/icons/iconArrowBack", null);
+        CreateAuthButton("DiscordAuth", "ui/icons/iconDiscordWhite", () => false, new (42, 30.7f));
+        CreateAuthButton("GithubAuth", InternalResourcesGetter.GetGitHubIcon(), GithubOrgAuthUtils.Authenticate);
+        CreateAuthButton("SkipAuth", "ui/icons/iconArrowBack", null);
     }
     /// <summary>
     /// The function to be called when the button is clicked. Methods in it might throw an AuthenticationException if something goes wrong with the authentication process.
     /// </summary>
     internal Func<bool> AuthFunc;
     internal bool AuthFuncSelected = false;
-    private Button CreateAuthButton(Sprite pIcon, Func<bool> pAuthFunc, Vector2 pIconSize = default)
+    private Button CreateAuthButton(string pId, Sprite pIcon, Func<bool> pAuthFunc, Vector2 pIconSize = default)
     {
         Button button = Instantiate(prefab_auth_button, auth_grid_transform);
         button.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
@@ -95,11 +95,14 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
                 AuthSkipped = true;
             }
         });
+        var tip_button = button.GetComponent<TipButton>();
+        tip_button.textOnClick = pId + " Title";
+        tip_button.text_description_2 = pId + " Description";
         return button;
     }
-    private Button CreateAuthButton(string pIconPath, Func<bool> pAuthFunc, Vector2 pIconSize = default)
+    private Button CreateAuthButton(string pId, string pIconPath, Func<bool> pAuthFunc, Vector2 pIconSize = default)
     {
-        return CreateAuthButton(SpriteTextureLoader.getSprite(pIconPath), pAuthFunc, pIconSize);
+        return CreateAuthButton(pId, SpriteTextureLoader.getSprite(pIconPath), pAuthFunc, pIconSize);
     }
 
     public static void SetState(bool pAuthState)

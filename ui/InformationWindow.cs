@@ -18,9 +18,8 @@ public class InformationWindow : AbstractWindow<InformationWindow>
         text.resizeTextMinSize = 10;
         text.resizeTextMaxSize = 14;
         text.alignment = TextAnchor.MiddleCenter;
-        transform1.localPosition = new(95,-95);
-        transform1.localScale = Vector3.one;
-        transform1.sizeDelta = new(190, 190);
+
+        ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
     }
 
     public static void ShowWindow(string info)

@@ -2,6 +2,7 @@ using System.Net;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.ui;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -149,6 +150,59 @@ internal static class NMLAutoUpdateService
                 }).Start();
             });
             ScrollWindow.showWindow("NeoModLoader Update");
+        }
+    }
+
+    public static void CheckWorkshopUpdate()
+    {
+        string workshopPath = Path.Combine(Paths.CommonModsWorkshopPath, CoreConstants.WorkshopFileId.ToString());
+        if (!Directory.Exists(workshopPath))
+        {
+            return;
+        }
+        string[] files = Directory.GetFiles(workshopPath);
+        string dll_path = null;
+        string pdb_path = null;
+        foreach (string file in files)
+        {
+            if (file.EndsWith(".dll"))
+            {
+                dll_path = file;
+            }
+            if (file.EndsWith(".pdb"))
+            {
+                pdb_path = file;
+            }
+        }
+        if (dll_path == null)
+        {
+            return;
+        }
+
+        bool updated = false;
+        FileInfo dll_info = new FileInfo(dll_path);
+        FileInfo last_info = new FileInfo(Paths.NMLModPath);
+        if(dll_info.LastWriteTime > last_info.LastWriteTime)
+        {
+            updated = true;
+            LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
+            last_info.Delete();
+            File.Copy(dll_path, Paths.NMLModPath, true);
+        }
+        
+        FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
+        FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace(".dll", ".pdb"));
+        if(pdb_info != null && (!last_pdb_info.Exists || pdb_info.LastWriteTime > last_pdb_info.LastWriteTime))
+        {
+            updated = true;
+            if(last_pdb_info.Exists)
+                last_pdb_info.Delete();
+            File.Copy(pdb_path, Paths.NMLModPath.Replace(".dll", ".pdb"), true);
+        }
+
+        if (updated)
+        {
+            InformationWindow.ShowWindow(LM.Get("NeoModLoader Updated"));
         }
     }
     public static bool CheckUpdate()

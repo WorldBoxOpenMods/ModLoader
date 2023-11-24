@@ -65,6 +65,15 @@ public class ModDependencyGraph
 }
 internal static class ModDependencyUtils
 {
+    public static string ParseDepenNameToPreprocessSymbol(string pDepenName)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (var ch in pDepenName)
+        {
+            sb.Append((!char.IsLetterOrDigit(ch) && (int)ch <= 256) ? '_' : char.ToUpper(ch));
+        }
+        return sb.ToString();
+    }
     public static ModDependencyNode TryToAppendMod(ModDependencyGraph pGraph, ModDeclare pModAppend)
     {
         bool success = true;
@@ -113,6 +122,7 @@ internal static class ModDependencyUtils
         if (!success)
         {
             LogService.LogError(sb.ToString());
+            pModAppend.FailReason.AppendLine(sb.ToString());
             return null;
         }
 
@@ -189,6 +199,7 @@ internal static class ModDependencyUtils
                         sb.AppendLine($"    {incompatible_with}");
                     }
                 }
+                curr_node.mod_decl.FailReason.AppendLine(sb.ToString());
                 LogService.LogWarning(sb.ToString());
                 
             }
@@ -240,6 +251,7 @@ internal static class ModDependencyUtils
                         sb.AppendLine($"    {dependency}");
                     }
                 }
+                curr_node.mod_decl.FailReason.AppendLine(sb.ToString());
                 LogService.LogError(sb.ToString());
                 
             }

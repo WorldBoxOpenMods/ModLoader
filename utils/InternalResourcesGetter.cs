@@ -8,7 +8,7 @@ internal static class InternalResourcesGetter
     private static Sprite mod_icon;
     private static Sprite icon_frame;
     private static Sprite github_icon;
-
+    private static string commit = "";
     private static Texture2D LoadManifestTexture(string path_under_resources)
     {
         var s = Assembly.GetExecutingAssembly().GetManifestResourceStream($"NeoModLoader.resources.{path_under_resources}");
@@ -27,6 +27,20 @@ internal static class InternalResourcesGetter
         s.Read(buffer, 0, buffer.Length);
         
         return buffer;
+    }
+
+    public static string GetCommit()
+    {
+        if (string.IsNullOrEmpty(commit))
+        {
+            var s = WorldBoxMod.NeoModLoaderAssembly.GetManifestResourceStream("NeoModLoader.resources.commit");
+
+            commit = new StreamReader(s).ReadToEnd().Replace("\n", "").Replace("\r", "");
+        
+            s.Close();
+        }
+
+        return commit;
     }
     public static Sprite GetIcon()
     {
