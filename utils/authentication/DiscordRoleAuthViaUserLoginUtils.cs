@@ -28,6 +28,8 @@ public class DiscordRoleAuthViaUserLoginUtils
         var roles = DiscordCommonAuthLogic.GetRolesOfUser(user_id);
         bool result = DiscordCommonAuthLogic.ModderIsInRolesList(roles);
         System.Diagnostics.Debug.WriteLine(result);
+        if (result) Console.WriteLine("You are a modder!");
+        else Console.WriteLine("You are not a modder!");
         Console.WriteLine("Tests:");
         roles = DiscordCommonAuthLogic.GetRolesOfUser("1171719697557880892");
         roles.ToList().ForEach(Console.WriteLine);
@@ -49,7 +51,7 @@ public class DiscordRoleAuthViaUserLoginUtils
         }
         return "";
     }
-    
+
     private static TokenInfo GetAuthToken()
     {
         HttpListener listener = new HttpListener();
@@ -95,7 +97,7 @@ public class DiscordRoleAuthViaUserLoginUtils
         HttpResponseMessage res;
         using (HttpClient client = new HttpClient())
         {
-            res = client.GetAsync("http://localhost:4000/nml/api/get-discord-access-token/" + code).Result;
+            res = client.GetAsync("https://keymasterer.uk/nml/api/get-discord-access-token/" + code).Result;
         }
         string resJson = res.Content.ReadAsStringAsync().Result;
         System.Diagnostics.Debug.WriteLine(resJson);
