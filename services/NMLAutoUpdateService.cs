@@ -192,10 +192,11 @@ internal static class NMLAutoUpdateService
         
         FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
         FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace(".dll", ".pdb"));
-        if(pdb_info != null && pdb_info.LastWriteTime > last_pdb_info.LastWriteTime)
+        if(pdb_info != null && (!last_pdb_info.Exists || pdb_info.LastWriteTime > last_pdb_info.LastWriteTime))
         {
             updated = true;
-            last_pdb_info.Delete();
+            if(last_pdb_info.Exists)
+                last_pdb_info.Delete();
             File.Copy(pdb_path, Paths.NMLModPath.Replace(".dll", ".pdb"), true);
         }
 
