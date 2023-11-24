@@ -3,7 +3,9 @@ using NeoModLoader.services;
 using UnityEngine;
 
 namespace NeoModLoader.General;
-
+/// <summary>
+/// This class is used to create power buttons easily
+/// </summary>
 public static class PowerButtonCreator
 {
     /// <summary>
@@ -57,6 +59,20 @@ public static class PowerButtonCreator
         obj.gameObject.SetActive(true);
         return obj;
     }
+    /// <summary>
+    /// Create a button to use common god power
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item>Please set "{pGodPowerId}"[Necessary] and "{pGodPowerId} Description"[Optional] in locale file and load it. </item>
+    /// <item>You should create and add the god power to <see cref="AssetManager.powers"/> before call this method</item>
+    /// </list>
+    /// </remarks>
+    /// <param name="pGodPowerId">The god power's id bind to the button</param>
+    /// <param name="pIcon">The icon of the button</param>
+    /// <param name="pParent">Which transform the button attached to</param>
+    /// <param name="pLocalPosition">The button position in &lt;see cref="pParent"/&gt;</param>
+    /// <returns>The PowerButton created</returns>
     public static PowerButton CreateGodPowerButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
     {
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("inspect");
@@ -96,7 +112,21 @@ public static class PowerButtonCreator
         obj.gameObject.SetActive(true);
         return obj;
     }
-    
+    /// <summary>
+    /// Create a button to use toggle god power
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item>Please set "{pGodPowerId}"[Necessary] and "{pGodPowerId} Description"[Optional] in locale file and load it. </item>
+    /// <item>You should create and add the god power to <see cref="AssetManager.powers"/> before call this method</item>
+    /// <item>You should not set <see cref="GodPower.toggle_action"/> = <see cref="PowerLibrary.toggleOption"/> of the god power</item>
+    /// </list>
+    /// </remarks>
+    /// <param name="pGodPowerId">The god power's id bind to the button</param>
+    /// <param name="pIcon">The icon of the button</param>
+    /// <param name="pParent">Which transform the button attached to</param>
+    /// <param name="pLocalPosition">The button position in &lt;see cref="pParent"/&gt;</param>
+    /// <returns>The PowerButton created</returns>
     public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
     {
         GodPower god_power = AssetManager.powers.get(pGodPowerId);

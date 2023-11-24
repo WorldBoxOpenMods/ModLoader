@@ -82,6 +82,14 @@ public class ModConfigItem
         };
     }
 }
+/// <summary>
+/// This class is used to represent a mod's config.
+/// </summary>
+/// <remarks>
+/// <list type="bullet">
+/// <item>In fact, it can be used to represent any config and displayed by <see cref="NeoModLoader.ui.ModConfigureWindow.ShowWindow"/></item>
+/// </list>
+/// </remarks>
 public class ModConfig
 {
     private string _path;

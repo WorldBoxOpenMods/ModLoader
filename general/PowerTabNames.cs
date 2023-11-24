@@ -32,7 +32,9 @@ public static class PowerTabNames
     /// Object Name of the sixth tab in vanilla game
     /// </summary>
     public const string Other = "Tab_Other";
-
+    /// <summary>
+    /// Return a list of all tab names
+    /// </summary>
     public static List<string> GetNames()
     {
         return new List<string>()
