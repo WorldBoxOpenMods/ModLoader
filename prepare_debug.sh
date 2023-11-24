@@ -11,10 +11,10 @@ case "$OSTYPE" in
     ;;
 esac
 
-cp -f $BDF/NeoModLoader.dll $GMF/NeoModLoader.dll
-cp -f $BDF/NeoModLoader.pdb $GMF/NeoModLoader.pdb
-cp -f $BDF/NeoModLoader.xml $GMF/NeoModLoader.xml
+cp -f "$BDF"/NeoModLoader.dll "$GMF"/NeoModLoader.dll
+cp -f "$BDF"/NeoModLoader.pdb "$GMF"/NeoModLoader.pdb
+cp -f "$BDF"/NeoModLoader.xml "$GMF"/NeoModLoader.xml
 
-if [ -e $GMF/NML/mod_compile_records.json ]; then
-  rm $GMF/NML/mod_compile_records.json
+if [ -e "$GMF"/NML/mod_compile_records.json ]; then
+  rm "$GMF"/NML/mod_compile_records.json
 fi
