@@ -14,9 +14,16 @@ internal static class ResourcesPatch
 {
     class ResourceTree
     {
-        private ResourceTreeNode root = new();
+        private ResourceTreeNode root = new(null);
         internal Dictionary<string, UnityEngine.Object> direct_objects = new();
-        public ResourceTreeNode Find(string path)
+        /// <summary>
+        /// Find a ResourceTreeNode by path.
+        /// </summary>
+        /// <param name="path">The path of node path</param>
+        /// <param name="createNodeAlong">Whether create node along the path if node does not exist</param>
+        /// <param name="visitLast">Whether check the last node</param>
+        /// <returns></returns>
+        public ResourceTreeNode Find(string path, bool createNodeAlong = false, bool visitLast = true)
         {
             path = path.ToLower();
 
@@ -31,11 +38,14 @@ internal static class ResourcesPatch
             }
 
             var node = root;
-            foreach (var part in parts)
+            for (int i = 0; i < parts.Length - (visitLast ? 0 : 1); i++)
             {
+                var part = parts[i];
                 if (!node.children.ContainsKey(part))
                 {
-                    return null;
+                    if (!createNodeAlong)
+                        return null;
+                    node.children[part] = new ResourceTreeNode(node);
                 }
 
                 node = node.children[part];
@@ -53,26 +63,22 @@ internal static class ResourcesPatch
         {
             string lower_path = path.ToLower();
             direct_objects[lower_path] = obj;
-            string[] parts = lower_path.Split('/');
-            var node = root;
-            for (int i = 0; i < parts.Length - 1; i++)
-            {
-                if (!node.children.ContainsKey(parts[i]))
-                {
-                    node.children[parts[i]] = new ResourceTreeNode();
-                }
-
-                node = node.children[parts[i]];
-            }
-            node.objects[parts[parts.Length - 1]] = obj;
+            var node = Find(path, true, false);
+            node.objects[Path.GetFileNameWithoutExtension(lower_path)] = obj;
 
         }
+        /// <summary>
+        /// Load resources under absPath, and patch them to the tree under the folder of path.
+        /// </summary>
+        /// <param name="path">Path to resource in tree</param>
+        /// <param name="absPath">Path to resource in actual filesystem</param>
         public void AddFromFile(string path, string absPath)
         {
             string lower_path = path.ToLower();
-            if (lower_path.EndsWith(".meta")) return;
-            if (lower_path.EndsWith("sprites.json"))
+            if (lower_path.EndsWith(".meta") || lower_path.EndsWith("sprites.json")) return;
+            if (lower_path.EndsWith(".ab"))
             {
+                patchAssetBundleToTree(path, absPath);
                 return;
             }
             
@@ -102,22 +108,25 @@ internal static class ResourcesPatch
             }
             if(objs.Length == 0) return;
 
-            string[] parts = lower_path.Split('/');
-            var node = root;
-            for (int i = 0; i < parts.Length - 1; i++)
-            {
-                if (!node.children.ContainsKey(parts[i]))
-                {
-                    node.children[parts[i]] = new ResourceTreeNode();
-                }
-
-                node = node.children[parts[i]];
-            }
+            var node = Find(path, true, false);
 
             foreach (var obj in objs)
             {
                 node.objects[obj.name.ToLower()] = obj;
             }
+        }
+
+        private void patchAssetBundleToTree(string path, string absPath)
+        {
+            WrappedAssetBundle ab = AssetBundleUtils.LoadFromFile(absPath);
+            if (ab == null)
+            {
+                LogService.LogError($"Cannot load asset bundle {path}");
+                LogService.LogStackTraceAsError();
+                return;
+            }
+            var node = Find(path, true, false);
+            node.assetBundles.Add(ab);
         }
     }
 
@@ -125,6 +134,44 @@ internal static class ResourcesPatch
     {
         public readonly Dictionary<string, ResourceTreeNode> children = new();
         public readonly Dictionary<string, UnityEngine.Object> objects = new();
+        public readonly List<WrappedAssetBundle> assetBundles = new();
+        public readonly ResourceTreeNode parent;
+
+        public ResourceTreeNode(ResourceTreeNode parent)
+        {
+            this.parent = parent;
+        }
+
+        public List<Object> GetAllObjects(Type systemTypeInstance)
+        {
+            var result = new List<Object>(objects.Count);
+            
+            Queue<ResourceTreeNode> queue = new Queue<ResourceTreeNode>(children.Count);
+            queue.Enqueue(this);
+
+            while (queue.Count > 0)
+            {
+                var node = queue.Dequeue();
+                foreach (var obj in node.objects.Values)
+                {
+                    if (systemTypeInstance.IsInstanceOfType(obj))
+                    {
+                        result.Add(obj);
+                    }
+                }
+                foreach(WrappedAssetBundle ab in node.assetBundles)
+                {
+                    result.AddRange(ab.GetAllObjects(systemTypeInstance));
+                }
+                foreach(var child in node.children.Values)
+                {
+                    queue.Enqueue(child);
+                }
+            }
+
+
+            return result;
+        }
     }
 
     private static ResourceTree tree;
@@ -148,21 +195,18 @@ internal static class ResourcesPatch
     /// <summary>
     /// Load a resource file from path, and named by pLowerPath.
     /// </summary>
+    /// <remarks>
+    /// It can recognize jpg, png, jpeg by postfix now.
+    /// <para>All others will be loaded as text</para>
+    /// </remarks>
     /// <param name="path">the path to the resource file to load</param>
     /// <param name="pLowerPath">the lower of path with <see cref="CultureInfo.CurrentCulture"/></param>
     /// <returns>The Objects loaded, if single Object, an array with single one; if no Objects, an empty array</returns>
-    /// <exception cref="UnrecognizableResourceFileException">It can recognize jpg, png, jpeg, txt, json, yml, ab by postfix now</exception>
+    /// It can recognize jpg, png, jpeg by postfix now
     public static UnityEngine.Object[] LoadResourceFile(ref string path, ref string pLowerPath)
     {
         if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
             return SpriteLoadUtils.LoadSprites(path);
-        if (pLowerPath.EndsWith(".txt") || pLowerPath.EndsWith(".json") || pLowerPath.EndsWith(".yml"))
-            return new Object[]{LoadTextAsset(path)};
-        if (pLowerPath.EndsWith(".ab"))
-        {
-            return Array.Empty<Object>();
-        }
-
         return new Object[]{LoadTextAsset(path)};
     }
 
@@ -198,7 +242,10 @@ internal static class ResourcesPatch
         if (node == null || node.objects.Count == 0) return __result;
         
         var list = new List<UnityEngine.Object>(__result);
+        list.AddRange(node.GetAllObjects(systemTypeInstance));
+        // No replace now.
         // Use a list to store names, because it is faster to get name of an GameObject repeatedly.
+        /*
         var names = new List<string>(__result.Length);
         foreach (var obj in list)
         {
@@ -207,6 +254,7 @@ internal static class ResourcesPatch
         
         foreach (var (key, value) in node.objects.Select<KeyValuePair<string, Object>, (string key, Object value)>(pair => (pair.Key, pair.Value)))
         {
+            if(!systemTypeInstance.IsInstanceOfType(value)) continue;
             int idx = names.IndexOf(key);
             if (idx < 0)
             {
@@ -218,6 +266,11 @@ internal static class ResourcesPatch
             }
         }
 
+        foreach (var child in node.children)
+        {
+            list.AddRange(child.Value.GetAllObjects(systemTypeInstance));
+        }
+        */
         return list.ToArray();
     }
     [HarmonyPostfix]
@@ -230,7 +283,18 @@ internal static class ResourcesPatch
         Type systemTypeInstance)
     {
         var new_result = tree.Get(path);
-        if(new_result == null) return __result;
-        return new_result;
+        if (new_result == null)
+        {
+            var node = tree.Find(path, false, false);
+            if (node == null)
+                return __result;
+            foreach (var ab in node.assetBundles)
+            {
+                new_result = ab.GetObject(Path.GetFileName(path));
+                if (new_result != null)
+                    break;
+            }
+        }
+        return systemTypeInstance.IsInstanceOfType(new_result) ? new_result : __result;
     }
 }
