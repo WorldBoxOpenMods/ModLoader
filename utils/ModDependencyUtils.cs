@@ -70,7 +70,7 @@ internal static class ModDependencyUtils
         StringBuilder sb = new StringBuilder();
         foreach (var ch in pDepenName)
         {
-            sb.Append(!char.IsLetterOrDigit(ch) ? '_' : char.ToUpper(ch));
+            sb.Append((!char.IsLetterOrDigit(ch) && (int)ch <= 256) ? '_' : char.ToUpper(ch));
         }
         return sb.ToString();
     }

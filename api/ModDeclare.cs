@@ -1,5 +1,6 @@
 
 using System.Text;
+using NeoModLoader.utils;
 using Newtonsoft.Json;
 
 namespace NeoModLoader.api;
@@ -35,7 +36,15 @@ public class ModDeclare
         OptionalDependencies = pOptionalDependencies ?? new string[0];
         IncompatibleWith = pIncompatibleWith ?? new string[0];
 
-        UID = $"{Author}.{Name}".Replace(" ", "_");
+        UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol($"{Author}.{Name}");
+        
+        for(int i = 0; i < Dependencies.Length; i++)
+            Dependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(Dependencies[i]);
+        for(int i = 0; i < OptionalDependencies.Length; i++)
+            OptionalDependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(OptionalDependencies[i]);
+        for(int i = 0; i < IncompatibleWith.Length; i++)
+            IncompatibleWith[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(IncompatibleWith[i]);
+        
         FolderPath = pFolderPath;
     }
 
@@ -59,8 +68,16 @@ public class ModDeclare
         Dependencies ??= new string[0];
         OptionalDependencies ??= new string[0];
         IncompatibleWith ??= new string[0];
+
+        UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol($"{Author}.{Name}");
         
-        UID = $"{Author}.{Name}".Replace(" ", "_");
+        for(int i = 0; i < Dependencies.Length; i++)
+            Dependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(Dependencies[i]);
+        for(int i = 0; i < OptionalDependencies.Length; i++)
+            OptionalDependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(OptionalDependencies[i]);
+        for(int i = 0; i < IncompatibleWith.Length; i++)
+            IncompatibleWith[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(IncompatibleWith[i]);
+        
         FolderPath = Path.GetDirectoryName(pFilePath) ?? throw new Exception("Cannot get folder path from input file path");
     }
 
