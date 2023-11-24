@@ -24,9 +24,17 @@ public class ModConfigItem
     public string TextVal{ get; internal set; }
     [JsonProperty("FloatVal")]
     public float FloatVal{ get; internal set; }
+
+    [JsonProperty("MaxFloatVal")] public float MaxFloatVal { get; internal set; } = 1;
+    [JsonProperty("MinFloatVal")] public float MinFloatVal { get; internal set; } = 0;
     [JsonProperty("IntVal")]
     public int IntVal{ get; internal set; }
-
+    public void SetFloatRange(float pMin, float pMax)
+    {
+        if(pMax < pMin) throw new ArgumentException("Max value must be greater than min value!");
+        MinFloatVal = pMin;
+        MaxFloatVal = pMax;
+    }
     public void SetValue(object val)
     {
         try
@@ -38,6 +46,7 @@ public class ModConfigItem
                     break;
                 case ConfigItemType.SLIDER:
                     FloatVal = Convert.ToSingle(val);
+                    FloatVal = Math.Max(MinFloatVal, Math.Min(MaxFloatVal, FloatVal));
                     break;
                 case ConfigItemType.TEXT:
                     TextVal = Convert.ToString(val);
@@ -124,6 +133,11 @@ public class ModConfig
             foreach (var item in value)
             {
                 _config[key][item.Id] = item;
+                if (item.Type == ConfigItemType.SLIDER)
+                {
+                    if(item.MaxFloatVal < item.MinFloatVal) item.SetFloatRange(item.MinFloatVal, item.MinFloatVal);
+                    item.SetValue(item.GetValue());
+                }
             }
         }
     }
