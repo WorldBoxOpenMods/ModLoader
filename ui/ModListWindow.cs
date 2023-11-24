@@ -60,11 +60,16 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                     }
                     Instance.lastClickTime = current_time;
                     Instance.clickTimes++;
-                    if (Instance.clickTimes >= 8)
+                    if (Instance.clickTimes == 8)
                     {
-                        Instance.clickTimes = 0;
-                        Instance.clickedMod = null;
-                        ModUploadWindow.ShowWindow(mod);
+                        new Task(() =>
+                        {
+                            Thread.Sleep(3000);
+                            if (Instance.clickTimes == 8)
+                            {
+                                ModUploadWindow.ShowWindow(mod);
+                            }
+                        }).Start();
                     }
                 });
             }
