@@ -328,6 +328,7 @@ public static class ModCompileLoadService
         if (!compile_result)
         {
             mod_inc_path.Remove(pModNode.mod_decl.UID);
+            pModNode.mod_decl.FailReason.AppendLine("Compile Failed\n Check Log for details");
         }
         else
         {
@@ -370,7 +371,6 @@ public static class ModCompileLoadService
                 File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.dll")), 
                 File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
                 );
-        bool type_found = false;
         GameObject mod_instance;
         foreach(var type in mod_assembly.GetTypes())
         {
@@ -408,12 +408,13 @@ public static class ModCompileLoadService
                         continue;
                     }
                     WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<AttachedModComponent>());
+                    WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
+                    return;
                 }
                 continue;
             }
             if (type.IsSubclassOf(typeof(MonoBehaviour)))
             {
-                type_found = true;
                 mod_instance = new GameObject(pMod.Name)
                 {
                     transform =
@@ -460,14 +461,12 @@ public static class ModCompileLoadService
                     continue;
                 }
                 WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
-                break;
+                WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
+                return;
             }
         }
         
-        if (!type_found)
-        {
-            LogService.LogWarning($"Cannot find Implement of IMod in {pMod.UID}, this mod will be executed as a lib mod?");
-        }
+        pMod.FailReason.AppendLine("No Valid Mod Component Found");
     }
     public static bool IsModLoaded(string uuid)
     {
@@ -482,6 +481,42 @@ public static class ModCompileLoadService
         return false;
     }
 
+    public static bool TryCompileAndLoadModAtRuntime(ModDeclare mod_declare)
+    {
+        bool actually_loaded = IsModLoaded(mod_declare.UID);
+
+        if (actually_loaded) return false;
+                        
+        if (mod_declare.ModType == ModTypeEnum.BEPINEX)
+        {
+            ModInfoUtils.LinkBepInExModToLocalRequest(mod_declare);
+            ModInfoUtils.DealWithBepInExModLinkRequests();
+            return false;
+        }
+
+        ModDependencyNode node = ModDepenSolveService.SolveModDependencyRuntime(mod_declare);
+        if (node == null)
+        {
+            ErrorWindow.errorMessage = $"Failed to load mod {mod_declare.Name}:\n" +
+                                       $"Failed to solve mod dependency." +
+                                       $"Check Incompatible mods and dependencies, then try again.";
+            ScrollWindow.get("error_with_reason").clickShow();
+            return false;
+        }
+                
+        bool success = compileMod(node);
+        if (!success)
+        {
+            ErrorWindow.errorMessage = $"Failed to load mod {mod_declare.Name}:\n" +
+                                       $"Failed to compile mod." +
+                                       $"Check Incompatible mods and dependencies, then try again.";
+            ScrollWindow.get("error_with_reason").clickShow();
+            return false;
+        }
+                
+        LoadMod(node.mod_decl);
+        return true;
+    }
     public static void loadInfoOfBepInExPlugins()
     {
         List<ModDeclare> bepInExMods = ModInfoUtils.recogBepInExMods();
@@ -496,8 +531,7 @@ public static class ModCompileLoadService
             VirtualMod virtualMod = new();
             virtualMod.OnLoad(mod, null);
             WorldBoxMod.LoadedMods.Add(virtualMod);
+            WorldBoxMod.AllRecognizedMods[mod] = ModState.LOADED;
         }
-        
-        //AppDomain.Unload(inspect_domain);
     }
 }

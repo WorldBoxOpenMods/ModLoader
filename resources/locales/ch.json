@@ -25,5 +25,10 @@
   "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新",
   "ModConfigure Title": "配置模组",
   "ModCommunity Title": "模组社区",
-  "NeoModLoader Report": "点击反馈Bug或建议"
+  "NeoModLoader Report": "点击反馈Bug或建议",
+  "ModLoadFailed Title": "模组加载失败",
+  "ModLoadFailed Description": "模组加载失败, 请检查模组是否完整或损坏\n下面是错误信息",
+  "ToggleMod Title": "启用/禁用模组",
+  "ModEnabled Description": "当前状态\n<color=green>已启用</color>",
+  "ModDisabled Description": "当前状态\n<color=gray>已禁用</color>"
 }

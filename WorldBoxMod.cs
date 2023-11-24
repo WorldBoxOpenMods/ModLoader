@@ -18,6 +18,7 @@ public class WorldBoxMod : MonoBehaviour
     private bool initialized = false;
     private bool initialized_successfully = false;
     public static List<IMod> LoadedMods = new();
+    internal static Dictionary<ModDeclare, ModState> AllRecognizedMods = new();
     internal static Transform Transform;
     internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
     private void Start()
@@ -152,6 +153,12 @@ public class WorldBoxMod : MonoBehaviour
         {
             File.Create(Paths.ModCompileRecordPath).Close();
             LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModCompileRecordPath}");
+        }
+        
+        if (!File.Exists(Paths.ModsDisabledRecordPath))
+        {
+            File.Create(Paths.ModsDisabledRecordPath).Close();
+            LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModsDisabledRecordPath}");
         }
 
         void extractAssemblies()

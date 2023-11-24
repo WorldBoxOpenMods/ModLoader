@@ -122,6 +122,7 @@ internal static class ModDependencyUtils
         if (!success)
         {
             LogService.LogError(sb.ToString());
+            pModAppend.FailReason.AppendLine(sb.ToString());
             return null;
         }
 
@@ -198,6 +199,7 @@ internal static class ModDependencyUtils
                         sb.AppendLine($"    {incompatible_with}");
                     }
                 }
+                curr_node.mod_decl.FailReason.AppendLine(sb.ToString());
                 LogService.LogWarning(sb.ToString());
                 
             }
@@ -249,6 +251,7 @@ internal static class ModDependencyUtils
                         sb.AppendLine($"    {dependency}");
                     }
                 }
+                curr_node.mod_decl.FailReason.AppendLine(sb.ToString());
                 LogService.LogError(sb.ToString());
                 
             }

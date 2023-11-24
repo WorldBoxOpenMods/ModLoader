@@ -87,7 +87,30 @@ internal static class ModInfoUtils
                 }
             }
         }
-        return mods;
+
+        foreach (var mod in mods)
+        {
+            WorldBoxMod.AllRecognizedMods.Add(mod, ModState.FAILED);
+        }
+        
+        return removeDisabledMods(mods);
+    }
+    private static List<ModDeclare> removeDisabledMods(List<ModDeclare> mods_to_process)
+    {
+        var result = new List<ModDeclare>();
+        foreach (var mod in mods_to_process)
+        {
+            if (isModDisabled(mod.UID))
+            {
+                WorldBoxMod.AllRecognizedMods[mod] = ModState.DISABLED;
+            }
+            else
+            {
+                result.Add(mod);
+            }
+        }
+
+        return result;
     }
     private static Queue<ModDeclare> link_request_mods = new();
     private static bool to_install_bepinex;
@@ -331,6 +354,35 @@ internal static class ModInfoUtils
         var mod = new ModDeclare(mod_name, mod_author, null, mod_version, mod_description, folder, null, null, null);
         mod.SetModType(ModTypeEnum.BEPINEX);
         return mod;
+    }
+
+    private static HashSet<string> mods_disabled = null;
+    public static bool isModDisabled(string pModUID)
+    {
+        if (mods_disabled == null)
+        {
+            mods_disabled = new (File.ReadAllLines(Paths.ModsDisabledRecordPath));
+        }
+        return mods_disabled.Contains(pModUID);
+    }
+    /// <summary>
+    /// Toggle Mod Disabled Status
+    /// </summary>
+    /// <param name="pModUID"></param>
+    /// <returns>Enable mod and return true; or disable mod and return false</returns>
+    public static bool toggleMod(string pModUID)
+    {
+        bool result = mods_disabled.Contains(pModUID);
+        if (result)
+        {
+            mods_disabled.Remove(pModUID);
+        }
+        else
+        {
+            mods_disabled.Add(pModUID);
+        }
+        File.WriteAllLines(Paths.ModsDisabledRecordPath, mods_disabled.ToArray());
+        return result;
     }
     // ReSharper disable once InconsistentNaming
     public static bool isModNeedRecompile(string pModUUID, string pModFolderPath)

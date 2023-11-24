@@ -1,4 +1,5 @@
 
+using System.Text;
 using Newtonsoft.Json;
 
 namespace NeoModLoader.api;
@@ -7,6 +8,12 @@ public enum ModTypeEnum
 {
     NORMAL,
     BEPINEX
+}
+internal enum ModState
+{
+    DISABLED,
+    LOADED,
+    FAILED
 }
 [Serializable]
 public class ModDeclare
@@ -90,4 +97,5 @@ public class ModDeclare
     [JsonProperty("iconPath")] public string IconPath { get; private set; }
     [JsonProperty("ModType")] public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NORMAL;
     public bool IsNCMSMod { get; internal set; } = false;
+    public StringBuilder FailReason { get; } = new();
 }

@@ -16,60 +16,99 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     {
         public override void Setup(IMod mod)
         {
-            ModDeclare modDeclare = mod.GetDeclaration();
-            Text text = transform.Find("Text").GetComponent<Text>();
-            text.text = string.Format(text.text, modDeclare.Name, modDeclare.Version, modDeclare.Author, modDeclare.Description);
+            ModDeclare mod_declare = mod.GetDeclaration();
+            ModState mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
             
-            if(string.IsNullOrEmpty(modDeclare.IconPath)) return;
-            Sprite sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath));
+            Text text = transform.Find("Text").GetComponent<Text>();
+            text.text = $"{mod_declare.Name}\t{mod_declare.Version}\n{mod_declare.Author}\n{mod_declare.Description}";
+
+            Sprite sprite = null;
+            if (!string.IsNullOrEmpty(mod_declare.IconPath))
+            {
+                sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(mod_declare.FolderPath, mod_declare.IconPath));
+            }
             if (sprite == null)
             {
-                return;
+                sprite = InternalResourcesGetter.GetIcon();
             }
             Image icon = transform.Find("Icon").GetComponent<Image>();
-            icon.sprite = sprite;
-            icon.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                float currentTime = Time.time;
-                if (currentTime - Instance.lastClickTime > 1)
-                {
-                    Instance.clickTimes = 0;
-                }
-
-                if (modDeclare != Instance.clickedMod)
-                {
-                    Instance.clickedMod = modDeclare;
-                    Instance.clickTimes = 0;
-                }
-                Instance.lastClickTime = currentTime;
-                Instance.clickTimes++;
-                if (Instance.clickTimes >= 8)
-                {
-                    Instance.clickTimes = 0;
-                    Instance.clickedMod = null;
-                    ModUploadWindow.ShowWindow(mod);
-                }
-            });
+            Button configure_button = transform.Find("Configure").GetComponent<Button>();
+            Button website_button = transform.Find("Website").GetComponent<Button>();
+            TipButton icon_tip_button = icon.GetComponent<TipButton>();
             
-            Button configureButton = transform.Find("Configure").GetComponent<Button>();
-            configureButton.gameObject.SetActive(mod is IConfigurable);
-            configureButton.onClick.AddListener(() =>
+            icon.sprite = sprite;
+            configure_button.gameObject.SetActive(mod is IConfigurable);
+            
+            icon.GetComponent<Button>().onClick.RemoveAllListeners();
+            configure_button.onClick.RemoveAllListeners();
+            website_button.onClick.RemoveAllListeners();
+            
+            if (mod_state == ModState.LOADED)
             {
+                icon.GetComponent<Button>().onClick.AddListener(() =>
+                {
+                    float current_time = Time.time;
+                    if (current_time - Instance.lastClickTime > 1)
+                    {
+                        Instance.clickTimes = 0;
+                    }
+
+                    if (mod_declare != Instance.clickedMod)
+                    {
+                        Instance.clickedMod = mod_declare;
+                        Instance.clickTimes = 0;
+                    }
+                    Instance.lastClickTime = current_time;
+                    Instance.clickTimes++;
+                    if (Instance.clickTimes >= 8)
+                    {
+                        Instance.clickTimes = 0;
+                        Instance.clickedMod = null;
+                        ModUploadWindow.ShowWindow(mod);
+                    }
+                });
+            }
+
+            if (mod_state == ModState.FAILED)
+            {
+                icon_tip_button.textOnClick = "ModLoadFailed Title";
+                icon_tip_button.textOnClickDescription = "ModLoadFailed Description";
+                icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
+                icon.color = Color.red;
+            }
+            else
+            {
+                icon_tip_button.textOnClick = "ToggleMod Title";
+                icon_tip_button.textOnClickDescription = ModInfoUtils.isModDisabled(mod_declare.UID) ? "ModDisabled Description" : "ModEnabled Description";
+                icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.gray : Color.white;
+                icon.GetComponent<Button>().onClick.AddListener(() =>
+                {
+                    bool curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
+                    icon_tip_button.textOnClickDescription = curr_state ? "ModEnabled Description" : "ModDisabled Description";
+                    icon.color = curr_state ? Color.white : Color.gray;
+                    if (curr_state)
+                    {
+                        // Check mod loaded or not has been done in the following method.
+                        ModCompileLoadService.TryCompileAndLoadModAtRuntime(mod_declare);
+                    }
+                });
+                icon_tip_button.text_description_2 = "";
+            }
+            
+            configure_button.onClick.AddListener(() =>
+            {   // It can be sure that if mod is IConfigurable, then mod is loaded actually.
                 if (mod is IConfigurable configurable)
                 {
                     ModConfigureWindow.ShowWindow(configurable.GetConfig());
                 }
             });
-            Button websiteButton = transform.Find("Website").GetComponent<Button>();
-            websiteButton.onClick.AddListener(() =>
+            website_button.onClick.AddListener(() =>
             {
                 Application.OpenURL(mod.GetUrl());
             });
         }
     }
-    private HashSet<IMod> showedMods = new();
-    private List<IMod> to_add;
-    private List<IMod> to_remove;
+    private List<IMod> to_add = new();
     protected override void Init()
     {
         GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image), typeof(Button), typeof(TipButton));
@@ -107,14 +146,20 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     private bool needRefresh = false;
     public override void OnNormalEnable()
     {
-        var mods = WorldBoxMod.LoadedMods;
-        if(showedMods.IsSubsetOf(mods) && showedMods.IsSupersetOf(mods)) return;
         needRefresh = true;
-        to_add = mods.Except(showedMods).ToList();
-        to_remove = showedMods.Except(mods).ToList();
-        
-        showedMods.Clear();
-        showedMods.UnionWith(mods);
+        ClearList();
+        foreach (var loaded_mod in WorldBoxMod.LoadedMods)
+        {
+            to_add.Add(loaded_mod);
+        }
+
+        foreach (var mod in WorldBoxMod.AllRecognizedMods.Keys)
+        {
+            if(WorldBoxMod.AllRecognizedMods[mod] == ModState.LOADED) continue;
+            var virtual_mod = new VirtualMod();
+            virtual_mod.OnLoad(mod, null);
+            to_add.Add(virtual_mod);
+        }
     }
 
     private void Update()
@@ -128,19 +173,9 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 to_add.RemoveAt(to_add.Count - 1);
                 return;
             }
-            if (to_remove.Any())
-            {
-                RemoveModFromList(to_remove[to_remove.Count-1]);
-                to_remove.RemoveAt(to_remove.Count - 1);
-                return;
-            }
+            
             needRefresh = false;
         }
-    }
-
-    private void RemoveModFromList(IMod mod)
-    {
-        
     }
 
     protected override AbstractListWindowItem<IMod> CreateItemPrefab()
@@ -155,11 +190,12 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         bg.sprite = Resources.Load<Sprite>("ui/special/windowInnerSliced");
         bg.type = Image.Type.Sliced;
 
-        GameObject icon = new GameObject("Icon", typeof(Image), typeof(Button));
+        GameObject icon = new GameObject("Icon", typeof(Image), typeof(Button), typeof(TipButton));
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = new(-75, 0);
         icon.transform.localScale = Vector3.one;
         icon.GetComponent<RectTransform>().sizeDelta = new(40, 40);
+        icon.GetComponent<TipButton>().type = "normal";
         Image iconImage = icon.GetComponent<Image>();
         iconImage.sprite = InternalResourcesGetter.GetIcon();
         
@@ -180,7 +216,6 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Text textText = text.GetComponent<Text>();
         textText.font = LocalizedTextManager.currentFont;
         textText.fontSize = 6;
-        textText.text = "{0}\t{1}\n{2}\n{3}";
         textText.supportRichText = true;
         
         Vector2 single_button_size = new(22, 22);

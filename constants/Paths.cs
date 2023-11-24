@@ -30,6 +30,7 @@ public static class Paths
     public static readonly string NMLAssembliesPath = Combine(NMLPath, "Assemblies");
     public static readonly string CompiledModsPath = Combine(NMLPath , "CompiledMods");
     public static readonly string ModCompileRecordPath = Combine(NMLPath, "mod_compile_records.json");
+    public static readonly string ModsDisabledRecordPath = Combine(NMLPath, "disabled_mods.txt");
     public static readonly string ModDeclarationFileName = "mod.json";
     public static readonly string ModDefaultConfigFileName = "default_config.json";
     public static readonly string ModResourceFolderName = "GameResources";

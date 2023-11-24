@@ -31,12 +31,36 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
     where T : AbstractListWindow<T, TItem>
 {
     protected static AbstractListWindowItem<TItem> ItemPrefab;
+    protected Dictionary<TItem, AbstractListWindowItem<TItem>> ItemMap = new();
+    private ObjectPoolGenericMono<AbstractListWindowItem<TItem>> _pool;
     protected virtual void AddItemToList(TItem item)
     {
-        AbstractListWindowItem<TItem> itemobj = Instantiate(ItemPrefab, ContentTransform);
+        if (_pool == null)
+        {
+            _pool = new ObjectPoolGenericMono<AbstractListWindowItem<TItem>>(ItemPrefab, ContentTransform);
+        }
+
+        AbstractListWindowItem<TItem> itemobj = _pool.getNext(0);
         itemobj.transform.localScale = Vector3.one;
         itemobj.Setup(item);
-        itemobj.gameObject.SetActive(true);
+        ItemMap.Add(item, itemobj);
+    }
+    protected virtual void RemoveItemFromList(TItem item)
+    {
+        if (ItemMap.TryGetValue(item, out var obj))
+        {
+            if (obj.gameObject.activeSelf)
+            {
+                obj.gameObject.SetActive(false);
+            }
+            _pool._elements_inactive.Push(obj);
+            ItemMap.Remove(item);
+        }
+    }
+    protected virtual void ClearList()
+    {
+        _pool?.clear();
+        ItemMap.Clear();
     }
     public static T CreateAndInit(string pWindowId)
     {
