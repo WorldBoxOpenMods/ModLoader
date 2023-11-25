@@ -91,6 +91,14 @@ public class ModDeclare
             throw new ArgumentOutOfRangeException(nameof(modType), modType, null);
         ModType = modType;
     }
+    /// <summary>
+    /// This only called for BepInEx mods
+    /// </summary>
+    /// <param name="iconPath"></param>
+    internal void SetIconPath(string iconPath)
+    {
+        IconPath = iconPath;
+    }
     [JsonProperty("name")]
     public string Name { get; private set; }
     public string UID { get; private set; }

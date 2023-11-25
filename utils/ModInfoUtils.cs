@@ -312,10 +312,16 @@ internal static class ModInfoUtils
         {
             if (bepinex_plugin_file_locs.Contains(assembly.Location))
             {
-                var mod = recogBepInExMod(Path.GetDirectoryName(assembly.Location), assembly);
+                string folder_path = Path.GetDirectoryName(assembly.Location);
+                var mod = recogBepInExMod(folder_path, assembly);
                 if (mod == null)
                 {
                     continue;
+                }
+
+                if (File.Exists(Path.Combine(folder_path, "icon.png")))
+                {
+                    mod.SetIconPath(Path.Combine(folder_path, "icon.png"));
                 }
                 mods.Add(mod);
             }
