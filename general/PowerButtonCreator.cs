@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using NeoModLoader.services;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace NeoModLoader.General;
 /// <summary>
@@ -50,6 +51,56 @@ public static class PowerButtonCreator
         obj.icon.sprite = pIcon;
         obj.open_window_id = pWindowId;
         obj.type = PowerButtonType.Window;
+
+        var transform = obj.transform;
+        
+        transform.localPosition = pLocalPosition;
+        transform.localScale = Vector3.one;
+        
+        obj.gameObject.SetActive(true);
+        return obj;
+    }
+    /// <summary>
+    /// Create a simple power button with click action
+    /// </summary>
+    /// <remarks>
+    ///     Please set "{pId}"[Necessary] and "{pId} Description"[Optional] in locale file and load it.
+    /// </remarks>
+    /// <param name="pId">PowerButton's name, determines title and desc key of tooltip</param>
+    /// <param name="pAction">The action of the button</param>
+    /// <param name="pIcon">The icon of the button</param>
+    /// <param name="pParent">Which transform the button attached to</param>
+    /// <param name="pLocalPosition">The button position in <see cref="pParent"/></param>
+    /// <returns>The PowerButton created</returns>
+    public static PowerButton CreateSimpleButton([NotNull]string pId, [NotNull]UnityAction pAction,
+        Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
+    {
+        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("worldlaws");
+        
+        bool found_active = prefab.gameObject.activeSelf;
+        if (found_active)
+        {
+            prefab.gameObject.SetActive(false);
+        }
+        PowerButton obj;
+        if (pParent == null)
+        {
+            obj = GameObject.Instantiate(prefab);
+        }
+        else
+        {
+            obj = GameObject.Instantiate(prefab, pParent);
+        }
+        
+        if (found_active)
+        {
+            prefab.gameObject.SetActive(true);
+        }
+        
+        
+        obj.name = pId;
+        obj.icon.sprite = pIcon;
+        obj.type = PowerButtonType.Library;
 
         var transform = obj.transform;
         
