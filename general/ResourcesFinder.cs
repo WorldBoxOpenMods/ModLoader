@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using NeoModLoader.utils;
 using UnityEngine.SearchService;
+using Object = UnityEngine.Object;
 
 namespace NeoModLoader.General;
 /// <summary>
@@ -55,7 +56,9 @@ public static class ResourcesFinder
         {
             if (obj.name.ToLower() == lower_name)
             {
-                dict.Add(lower_name, obj);
+                T result = Object.Instantiate(obj, WorldBoxMod.InactiveTransform);
+                result.name = obj.name;
+                dict.Add(lower_name, result);
                 return obj;
             }
         }

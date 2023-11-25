@@ -20,11 +20,17 @@ public class WorldBoxMod : MonoBehaviour
     public static List<IMod> LoadedMods = new();
     internal static Dictionary<ModDeclare, ModState> AllRecognizedMods = new();
     internal static Transform Transform;
+    internal static Transform InactiveTransform;
     internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
     private void Start()
     {
         Others.unity_player_enabled = true;
         Transform = transform;
+        
+        InactiveTransform = new GameObject("Inactive").transform;
+        InactiveTransform.SetParent(Transform);
+        InactiveTransform.gameObject.SetActive(false);
+        
         LogService.Init();
         fileSystemInitialize();
     }
