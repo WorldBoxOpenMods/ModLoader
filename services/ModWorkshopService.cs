@@ -4,14 +4,9 @@ using NeoModLoader.api;
 using NeoModLoader.api.attributes;
 using NeoModLoader.constants;
 using NeoModLoader.General;
-using NeoModLoader.ui;
 using NeoModLoader.utils;
 using RSG;
-using Steamworks;
-using Steamworks.Data;
-using Steamworks.Ugc;
 using UnityEngine;
-using Item = Steamworks.Ugc.Item;
 
 namespace NeoModLoader.services;
 
@@ -27,52 +22,14 @@ internal static class ModWorkshopService
 
     private static void UploadModLoader(string changelog)
     {
-        string workshopPath = SaveManager.generateWorkshopPath(CoreConstants.ModName);
-        
-        string previewImagePath = Path.Combine(workshopPath, "preview.png");
-        if (Directory.Exists(workshopPath))
+        if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            Directory.Delete(workshopPath, true);
+            ModWorkshopServiceWindows.UploadModLoader(changelog);
         }
-        Directory.CreateDirectory(workshopPath);
-        // Prepare files to upload
-        File.Copy(Paths.NMLModPath, Path.Combine(workshopPath, "NeoModLoader.dll"));
-        File.Copy(Paths.NMLModPath.Replace(".dll", ".pdb"), Path.Combine(workshopPath, "NeoModLoader.pdb"));
-        
-        using Stream icon_stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NeoModLoader.resources.logo.png");
-        using FileStream icon_file = File.Create(previewImagePath);
-        icon_stream.Seek(0, SeekOrigin.Begin);
-        icon_stream.CopyTo(icon_file);
-        icon_file.Close();
-        
-        
-        Editor editor = new Editor(CoreConstants.WorkshopFileId).WithContent(workshopPath).WithTag("Mod Loader")
-            .WithPreviewFile(previewImagePath)
-            .WithChangeLog(changelog)
-            .WithPrivateVisibility();
-        
-        editor.SubmitAsync(null).ContinueWith(delegate(Task<PublishResult> taskResult)
+        else
         {
-            if (taskResult.Status != TaskStatus.RanToCompletion)
-            {
-                LogService.LogErrorConcurrent("!RanToCompletion");
-                return;
-            }
-            PublishResult result = taskResult.Result;
-            // Result process refer to: https://partner.steamgames.com/doc/api/steam_api#EResult
-            if (!result.Success)
-            {
-                LogService.LogErrorConcurrent("!result.Success");
-            }
-            if (result.NeedsWorkshopAgreement)
-            {
-                Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
-            }
-            if (result.Result != Result.OK)
-            {
-                LogService.LogErrorConcurrent(result.Result.ToString());
-            }
-        }, TaskScheduler.Default);
+            ModWorkshopServiceUnix.UploadModLoader(changelog);
+        }
     }
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
@@ -131,42 +88,15 @@ internal static class ModWorkshopService
         {
             File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
         }
-        
-        // Create Upload Files Descriptor
-        Editor editor = Editor.NewCommunityFile.WithTag(verified ? "Mod" : "Unverified Mod")
-            .WithTitle(name).WithDescription(description).WithPreviewFile(previewImagePath)
-            .WithContent(workshopPath).WithChangeLog(changelog);
-        
-        Promise promise = new();
-        ModUploadingProgressWindow.UploadProgress uploadProgress = ModUploadingProgressWindow.ShowWindow();
-        editor.SubmitAsync(uploadProgress).ContinueWith(delegate(Task<PublishResult> taskResult)
+
+        if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            if (taskResult.Status != TaskStatus.RanToCompletion)
-            {
-                promise.Reject(taskResult.Exception.GetBaseException());
-                return;
-            }
-            PublishResult result = taskResult.Result;
-            // Result process refer to: https://partner.steamgames.com/doc/api/steam_api#EResult
-            if (!result.Success)
-            {
-                LogService.LogError("!result.Success");
-            }
-            if (result.NeedsWorkshopAgreement)
-            {
-                Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
-            }
-            if (result.Result != Result.OK)
-            {
-                promise.Reject(new Exception("Something went wrong: " + result.Result.ToString()));
-                return;
-            }
-
-            ModUploadingProgressWindow.Instance.fileId = result.FileId;
-            promise.Resolve();
-        }, TaskScheduler.Default);
-
-        return promise;
+            return ModWorkshopServiceWindows.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
+        }
+        else
+        {
+            return ModWorkshopServiceUnix.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
+        }
     }
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
     {
@@ -216,90 +146,37 @@ internal static class ModWorkshopService
         {
             File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
         }
-        
-        // Create Upload Files Descriptor
-        Editor editor = new Editor(fileID)
-            .WithPreviewFile(previewImagePath)
-            .WithContent(workshopPath).WithChangeLog(changelog);
-        
-        Promise promise = new();
-        editor.SubmitAsync(ModUploadingProgressWindow.ShowWindow()).ContinueWith(delegate(Task<PublishResult> taskResult)
+
+        if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            if (taskResult.Status != TaskStatus.RanToCompletion)
-            {
-                promise.Reject(taskResult.Exception.GetBaseException());
-                return;
-            }
-            PublishResult result = taskResult.Result;
-            // Result process refer to: https://partner.steamgames.com/doc/api/steam_api#EResult
-            if (result.NeedsWorkshopAgreement)
-            {
-                LogService.LogWarning("Needs Workshop Agreement");
-                // TODO: Open Workshop Agreement
-                Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
-            }
-            if (result.Result != Result.OK)
-            {
-                promise.Reject(new Exception(result.Result.ToString()));
-                return;
-            }
-
-            // result.FileId;
-            promise.Resolve();
-        }, TaskScheduler.FromCurrentSynchronizationContext());
-
-        return promise;
+            return ModWorkshopServiceWindows.EditMod(fileID, previewImagePath, workshopPath, changelog);
+        }
+        else
+        {
+           return ModWorkshopServiceUnix.EditMod(fileID, previewImagePath, workshopPath, changelog);
+        }
     }
-    public static ModDeclare GetModFromWorkshopItem(Steamworks.Ugc.Item item)
-    {
-        ModDeclare modDeclare = ModInfoUtils.recogMod(item.Directory);
-        if (string.IsNullOrEmpty(modDeclare.RepoUrl))
-        {
-            string id = Path.GetFileName(item.Directory);
-            modDeclare.SetRepoUrlToWorkshopPage(id);
-        }
 
-        return modDeclare;
+    public static async void FindSubscribedMods()
+    {
+        if (Application.platform == RuntimePlatform.WindowsPlayer)
+        {
+            ModWorkshopServiceWindows.FindSubscribedMods();
+        }
+        else
+        {
+            ModWorkshopServiceUnix.FindSubscribedMods();
+        }
     }
-    static List<Steamworks.Ugc.Item> subscribedItems = new();
-    public static async Task<List<Steamworks.Ugc.Item>> GetSubscribedItems()
+    public static ModDeclare GetNextModFromWorkshopItem()
     {
-        Query q = Query.ItemsReadyToUse.WhereUserSubscribed().WithTag("Mod");
-        q = q.SortByCreationDateAsc();
-        subscribedItems.Clear();
-        int count = 1;
-        int curr = 0;
-        int page = 1;
-        
-        bool available(Steamworks.Ugc.Item item)
+        if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            return true;
+            return ModWorkshopServiceWindows.GetNextModFromWorkshopItem();
         }
-        
-        while (count > curr)
+        else
         {
-            ResultPage? resultPage = await q.GetPageAsync(page++);
-            if (!resultPage.HasValue) break;
-
-            count = resultPage.Value.TotalCount;
-            curr += resultPage.Value.ResultCount;
-            
-            foreach(var entry in resultPage.Value.Entries)
-            {
-                if(entry.IsInstalled && ! entry.IsDownloadPending && ! entry.IsDownloading)
-                {
-                    if (!available(entry))
-                    {
-                        LogService.LogWarning($"Incomplete mod {entry.Title} found, skip");
-                    }
-                    else
-                    {
-                        subscribedItems.Add(entry);
-                    }
-                }
-            }
+            return ModWorkshopServiceUnix.GetNextModFromWorkshopItem();
         }
-
-        return subscribedItems;
     }
 }

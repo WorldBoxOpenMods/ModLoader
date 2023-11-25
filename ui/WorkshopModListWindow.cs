@@ -54,7 +54,7 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
 
     public override void OnNormalEnable()
     {
-        ModWorkshopService.steamWorkshopPromise.Then(prepareModsOrdered).Catch(delegate(Exception err)
+        ModWorkshopService.steamWorkshopPromise.Then(ModWorkshopService.FindSubscribedMods).Catch(delegate(Exception err)
         {
             Debug.LogError(err);
             ErrorWindow.errorMessage = "Error happened while connecting to Steam Workshop:\n" + err.Message.ToString();
@@ -72,13 +72,9 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         checkTimer = 0.015f;
         showNextMod();
     }
-    private Queue<Steamworks.Ugc.Item> modsOrderedQueue = new();
     private void showNextMod()
     {
-        if (modsOrderedQueue.Count == 0) return;
-        
-        Steamworks.Ugc.Item item = modsOrderedQueue.Dequeue();
-        ModDeclare mod = ModWorkshopService.GetModFromWorkshopItem(item);
+        ModDeclare mod = ModWorkshopService.GetNextModFromWorkshopItem();
         if (mod == null)
         {
             return;
@@ -95,15 +91,6 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
 
         showedMods.Add(item.UID);
         base.AddItemToList(item);
-    }
-
-    private async void prepareModsOrdered()
-    {
-        List<Steamworks.Ugc.Item> items = await ModWorkshopService.GetSubscribedItems();
-        foreach (var item in items)
-        {
-            modsOrderedQueue.Enqueue(item);
-        }
     }
 
     protected override AbstractListWindowItem<ModDeclare> CreateItemPrefab()

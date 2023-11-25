@@ -3,10 +3,31 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.General.UI.Prefabs;
-
+/// <summary>
+/// A slider bar
+/// </summary>
+/// <example>
+/// <code>
+/// var slider_bar = Instantiate(SliderBar.Prefab, slider_area.transform); // Necessary
+/// slider_bar.transform.localScale = Vector3.one;
+/// slider_bar.name = "Slider";
+/// slider_bar.SetSize(new Vector2(170f, 20)); // Necessary
+/// ...
+/// slider_bar.Setup(pItem.FloatVal, 0, 1, pFloatVal =>
+/// {
+///     pItem.SetValue(pFloatVal);
+///     value.text = $"{pItem.FloatVal:F2}";
+/// }); // Necessary
+/// slider_bar.tip_button.textOnClick = pItem.Id;
+/// slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
+/// </code>
+/// </example>
 public class SliderBar : APrefab<SliderBar>
 {
     private Slider _slider;
+    /// <summary>
+    /// The tip button of the slider bar, used to show tooltip
+    /// </summary>
     public TipButton tip_button { get; private set; }
 
     private void Awake()
@@ -14,7 +35,13 @@ public class SliderBar : APrefab<SliderBar>
         _slider = GetComponent<Slider>();
         tip_button = GetComponent<TipButton>();
     }
-
+    /// <summary>
+    /// Setup the slider bar
+    /// </summary>
+    /// <param name="value">Current value</param>
+    /// <param name="min">Min</param>
+    /// <param name="max">Max</param>
+    /// <param name="value_update">Action when slider value updated</param>
     public void Setup(float value, float min, float max, UnityAction<float> value_update)
     {
         _slider.onValueChanged.RemoveAllListeners();
@@ -23,6 +50,10 @@ public class SliderBar : APrefab<SliderBar>
         _slider.value = value;
         _slider.onValueChanged.AddListener(value_update);
     }
+    /// <summary>
+    /// Set the size of the slider bar, other components will be resized automatically
+    /// </summary>
+    /// <param name="size">The size of the root GameObject</param>
     public void SetSize(Vector2 size)
     {
         GetComponent<RectTransform>().sizeDelta = size;

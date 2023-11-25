@@ -3,7 +3,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using NeoModLoader.api;
 using NeoModLoader.services;
-using Steamworks.Data;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;

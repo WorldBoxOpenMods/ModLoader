@@ -67,16 +67,27 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
 
         return persistent_config;
     }
-
+    /// <summary>
+    /// You should override this method to load your mod.
+    /// </summary>
     protected abstract void OnModLoad();
+    /// <summary>
+    /// Log a message with mod name.
+    /// </summary>
     public static void LogInfo(string message)
     {
         LogService.LogInfo($"[{Instance._declare.Name}]: {message}");
     }
+    /// <summary>
+    /// Log a warning message with mod name.
+    /// </summary>
     public static void LogWarning(string message)
     {
         LogService.LogWarning($"[{Instance._declare.Name}]: {message}");
     }
+    /// <summary>
+    /// Log an error message with mod name.
+    /// </summary>
     public static void LogError(string message)
     {
         LogService.LogError($"[{Instance._declare.Name}]: {message}");
@@ -96,6 +107,10 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     {
         return Path.Combine(pModDeclare.FolderPath, "Locales");
     }
+    /// <summary>
+    /// Get the config of your mod.
+    /// </summary>
+    /// <returns>Config instance reference</returns>
     public ModConfig GetConfig()
     {
         return _config;

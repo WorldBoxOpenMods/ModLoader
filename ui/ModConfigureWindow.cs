@@ -92,7 +92,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             value.text = $"{pItem.FloatVal:F2}";
 
             SliderBar slider_bar = slider_area.transform.Find("Slider").GetComponent<SliderBar>();
-            slider_bar.Setup(pItem.FloatVal, 0, 1, pFloatVal =>
+            slider_bar.Setup(pItem.FloatVal, pItem.MinFloatVal, pItem.MaxFloatVal, pFloatVal =>
             {
                 pItem.SetValue(pFloatVal);
                 value.text = $"{pItem.FloatVal:F2}";

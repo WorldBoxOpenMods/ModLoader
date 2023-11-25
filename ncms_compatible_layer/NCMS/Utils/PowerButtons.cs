@@ -17,6 +17,9 @@ namespace NCMS.Utils
     {
         private static Dictionary<string, PowerButton> toggle_buttons = new Dictionary<string, PowerButton>();
         private static Dictionary<string, bool> bak_toggle_values = new Dictionary<string, bool>();
+        
+        public static Dictionary<string, PowerButton> CustomButtons = new Dictionary<string, PowerButton>();
+        public static Dictionary<string, bool> ToggleValues = bak_toggle_values;
         public static PowerButton CreateButton(string name, Sprite sprite, string title, string description,
             Vector2 position, ButtonType type = ButtonType.Click, Transform parent = null, UnityAction call = null)
         {
@@ -93,6 +96,7 @@ namespace NCMS.Utils
             }
             obj.gameObject.SetActive(true);
 
+            CustomButtons[name] = asPowerButton;
             return asPowerButton;
         }
 
