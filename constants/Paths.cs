@@ -14,7 +14,6 @@ public static class Paths
     public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
     public static readonly string StreamingAssetsPath = Combine(Application.streamingAssetsPath);
     public static readonly string ManagedPath = Combine(StreamingAssetsPath, "..", "Managed");
-    //public static readonly string GamePath = Combine(StreamingAssetsPath, "..", "..");
     public static string GamePath => Application.platform switch {
         RuntimePlatform.WindowsPlayer => Combine(StreamingAssetsPath, "..", ".."),
         RuntimePlatform.LinuxPlayer => Combine(StreamingAssetsPath, "..", ".."),
@@ -35,7 +34,7 @@ public static class Paths
     public static readonly string ModDefaultConfigFileName = "default_config.json";
     public static readonly string ModResourceFolderName = "GameResources";
     public static readonly string CommonModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", CoreConstants.GameId.ToString());
-    public static readonly string NCMSModEmbededResourceFolderName = "EmbededResources";
+    public static readonly string NCMSModEmbededResourceFolderName = "EmbededResources"; // note that this typo in "Embedded" has to stay, as NCMS also has it
     public static readonly HashSet<string> IgnoreSearchDirectories = new HashSet<string>()
     {
         "bin", "obj", "Properties", "packages", "packages.config", "packages-lock.json", "packages-lock.xml",
