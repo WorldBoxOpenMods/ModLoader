@@ -661,6 +661,8 @@
       <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
       <None Remove="resources\assemblies\Gameloop.Vdf.dll" />
       <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
+      <None Remove="resources\reload.png" />
+      <EmbeddedResource Include="resources\reload.png" />
     </ItemGroup>
   
     <ItemGroup>

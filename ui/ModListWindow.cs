@@ -111,6 +111,21 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             {
                 Application.OpenURL(mod.GetUrl());
             });
+
+            if (Config.isEditor && mod is IAssetsReloadable reloadable)
+            {
+                Button reload_button = transform.Find("Reload").GetComponent<Button>();
+                reload_button.gameObject.SetActive(true);
+                reload_button.onClick.RemoveAllListeners();
+                reload_button.onClick.AddListener(() =>
+                {
+                    reloadable.ReloadAssets();
+                });
+            }
+            else
+            {
+                transform.Find("Reload").gameObject.SetActive(false);
+            }
         }
     }
     private List<IMod> to_add = new();
@@ -257,6 +272,23 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         websiteIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
         Image websiteIconImage = websiteIcon.GetComponent<Image>();
         websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconCommunity");
+        
+        GameObject reload = new GameObject("Reload", typeof(Image), typeof(Button), typeof(TipButton));
+        reload.transform.SetParent(obj.transform);
+        reload.transform.localPosition = new(62, -12);
+        reload.transform.localScale = Vector3.one;
+        reload.GetComponent<RectTransform>().sizeDelta = single_button_size;
+        reload.GetComponent<TipButton>().textOnClick = "ModReload Title";
+        Image reloadImageBG = reload.GetComponent<Image>();
+        reloadImageBG.sprite = Resources.Load<Sprite>("ui/special/special_buttonred");
+        reloadImageBG.type = Image.Type.Sliced;
+        GameObject reloadIcon = new GameObject("Icon", typeof(Image));
+        reloadIcon.transform.SetParent(reload.transform);
+        reloadIcon.transform.localPosition = Vector3.zero;
+        reloadIcon.transform.localScale = Vector3.one;
+        reloadIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
+        Image reloadIconImage = reloadIcon.GetComponent<Image>();
+        reloadIconImage.sprite = InternalResourcesGetter.GetReloadIcon();
 
         return obj.GetComponent<ModListItem>();
     }

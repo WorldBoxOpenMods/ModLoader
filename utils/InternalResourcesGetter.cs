@@ -7,6 +7,7 @@ internal static class InternalResourcesGetter
 {
     private static Sprite mod_icon;
     private static Sprite icon_frame;
+    private static Sprite icon_reload;
     private static Sprite github_icon;
     private static string commit = "";
     private static Texture2D LoadManifestTexture(string path_under_resources)
@@ -70,5 +71,17 @@ internal static class InternalResourcesGetter
         github_icon.name = "iconGithub";
         
         return github_icon;
+    }
+    
+    public static Sprite GetReloadIcon()
+    {
+        if(icon_reload != null) return icon_reload;
+        
+        Texture2D texture = LoadManifestTexture("reload.png");
+
+        icon_reload = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 1,
+            0, SpriteMeshType.Tight, new Vector4(0, 0, 0, 0));
+        
+        return icon_reload;
     }
 }
