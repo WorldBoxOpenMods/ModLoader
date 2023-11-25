@@ -58,7 +58,7 @@ public class DiscordRoleAuthViaUserLoginUtils
         listener.Prefixes.Add("http://localhost:36549/");
         listener.Start();
 
-        System.Diagnostics.Process.Start("https://discord.com/api/oauth2/authorize?client_id=" + client_id + "&redirect_uri=http%3A%2F%2Flocalhost%3A36549&response_type=code&scope=identify");
+        Application.OpenURL("https://discord.com/api/oauth2/authorize?client_id=" + client_id + "&redirect_uri=http%3A%2F%2Flocalhost%3A36549&response_type=code&scope=identify");
         new Task(() =>
         {
             HttpListener listener_ref = listener;

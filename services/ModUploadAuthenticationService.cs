@@ -1,5 +1,6 @@
 using System.Security.Authentication;
 using NeoModLoader.ui;
+using NeoModLoader.utils.authentication;
 using RSG;
 
 namespace NeoModLoader.services;
@@ -8,6 +9,39 @@ public static class ModUploadAuthenticationService
 {
     public static bool Authed { get; private set; } = false;
 
+    public static void AutoAuth()
+    {
+        new Task(() =>
+        {
+            int i = 0;
+            foreach (var auto_auth_func in ModUploadAuthenticationWindow.all_auto_auth_funcs)
+            {
+                try
+                {
+                    LogService.LogInfoConcurrent($"Trying auto auth at {i}...");
+                    Authed = auto_auth_func();
+                    if (Authed)
+                    {
+                        LogService.LogInfoConcurrent("Auto auth success!");
+                        return;
+                    }
+                    else
+                    {
+                        LogService.LogInfoConcurrent($"Failed auto auth at {i}.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    // Display? It's only auto auth, so I think it's not necessary.
+                    LogService.LogInfoConcurrent($"Failed auto auth at {i}: {e.Message}");
+                }
+                finally
+                {
+                    i++;
+                }
+            }
+        }).Start();
+    }
     public static Promise Authenticate()
     {
         Promise promise = new Promise();
@@ -44,10 +78,11 @@ public static class ModUploadAuthenticationService
                     try
                     {
                         auth_result = ModUploadAuthenticationWindow.Instance.AuthFunc();
-                    } catch (AuthenticationException e)
+                    } catch (AuthenticaticationException e)
                     {
                         // TODO: Handle the error in some way
-                        break;
+                        ModUploadAuthenticationWindow.SetState(false, e.Message);
+                        continue;
                     }
                     if (auth_result)
                     {

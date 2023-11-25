@@ -66,10 +66,29 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
         auth_button_icon_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(42, 42);
         
 
-        CreateAuthButton("DiscordAuth", "ui/icons/iconDiscordWhite", () => false, new (42, 30.7f));
+        CreateAuthButton("DiscordAuth", "ui/icons/iconDiscordWhite", DiscordRoleAuthViaUserLoginUtils.Authenticate, new (42, 30.7f));
         CreateAuthButton("GithubAuth", InternalResourcesGetter.GetGitHubIcon(), GithubOrgAuthUtils.Authenticate);
         CreateAuthButton("SkipAuth", "ui/icons/iconArrowBack", null);
     }
+    internal static List<Func<bool>> all_auto_auth_funcs = new()
+    {
+        () =>
+        {
+            // It runs in a new thread, so it's safe to block the thread and unnecessary to catch exception.
+            while (true)
+            {
+                if (!string.IsNullOrEmpty(Config.discordId))
+                {
+                    return DiscordAutomaticRoleAuthUtils.Authenticate();
+                }
+                if (DiscordTracker.userTries <= 0)
+                {
+                    return false;
+                }
+                Thread.Sleep(10000);
+            }
+        }
+    };
     /// <summary>
     /// The function to be called when the button is clicked. Methods in it might throw an AuthenticationException if something goes wrong with the authentication process.
     /// </summary>
@@ -105,10 +124,15 @@ public class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthenticat
         return CreateAuthButton(pId, SpriteTextureLoader.getSprite(pIconPath), pAuthFunc, pIconSize);
     }
 
-    public static void SetState(bool pAuthState)
+    public static void SetState(bool pAuthState, string pTipText = null)
     {
         Instance.auth_text.color = pAuthState ? Color.green : Color.red;
         Instance.localized_auth_text.setKeyAndUpdate(pAuthState ? "NML_AUTHENTICATED" : "NML_AUTHENTICATION_FAILED");
+        
+        if(!string.IsNullOrEmpty(pTipText))
+        {
+            Instance.auth_text.text += $"\n{pTipText}";
+        }
     }
     public bool Opened()
     {
