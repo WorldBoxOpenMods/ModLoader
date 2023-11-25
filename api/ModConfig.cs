@@ -189,7 +189,7 @@ public class ModConfig
         _config[pId] = new Dictionary<string, ModConfigItem>();
     }
 
-    public void AddConfigItem(string pGroupId, string pId, ConfigItemType pType, object pDefaultValue, string pIconPath = "")
+    public ModConfigItem AddConfigItem(string pGroupId, string pId, ConfigItemType pType, object pDefaultValue, string pIconPath = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
@@ -200,17 +200,18 @@ public class ModConfig
         {
             LogService.LogWarning($"ModConfigItem {pId} already exists in group {pGroupId}! Overwriting...");
             LogService.LogStackTraceAsWarning();
-            group[pId].Type = pType;
-            group[pId].SetValue(pDefaultValue);
-            return;
+        }
+        else
+        {
+            group[pId] = new ModConfigItem()
+            {
+                Id = pId
+            };
         }
 
-        group[pId] = new ModConfigItem()
-        {
-            Id = pId,
-            Type = pType
-        };
+        group[pId].Type = pType;
         group[pId].SetValue(pDefaultValue);
         group[pId].IconPath = pIconPath;
+        return group[pId];
     }
 }
