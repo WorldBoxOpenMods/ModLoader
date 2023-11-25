@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace NeoModLoader.General;
 /// <summary>
@@ -101,6 +102,7 @@ public static class PowerButtonCreator
         obj.name = pId;
         obj.icon.sprite = pIcon;
         obj.type = PowerButtonType.Library;
+        obj.GetComponent<Button>().onClick.AddListener(pAction);
 
         var transform = obj.transform;
         
