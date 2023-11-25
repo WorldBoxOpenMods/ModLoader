@@ -177,8 +177,9 @@ public static class PowerButtonCreator
     /// <param name="pIcon">The icon of the button</param>
     /// <param name="pParent">Which transform the button attached to</param>
     /// <param name="pLocalPosition">The button position in &lt;see cref="pParent"/&gt;</param>
+    /// <param name="pNoAutoSetToggleAction">Not set god power's toggle_action automatically if it's not null</param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
+    public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default, bool pNoAutoSetToggleAction = false)
     {
         GodPower god_power = AssetManager.powers.get(pGodPowerId);
         if (god_power == null)
@@ -198,7 +199,7 @@ public static class PowerButtonCreator
                 {
                     boolVal = false
                 };
-                PlayerConfig.dict.Add(power.toggle_name, _option);
+                PlayerConfig.instance.data.add(_option);
             }
             
             _option.boolVal = !_option.boolVal;
@@ -210,18 +211,23 @@ public static class PowerButtonCreator
         {
             god_power.toggle_action = toggleOption;
         }
-        else
+        else if (!pNoAutoSetToggleAction)
         {
             god_power.toggle_action = (PowerToggleAction)Delegate.Combine(god_power.toggle_action,
                 new PowerToggleAction(toggleOption));
         }
         if(!PlayerConfig.dict.TryGetValue(god_power.toggle_name, out var option))
         {
-            option = new PlayerOptionData(god_power.toggle_name)
+            AssetManager.options_library.add(new OptionAsset()
+            {
+                id = god_power.toggle_name,
+                default_bool = false,
+                type = OptionType.Bool
+            });
+            option = PlayerConfig.instance.data.add(new PlayerOptionData(god_power.toggle_name)
             {
                 boolVal = false
-            };
-            PlayerConfig.dict.Add(god_power.toggle_name, option);
+            });
         }
         
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("kingsAndLeaders");
