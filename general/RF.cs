@@ -2,7 +2,6 @@ using System.Reflection;
 using NeoModLoader.api.attributes;
 using NeoModLoader.services;
 using NeoModLoader.utils;
-using Steamworks.Data;
 
 namespace NeoModLoader.General;
 /// <summary>

@@ -33,11 +33,12 @@
         <HintPath>assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
       </Reference>
       <Reference Include="Facepunch.Steamworks.Posix">
-        <HintPath Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))'">..\..\..\Library\Application Support\Steam\steamapps\common\worldbox\worldbox.app\Contents\Resources\Data\Managed\Facepunch.Steamworks.Posix.dll</HintPath>
-        <HintPath Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">$(HOME)\.steam\steam\steamapps\common\worldbox\worldbox_Data\Managed\Facepunch.Steamworks.Posix.dll</HintPath>
+        <HintPath>assembly-dependencies\Facepunch.Steamworks.Posix.dll</HintPath>
+        <Aliases>unixsteamwork</Aliases>
       </Reference>
       <Reference Include="Facepunch.Steamworks.Win64">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
+        <HintPath>assembly-dependencies\Facepunch.Steamworks.Win64.dll</HintPath>
+        <Aliases>winsteamwork</Aliases>
       </Reference>
       <Reference Include="Microsoft.CodeAnalysis, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
         <HintPath>resources\assemblies\Microsoft.CodeAnalysis.dll</HintPath>

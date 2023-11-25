@@ -1,4 +1,4 @@
-using System.Diagnostics;
+extern alias unixsteamwork;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -11,10 +11,7 @@ using NeoModLoader.General;
 using NeoModLoader.services;
 using NeoModLoader.ui;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using Steamworks;
-using Steamworks.Data;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -212,7 +209,7 @@ internal static class ModInfoUtils
                 // Write launch script
                 if (Application.platform == RuntimePlatform.LinuxPlayer)
                 {
-                    string launch_script_path = string.Format(Paths.LinuxSteamLocalConfigPath, SteamClient.SteamId.AccountId.ToString());
+                    string launch_script_path = string.Format(Paths.LinuxSteamLocalConfigPath, unixsteamwork::Steamworks.SteamClient.SteamId.AccountId.ToString());
                 
                     var result = VdfConvert.Deserialize(File.ReadAllText(launch_script_path));
                     result.Value["Software"]["Valve"]["Steam"]["apps"][CoreConstants.GameId.ToString()]["LaunchOptions"] = new VValue($"{bepinex_run_sh_path} %command%");
