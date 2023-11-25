@@ -100,18 +100,21 @@ public static class TabManager
         Button[] curr_tab_entries = tab_entry_container.GetComponentsInChildren<Button>(false);
 
         if (curr_tab_entries.Length == tab_entries.Count) return;
-        
+        string GetTabMainPart(string name)
+        {
+            return name.Replace("Tab", "").Replace("Button", "").Replace("_", "").Replace(" ", "");
+        }
         bool need_update = false;
         foreach (var tab in curr_tabs)
         {
             string tab_name = tab.name;
             if(tab_names_set.Contains(tab_name)) continue;
 
-            string assumed_entry_button_name = tab_name.Replace("Tab_", "Button_");
+            string assumed_entry_button_main_part = GetTabMainPart(tab_name);
 
             foreach (var tab_entry in curr_tab_entries)
             {
-                if (tab_entry.name != assumed_entry_button_name) continue;
+                if (GetTabMainPart(tab_entry.name) != assumed_entry_button_main_part) continue;
                 need_update = true;
                 _addTabEntry(tab_entry.gameObject, tab_name);
                 break;
