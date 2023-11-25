@@ -30,9 +30,9 @@ public static class ModCompileLoadService
     private static MetadataReference[] _default_ref = null!;
     private static readonly Dictionary<string, MetadataReference> mod_ref = new();
     private static bool compileMod(api.ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
-        string[] pAddInc, Dictionary<string, MetadataReference> pModInc)
+        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false)
     {
-        if (!ModInfoUtils.isModNeedRecompile(pModDecl.UID, pModDecl.FolderPath))
+        if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl.UID, pModDecl.FolderPath))
         {
             LoadAddInc();
             return true;
@@ -293,7 +293,7 @@ public static class ModCompileLoadService
         mod_inc_path.Add(pModNode.mod_decl.UID,
             Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll"));
     }
-    public static bool compileMod(ModDependencyNode pModNode)
+    public static bool compileMod(ModDependencyNode pModNode, bool pForce = false)
     {
         bool compile_result = false;
 
@@ -310,13 +310,13 @@ public static class ModCompileLoadService
         #if COMPILE_METHOD_ROSLYN
         compile_result = 
             compileMod(pModNode.mod_decl, _default_ref, 
-                add_inc_path, mod_ref
+                add_inc_path, mod_ref, pForce
             );
         if (compile_result)
         {
-            mod_ref.Add(pModNode.mod_decl.UID,
+            mod_ref[pModNode.mod_decl.UID] =
                 MetadataReference.CreateFromFile(Path.Combine(Paths.CompiledModsPath,
-                    $"{pModNode.mod_decl.UID}.dll")));
+                    $"{pModNode.mod_decl.UID}.dll"));
         }
         #else
         compile_result = 
@@ -481,40 +481,47 @@ public static class ModCompileLoadService
         return false;
     }
 
-    public static bool TryCompileAndLoadModAtRuntime(ModDeclare mod_declare)
+    public static bool TryCompileModAtRuntime(ModDeclare pModDeclare, bool pForce = false)
     {
-        bool actually_loaded = IsModLoaded(mod_declare.UID);
-
-        if (actually_loaded) return false;
-                        
-        if (mod_declare.ModType == ModTypeEnum.BEPINEX)
+        if (pModDeclare.ModType == ModTypeEnum.BEPINEX)
         {
-            ModInfoUtils.LinkBepInExModToLocalRequest(mod_declare);
+            ModInfoUtils.LinkBepInExModToLocalRequest(pModDeclare);
             ModInfoUtils.DealWithBepInExModLinkRequests();
             return false;
         }
 
-        ModDependencyNode node = ModDepenSolveService.SolveModDependencyRuntime(mod_declare);
+        ModDependencyNode node = ModDepenSolveService.SolveModDependencyRuntime(pModDeclare);
         if (node == null)
         {
-            ErrorWindow.errorMessage = $"Failed to load mod {mod_declare.Name}:\n" +
+            ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
                                        $"Failed to solve mod dependency." +
                                        $"Check Incompatible mods and dependencies, then try again.";
             ScrollWindow.get("error_with_reason").clickShow();
             return false;
         }
                 
-        bool success = compileMod(node);
+        bool success = compileMod(node, pForce);
         if (!success)
         {
-            ErrorWindow.errorMessage = $"Failed to load mod {mod_declare.Name}:\n" +
+            ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
                                        $"Failed to compile mod." +
                                        $"Check Incompatible mods and dependencies, then try again.";
             ScrollWindow.get("error_with_reason").clickShow();
             return false;
         }
-                
-        LoadMod(node.mod_decl);
+
+        return true;
+    }
+    public static bool TryCompileAndLoadModAtRuntime(ModDeclare mod_declare)
+    {
+        bool actually_loaded = IsModLoaded(mod_declare.UID);
+
+        if (actually_loaded) return false;
+        
+        bool compile_success = TryCompileModAtRuntime(mod_declare);
+        
+        if (!compile_success) return false;
+        LoadMod(mod_declare);
         return true;
     }
     public static void loadInfoOfBepInExPlugins()

@@ -119,7 +119,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 reload_button.onClick.RemoveAllListeners();
                 reload_button.onClick.AddListener(() =>
                 {
-                    reloadable.ReloadAssets();
+                    
                 });
             }
             else
