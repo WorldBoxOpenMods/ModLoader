@@ -20,6 +20,7 @@
   "DiscordAuth Description": "Redirect to Discord to authenticate your account\nRequires you to join WorldBoxOpenMods\nNot available for now",
   "GithubAuth Title": "Github Authentication",
   "GithubAuth Description": "Redirect to Github to authenticate your account\nRequires you to join WorldBoxOpenMods\nClient Secret is not filled in",
+  "GithubAuth Tip": "Input the following code to the new page opened in browser\n{0}\nThen you can close the window",
   "SkipAuth Title": "Skip Authentication",
   "SkipAuth Description": "Skip authentication\nUpload mod to 'Unverified Mod'\nBut you can upload to 'Mod' at present\n Because other authentication methods are not available",
   "NeoModLoader Updated": "NeoModLoader Updated, please restart the game.",

@@ -1,5 +1,8 @@
 using System.Net;
 using NeoModLoader.constants;
+using NeoModLoader.General;
+using NeoModLoader.ui;
+using UnityEngine;
 
 namespace NeoModLoader.utils.authentication;
 
@@ -17,10 +20,9 @@ public static class GithubOrgAuthUtils
         public string login;
     }
     private const string client_id = Setting.github_auth_client_id;
-    private const string client_secret = Setting.github_auth_client_secret;
     public static bool Authenticate()
     {
-        string token = GetToken();
+        string token = GetTokenByDeviceFlow();
 
         if (string.IsNullOrEmpty(token)) return false;
 
@@ -48,7 +50,50 @@ public static class GithubOrgAuthUtils
         
         return false;
     }
+    struct DeviceFlow
+    {
+        public string device_code;
+        public string user_code;
+        public string verification_uri;
+        public int interval;
+        public int expires_in;
+    }
+    private static string GetTokenByDeviceFlow()
+    { 
+        string res = HttpUtils.Post("https://github.com/login/device/code", new Dictionary<string, string>()
+        {
+            { "client_id", client_id }
+        }, new Dictionary<string, string>()
+        {
+            { "Accept", "application/json" }
+        });
+        DeviceFlow flow = Newtonsoft.Json.JsonConvert.DeserializeObject<DeviceFlow>(res);
+        InformationWindow.ShowWindow(string.Format(LM.Get("GithubAuth Tip"), flow.user_code));
+        Application.OpenURL(flow.verification_uri);
+        
+        int wait_time = 0;
+        while (wait_time < flow.expires_in * 1000)
+        {
+            Thread.Sleep(flow.interval * 1000);
+            wait_time += flow.interval * 1000;
+            res = HttpUtils.Post("https://github.com/login/oauth/access_token", new Dictionary<string, string>()
+            {
+                { "client_id", client_id },
+                { "device_code", flow.device_code },
+                { "grant_type", "urn:ietf:params:oauth:grant-type:device_code" }
+            }, new Dictionary<string, string>()
+            {
+                { "Accept", "application/json" }
+            });
+            if (res.Contains("access_token"))
+            {
+                break;
+            }
+        }
 
+        return Newtonsoft.Json.JsonConvert.DeserializeObject<TokenInfo>(res).access_token;
+    }
+    /*
     private static string GetToken()
     {
         HttpListener listener = new HttpListener();
@@ -101,4 +146,5 @@ public static class GithubOrgAuthUtils
         
         return Newtonsoft.Json.JsonConvert.DeserializeObject<TokenInfo>(res).access_token;
     }
+    */
 }
