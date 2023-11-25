@@ -214,4 +214,30 @@ public class ModConfig
         group[pId].IconPath = pIconPath;
         return group[pId];
     }
+    public ModConfigItem AddConfigSliderItemWithRange(string pGroupId, string pId, float pDefaultValue, float pMinValue, float pMaxValue, string pIconPath = "")
+    {
+        if (!_config.TryGetValue(pGroupId, out var group))
+        {
+            group = new();
+            _config[pGroupId] = group;
+        }
+        if (group.ContainsKey(pId))
+        {
+            LogService.LogWarning($"ModConfigItem {pId} already exists in group {pGroupId}! Overwriting...");
+            LogService.LogStackTraceAsWarning();
+        }
+        else
+        {
+            group[pId] = new ModConfigItem()
+            {
+                Id = pId
+            };
+        }
+
+        group[pId].Type = ConfigItemType.SLIDER;
+        group[pId].SetFloatRange(pMinValue, pMaxValue);
+        group[pId].SetValue(pDefaultValue);
+        group[pId].IconPath = pIconPath;
+        return group[pId];
+    }
 }
