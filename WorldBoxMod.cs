@@ -40,7 +40,7 @@ public class WorldBoxMod : MonoBehaviour
             return;
         }
         initialized = true;
-        
+        ModUploadAuthenticationService.AutoAuth();
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
         float time = 0;
