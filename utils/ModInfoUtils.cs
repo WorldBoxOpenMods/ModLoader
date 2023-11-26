@@ -25,6 +25,42 @@ internal static class ModInfoUtils
         var mods = new List<api.ModDeclare>();
         if (!NCMSHere())
         {
+            var zipped_mods = new HashSet<string>(Directory.GetFiles(Paths.ModsPath, "*.zip"))
+                .Union(Directory.GetFiles(Paths.ModsPath, "*.7z"))
+                .Union(Directory.GetFiles(Paths.ModsPath, "*.rar"))
+                .Union(Directory.GetFiles(Paths.ModsPath, "*.tar"))
+                .Union(Directory.GetFiles(Paths.ModsPath, "*.tar.gz"))
+                .Union(Directory.GetFiles(Paths.ModsPath, "*.mod"));
+            foreach (var zipped_mod in zipped_mods)
+            {
+                string extract_path = Path.Combine(Application.temporaryCachePath, Path.GetFileNameWithoutExtension(zipped_mod));
+                if (Directory.Exists(extract_path))
+                {
+                    Directory.Delete(extract_path, true);
+                }
+                ZipFile.ExtractToDirectory(zipped_mod, extract_path);
+                var mod_json_files = SystemUtils.SearchFileRecursive(extract_path, (filename) => filename == Paths.ModDeclarationFileName, (dirname) => true);
+                if (mod_json_files.Count == 0)
+                {
+                    Directory.Delete(extract_path, true);
+                    continue;
+                }
+                if(mod_json_files.Count > 1)
+                {
+                    LogService.LogWarning($"More than one mod.json file in {zipped_mod}, only load the first one");
+                }
+                var mod = recogMod(Path.GetDirectoryName(mod_json_files[0]));
+                if (mod != null)
+                {
+                    if (findModsIDs.Contains(mod.UID))
+                    {
+                        LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
+                        continue;
+                    }
+                    mods.Add(mod);
+                    findModsIDs.Add(mod.UID);
+                }
+            }
             var mod_folders = Directory.GetDirectories(Paths.ModsPath);
             foreach (var mod_folder in mod_folders)
             {
