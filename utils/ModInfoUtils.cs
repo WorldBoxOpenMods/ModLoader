@@ -49,17 +49,10 @@ internal static class ModInfoUtils
                 {
                     LogService.LogWarning($"More than one mod.json file in {zipped_mod}, only load the first one");
                 }
-                var mod = recogMod(Path.GetDirectoryName(mod_json_files[0]));
-                if (mod != null)
-                {
-                    if (findModsIDs.Contains(mod.UID))
-                    {
-                        LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
-                        continue;
-                    }
-                    mods.Add(mod);
-                    findModsIDs.Add(mod.UID);
-                }
+                Directory.Move(Path.GetDirectoryName(mod_json_files[0]), Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(zipped_mod)));
+                File.Delete(zipped_mod);
+                if(Directory.Exists(extract_path))
+                    Directory.Delete(extract_path, true);
             }
             var mod_folders = Directory.GetDirectories(Paths.ModsPath);
             foreach (var mod_folder in mod_folders)
