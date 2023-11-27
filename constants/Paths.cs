@@ -33,6 +33,7 @@ public static class Paths
     public static readonly string ModDeclarationFileName = "mod.json";
     public static readonly string ModDefaultConfigFileName = "default_config.json";
     public static readonly string ModResourceFolderName = "GameResources";
+    public static readonly string NCMSAdditionModResourceFolderName = "GameResourcesReplace";
     public static readonly string CommonModsWorkshopPath = Combine(GamePath, "..", "..", "workshop", "content", CoreConstants.GameId.ToString());
     public static readonly string NCMSModEmbededResourceFolderName = "EmbededResources"; // note that this typo in "Embedded" has to stay, as NCMS also has it
     public static readonly HashSet<string> IgnoreSearchDirectories = new HashSet<string>()

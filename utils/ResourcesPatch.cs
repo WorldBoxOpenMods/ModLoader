@@ -217,16 +217,15 @@ internal static class ResourcesPatch
         return textAsset;
     }
 
-    internal static void LoadResourceFromMod(string pModFolder)
+    internal static void LoadResourceFromFolder(string pFolder)
     {
-        string path = Path.Combine(pModFolder, Paths.ModResourceFolderName);
-        if (!Directory.Exists(path)) return;
+        if (!Directory.Exists(pFolder)) return;
 
-        var files = SystemUtils.SearchFileRecursive(pModFolder, filename => !filename.StartsWith("."),
+        var files = SystemUtils.SearchFileRecursive(pFolder, filename => !filename.StartsWith("."),
             dirname => !dirname.StartsWith("."));
         foreach (var file in files)
         {
-            tree.AddFromFile(file.Replace(path, "").Replace('\\', '/').Substring(1), file);
+            tree.AddFromFile(file.Replace(pFolder, "").Replace('\\', '/').Substring(1), file);
         }
     }
     [HarmonyPostfix]
