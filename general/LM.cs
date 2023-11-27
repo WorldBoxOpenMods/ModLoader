@@ -83,6 +83,7 @@ public static class LM
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.Synchronized)]
     public static void AddToCurrentLocale(string key, string value)
     {
+        LocalizedTextManager.instance.localizedText[key] = value;
         Add(LocalizedTextManager.instance.language, key, value);
     }
     /// <summary>
