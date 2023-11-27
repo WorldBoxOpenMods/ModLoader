@@ -237,8 +237,11 @@ public static class TabManager
             _updateTabEntryRectAs(tab_entries[index], index);
             _updateTabEntryRectAs(tab_entries[index + (left ? -1 : 1)], index + (left ? -1 : 1));
             var position = tab_entry_rect.localPosition;
-            delta.x = 0;
-            current_pos = position;
+            if(Math.Abs(position.y - current_pos.y) > 0.01f)
+            {
+                delta.x = 0;
+                current_pos = position;
+            }
         }
         
         if (index == 0)
