@@ -11,12 +11,12 @@ namespace NCMS.Utils
     [Obsolete("Compatible Layer will not be maintained and be removed in the future")]
     public class Windows
     {
-        private static Dictionary<string, ScrollWindow> _all_windows;
+        public static Dictionary<string, ScrollWindow> AllWindows;
 
         internal static void init()
         {
             WindowCreator.init();
-            _all_windows = RF.GetStaticField<Dictionary<string, ScrollWindow>, ScrollWindow>("allWindows");
+            AllWindows = ScrollWindow.allWindows;
         }
         public static ScrollWindow GetWindow(string pWindowID)
         {
