@@ -12,6 +12,7 @@
   "ModUploadFinish": "Success",
   "NML_InvalidParam": "Invalid FileID (InvalidParam)",
   "NML_FileNotFound": "Invalid FileID (FileNotFound)",
+  "FailedAutoUpdate": "Failed to update NeoModLoader\nPlease restart as Administrator\n If failed again\n Please update manually\n See How to install NeoModLoader manually",
   "ModUploadAuthentication Title": "Upload Authentication",
   "NML_AUTHENTICATION": "Select a way to authenticate",
   "NML_AUTHENTICATED": "Authenticated",

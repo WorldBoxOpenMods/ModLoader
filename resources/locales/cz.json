@@ -12,6 +12,7 @@
   "ModUploadFinish": "上传完成",
   "NML_InvalidParam": "无效ID(InvalidParam)",
   "NML_FileNotFound": "无效ID(FileNotFound)",
+  "FailedAutoUpdate": "自动更新失败\n 尝试以管理员权限启动\n 若仍无法更新\n 请手动更新NeoModLoader\n 方法见首次安装方法",
   "ModUploadAuthentication Title": "模组上传验证",
   "NML_AUTHENTICATION": "选择验证方式或跳过验证",
   "NML_AUTHENTICATED": "验证成功",

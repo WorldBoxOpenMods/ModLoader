@@ -118,10 +118,18 @@ public class WorldBoxMod : MonoBehaviour
         
                 ui.UIManager.init();
 
-                NMLAutoUpdateService.CheckWorkshopUpdate();
                 ModInfoUtils.DealWithBepInExModLinkRequests();
 
                 initialized_successfully = true;
+                try
+                {
+                    NMLAutoUpdateService.CheckWorkshopUpdate();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    ErrorWindow.errorMessage = LM.Get("FailedAutoUpdate");
+                    ScrollWindow.get("error_with_reason").clickShow();
+                }
             }, "NeoModLoader Post Initialize");
         }, "Compile Mods And Load resources");
 
