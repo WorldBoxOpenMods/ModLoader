@@ -391,6 +391,9 @@
       <Reference Include="UnityEngine.ImageConversionModule">
         <HintPath>assembly-dependencies\UnityEngine.ImageConversionModule.dll</HintPath>
       </Reference>
+      <Reference Include="UnityEngine.InputLegacyModule">
+        <HintPath>assembly-dependencies\UnityEngine.InputLegacyModule.dll</HintPath>
+      </Reference>
       <Reference Include="UnityEngine.JSONSerializeModule">
         <HintPath>assembly-dependencies\UnityEngine.JSONSerializeModule.dll</HintPath>
       </Reference>
