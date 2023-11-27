@@ -91,12 +91,20 @@ internal static class ModWorkshopService
 
         if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            return ModWorkshopServiceWindows.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
+            return UploadModWin(name, description, previewImagePath, workshopPath, changelog, verified);
         }
         else
         {
-            return ModWorkshopServiceUnix.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
+            return UploadModUnix(name, description, previewImagePath, workshopPath, changelog, verified);
         }
+    }
+    private static Promise UploadModWin(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
+    {
+        return ModWorkshopServiceWindows.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
+    }
+    private static Promise UploadModUnix(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
+    {
+        return ModWorkshopServiceUnix.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
     }
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
     {
@@ -149,34 +157,59 @@ internal static class ModWorkshopService
 
         if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            return ModWorkshopServiceWindows.EditMod(fileID, previewImagePath, workshopPath, changelog);
+            return EditModWin(fileID, previewImagePath, workshopPath, changelog);
         }
         else
         {
-           return ModWorkshopServiceUnix.EditMod(fileID, previewImagePath, workshopPath, changelog);
+           return EditModUnix(fileID, previewImagePath, workshopPath, changelog);
         }
     }
+    private static Promise EditModWin(ulong fileID, string previewImagePath, string workshopPath, string changelog)
+    {
+        return ModWorkshopServiceWindows.EditMod(fileID, previewImagePath, workshopPath, changelog);
+    }
+    private static Promise EditModUnix(ulong fileID, string previewImagePath, string workshopPath, string changelog)
+    {
+        return ModWorkshopServiceUnix.EditMod(fileID, previewImagePath, workshopPath, changelog);
+    }
 
-    public static async void FindSubscribedMods()
+    public static void FindSubscribedMods()
     {
         if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            ModWorkshopServiceWindows.FindSubscribedMods();
+            FindSubscribedModsWin();
         }
         else
         {
-            ModWorkshopServiceUnix.FindSubscribedMods();
+            FindSubscribedModsUnix();
         }
+    }
+
+    private static void FindSubscribedModsWin()
+    {
+        ModWorkshopServiceWindows.FindSubscribedMods();
+    }
+    private static void FindSubscribedModsUnix()
+    {
+        ModWorkshopServiceUnix.FindSubscribedMods();
     }
     public static ModDeclare GetNextModFromWorkshopItem()
     {
         if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            return ModWorkshopServiceWindows.GetNextModFromWorkshopItem();
+            return GetNextModFromWorkshopItemWin();
         }
         else
         {
-            return ModWorkshopServiceUnix.GetNextModFromWorkshopItem();
+            return GetNextModFromWorkshopItemUnix();
         }
+    }
+    private static ModDeclare GetNextModFromWorkshopItemWin()
+    {
+        return ModWorkshopServiceWindows.GetNextModFromWorkshopItem();
+    }
+    private static ModDeclare GetNextModFromWorkshopItemUnix()
+    {
+        return ModWorkshopServiceUnix.GetNextModFromWorkshopItem();
     }
 }
