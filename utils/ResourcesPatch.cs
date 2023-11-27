@@ -237,6 +237,7 @@ internal static class ResourcesPatch
     private static UnityEngine.Object[] LoadAll_Postfix(UnityEngine.Object[] __result, string path,
         Type systemTypeInstance)
     {
+        if (tree == null) return __result;
         ResourceTreeNode node = tree.Find(path);
         if (node == null) return __result;
         
@@ -261,6 +262,7 @@ internal static class ResourcesPatch
     private static UnityEngine.Object Load_Postfix(UnityEngine.Object __result, string path,
         Type systemTypeInstance)
     {
+        if (tree == null) return __result;
         var new_result = tree.Get(path);
         if (new_result != null && systemTypeInstance.IsInstanceOfType(new_result))
             return new_result;
