@@ -11,9 +11,9 @@ namespace NeoModLoader.services;
 extern alias winsteamwork;
 
 using Steamworks = winsteamwork::Steamworks;
-internal static class ModWorkshopServiceWindows
+internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
 {
-    public static void UploadModLoader(string changelog)
+    public void UploadModLoader(string changelog)
     {
         string workshopPath = SaveManager.generateWorkshopPath(CoreConstants.ModName);
         
@@ -62,7 +62,7 @@ internal static class ModWorkshopServiceWindows
         }, TaskScheduler.Default);
     }
 
-    public static Promise UploadMod(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
+    public Promise UploadMod(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
     {
         // Create Upload Files Descriptor
         winsteamwork::Steamworks.Ugc.Editor editor = winsteamwork::Steamworks.Ugc.Editor.NewCommunityFile.WithTag(verified ? "Mod" : "Unverified Mod")
@@ -101,7 +101,7 @@ internal static class ModWorkshopServiceWindows
         return promise;
     }
 
-    public static Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog)
+    public Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog)
     {
         Promise promise = new();
         // Create Upload Files Descriptor
@@ -138,7 +138,7 @@ internal static class ModWorkshopServiceWindows
     static List<winsteamwork::Steamworks.Ugc.Item> subscribedItems = new();
     static Queue<winsteamwork::Steamworks.Ugc.Item> subscribedModsQueue = new();
     
-    public static ModDeclare GetNextModFromWorkshopItem()
+    public ModDeclare GetNextModFromWorkshopItem()
     {
         if (subscribedModsQueue.Count == 0)
         {
@@ -154,7 +154,7 @@ internal static class ModWorkshopServiceWindows
 
         return modDeclare;
     }
-    public static async void FindSubscribedMods()
+    public async void FindSubscribedMods()
     {
         var items = await GetSubscribedItems();
         foreach (var item in items)
