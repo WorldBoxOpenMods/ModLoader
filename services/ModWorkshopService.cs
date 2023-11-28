@@ -19,17 +19,15 @@ internal static class ModWorkshopService
     public static void Init()
     {
         steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
-        steamWorkshopPromise.Done(() =>
+        if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            if (Application.platform == RuntimePlatform.WindowsPlayer)
-            {
-                workshopServiceBackend = new ModWorkshopServiceWindows();
-            }
-            else
-            {
-                workshopServiceBackend = new ModWorkshopServiceUnix();
-            }
-        });
+            workshopServiceBackend = new ModWorkshopServiceWindows();
+        }
+        else
+        {
+            workshopServiceBackend = new ModWorkshopServiceUnix();
+        }
+
     }
 
     private static void UploadModLoader(string changelog)
@@ -57,11 +55,11 @@ internal static class ModWorkshopService
         // Prepare files to upload
         List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
             (filename) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !filename.StartsWith(".");
             },
             (dirname) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !dirname.StartsWith(".");
             });
         foreach (string file_full_path in files_to_upload)
@@ -89,7 +87,7 @@ internal static class ModWorkshopService
             previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
         }
         // This works for BepInEx mods
-        if(!File.Exists(Path.Combine(workshopPath, "mod.json")))
+        if (!File.Exists(Path.Combine(workshopPath, "mod.json")))
         {
             File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
         }
@@ -107,11 +105,11 @@ internal static class ModWorkshopService
         // Prepare files to upload
         List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
             (filename) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !filename.StartsWith(".");
             },
             (dirname) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !dirname.StartsWith(".");
             });
         foreach (string file_full_path in files_to_upload)
@@ -139,7 +137,7 @@ internal static class ModWorkshopService
             previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
         }
         // This works for BepInEx mods
-        if(!File.Exists(Path.Combine(workshopPath, "mod.json")))
+        if (!File.Exists(Path.Combine(workshopPath, "mod.json")))
         {
             File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
         }

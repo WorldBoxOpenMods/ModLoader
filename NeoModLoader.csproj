@@ -646,6 +646,10 @@
       <EmbeddedResource Include="resources\assemblies\System.ValueTuple.dll" />
       <None Remove="resources\assemblies\YamlDotNet.dll" />
       <EmbeddedResource Include="resources\assemblies\YamlDotNet.dll" />
+      <None Remove="resources\assemblies\Facepunch.Steamworks.Posix.dll" />
+      <EmbeddedResource Include="resources\assemblies\Facepunch.Steamworks.Posix.dll" />
+      <None Remove="resources\assemblies\Facepunch.Steamworks.Win64.dll" />
+      <EmbeddedResource Include="resources\assemblies\Facepunch.Steamworks.Win64.dll" />
       <None Remove="resources\logo.png" />
       <EmbeddedResource Include="resources\logo.png" />
       <None Remove="resources\locales\cz.json" />
