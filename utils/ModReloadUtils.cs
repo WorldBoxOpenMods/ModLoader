@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using HarmonyLib.Tools;
 using Mono.Cecil;
 using MonoMod.Utils;
 using NeoModLoader.api;
@@ -36,9 +37,18 @@ internal static class ModReloadUtils
     private static Dictionary<Mono.Cecil.Cil.OpCode, OpCode> _op_code_map = new();
     public static bool PatchHotfixMethods()
     {
+        HarmonyFileLog.Enabled = true;
         AssemblyDefinition assembly_definition = AssemblyDefinition.ReadAssembly(_new_compiled_dll_path);
         MethodDefinition[] method_definitions = assembly_definition.MainModule.Types.SelectMany(type => type.Methods).ToArray();
 
+        foreach(var type in assembly_definition.MainModule.Types)
+        {
+            LogService.LogInfo($"Found type {type.FullName}");
+            foreach (var method in type.Methods)
+            {
+                LogService.LogInfo($"\tFound method {method.Name}");
+            }
+        }
         Assembly old_assembly = _mod.GetType().Assembly;
         
         Harmony harmony = new Harmony(_mod_declare.UID);
@@ -76,6 +86,7 @@ internal static class ModReloadUtils
                     LogService.LogWarning($"No found method {new_method.DeclaringType.FullName}::{new_method.Name} in old assembly");
                     continue;
                 }
+                LogService.LogInfo($"Hotfixing method {new_method.Name} with following instructions(total {new_method.Body.Instructions.Count}):");
                 HotfixMethod(harmony, new_method, old_method);
             }
             catch (Exception e)
@@ -86,7 +97,8 @@ internal static class ModReloadUtils
                 continue;
             }
         }
-        return false;
+        assembly_definition.Dispose();
+        return true;
     }
 
     private static void InitializeOpcodeMap()
@@ -117,21 +129,34 @@ internal static class ModReloadUtils
     private static void HotfixMethod(Harmony pHarmony, MethodDefinition pNewMethod, MethodInfo pOldMethod)
     {
         _new_method = pNewMethod;
+        pHarmony.Unpatch(pOldMethod, HarmonyPatchType.Transpiler, pHarmony.Id);
         pHarmony.Patch(pOldMethod, transpiler: new HarmonyMethod(AccessTools.Method(typeof(ModReloadUtils), nameof(il_code_replace_transpiler))));
     }
     static MethodDefinition _new_method;
     static IEnumerable<CodeInstruction> il_code_replace_transpiler(IEnumerable<CodeInstruction> pInstructions)
     {
         List<CodeInstruction> new_instr = new();
-        LogService.LogInfo($"Hotfixing method {_new_method.Name} with following instructions:");
         foreach (var cecil_instr in _new_method.Body.Instructions)
         {
+            OpCode op_code = _op_code_map[cecil_instr.OpCode];
+            object operand = ConvertCecilOperand(cecil_instr.Operand);
+            LogService.LogInfo($"\t{op_code}\t\t {operand}({operand?.GetType().FullName})");
             new_instr.Add(new CodeInstruction(
-                _op_code_map[cecil_instr.OpCode], cecil_instr.Operand
+                op_code, operand
             ));
-            LogService.LogInfo($"\t{cecil_instr.OpCode}\t\t {cecil_instr.Operand}");
         }
-        return new_instr;
+        return new_instr.AsEnumerable();
+    }
+
+    private static object ConvertCecilOperand(object pCecilOperand)
+    {
+        if (pCecilOperand == null) return null;
+        if(pCecilOperand is MemberReference method_reference)
+        {
+            return method_reference.ResolveReflection();
+        }
+
+        return pCecilOperand;
     }
     public static bool Reload()
     {
