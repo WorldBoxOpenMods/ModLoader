@@ -41,14 +41,6 @@ internal static class ModReloadUtils
         AssemblyDefinition assembly_definition = AssemblyDefinition.ReadAssembly(_new_compiled_dll_path);
         MethodDefinition[] method_definitions = assembly_definition.MainModule.Types.SelectMany(type => type.Methods).ToArray();
 
-        foreach(var type in assembly_definition.MainModule.Types)
-        {
-            LogService.LogInfo($"Found type {type.FullName}");
-            foreach (var method in type.Methods)
-            {
-                LogService.LogInfo($"\tFound method {method.Name}");
-            }
-        }
         Assembly old_assembly = _mod.GetType().Assembly;
         
         Harmony harmony = new Harmony(_mod_declare.UID);
@@ -115,7 +107,8 @@ internal static class ModReloadUtils
             }
             catch (Exception e)
             {
-                LogService.LogError($"Failed to initialize opcode map for {field.Name}");
+                // Ignored, some opcodes are invalid, useful opcodes are added manually below
+                //LogService.LogError($"Failed to initialize opcode map for {field.Name}");
                 //LogService.LogError(e.Message);
                 //LogService.LogError(e.StackTrace);
             }
@@ -135,12 +128,19 @@ internal static class ModReloadUtils
     static MethodDefinition _new_method;
     static IEnumerable<CodeInstruction> il_code_replace_transpiler(IEnumerable<CodeInstruction> pInstructions)
     {
+        if(!Config.isEditor)
+        {
+            LogService.LogInfo($"\tHidden. Make it visible by setting {nameof(Config.isEditor)} to true");
+        }
         List<CodeInstruction> new_instr = new();
         foreach (var cecil_instr in _new_method.Body.Instructions)
         {
             OpCode op_code = _op_code_map[cecil_instr.OpCode];
             object operand = ConvertCecilOperand(cecil_instr.Operand);
-            LogService.LogInfo($"\t{op_code}\t\t {operand}({operand?.GetType().FullName})");
+            if (Config.isEditor)
+            {
+                LogService.LogInfo($"\t{op_code}\t\t {operand}({operand?.GetType().FullName})");
+            }
             new_instr.Add(new CodeInstruction(
                 op_code, operand
             ));
