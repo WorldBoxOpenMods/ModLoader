@@ -112,14 +112,33 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 Application.OpenURL(mod.GetUrl());
             });
 
-            if (Config.isEditor && mod is IAssetsReloadable reloadable)
+            if (Config.isEditor && mod is IReloadable reloadable)
             {
                 Button reload_button = transform.Find("Reload").GetComponent<Button>();
                 reload_button.gameObject.SetActive(true);
                 reload_button.onClick.RemoveAllListeners();
                 reload_button.onClick.AddListener(() =>
                 {
-                    
+                    if (!ModReloadUtils.Prepare(mod))
+                    {
+                        LogService.LogWarning($"Failed to prepare mod {mod_declare.Name} for reloading.");
+                        return;
+                    }
+                    if (!ModReloadUtils.CompileNew())
+                    {
+                        LogService.LogWarning($"Failed to compile new mod {mod_declare.Name} for reloading.");
+                        return;
+                    }
+                    if (!ModReloadUtils.PatchHotfixMethods())
+                    {
+                        LogService.LogWarning($"Failed to patch hotfix methods of mod {mod_declare.Name} for reloading.");
+                        return;
+                    }
+                    if (!ModReloadUtils.Reload())
+                    {
+                        LogService.LogWarning($"Failed to reload mod {mod_declare.Name}.");
+                        return;
+                    }
                 });
             }
             else

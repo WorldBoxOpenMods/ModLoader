@@ -2,7 +2,7 @@ namespace NeoModLoader.api;
 /// <summary>
 /// Implement this interface, your mod can reload assets manually.
 /// </summary>
-internal interface IAssetsReloadable
+public interface IReloadable
 {
     /// <summary>
     /// Reload assets in this method.
