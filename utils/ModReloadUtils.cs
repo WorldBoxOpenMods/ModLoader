@@ -91,6 +91,46 @@ internal static class ModReloadUtils
         {
             InitializeOpcodeMap();
         }
+        
+        HashSet<MethodDefinition> brand_new_methods = new();
+        foreach (var new_method in method_definitions)
+        {
+            if (new_method.HasBody is false)
+            {
+                continue;
+            }
+
+            bool hotfixable = false;
+            foreach (var attribute in new_method.CustomAttributes)
+            {
+                if (attribute.AttributeType.FullName == typeof(HotfixableAttribute).FullName)
+                {
+                    hotfixable = true;
+                    break;
+                }
+            }
+
+            if (hotfixable is false)
+            {
+                continue;
+            }
+            
+            MethodInfo old_method = old_assembly.GetType(new_method.DeclaringType.FullName).GetMethod(
+                new_method.Name,
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
+                new_method.Parameters.Select(x => x.ParameterType.ResolveReflection()).ToArray(), null);
+            if (old_method != null)
+            {
+                continue;
+            }
+            LogService.LogWarning($"No found method {new_method.DeclaringType.FullName}::{new_method.Name} in old assembly");
+            brand_new_methods.Add(new_method);
+        }
+
+        if (brand_new_methods.Count > 0)
+        {
+            CreateBrandNewMethods(brand_new_methods);
+        }
         foreach (var new_method in method_definitions)
         {
             if(new_method.HasBody is false)
@@ -112,6 +152,10 @@ internal static class ModReloadUtils
                 continue;
             }
             
+            if(brand_new_methods.Contains(new_method))
+            {
+                continue;
+            }
             try
             {
                 MethodInfo old_method = old_assembly.GetType(new_method.DeclaringType.FullName).GetMethod(
@@ -120,7 +164,6 @@ internal static class ModReloadUtils
                     new_method.Parameters.Select(x => x.ParameterType.ResolveReflection()).ToArray(), null);
                 if (old_method == null)
                 {
-                    LogService.LogWarning($"No found method {new_method.DeclaringType.FullName}::{new_method.Name} in old assembly");
                     continue;
                 }
 
@@ -142,6 +185,34 @@ internal static class ModReloadUtils
         }
         assembly_definition.Dispose();
         return true;
+    }
+
+    private static Dictionary<MethodDefinition, MethodInfo> _regenerated_brand_new_methods = new();
+    private static void CreateBrandNewMethods(HashSet<MethodDefinition> pBrandNewMethods)
+    {
+        LogService.LogWarning($"Find {pBrandNewMethods.Count} brand new methods, creating...");
+        int count = pBrandNewMethods.Count;
+        HashSet<MethodDefinition> dup_brand_new_methods = new(pBrandNewMethods);
+        while (count-- > 0)
+        {
+            foreach (MethodDefinition method_definition in dup_brand_new_methods)
+            {
+                try
+                {
+                    DynamicMethodDefinition dynamic_method_definition = regenerate(method_definition);
+                    var generated = dynamic_method_definition.Generate();
+                    _regenerated_brand_new_methods[method_definition] = generated;
+                }
+                catch (Exception e)
+                {
+                    LogService.LogError($"Failed to create brand new method {method_definition.FullName}");
+                    LogService.LogError(e.Message);
+                    LogService.LogError(e.StackTrace);
+                    continue;
+                }
+                pBrandNewMethods.Remove(method_definition);
+            }
+        }
     }
 
     private static bool NeedHotfix(MethodInfo pOldMethod, MethodDefinition pNewMethod)
@@ -394,7 +465,30 @@ internal static class ModReloadUtils
 
                 if (inst.Operand is MemberReference member_reference)
                 {
-                    operand_type = member_reference.ResolveReflection().GetType();
+                    MemberInfo resolved = null;
+                    try
+                    {
+                        resolved = member_reference.ResolveReflection();
+                        if(resolved == null)
+                            throw new Exception($"Failed to resolve member reference {member_reference.FullName}");
+                    }
+                    catch (Exception e)
+                    {
+                        try
+                        {
+                            if (member_reference is MethodReference method_reference)
+                            {
+                                resolved = _regenerated_brand_new_methods[method_reference.Resolve()];
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            LogService.LogError($"Failed to resolve member reference {member_reference.FullName}");
+                            LogService.LogError(e.Message);
+                            LogService.LogError(e.StackTrace);
+                        }
+                    }
+                    operand_type = resolved.GetType();
                     if (!_emit_method_cache.TryGetValue(operand_type, out var emit_method))
                     {
                         emit_method = AccessTools.Method(typeof(ILGenerator), "Emit",
@@ -407,7 +501,7 @@ internal static class ModReloadUtils
                         throw new Exception($"Failed to get emit method for {operand_type.FullName}");
                     }
 
-                    emit_method.Invoke(il, new object[] { op_code, member_reference.ResolveReflection() });
+                    emit_method.Invoke(il, new object[] { op_code, resolved });
                 }
                 else if (inst.Operand is VariableReference variable_reference)
                 {
