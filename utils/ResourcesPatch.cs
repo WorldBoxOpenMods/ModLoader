@@ -192,6 +192,15 @@ internal static class ResourcesPatch
             tree.Add($"ui/special/{sprite.name.Replace("(Clone)", "")}", sprite);
         }
     }
+
+    internal static void PatchSomeResources()
+    {
+        Sprite[] items = Resources.LoadAll<Sprite>("actors/races/items");
+        foreach (Sprite item in items)
+        {
+            ActorAnimationLoader.dictItems[item.name] = item;
+        }
+    }
     /// <summary>
     /// Load a resource file from path, and named by pLowerPath.
     /// </summary>
