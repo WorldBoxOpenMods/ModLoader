@@ -23,10 +23,40 @@ internal static class ModReloadUtils
     private static ModDeclare _mod_declare;
     private static string _new_compiled_dll_path;
     private static string _new_compiled_pdb_path;
+    private static AssemblyDefinition _old_assembly_definition;
+    private static Dictionary<string, MethodDefinition> _old_method_definitions = new();
     public static bool Prepare(IMod pMod)
     {
         _mod = pMod;
         _mod_declare = pMod.GetDeclaration();
+        
+        _new_compiled_dll_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.dll");
+        _new_compiled_pdb_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.pdb");
+
+        try
+        {
+            _old_assembly_definition.Dispose();
+            _old_assembly_definition = null;
+            _old_method_definitions.Clear();
+        }
+        catch (Exception e)
+        {
+            // ignored
+        }
+        
+        if (!File.Exists(_new_compiled_dll_path))
+        {
+            LogService.LogError($"No compiled dll found for mod {_mod_declare.UID}");
+            return false;
+        }
+        if(File.Exists(_new_compiled_pdb_path + ".bak"))
+        {
+            File.Delete(_new_compiled_pdb_path + ".bak");
+        }
+        File.Copy(_new_compiled_dll_path, _new_compiled_dll_path + ".bak", true);
+        _old_assembly_definition = AssemblyDefinition.ReadAssembly(_new_compiled_dll_path + ".bak");
+        
+        
         return true;
     }
 
@@ -34,10 +64,16 @@ internal static class ModReloadUtils
     {
         if (ModCompileLoadService.TryCompileModAtRuntime(_mod_declare, true))
         {
-            _new_compiled_dll_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.dll");
-            _new_compiled_pdb_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.pdb");
+            foreach(var type in _old_assembly_definition.MainModule.Types)
+            {
+                foreach(var method in type.Methods)
+                {
+                    _old_method_definitions[method.FullName] = method;
+                }
+            }
             return true;
         }
+        
         return false;
     }
     private static Dictionary<Mono.Cecil.Cil.OpCode, OpCode> _op_code_map = new();
@@ -110,19 +146,42 @@ internal static class ModReloadUtils
 
     private static bool NeedHotfix(MethodInfo pOldMethod, MethodDefinition pNewMethod)
     {
-        var old_il = pOldMethod.GetMethodBody().GetILAsByteArray();
-        var new_il = pNewMethod.ResolveReflection().GetMethodBody().GetILAsByteArray();
-        if (old_il.Length != new_il.Length)
+        if(_old_method_definitions.TryGetValue(pNewMethod.FullName, out var old_method_definition) is false)
+        {
+            LogService.LogWarning($"No found method {pNewMethod.FullName} in old assembly");
+            return true;
+        }
+        var old_il = old_method_definition.Body.Instructions;
+        var new_il = pNewMethod.Body.Instructions;
+        
+        if (old_il.Count != new_il.Count)
         {
             return true;
         }
+        var old_sb = new StringBuilder();
+        var new_sb = new StringBuilder();
 
-        for (int i = 0; i < old_il.Length; i++)
+        const string skipAddrFormat = "IL_0000: ";
+        foreach (var inst in old_il)
         {
-            if (old_il[i] != new_il[i]) return true;
+            if (inst.Operand is Instruction inst_inst) {
+                old_sb.AppendLine($"{inst.OpCode} {inst_inst.Offset - inst.Offset}");
+            }
+            else {
+                old_sb.AppendLine(inst.ToString().Substring(skipAddrFormat.Length));
+            }
         }
-
-        return false;
+        foreach (var inst in new_il)
+        {
+            if (inst.Operand is Instruction inst_inst) {
+                new_sb.AppendLine($"{inst.OpCode} {inst_inst.Offset - inst.Offset}");
+            }
+            else {
+                new_sb.AppendLine(inst.ToString().Substring(skipAddrFormat.Length));
+            }
+        }
+        
+        return old_sb.ToString().GetHashCode() != new_sb.ToString().GetHashCode();
     }
 
     private static void InitializeOpcodeMap()
