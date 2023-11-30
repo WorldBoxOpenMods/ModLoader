@@ -521,7 +521,23 @@ internal static class ModReloadUtils
                         throw new Exception($"Failed to get emit method for {operand_type.FullName}");
                     }
 
-                    emit_method.Invoke(il, new object[] { op_code, inst.Operand });
+                    try
+                    {
+                        emit_method.Invoke(il, new object[] { op_code, inst.Operand });
+                    }
+                    catch (Exception e)
+                    {
+                        if (inst.Operand is sbyte as_sbyte)
+                        {
+                            il.Emit(op_code, (int)as_sbyte);
+                        }
+                        else
+                        {
+                            LogService.LogError($"Failed to emit {op_code} {inst.Operand}({inst.Operand?.GetType().FullName})");
+                            LogService.LogError(e.Message);
+                            LogService.LogError(e.StackTrace);
+                        }
+                    }
                 }
             }
         }
