@@ -25,7 +25,11 @@ namespace NCMS.Utils
 
         public static ScrollWindow CreateNewWindow(string pWindowID, string pWindowTitleKey)
         {
-            return WindowCreator.CreateEmptyWindow(pWindowID, pWindowTitleKey);
+            LM.AddToCurrentLocale(pWindowTitleKey, pWindowTitleKey);
+            ScrollWindow window = WindowCreator.CreateEmptyWindow(pWindowID, pWindowTitleKey);
+            window.gameObject.transform.Find("Background/Title").GetComponent<LocalizedText>().setKeyAndUpdate(pWindowTitleKey);
+            window.gameObject.transform.Find("Background/Title").GetComponent<LocalizedText>().autoField = false;
+            return window;
         }
 
         public static void ShowWindow(string pWindowID)
