@@ -379,6 +379,7 @@ public static class ModCompileLoadService
                 // Check if it is a NCMS Mod
                 if (Attribute.GetCustomAttribute(type, typeof(NCMS.ModEntry)) != null && type.IsSubclassOf(typeof(MonoBehaviour)))
                 {
+                    pMod.IsNCMSMod = true;
                     mod_instance = new GameObject(pMod.Name)
                     {
                         transform =
