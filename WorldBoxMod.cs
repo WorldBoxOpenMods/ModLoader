@@ -106,6 +106,7 @@ public class WorldBoxMod : MonoBehaviour
                     }
                 }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
+            SmoothLoader.add(ResourcesPatch.PatchSomeResources, "Patch part of Resources into game");
             SmoothLoader.add(() =>
             {
                 ModCompileLoadService.loadMods(mods_to_load);
