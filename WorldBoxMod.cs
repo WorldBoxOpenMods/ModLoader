@@ -106,6 +106,7 @@ public class WorldBoxMod : MonoBehaviour
                     }
                 }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
+            SmoothLoader.add(ResourcesPatch.PatchSomeResources, "Patch part of Resources into game");
             SmoothLoader.add(() =>
             {
                 ModCompileLoadService.loadMods(mods_to_load);
@@ -224,6 +225,12 @@ public class WorldBoxMod : MonoBehaviour
                 Assembly.LoadFrom(file_full_path);
                 // LogService.LogInfo($"Load assembly {file_full_path} successfully.");
             } catch (BadImageFormatException) {
+                switch (Path.GetFileName(file_full_path))
+                {
+                    case "System.IO.Compression.FileSystem.dll":
+                        // Just because BepInEx not installed
+                        continue;
+                }
                 LogService.LogError($"" +
                                     $"BadImageFormatException: " +
                                     $"The file {file_full_path} is not a valid assembly.");

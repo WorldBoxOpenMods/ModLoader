@@ -7,13 +7,11 @@ public static class Paths
 {
     public static readonly string NMLModPath = Assembly.GetExecutingAssembly().Location;
 
-    //public static readonly string NMLModPath =
-    //    @"C:\Program Files (x86)\Steam\steamapps\common\worldbox\worldbox_Data\StreamingAssets\mods\NeoModLoader.dll";
-    public static readonly string NMLPath = Combine(NMLModPath, "..", "NML");
-
     public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
     public static readonly string StreamingAssetsPath = Combine(Application.streamingAssetsPath);
+    public static readonly string NativeModsPath = Combine(StreamingAssetsPath, "Mods");
     public static readonly string ManagedPath = Combine(StreamingAssetsPath, "..", "Managed");
+    public static readonly string NMLPath = Combine(NativeModsPath, "NML");
     public static string GamePath => Application.platform switch {
         RuntimePlatform.WindowsPlayer => Combine(StreamingAssetsPath, "..", ".."),
         RuntimePlatform.LinuxPlayer => Combine(StreamingAssetsPath, "..", ".."),

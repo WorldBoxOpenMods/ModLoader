@@ -10,7 +10,7 @@
         <PackageProjectUrl>https://github.com/WorldBoxOpenMods</PackageProjectUrl>
         <RepositoryUrl>https://github.com/WorldBoxOpenMods/ModLoader</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-        <AssemblyVersion>1.0.3</AssemblyVersion>
+        <AssemblyVersion>1.0.4</AssemblyVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -48,6 +48,15 @@
       </Reference>
       <Reference Include="Mono.Cecil">
         <HintPath>resources\assemblies\Mono.Cecil.dll</HintPath>
+      </Reference>
+      <Reference Include="Mono.Cecil.Mdb">
+        <HintPath>resources\assemblies\Mono.Cecil.Mdb.dll</HintPath>
+      </Reference>
+      <Reference Include="Mono.Cecil.Pdb">
+        <HintPath>resources\assemblies\Mono.Cecil.Pdb.dll</HintPath>
+      </Reference>
+      <Reference Include="Mono.Cecil.Rocks">
+        <HintPath>resources\assemblies\Mono.Cecil.Rocks.dll</HintPath>
       </Reference>
       <Reference Include="MonoMod.RuntimeDetour">
         <HintPath>resources\assemblies\MonoMod.RuntimeDetour.dll</HintPath>
@@ -418,6 +427,33 @@
       <Reference Include="UnityEngine.UIModule">
         <HintPath>assembly-dependencies\UnityEngine.UIModule.dll</HintPath>
       </Reference>
+      <Reference Update="System">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.Core">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.Data">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.Drawing">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.IO.Compression.FileSystem">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.Numerics">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.Runtime.Serialization">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.Xml">
+        <Private>True</Private>
+      </Reference>
+      <Reference Update="System.Xml.Linq">
+        <Private>True</Private>
+      </Reference>
     </ItemGroup>
   
     <ItemGroup>
@@ -439,9 +475,7 @@
       <None Remove="resources\assemblies\Mono.Cecil.dll" />
       <EmbeddedResource Include="resources\assemblies\Mono.Cecil.dll" />
       <None Remove="resources\assemblies\MonoMod.RuntimeDetour.dll" />
-      <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll" />
       <None Remove="resources\assemblies\MonoMod.Utils.dll" />
-      <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll" />
       <None Remove="resources\assemblies\mscorlib.dll" />
       <EmbeddedResource Include="resources\assemblies\mscorlib.dll" />
       <None Remove="resources\assemblies\netstandard.dll" />
@@ -670,11 +704,21 @@
       <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
       <None Remove="resources\reload.png" />
       <EmbeddedResource Include="resources\reload.png" />
+      <None Remove="resources\assemblies\MonoMod.Backports.dll" />
+      <None Remove="resources\assemblies\MonoMod.ILHelpers.dll" />
+      <None Remove="resources\assemblies\Mono.Cecil.Mdb.dll" />
+      <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Mdb.dll" />
+      <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll" />
+      <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll" />
+      <None Remove="resources\assemblies\Mono.Cecil.Rocks.dll" />
+      <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Rocks.dll" />
     </ItemGroup>
   
     <ItemGroup>
       <Content Include=".github\ISSUE_TEMPLATE\bug-report-en.yaml" />
       <Content Include=".github\ISSUE_TEMPLATE\bug-report-zh.yaml" />
+      <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll" />
+      <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll" />
     </ItemGroup>
   
     <ItemGroup>
