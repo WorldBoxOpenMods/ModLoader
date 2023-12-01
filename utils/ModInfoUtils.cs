@@ -73,7 +73,7 @@ internal static class ModInfoUtils
 
         bool NCMSHere()
         {
-            return Directory.GetFiles(Path.Combine(Paths.NMLModPath, ".."), "NCMS*.dll").Length > 0;
+            return Directory.GetFiles(Paths.NativeModsPath, "NCMS*.dll").Length > 0;
         }
 
         string[] workshop_mod_folders;

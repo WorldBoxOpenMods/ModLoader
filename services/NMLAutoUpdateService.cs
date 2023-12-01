@@ -186,18 +186,49 @@ internal static class NMLAutoUpdateService
         {
             updated = true;
             LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
-            last_info.Delete();
-            File.Copy(dll_path, Paths.NMLModPath, true);
+            try
+            {
+                last_info.Delete();
+                File.Copy(dll_path, Paths.NMLModPath, true);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                if (Paths.NMLModPath.EndsWith("_memload.dll"))
+                {
+                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll"));
+                    if (another_one.Exists)
+                    {
+                        another_one.Delete();
+                    }
+                    File.Copy(dll_path, Paths.NMLModPath.Replace("_memload.dll", ".dll"), true);
+                }
+                else
+                {
+                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace(".dll", "_memload.dll"));
+                    if (another_one.Exists)
+                    {
+                        another_one.Delete();
+                    }
+                    File.Copy(dll_path, Paths.NMLModPath.Replace(".dll", "_memload.dll"), true);
+                }
+            }
         }
         
         FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
-        FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace(".dll", ".pdb"));
+        FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll").Replace(".dll", ".pdb"));
         if(pdb_info != null && (!last_pdb_info.Exists || pdb_info.LastWriteTime > last_pdb_info.LastWriteTime))
         {
-            updated = true;
-            if(last_pdb_info.Exists)
-                last_pdb_info.Delete();
-            File.Copy(pdb_path, Paths.NMLModPath.Replace(".dll", ".pdb"), true);
+            try
+            {
+                if (last_pdb_info.Exists)
+                    last_pdb_info.Delete();
+                File.Copy(pdb_path, Paths.NMLModPath.Replace("_memload.dll", ".dll").Replace(".dll", ".pdb"), true);
+                updated = true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // ignored
+            }
         }
 
         if (updated)
