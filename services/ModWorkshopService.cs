@@ -14,22 +14,25 @@ namespace NeoModLoader.services;
 internal static class ModWorkshopService
 {
     internal static Promise steamWorkshopPromise;
+    private static IPlatformSpecificModWorkshopService workshopServiceBackend;
 
     public static void Init()
     {
         steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
+        if (Application.platform == RuntimePlatform.WindowsPlayer)
+        {
+            workshopServiceBackend = new ModWorkshopServiceWindows();
+        }
+        else
+        {
+            workshopServiceBackend = new ModWorkshopServiceUnix();
+        }
+
     }
 
     private static void UploadModLoader(string changelog)
     {
-        if (Application.platform == RuntimePlatform.WindowsPlayer)
-        {
-            ModWorkshopServiceWindows.UploadModLoader(changelog);
-        }
-        else
-        {
-            ModWorkshopServiceUnix.UploadModLoader(changelog);
-        }
+        workshopServiceBackend.UploadModLoader(changelog);
     }
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
@@ -52,11 +55,11 @@ internal static class ModWorkshopService
         // Prepare files to upload
         List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
             (filename) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !filename.StartsWith(".");
             },
             (dirname) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !dirname.StartsWith(".");
             });
         foreach (string file_full_path in files_to_upload)
@@ -84,27 +87,11 @@ internal static class ModWorkshopService
             previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
         }
         // This works for BepInEx mods
-        if(!File.Exists(Path.Combine(workshopPath, "mod.json")))
+        if (!File.Exists(Path.Combine(workshopPath, "mod.json")))
         {
             File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
         }
-
-        if (Application.platform == RuntimePlatform.WindowsPlayer)
-        {
-            return UploadModWin(name, description, previewImagePath, workshopPath, changelog, verified);
-        }
-        else
-        {
-            return UploadModUnix(name, description, previewImagePath, workshopPath, changelog, verified);
-        }
-    }
-    private static Promise UploadModWin(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
-    {
-        return ModWorkshopServiceWindows.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
-    }
-    private static Promise UploadModUnix(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
-    {
-        return ModWorkshopServiceUnix.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
+        return workshopServiceBackend.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
     }
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
     {
@@ -118,11 +105,11 @@ internal static class ModWorkshopService
         // Prepare files to upload
         List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
             (filename) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !filename.StartsWith(".");
             },
             (dirname) =>
-            {   // To ignore .git and .vscode and so on files
+            { // To ignore .git and .vscode and so on files
                 return !dirname.StartsWith(".");
             });
         foreach (string file_full_path in files_to_upload)
@@ -150,66 +137,19 @@ internal static class ModWorkshopService
             previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
         }
         // This works for BepInEx mods
-        if(!File.Exists(Path.Combine(workshopPath, "mod.json")))
+        if (!File.Exists(Path.Combine(workshopPath, "mod.json")))
         {
             File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
         }
-
-        if (Application.platform == RuntimePlatform.WindowsPlayer)
-        {
-            return EditModWin(fileID, previewImagePath, workshopPath, changelog);
-        }
-        else
-        {
-           return EditModUnix(fileID, previewImagePath, workshopPath, changelog);
-        }
-    }
-    private static Promise EditModWin(ulong fileID, string previewImagePath, string workshopPath, string changelog)
-    {
-        return ModWorkshopServiceWindows.EditMod(fileID, previewImagePath, workshopPath, changelog);
-    }
-    private static Promise EditModUnix(ulong fileID, string previewImagePath, string workshopPath, string changelog)
-    {
-        return ModWorkshopServiceUnix.EditMod(fileID, previewImagePath, workshopPath, changelog);
+        return workshopServiceBackend.EditMod(fileID, previewImagePath, workshopPath, changelog);
     }
 
     public static void FindSubscribedMods()
     {
-        if (Application.platform == RuntimePlatform.WindowsPlayer)
-        {
-            FindSubscribedModsWin();
-        }
-        else
-        {
-            FindSubscribedModsUnix();
-        }
-    }
-
-    private static void FindSubscribedModsWin()
-    {
-        ModWorkshopServiceWindows.FindSubscribedMods();
-    }
-    private static void FindSubscribedModsUnix()
-    {
-        ModWorkshopServiceUnix.FindSubscribedMods();
+        workshopServiceBackend.FindSubscribedMods();
     }
     public static ModDeclare GetNextModFromWorkshopItem()
     {
-        if (Application.platform == RuntimePlatform.WindowsPlayer)
-        {
-            return GetNextModFromWorkshopItemWin();
-        }
-        else
-        {
-            return GetNextModFromWorkshopItemUnix();
-        }
-    }
-    private static ModDeclare GetNextModFromWorkshopItemWin()
-    {
-        return ModWorkshopServiceWindows.GetNextModFromWorkshopItem();
-    }
-    private static ModDeclare GetNextModFromWorkshopItemUnix()
-    {
-        return ModWorkshopServiceUnix.GetNextModFromWorkshopItem();
+        return workshopServiceBackend.GetNextModFromWorkshopItem();
     }
 }

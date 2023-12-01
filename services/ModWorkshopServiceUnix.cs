@@ -9,9 +9,9 @@ using UnityEngine;
 namespace NeoModLoader.services;
 
 extern alias unixsteamwork;
-internal static class ModWorkshopServiceUnix
+internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
 {
-    internal static void UploadModLoader(string changelog)
+    public void UploadModLoader(string changelog)
     {
         string workshopPath = SaveManager.generateWorkshopPath(CoreConstants.ModName);
         
@@ -59,7 +59,7 @@ internal static class ModWorkshopServiceUnix
                 }
             }, TaskScheduler.Default);
     }
-    public static Promise UploadMod(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
+    public Promise UploadMod(string name, string description, string previewImagePath, string workshopPath, string changelog, bool verified)
     {
         // Create Upload Files Descriptor
         unixsteamwork::Steamworks.Ugc.Editor editor = unixsteamwork::Steamworks.Ugc.Editor.NewCommunityFile.WithTag(verified ? "Mod" : "Unverified Mod")
@@ -97,7 +97,7 @@ internal static class ModWorkshopServiceUnix
 
         return promise;
     }
-    public static Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog)
+    public Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog)
     {
         Promise promise = new();
         // Create Upload Files Descriptor
@@ -134,7 +134,7 @@ internal static class ModWorkshopServiceUnix
     static List<unixsteamwork::Steamworks.Ugc.Item> subscribedItems = new();
     static Queue<unixsteamwork::Steamworks.Ugc.Item> subscribedModsQueue = new();
 
-    public static async void FindSubscribedMods()
+    public async void FindSubscribedMods()
     {
         var items = await GetSubscribedItems();
         foreach (var item in items)
@@ -180,7 +180,7 @@ internal static class ModWorkshopServiceUnix
         }
         return subscribedItems;
     }
-    public static ModDeclare GetNextModFromWorkshopItem()
+    public ModDeclare GetNextModFromWorkshopItem()
     {
         if (subscribedModsQueue.Count == 0)
         {
