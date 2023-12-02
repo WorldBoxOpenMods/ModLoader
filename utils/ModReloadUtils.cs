@@ -62,19 +62,21 @@ internal static class ModReloadUtils
 
     public static bool CompileNew()
     {
-        if (ModCompileLoadService.TryCompileModAtRuntime(_mod_declare, true))
+        if (!ModCompileLoadService.TryCompileModAtRuntime(_mod_declare, true)) return false;
+        foreach(var type in _old_assembly_definition.MainModule.Types)
         {
-            foreach(var type in _old_assembly_definition.MainModule.Types)
+            foreach(var method in type.Methods)
             {
-                foreach(var method in type.Methods)
-                {
-                    _old_method_definitions[method.FullName] = method;
-                }
+                _old_method_definitions[method.FullName] = method;
             }
-            return true;
+
+            foreach (MethodDefinition method in type.NestedTypes.SelectMany(nested_type => nested_type.Methods))
+            {
+                _old_method_definitions[method.FullName] = method;
+            }
         }
-        
-        return false;
+        return true;
+
     }
     private static Dictionary<Mono.Cecil.Cil.OpCode, OpCode> _op_code_map = new();
     public static bool PatchHotfixMethods()
