@@ -62,26 +62,34 @@ internal static class ModReloadUtils
 
     public static bool CompileNew()
     {
-        if (ModCompileLoadService.TryCompileModAtRuntime(_mod_declare, true))
+        if (!ModCompileLoadService.TryCompileModAtRuntime(_mod_declare, true)) return false;
+        foreach(var type in _old_assembly_definition.MainModule.Types)
         {
-            foreach(var type in _old_assembly_definition.MainModule.Types)
+            foreach(var method in type.Methods)
             {
-                foreach(var method in type.Methods)
-                {
-                    _old_method_definitions[method.FullName] = method;
-                }
+                _old_method_definitions[method.FullName] = method;
             }
-            return true;
+
+            foreach (MethodDefinition method in type.NestedTypes.SelectMany(nested_type => nested_type.Methods))
+            {
+                _old_method_definitions[method.FullName] = method;
+            }
         }
-        
-        return false;
+        return true;
+
     }
     private static Dictionary<Mono.Cecil.Cil.OpCode, OpCode> _op_code_map = new();
     public static bool PatchHotfixMethods()
     {
         HarmonyFileLog.Enabled = true;
         AssemblyDefinition assembly_definition = AssemblyDefinition.ReadAssembly(_new_compiled_dll_path);
-        MethodDefinition[] method_definitions = assembly_definition.MainModule.Types.SelectMany(type => type.Methods).ToArray();
+        List<MethodDefinition> method_definitions = new();
+        method_definitions.AddRange(assembly_definition.MainModule.Types.SelectMany(type => type.Methods));
+
+        foreach (TypeDefinition nested_type in assembly_definition.MainModule.Types.SelectMany(type => type.NestedTypes))
+        {
+            method_definitions.AddRange(nested_type.Methods);
+        }
 
         Assembly old_assembly = _mod.GetType().Assembly;
         
@@ -368,12 +376,19 @@ internal static class ModReloadUtils
         }
 
         var labels = new Dictionary<Instruction, Label>();
+        // Track labels
         foreach(var inst in pMethodDefinition.Body.Instructions)
         {
-            if (inst.Operand != null && inst.Operand is Instruction) {
-                var opinst = (Instruction)(inst.Operand);
+            if (inst.Operand is Instruction opinst) {
                 LogService.LogInfo($"\tDeclare label for {opinst.ToString()}");
                 labels[opinst] = il.DefineLabel();
+            }
+            else if (inst.Operand is Instruction[] opinsts)
+            {
+                foreach (var label_inst in opinsts)
+                {
+                    labels[label_inst] = il.DefineLabel();
+                }
             }
         }
 
@@ -506,6 +521,16 @@ internal static class ModReloadUtils
                 else if (inst.Operand is VariableReference variable_reference)
                 {
                     il.Emit(op_code, variable_reference.Index);
+                }
+                else if (inst.Operand is Instruction[] jump_to_insts)
+                {
+                    // switch
+                    Label[] switch_labels = new Label[jump_to_insts.Length];
+                    for (int i = 0; i < jump_to_insts.Length; i++)
+                    {
+                        switch_labels[i] = labels[jump_to_insts[i]];
+                    }
+                    il.Emit(OpCodes.Switch, switch_labels);
                 }
                 else
                 {
