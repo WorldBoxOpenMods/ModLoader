@@ -376,12 +376,19 @@ internal static class ModReloadUtils
         }
 
         var labels = new Dictionary<Instruction, Label>();
+        // Track labels
         foreach(var inst in pMethodDefinition.Body.Instructions)
         {
-            if (inst.Operand != null && inst.Operand is Instruction) {
-                var opinst = (Instruction)(inst.Operand);
+            if (inst.Operand is Instruction opinst) {
                 LogService.LogInfo($"\tDeclare label for {opinst.ToString()}");
                 labels[opinst] = il.DefineLabel();
+            }
+            else if (inst.Operand is Instruction[] opinsts)
+            {
+                foreach (var label_inst in opinsts)
+                {
+                    labels[label_inst] = il.DefineLabel();
+                }
             }
         }
 
@@ -514,6 +521,16 @@ internal static class ModReloadUtils
                 else if (inst.Operand is VariableReference variable_reference)
                 {
                     il.Emit(op_code, variable_reference.Index);
+                }
+                else if (inst.Operand is Instruction[] jump_to_insts)
+                {
+                    // switch
+                    Label[] switch_labels = new Label[jump_to_insts.Length];
+                    for (int i = 0; i < jump_to_insts.Length; i++)
+                    {
+                        switch_labels[i] = labels[jump_to_insts[i]];
+                    }
+                    il.Emit(OpCodes.Switch, switch_labels);
                 }
                 else
                 {
