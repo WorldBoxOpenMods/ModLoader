@@ -81,7 +81,13 @@ internal static class ModReloadUtils
     {
         HarmonyFileLog.Enabled = true;
         AssemblyDefinition assembly_definition = AssemblyDefinition.ReadAssembly(_new_compiled_dll_path);
-        MethodDefinition[] method_definitions = assembly_definition.MainModule.Types.SelectMany(type => type.Methods).ToArray();
+        List<MethodDefinition> method_definitions = new();
+        method_definitions.AddRange(assembly_definition.MainModule.Types.SelectMany(type => type.Methods));
+
+        foreach (TypeDefinition nested_type in assembly_definition.MainModule.Types.SelectMany(type => type.NestedTypes))
+        {
+            method_definitions.AddRange(nested_type.Methods);
+        }
 
         Assembly old_assembly = _mod.GetType().Assembly;
         
