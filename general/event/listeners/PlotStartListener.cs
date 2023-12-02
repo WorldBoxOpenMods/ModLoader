@@ -8,7 +8,7 @@ namespace NeoModLoader.General.Event.Listeners;
 
 public class PlotStartListener : AbstractListener<PlotStartListener, PlotStartHandler>
 {
-    protected static void HandleAll(PlotManager pPlotManager, Plot pPlot, Actor pActor, PlotAsset pAsset)
+    protected static void HandleAll(Plot pPlot, Actor pActor, PlotAsset pAsset)
     {
         StringBuilder sb = null;
         foreach (var handler in instance.handlers)
@@ -16,7 +16,7 @@ public class PlotStartListener : AbstractListener<PlotStartListener, PlotStartHa
             if(!handler.enabled) continue;
             try
             {
-                handler.Handle(pPlotManager, pPlot, pActor, pAsset);
+                handler.Handle(pPlot, pActor, pAsset);
             }
             catch (Exception e)
             {
@@ -40,7 +40,6 @@ public class PlotStartListener : AbstractListener<PlotStartListener, PlotStartHa
         List<CodeInstruction> codes = new(instr);
         
         int insert_index = 25;
-        codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_0));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Dup));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_2));

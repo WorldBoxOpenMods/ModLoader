@@ -8,7 +8,7 @@ namespace NeoModLoader.General.Event.Listeners;
 
 public class WarStartListener : AbstractListener<WarStartListener, WarStartHandler>
 {
-    protected static void HandleAll(WarManager pWarManager, War pWar, Kingdom pAttacker, Kingdom pDefender, WarTypeAsset pWarType)
+    protected static void HandleAll(War pWar, Kingdom pAttacker, Kingdom pDefender, WarTypeAsset pWarType)
     {
         StringBuilder sb = null;
         foreach (var handler in instance.handlers)
@@ -16,7 +16,7 @@ public class WarStartListener : AbstractListener<WarStartListener, WarStartHandl
             if(!handler.enabled) continue;
             try
             {
-                handler.Handle(pWarManager, pWar, pAttacker, pDefender, pWarType);
+                handler.Handle(pWar, pAttacker, pDefender, pWarType);
             }
             catch (Exception e)
             {
@@ -39,8 +39,7 @@ public class WarStartListener : AbstractListener<WarStartListener, WarStartHandl
     {
         List<CodeInstruction> codes = new(instr);
         
-        int insert_index = 48;
-        codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_0));
+        int insert_index = codes.FindIndex(inst => inst.opcode == OpCodes.Ret);
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Dup));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_2));
