@@ -73,6 +73,11 @@ internal static class ModInfoUtils
                 }
                 catch (UnauthorizedAccessException)
                 {
+                    ZipFile.ExtractToDirectory(zipped_mod,
+                        Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(zipped_mod)));
+                }
+                finally
+                {
                     try
                     {
                         File.Delete(zipped_mod);
@@ -83,9 +88,6 @@ internal static class ModInfoUtils
                     {
                         // ignored
                     }
-
-                    ZipFile.ExtractToDirectory(zipped_mod,
-                        Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(zipped_mod)));
                 }
             }
 
