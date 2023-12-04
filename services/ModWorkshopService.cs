@@ -46,10 +46,15 @@ internal static class ModWorkshopService
                              $"{mod_decl.Description}\n\n" +
                              $"ModLoader: {CoreConstants.RepoURL}\n\n" +
                              $"模组加载器: {CoreConstants.RepoURL}";
-        string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UID);
+        string workshopPath = Path.Combine(SaveManager.generateMainPath("workshop_upload_mod") + mod_decl.UID);
         if (Directory.Exists(workshopPath))
         {
             Directory.Delete(workshopPath, true);
+        }
+
+        if (!Directory.Exists(SaveManager.generateMainPath("workshop_upload_mod")))
+        {
+            Directory.CreateDirectory(SaveManager.generateMainPath("workshop_upload_mod"));
         }
 
         Directory.CreateDirectory(workshopPath);
