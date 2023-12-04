@@ -1,26 +1,16 @@
-using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using NeoModLoader.api;
 using NeoModLoader.constants;
-using NeoModLoader.services;
+using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Image = UnityEngine.UI.Image;
 
 namespace NeoModLoader.General.UI.Tab;
 
 public static class TabManager
 {
-    private static readonly Transform tab_entry_container =
-        CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/TabsButtons");
-    private static readonly Transform tab_container = CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/buttons");
-    private static readonly List<Button> tab_entries = new (PowerTabController.instance._buttons); // To avoid other mods' modifies
-    private static readonly List<string> tab_names = new();
-    private static readonly HashSet<string> tab_names_set = new();
-    private const int tab_count_each_line = 10;
+    private const int tab_count_each_line = 14;
     private const float check_new_tabs_interval = 1;
     private const float shrink_coef = 0.79f;
     private const float default_tab_width = 43f;
@@ -28,9 +18,25 @@ public static class TabManager
     private const float default_icon_width = 33f;
     private const float default_icon_height = 11f;
     private const float default_tab_y = 49.62f;
+
+    private static readonly Transform tab_entry_container =
+        CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/TabsButtons");
+
+    private static readonly Transform tab_container = CanvasMain.instance.canvas_ui.transform.Find(
+        "CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/buttons");
+
+    private static readonly List<Button>
+        tab_entries = new(PowerTabController.instance._buttons); // To avoid other mods' modifies
+
+    private static readonly List<string> tab_names = new();
+    private static readonly HashSet<string> tab_names_set = new();
+
+    private static float _check_timer = 0;
+    static Vector3 _last_mouse_pos = Vector3.zero;
+
     internal static void _init()
     {
-        Harmony.CreateAndPatchAll(typeof(TabManager), constants.Others.harmony_id);
+        Harmony.CreateAndPatchAll(typeof(TabManager), Others.harmony_id);
         var _tab_names = PowerTabNames.GetNames();
         for (int i = 1; i < _tab_names.Count; i++)
         {
@@ -45,11 +51,14 @@ public static class TabManager
         {
             return;
         }
-        List<string> predefined_order = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(Paths.TabOrderRecordPath));
+
+        List<string> predefined_order =
+            JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(Paths.TabOrderRecordPath));
         if (predefined_order == null)
         {
             return;
         }
+
         List<int> indexs = new(); // Current indexs of predefined_order in tab_names
         foreach (var tab_name in predefined_order)
         {
@@ -58,23 +67,24 @@ public static class TabManager
             {
                 continue;
             }
+
             indexs.Add(index);
         }
 
         List<int> sorted_indexs = new(indexs); // Target indexs of predefined_order in tab_names
         sorted_indexs.Sort();
-        
-        for(int i = 0; i < sorted_indexs.Count; i++)
+
+        for (int i = 0; i < sorted_indexs.Count; i++)
         {
             int current_index = indexs[i];
             int target_index = sorted_indexs[i];
-            
+
             if (current_index == target_index) continue;
-            
+
             tab_names.Swap(current_index, target_index);
             tab_entries.Swap(current_index, target_index);
-            
-            for(int j = i + 1; j < sorted_indexs.Count; j++)
+
+            for (int j = i + 1; j < sorted_indexs.Count; j++)
             {
                 if (indexs[j] == target_index)
                 {
@@ -87,8 +97,9 @@ public static class TabManager
 
     private static void _savePredefinedOrder()
     {
-        File.WriteAllText(Paths.TabOrderRecordPath, Newtonsoft.Json.JsonConvert.SerializeObject(tab_names));
+        File.WriteAllText(Paths.TabOrderRecordPath, JsonConvert.SerializeObject(tab_names));
     }
+
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getNext))]
     private static IEnumerable<CodeInstruction> _getNext_Patch(IEnumerable<CodeInstruction> instr)
@@ -117,6 +128,7 @@ public static class TabManager
         };
         return codes;
     }
+
     private static Button _getNext_Overwrite(this PowerTabController instance, string pActiveTab)
     {
         return tab_entries[(tab_names.IndexOf(pActiveTab) + 1) % tab_entries.Count];
@@ -134,10 +146,10 @@ public static class TabManager
         {
             index = tab_entries.Count;
         }
-        return tab_entries[index-1];
+
+        return tab_entries[index - 1];
     }
 
-    private static float _check_timer = 0;
     internal static void _checkNewTabs()
     {
         if (_check_timer > 0)
@@ -152,15 +164,17 @@ public static class TabManager
         Button[] curr_tab_entries = tab_entry_container.GetComponentsInChildren<Button>(false);
 
         if (curr_tab_entries.Length == tab_entries.Count) return;
+
         string GetTabMainPart(string name)
         {
             return name.Replace("Tab", "").Replace("Button", "").Replace("_", "").Replace(" ", "");
         }
+
         bool need_update = false;
         foreach (var tab in curr_tabs)
         {
             string tab_name = tab.name;
-            if(tab_names_set.Contains(tab_name)) continue;
+            if (tab_names_set.Contains(tab_name)) continue;
 
             string assumed_entry_button_main_part = GetTabMainPart(tab_name);
 
@@ -187,20 +201,15 @@ public static class TabManager
         {
             trigger = tab_entry.gameObject.AddComponent<EventTrigger>();
         }
+
         EventTrigger.Entry entry = new EventTrigger.Entry();
         entry.eventID = EventTriggerType.EndDrag;
-        entry.callback.AddListener((data) =>
-        {
-            _setToValidPosition(tab_entry, pTabName);
-        });
+        entry.callback.AddListener((data) => { _setToValidPosition(tab_entry, pTabName); });
         trigger.triggers.Add(entry);
-        
+
         entry = new EventTrigger.Entry();
         entry.eventID = EventTriggerType.Drag;
-        entry.callback.AddListener((data) =>
-        {
-            _onDragTabEntry(tab_entry, pTabName);
-        });
+        entry.callback.AddListener((data) => { _onDragTabEntry(tab_entry, pTabName); });
         trigger.triggers.Add(entry);
     }
 
@@ -210,13 +219,13 @@ public static class TabManager
         _savePredefinedOrder();
         _updateTabLayout();
     }
-    static Vector3 _last_mouse_pos = Vector3.zero;
+
     private static void _onDragTabEntry(Button pTabEntry, string pTabName)
     {
         RectTransform tab_entry_rect = pTabEntry.GetComponent<RectTransform>();
         Vector3 mouse_pos = Input.mousePosition;
         Vector3 mouse_pos_local = tab_entry_rect.parent.InverseTransformPoint(mouse_pos);
-        
+
         if (_last_mouse_pos == Vector3.zero)
         {
             _last_mouse_pos = mouse_pos_local;
@@ -224,12 +233,12 @@ public static class TabManager
         }
 
         Vector3 delta = (mouse_pos_local - _last_mouse_pos);
-        
+
         Vector3 current_pos = tab_entry_rect.localPosition;
 
         int index = tab_names.IndexOf(pTabName);
-        
-        
+
+
         void swap(bool left)
         {
             tab_names.Swap(index, index + (left ? -1 : 1));
@@ -237,20 +246,20 @@ public static class TabManager
             _updateTabEntryRectAs(tab_entries[index], index);
             _updateTabEntryRectAs(tab_entries[index + (left ? -1 : 1)], index + (left ? -1 : 1));
             var position = tab_entry_rect.localPosition;
-            if(Math.Abs(position.y - current_pos.y) > 0.01f)
+            if (Math.Abs(position.y - current_pos.y) > 0.01f)
             {
                 delta.x = 0;
                 current_pos = position;
             }
         }
-        
+
         if (index == 0)
         {
             if (delta.x > 0)
             {
                 var right_pos = tab_entries[1].transform.localPosition;
                 // Move to right
-                if(current_pos.x > right_pos.x)
+                if (current_pos.x > right_pos.x)
                 {
                     swap(false);
                 }
@@ -262,7 +271,7 @@ public static class TabManager
             {
                 var right_pos = tab_entries[index - 1].transform.localPosition;
                 // Move to left
-                if(current_pos.x < right_pos.x)
+                if (current_pos.x < right_pos.x)
                 {
                     swap(true);
                 }
@@ -274,7 +283,7 @@ public static class TabManager
             {
                 var right_pos = tab_entries[index - 1].transform.localPosition;
                 // Move to right
-                if(current_pos.x < right_pos.x)
+                if (current_pos.x < right_pos.x)
                 {
                     swap(true);
                 }
@@ -283,11 +292,10 @@ public static class TabManager
             {
                 var right_pos = tab_entries[index + 1].transform.localPosition;
                 // Move to left
-                if(current_pos.x > right_pos.x)
+                if (current_pos.x > right_pos.x)
                 {
                     swap(false);
                 }
-                
             }
         }
 
@@ -310,25 +318,31 @@ public static class TabManager
         int row_nr = Math.Min(tab_count_each_line, tab_entries.Count);
         int pos_x = (index % row_nr) - row_nr / 2;
         int pos_y = index / row_nr;
-        
-        
+
+
         RectTransform tab_rect = tab.gameObject.GetComponent<RectTransform>();
-				
-        float new_y = default_tab_y + (Mathf.Pow(shrink_coef, pos_y) * default_tab_height - default_tab_height) / 2 + (1 - Mathf.Pow(shrink_coef, pos_y)) / (1 - shrink_coef) * default_tab_height;
-				
-        tab_rect.sizeDelta = new Vector2(Mathf.Pow(shrink_coef, pos_y)*default_tab_width, Mathf.Pow(shrink_coef, pos_y)*default_tab_height);
-				
-        tab_rect.localPosition = new Vector3(pos_x*default_tab_width, new_y, tab_rect.localPosition.z);
-				
-        try{
+
+        float new_y = default_tab_y + (Mathf.Pow(shrink_coef, pos_y) * default_tab_height - default_tab_height) / 2 +
+                      (1 - Mathf.Pow(shrink_coef, pos_y)) / (1 - shrink_coef) * default_tab_height;
+
+        tab_rect.sizeDelta = new Vector2(Mathf.Pow(shrink_coef, pos_y) * default_tab_width,
+            Mathf.Pow(shrink_coef, pos_y) * default_tab_height);
+
+        tab_rect.localPosition = new Vector3(pos_x * default_tab_width, new_y, tab_rect.localPosition.z);
+
+        try
+        {
             RectTransform icon_rect = tab.transform.Find("Icon").gameObject.GetComponent<RectTransform>();
-				
-            icon_rect.sizeDelta = new Vector2(Mathf.Pow(shrink_coef, pos_y)*default_icon_width, Mathf.Pow(shrink_coef, pos_y)*default_icon_height);
+
+            icon_rect.sizeDelta = new Vector2(Mathf.Pow(shrink_coef, pos_y) * default_icon_width,
+                Mathf.Pow(shrink_coef, pos_y) * default_icon_height);
         }
-        catch(Exception){
+        catch (Exception)
+        {
             // DO NOTHING HERE, ONLY NOT FIND "Icon" IN TAB
         }
     }
+
     private static void _addTabEntry(GameObject pTabEntry, string pTabId)
     {
         if (tab_entries.Count % 2 == 0)
@@ -341,8 +355,10 @@ public static class TabManager
             tab_entries.Add(pTabEntry.GetComponent<Button>());
             tab_names.Add(pTabId);
         }
+
         tab_names_set.Add(pTabId);
     }
+
     /// <summary>
     /// Create a tab which can act as vanilla tabs
     /// </summary>
@@ -353,29 +369,32 @@ public static class TabManager
     /// <returns>The tab created</returns>
     public static PowersTab CreateTab(string name, string pTitleKey, string pDescKey, Sprite pIcon)
     {
-        GameObject tab_entry = GameObject.Instantiate(ResourcesFinder.FindResources<GameObject>("Button_Other")[0], tab_entry_container);
+        GameObject tab_entry = GameObject.Instantiate(ResourcesFinder.FindResources<GameObject>("Button_Other")[0],
+            tab_entry_container);
 
         tab_entry.name = "Button_" + name;
         tab_entry.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
-        
-        PowersTab tab = GameObject.Instantiate(ResourcesFinder.FindResources<GameObject>("Tab_Other")[0].GetComponent<PowersTab>(),
+
+        PowersTab tab = GameObject.Instantiate(
+            ResourcesFinder.FindResources<GameObject>("Tab_Other")[0].GetComponent<PowersTab>(),
             tab_container);
-        
+
         tab.name = "Tab_" + name;
 
         Button tab_entry_button = tab_entry.GetComponent<Button>();
         tab_entry_button.onClick = new Button.ButtonClickedEvent();
-        tab_entry_button.onClick.AddListener(()=>tab.showTab(tab_entry_button));
-        tab_entry_button.onClick.AddListener(()=>tab_entry.GetComponent<ButtonSfx>().playSound());
-            
+        tab_entry_button.onClick.AddListener(() => tab.showTab(tab_entry_button));
+        tab_entry_button.onClick.AddListener(() => tab_entry.GetComponent<ButtonSfx>().playSound());
+
         TipButton tab_entry_tip = tab_entry.GetComponent<TipButton>();
         tab_entry_tip.textOnClick = pTitleKey;
         tab_entry_tip.text_description_2 = pDescKey;
         // Clear tab content
-        for(int i = 7; i < tab.transform.childCount; i++)
+        for (int i = 7; i < tab.transform.childCount; i++)
         {
             GameObject.Destroy(tab.transform.GetChild(i).gameObject);
         }
+
         tab.powerButtons.Clear();
         // Add default powerButtons
         foreach (PowerButton power_button in tab.GetComponentsInChildren<PowerButton>())
@@ -385,18 +404,19 @@ public static class TabManager
                 tab.powerButtons.Add(power_button);
             }
         }
+
         foreach (PowerButton power_button in tab.powerButtons)
         {
             power_button.findNeighbours(tab.powerButtons);
         }
+
         _addDragEventTo(tab_entry_button, tab.name);
         _addTabEntry(tab_entry, tab.name);
         _updateTabLayout();
-        
+
         tab.gameObject.SetActive(false);
-        
-        
-        
+
+
         tab.gameObject.SetActive(true);
         return tab;
     }
