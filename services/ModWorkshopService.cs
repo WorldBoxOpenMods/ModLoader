@@ -1,10 +1,10 @@
 using System.Reflection;
-using HarmonyLib;
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.utils;
+using Newtonsoft.Json;
 using RSG;
 using UnityEngine;
 
@@ -27,13 +27,13 @@ internal static class ModWorkshopService
         {
             workshopServiceBackend = new ModWorkshopServiceUnix();
         }
-
     }
 
     private static void UploadModLoader(string changelog)
     {
         workshopServiceBackend.UploadModLoader(changelog);
     }
+
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
     /// </summary>
@@ -51,16 +51,19 @@ internal static class ModWorkshopService
         {
             Directory.Delete(workshopPath, true);
         }
+
         Directory.CreateDirectory(workshopPath);
         // Prepare files to upload
         List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
             (filename) =>
-            { // To ignore .git and .vscode and so on files
+            {
+                // To ignore .git and .vscode and so on files
                 return !filename.StartsWith(".");
             },
             (dirname) =>
-            { // To ignore .git and .vscode and so on files
-                return !dirname.StartsWith(".");
+            {
+                // To ignore .git and .vscode and so on files
+                return !dirname.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dirname);
             });
         foreach (string file_full_path in files_to_upload)
         {
@@ -71,12 +74,15 @@ internal static class ModWorkshopService
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             }
+
             File.Copy(file_full_path, path);
         }
+
         string previewImagePath;
         if (string.IsNullOrEmpty(mod_decl.IconPath))
         {
-            using Stream icon_stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NeoModLoader.resources.logo.png");
+            using Stream icon_stream = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("NeoModLoader.resources.logo.png");
             using FileStream icon_file = File.Create(Path.Combine(workshopPath, "preview.png"));
             icon_stream.Seek(0, SeekOrigin.Begin);
             icon_stream.CopyTo(icon_file);
@@ -86,13 +92,16 @@ internal static class ModWorkshopService
         {
             previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
         }
+
         // This works for BepInEx mods
         if (!File.Exists(Path.Combine(workshopPath, "mod.json")))
         {
-            File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
+            File.WriteAllText(Path.Combine(workshopPath, "mod.json"), JsonConvert.SerializeObject(mod_decl));
         }
+
         return workshopServiceBackend.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified);
     }
+
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
     {
         ModDeclare mod_decl = mod.GetDeclaration();
@@ -101,15 +110,18 @@ internal static class ModWorkshopService
         {
             Directory.Delete(workshopPath, true);
         }
+
         Directory.CreateDirectory(workshopPath);
         // Prepare files to upload
         List<string> files_to_upload = SystemUtils.SearchFileRecursive(mod_decl.FolderPath,
             (filename) =>
-            { // To ignore .git and .vscode and so on files
+            {
+                // To ignore .git and .vscode and so on files
                 return !filename.StartsWith(".");
             },
             (dirname) =>
-            { // To ignore .git and .vscode and so on files
+            {
+                // To ignore .git and .vscode and so on files
                 return !dirname.StartsWith(".");
             });
         foreach (string file_full_path in files_to_upload)
@@ -121,12 +133,15 @@ internal static class ModWorkshopService
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             }
+
             File.Copy(file_full_path, path);
         }
+
         string previewImagePath;
         if (string.IsNullOrEmpty(mod_decl.IconPath))
         {
-            using Stream icon_stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NeoModLoader.resources.logo.png");
+            using Stream icon_stream = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("NeoModLoader.resources.logo.png");
             using FileStream icon_file = File.Create(Path.Combine(workshopPath, "preview.png"));
             icon_stream.Seek(0, SeekOrigin.Begin);
             icon_stream.CopyTo(icon_file);
@@ -136,11 +151,13 @@ internal static class ModWorkshopService
         {
             previewImagePath = Path.Combine(workshopPath, mod_decl.IconPath);
         }
+
         // This works for BepInEx mods
         if (!File.Exists(Path.Combine(workshopPath, "mod.json")))
         {
-            File.WriteAllText(Path.Combine(workshopPath, "mod.json"), Newtonsoft.Json.JsonConvert.SerializeObject(mod_decl));
+            File.WriteAllText(Path.Combine(workshopPath, "mod.json"), JsonConvert.SerializeObject(mod_decl));
         }
+
         return workshopServiceBackend.EditMod(fileID, previewImagePath, workshopPath, changelog);
     }
 
@@ -148,6 +165,7 @@ internal static class ModWorkshopService
     {
         workshopServiceBackend.FindSubscribedMods();
     }
+
     public static ModDeclare GetNextModFromWorkshopItem()
     {
         return workshopServiceBackend.GetNextModFromWorkshopItem();
