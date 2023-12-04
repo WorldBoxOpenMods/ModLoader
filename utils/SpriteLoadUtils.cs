@@ -1,7 +1,9 @@
 using NeoModLoader.constants;
 using NeoModLoader.services;
+using Newtonsoft.Json;
 using UnityEngine;
 using YamlDotNet.Serialization;
+
 namespace NeoModLoader.utils;
 
 [Serializable]
@@ -15,6 +17,7 @@ class SpriteSheet
 {
     public List<SingleSpriteMetaData> sprites;
 }
+
 [Serializable]
 class SingleSpriteMetaData
 {
@@ -24,6 +27,7 @@ class SingleSpriteMetaData
     public Vector2 pivot;
     public Vector4 border;
 }
+
 /// <summary>
 /// A utility class for loading sprites.
 /// </summary>
@@ -32,40 +36,14 @@ class SingleSpriteMetaData
 /// </remarks>
 public static class SpriteLoadUtils
 {
-    class MetaFile
-    {
-        public TextureImporter TextureImporter;
-    }
-
-    class NCMSSpritesSettings
-    {
-        public class SpecificSetting
-        {
-            public string Path = "\\";
-            public float PivotX = 0.5f;
-            public float PivotY = 0.0f;
-            public float PixelsPerUnit = 1f;
-            public float RectX = 0.0f;
-            public float RectY = 0.0f;
-            public Sprite loadFromPath(string path)
-            {
-                Texture2D texture = new(0, 0);
-                texture.filterMode = FilterMode.Point;
-                texture.LoadImage(File.ReadAllBytes(path));
-                Sprite sprite = Sprite.Create(texture, new Rect(RectX, RectY, texture.width, texture.height), new Vector2(PivotX, PivotY), PixelsPerUnit);
-                sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
-                return sprite;
-            }
-        }
-        public SpecificSetting Default;
-        public List<SpecificSetting> Specific;
-
-        public override String ToString()
-        {
-            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
-        }
-    }
     private static Dictionary<string, Sprite> singleSpriteCache = new();
+    private static Dictionary<string, NCMSSpritesSettings> dirNCMSSettings = new();
+    private static HashSet<string> ignoreNCMSSettingsSearchPath = new();
+    private static NCMSSpritesSettings.SpecificSetting defaultNCMSSetting = new();
+
+    private static IDeserializer deserializer =
+        new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
+
     public static Sprite LoadSingleSprite(string path)
     {
         if (singleSpriteCache.TryGetValue(path, out Sprite s))
@@ -77,10 +55,7 @@ public static class SpriteLoadUtils
         singleSpriteCache[path] = sprite;
         return sprite;
     }
-    private static Dictionary<string, NCMSSpritesSettings> dirNCMSSettings = new();
-    private static HashSet<string> ignoreNCMSSettingsSearchPath = new();
-    private static NCMSSpritesSettings.SpecificSetting defaultNCMSSetting = new();
-    
+
     public static Sprite[] LoadSprites(string path)
     {
         TextureImporter textureImporter = loadMeta($"{path}.meta");
@@ -114,10 +89,10 @@ public static class SpriteLoadUtils
                 }
 
                 sprite.name = Path.GetFileNameWithoutExtension(path);
-                return new Sprite[]{sprite};
+                return new Sprite[] { sprite };
             }
         }
-        
+
         return loadSpriteWithMeta(path, textureImporter);
     }
 
@@ -136,6 +111,7 @@ public static class SpriteLoadUtils
                     return setting;
                 }
             }
+
             return dirNCMSSettings[dir].Default;
         }
 
@@ -147,21 +123,27 @@ public static class SpriteLoadUtils
                 {
                     return getInternalSetting(path, dirNCMSSettings[dir]);
                 }
-                
+
                 string settingPath = Path.Combine(dir, "sprites.json");
                 //LogService.LogInfo(
                 //    $"Searching for NCMSSetting in {dir}");
                 if (File.Exists(settingPath))
                 {
                     NCMSSpritesSettings settings =
-                        Newtonsoft.Json.JsonConvert.DeserializeObject<NCMSSpritesSettings>(File.ReadAllText(settingPath));
-                    settings.Default ??= defaultNCMSSetting;
-                    dirNCMSSettings.Add(dir, settings);
-                    
-                    //LogService.LogInfo(settings.ToString());
-                    
-                    return getInternalSetting(path, settings);
+                        JsonConvert.DeserializeObject<NCMSSpritesSettings>(File.ReadAllText(settingPath));
+                    if (settings != null)
+                    {
+                        settings.Default ??= defaultNCMSSetting;
+                        dirNCMSSettings.Add(dir, settings);
+
+                        //LogService.LogInfo(settings.ToString());
+
+                        return getInternalSetting(path, settings);
+                    }
+
+                    LogService.LogWarning($"Wrong sprite settings file at {settingPath}");
                 }
+
                 ignoreNCMSSettingsSearchPath.Add(dir);
             }
 
@@ -171,7 +153,7 @@ public static class SpriteLoadUtils
             }
 
             dir = Path.GetDirectoryName(dir);
-            if(string.IsNullOrEmpty(dir)) return null;
+            if (string.IsNullOrEmpty(dir)) return null;
         }
     }
 
@@ -190,24 +172,62 @@ public static class SpriteLoadUtils
         texture.filterMode = FilterMode.Point;
         texture.LoadImage(File.ReadAllBytes(path));
         Sprite[] sprites = new Sprite[textureImporter.spriteSheet.sprites.Count];
-        for(int i = 0; i < sprites.Length; i++)
+        for (int i = 0; i < sprites.Length; i++)
         {
             var sprite = textureImporter.spriteSheet.sprites[i];
-            sprites[i] = Sprite.Create(texture, sprite.rect, sprite.pivot, 1, 0, SpriteMeshType.FullRect, sprite.border);
+            sprites[i] = Sprite.Create(texture, sprite.rect, sprite.pivot, 1, 0, SpriteMeshType.FullRect,
+                sprite.border);
             sprites[i].name = sprite.name;
         }
+
         return sprites;
     }
 
-    private static IDeserializer deserializer =
-        new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
     private static TextureImporter loadMeta(string path)
     {
         if (!File.Exists(path))
         {
             return null;
         }
+
         MetaFile metaFile = deserializer.Deserialize<MetaFile>(File.ReadAllText(path));
         return metaFile?.TextureImporter;
+    }
+
+    class MetaFile
+    {
+        public TextureImporter TextureImporter;
+    }
+
+    class NCMSSpritesSettings
+    {
+        public SpecificSetting Default;
+        public List<SpecificSetting> Specific;
+
+        public override String ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+
+        public class SpecificSetting
+        {
+            public string Path = "\\";
+            public float PivotX = 0.5f;
+            public float PivotY = 0.0f;
+            public float PixelsPerUnit = 1f;
+            public float RectX = 0.0f;
+            public float RectY = 0.0f;
+
+            public Sprite loadFromPath(string path)
+            {
+                Texture2D texture = new(0, 0);
+                texture.filterMode = FilterMode.Point;
+                texture.LoadImage(File.ReadAllBytes(path));
+                Sprite sprite = Sprite.Create(texture, new Rect(RectX, RectY, texture.width, texture.height),
+                    new Vector2(PivotX, PivotY), PixelsPerUnit);
+                sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
+                return sprite;
+            }
+        }
     }
 }
