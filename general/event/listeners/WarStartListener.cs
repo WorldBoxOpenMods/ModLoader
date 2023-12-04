@@ -41,7 +41,7 @@ public class WarStartListener : AbstractListener<WarStartListener, WarStartHandl
     {
         List<CodeInstruction> codes = new(instr);
 
-        int insert_index = 48;
+        int insert_index = codes.FindIndex(c => c.opcode == OpCodes.Ret);
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Dup));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_2));
