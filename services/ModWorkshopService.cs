@@ -110,10 +110,15 @@ internal static class ModWorkshopService
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
     {
         ModDeclare mod_decl = mod.GetDeclaration();
-        string workshopPath = SaveManager.generateWorkshopPath(mod_decl.UID);
+        string workshopPath = Path.Combine(SaveManager.generateMainPath("workshop_upload_mod") + mod_decl.UID);
         if (Directory.Exists(workshopPath))
         {
             Directory.Delete(workshopPath, true);
+        }
+
+        if (!Directory.Exists(SaveManager.generateMainPath("workshop_upload_mod")))
+        {
+            Directory.CreateDirectory(SaveManager.generateMainPath("workshop_upload_mod"));
         }
 
         Directory.CreateDirectory(workshopPath);
@@ -127,7 +132,7 @@ internal static class ModWorkshopService
             (dirname) =>
             {
                 // To ignore .git and .vscode and so on files
-                return !dirname.StartsWith(".");
+                return !dirname.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dirname);
             });
         foreach (string file_full_path in files_to_upload)
         {
