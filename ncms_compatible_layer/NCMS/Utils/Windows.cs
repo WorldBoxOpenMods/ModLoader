@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NeoModLoader.General;
-using UnityEngine;
+﻿using NeoModLoader.General;
 
 namespace NCMS.Utils
 {
@@ -18,16 +12,22 @@ namespace NCMS.Utils
             WindowCreator.init();
             AllWindows = ScrollWindow.allWindows;
         }
+
         public static ScrollWindow GetWindow(string pWindowID)
         {
             return ScrollWindow.get(pWindowID);
         }
 
-        public static ScrollWindow CreateNewWindow(string pWindowID, string pWindowTitleKey)
+        public static ScrollWindow CreateNewWindow(string pWindowID, string pWindowTitle)
         {
-            LM.AddToCurrentLocale(pWindowTitleKey, pWindowTitleKey);
-            ScrollWindow window = WindowCreator.CreateEmptyWindow(pWindowID, pWindowTitleKey);
-            window.gameObject.transform.Find("Background/Title").GetComponent<LocalizedText>().setKeyAndUpdate(pWindowTitleKey);
+            if (!LocalizedTextManager.stringExists(pWindowID))
+            {
+                LM.AddToCurrentLocale(pWindowID, pWindowTitle);
+            }
+
+            ScrollWindow window = WindowCreator.CreateEmptyWindow(pWindowID, pWindowID);
+            window.gameObject.transform.Find("Background/Title").GetComponent<LocalizedText>()
+                .setKeyAndUpdate(pWindowID);
             window.gameObject.transform.Find("Background/Title").GetComponent<LocalizedText>().autoField = false;
             return window;
         }
