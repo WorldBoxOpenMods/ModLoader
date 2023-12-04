@@ -13,7 +13,7 @@ public class WarStartListener : AbstractListener<WarStartListener, WarStartHandl
         StringBuilder sb = null;
         foreach (var handler in instance.handlers)
         {
-            if(!handler.enabled) continue;
+            if (!handler.enabled) continue;
             try
             {
                 handler.Handle(pWar, pAttacker, pDefender, pWarType);
@@ -28,23 +28,25 @@ public class WarStartListener : AbstractListener<WarStartListener, WarStartHandl
                 sb.AppendLine(e.StackTrace);
             }
         }
-        if(sb != null)
+
+        if (sb != null)
         {
             LogService.LogError(sb.ToString());
         }
     }
+
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(WarManager), nameof(WarManager.newWar))]
     private static IEnumerable<CodeInstruction> _newWar_Patch(IEnumerable<CodeInstruction> instr)
     {
         List<CodeInstruction> codes = new(instr);
-        
-        int insert_index = codes.FindIndex(inst => inst.opcode == OpCodes.Ret);
+
+        int insert_index = 48;
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Dup));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_2));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_3));
-        
+
         InsertCallHandleCode(codes, insert_index);
         return codes;
     }
