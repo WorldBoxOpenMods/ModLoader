@@ -201,8 +201,23 @@ internal static class ModInfoUtils
             Task.Delay(15000);
             if (to_install_bepinex)
             {
-                InstallBepInEx();
+                try
+                {
+                    InstallBepInEx();
+                }
+                catch (Exception e)
+                {
+                    LogService.LogErrorConcurrent(e.Message);
+                    LogService.LogErrorConcurrent(e.StackTrace);
+                    return;
+                }
+
                 to_install_bepinex = false;
+            }
+
+            if (!Directory.Exists(Paths.BepInExPluginsPath))
+            {
+                Directory.CreateDirectory(Paths.BepInExPluginsPath);
             }
 
             List<string> parameters = new List<string>();
@@ -264,7 +279,15 @@ internal static class ModInfoUtils
             _ => "https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip"
         };
         client.DownloadFile(download_url, download_path);
-        ZipFile.ExtractToDirectory(download_path, Paths.GamePath);
+        try
+        {
+            ZipFile.ExtractToDirectory(download_path, Paths.GamePath);
+        }
+        catch (Exception e)
+        {
+            // ignored. maybe file already exists
+        }
+
         File.Delete(download_path);
 
         switch (Application.platform)
