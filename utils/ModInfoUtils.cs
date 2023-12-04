@@ -115,17 +115,26 @@ internal static class ModInfoUtils
         }
 
         string[] workshop_mod_folders;
-        switch (Application.platform)
+        try
         {
-            case RuntimePlatform.WindowsPlayer:
-            case RuntimePlatform.LinuxPlayer:
-            case RuntimePlatform.OSXPlayer:
-                workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
-                break;
-            default:
-                Debug.LogWarning("Your platform doesn't have defined behaviour, trying to handle it like Windows...");
-                workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
-                break;
+            switch (Application.platform)
+            {
+                case RuntimePlatform.WindowsPlayer:
+                case RuntimePlatform.LinuxPlayer:
+                case RuntimePlatform.OSXPlayer:
+                    workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
+                    break;
+                default:
+                    LogService.LogWarning(
+                        "Your platform doesn't have defined behaviour, trying to handle it like Windows...");
+                    workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
+                    break;
+            }
+        }
+        catch (DirectoryNotFoundException)
+        {
+            LogService.LogWarning("Workshop folder not found, skip loading workshop mods");
+            goto SKIP_WORKSHOP;
         }
 
         foreach (var mod_folder in workshop_mod_folders)
@@ -156,6 +165,7 @@ internal static class ModInfoUtils
             }
         }
 
+        SKIP_WORKSHOP:
         foreach (var mod in mods)
         {
             WorldBoxMod.AllRecognizedMods.Add(mod, ModState.FAILED);
