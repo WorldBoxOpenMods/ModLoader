@@ -34,6 +34,11 @@ public static class TabManager
     private static float _check_timer = 0;
     static Vector3 _last_mouse_pos = Vector3.zero;
 
+    private static readonly List<string> common_fix_for_tab_button = new()
+    {
+        "newtab", "new_tab", "tab", "newbutton", "new_button", "button", "additional", "_", " "
+    };
+
     internal static void _init()
     {
         Harmony.CreateAndPatchAll(typeof(TabManager), Others.harmony_id);
@@ -167,7 +172,7 @@ public static class TabManager
 
         string GetTabMainPart(string name)
         {
-            return name.Replace("Tab", "").Replace("Button", "").Replace("_", "").Replace(" ", "");
+            return common_fix_for_tab_button.Aggregate(name.ToLower(), (current, fix) => current.Replace(fix, ""));
         }
 
         bool need_update = false;
