@@ -10,31 +10,33 @@ public enum ConfigItemType
     TEXT,
     SELECT
 }
+
 public class ModConfigItem
 {
-    [JsonProperty("Type")]
-    public ConfigItemType Type { get; internal set; }
-    [JsonProperty("Id")]
-    public string Id { get; internal set; }
-    [JsonProperty("IconPath")]
-    public string IconPath { get; internal set; }
-    [JsonProperty("BoolVal")]
-    public bool BoolVal{ get; internal set; }
-    [JsonProperty("TextVal")]
-    public string TextVal{ get; internal set; }
-    [JsonProperty("FloatVal")]
-    public float FloatVal{ get; internal set; }
+    [JsonProperty("Type")] public ConfigItemType Type { get; internal set; }
+
+    [JsonProperty("Id")] public string Id { get; internal set; }
+
+    [JsonProperty("IconPath")] public string IconPath { get; internal set; }
+
+    [JsonProperty("BoolVal")] public bool BoolVal { get; internal set; }
+
+    [JsonProperty("TextVal")] public string TextVal { get; internal set; }
+
+    [JsonProperty("FloatVal")] public float FloatVal { get; internal set; }
 
     [JsonProperty("MaxFloatVal")] public float MaxFloatVal { get; internal set; } = 1;
     [JsonProperty("MinFloatVal")] public float MinFloatVal { get; internal set; } = 0;
-    [JsonProperty("IntVal")]
-    public int IntVal{ get; internal set; }
+
+    [JsonProperty("IntVal")] public int IntVal { get; internal set; }
+
     public void SetFloatRange(float pMin, float pMax)
     {
-        if(pMax < pMin) throw new ArgumentException("Max value must be greater than min value!");
+        if (pMax < pMin) throw new ArgumentException("Max value must be greater than min value!");
         MinFloatVal = pMin;
         MaxFloatVal = pMax;
     }
+
     public void SetValue(object val)
     {
         try
@@ -91,6 +93,7 @@ public class ModConfigItem
         };
     }
 }
+
 /// <summary>
 /// This class is used to represent a mod's config.
 /// </summary>
@@ -101,8 +104,9 @@ public class ModConfigItem
 /// </remarks>
 public class ModConfig
 {
-    private string _path;
     internal Dictionary<string, Dictionary<string, ModConfigItem>> _config = new();
+    private string _path;
+
     public ModConfig(string path, bool pPossibleNew = false)
     {
         if (!File.Exists(path))
@@ -112,10 +116,12 @@ public class ModConfig
             {
                 _path = path;
             }
+
             return;
         }
+
         string json_text = File.ReadAllText(path);
-        var raw_config = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, List<ModConfigItem>>>(json_text);
+        var raw_config = JsonConvert.DeserializeObject<Dictionary<string, List<ModConfigItem>>>(json_text);
         if (raw_config == null)
         {
             if (!pPossibleNew) LogService.LogWarning($"ModConfig file {path} is empty or in invalid format!");
@@ -123,8 +129,10 @@ public class ModConfig
             {
                 _path = path;
             }
+
             return;
         }
+
         _path = path;
         foreach (var key in raw_config.Keys)
         {
@@ -135,16 +143,18 @@ public class ModConfig
                 _config[key][item.Id] = item;
                 if (item.Type == ConfigItemType.SLIDER)
                 {
-                    if(item.MaxFloatVal < item.MinFloatVal) item.SetFloatRange(item.MinFloatVal, item.MinFloatVal);
+                    if (item.MaxFloatVal < item.MinFloatVal) item.SetFloatRange(item.MinFloatVal, item.MinFloatVal);
                     item.SetValue(item.GetValue());
                 }
             }
         }
     }
+
     public Dictionary<string, ModConfigItem> this[string pGroupId]
     {
         get => _config[pGroupId];
     }
+
     public void MergeWith(ModConfig pDefaultConfig)
     {
         foreach (var key in pDefaultConfig._config.Keys)
@@ -153,14 +163,30 @@ public class ModConfig
             {
                 _config[key] = new();
             }
+
             var group = _config[key];
             var default_group = pDefaultConfig._config[key];
+            foreach (string item in default_group.Keys.Where(item => group.ContainsKey(item)))
+            {
+                if (group[item].Type != default_group[item].Type)
+                {
+                    AddConfigItem(key, item, default_group[item].Type, default_group[item].GetValue(),
+                        default_group[item].IconPath);
+                }
+                else if (group[item].Type == ConfigItemType.SLIDER)
+                {
+                    group[item].SetFloatRange(default_group[item].MinFloatVal, default_group[item].MaxFloatVal);
+                }
+            }
+
             foreach (string item in default_group.Keys.Where(item => !group.ContainsKey(item)))
             {
-                AddConfigItem(key, item, default_group[item].Type, default_group[item].GetValue(), default_group[item].IconPath);
+                AddConfigItem(key, item, default_group[item].Type, default_group[item].GetValue(),
+                    default_group[item].IconPath);
             }
         }
     }
+
     public void Save(string path = null)
     {
         path ??= _path;
@@ -174,9 +200,11 @@ public class ModConfig
                 raw_config[key].Add(item.Value);
             }
         }
-        string json_text = Newtonsoft.Json.JsonConvert.SerializeObject(raw_config);
+
+        string json_text = JsonConvert.SerializeObject(raw_config);
         File.WriteAllText(path, json_text);
     }
+
     public void CreateGroup(string pId)
     {
         if (_config.ContainsKey(pId))
@@ -189,13 +217,15 @@ public class ModConfig
         _config[pId] = new Dictionary<string, ModConfigItem>();
     }
 
-    public ModConfigItem AddConfigItem(string pGroupId, string pId, ConfigItemType pType, object pDefaultValue, string pIconPath = "")
+    public ModConfigItem AddConfigItem(string pGroupId, string pId, ConfigItemType pType, object pDefaultValue,
+        string pIconPath = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
             group = new();
             _config[pGroupId] = group;
         }
+
         if (group.ContainsKey(pId))
         {
             LogService.LogWarning($"ModConfigItem {pId} already exists in group {pGroupId}! Overwriting...");
@@ -214,13 +244,16 @@ public class ModConfig
         group[pId].IconPath = pIconPath;
         return group[pId];
     }
-    public ModConfigItem AddConfigSliderItemWithRange(string pGroupId, string pId, float pDefaultValue, float pMinValue, float pMaxValue, string pIconPath = "")
+
+    public ModConfigItem AddConfigSliderItemWithRange(string pGroupId, string pId, float pDefaultValue, float pMinValue,
+        float pMaxValue, string pIconPath = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
             group = new();
             _config[pGroupId] = group;
         }
+
         if (group.ContainsKey(pId))
         {
             LogService.LogWarning($"ModConfigItem {pId} already exists in group {pGroupId}! Overwriting...");
