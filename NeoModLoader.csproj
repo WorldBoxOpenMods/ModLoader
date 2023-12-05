@@ -164,7 +164,7 @@
         <HintPath>resources\assemblies\System.IO.dll</HintPath>
       </Reference>
       <Reference Include="System.IO.Compression">
-        <HintPath>resources\assemblies\System.IO.Compression.dll</HintPath>
+        <HintPath>assembly-dependencies\System.IO.Compression.dll</HintPath>
       </Reference>
       <Reference Include="System.IO.Compression.ZipFile">
         <HintPath>resources\assemblies\System.IO.Compression.ZipFile.dll</HintPath>
@@ -540,10 +540,6 @@
       <EmbeddedResource Include="resources\assemblies\System.Globalization.Extensions.dll" />
       <None Remove="resources\assemblies\System.IO.dll" />
       <EmbeddedResource Include="resources\assemblies\System.IO.dll" />
-      <None Remove="resources\assemblies\System.IO.Compression.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.Compression.dll" />
-      <None Remove="resources\assemblies\System.IO.Compression.FileSystem.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.Compression.FileSystem.dll" />
       <None Remove="resources\assemblies\System.IO.Compression.ZipFile.dll" />
       <EmbeddedResource Include="resources\assemblies\System.IO.Compression.ZipFile.dll" />
       <None Remove="resources\assemblies\System.IO.FileSystem.dll" />
