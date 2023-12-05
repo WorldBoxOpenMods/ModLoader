@@ -64,8 +64,10 @@ public class WorldBoxMod : MonoBehaviour
             LM.ApplyLocale();
             PrefabManager._init();
             TabManager._init();
+            WindowCreator.init();
             ListenerManager._init();
             WrappedPowersTab._init();
+            NCMSCompatibleLayer.PreInit();
         }, "Initialize NeoModLoader");
 
         List<ModDependencyNode> mod_nodes = new();

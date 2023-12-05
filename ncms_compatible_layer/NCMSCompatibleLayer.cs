@@ -1,61 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NCMS;
+using NCMS.Utils;
 using NeoModLoader.api;
-using NeoModLoader.General;
 using NeoModLoader.services;
-using NeoModLoader.utils;
 
 namespace NeoModLoader.ncms_compatible_layer
 {
     internal static class NCMSCompatibleLayer
     {
-        public static void Init()
-        {
-            NCMS.ModLoader.Mods ??= new();
-            foreach (IMod mod in WorldBoxMod.LoadedMods)
-            {
-                ModDeclare declare = mod.GetDeclaration();
-                NCMS.ModLoader.Mods.Add(GenerateNCMSMod(declare));
-            }
-
-            NCMS.Utils.ResourcesPatch.modsResources ??= ResourcesPatch.GetAllPatchedResources();
-            NCMS.Utils.Windows.init();
-            
-            LogService.LogInfo($"NCMS Compatible Layer has been initialized.");
-        }
-
-        public static NCMod GenerateNCMSMod(ModDeclare modDeclare)
-        {
-            return new NCMod()
-            {
-                author = modDeclare.Author,
-                description = modDeclare.Description,
-                iconPath = modDeclare.IconPath,
-                name = modDeclare.Name,
-                path = modDeclare.FolderPath,
-                version = modDeclare.Version,
-                targetGameBuild = modDeclare.TargetGameBuild
-            };
-        }
-        public static bool IsNCMSMod(SyntaxTree syntaxTree)
-        {
-            var root = syntaxTree.GetCompilationUnitRoot();
-            foreach (var classdecl in root.DescendantNodes())
-            {
-                if (classdecl is not ClassDeclarationSyntax classDeclarationSyntax) continue;
-                if (classDeclarationSyntax.AttributeLists.Any(a => a.Attributes.Any(a => a.Name.ToString().Contains("ModEntry"))))
-                    return true;
-            }
-            return false;
-        }
-
         public const string modGlobalObject = @"
                                         using System;
                                         using System.IO;
@@ -129,5 +83,51 @@ namespace NeoModLoader.ncms_compatible_layer
                                             }
 
                                         }";
+
+        public static void PreInit()
+        {
+            Windows.init();
+            ResourcesPatch.modsResources ??= utils.ResourcesPatch.GetAllPatchedResources();
+        }
+
+        public static void Init()
+        {
+            NCMS.ModLoader.Mods ??= new();
+            foreach (IMod mod in WorldBoxMod.LoadedMods)
+            {
+                ModDeclare declare = mod.GetDeclaration();
+                NCMS.ModLoader.Mods.Add(GenerateNCMSMod(declare));
+            }
+
+            LogService.LogInfo($"NCMS Compatible Layer has been initialized.");
+        }
+
+        public static NCMod GenerateNCMSMod(ModDeclare modDeclare)
+        {
+            return new NCMod()
+            {
+                author = modDeclare.Author,
+                description = modDeclare.Description,
+                iconPath = modDeclare.IconPath,
+                name = modDeclare.Name,
+                path = modDeclare.FolderPath,
+                version = modDeclare.Version,
+                targetGameBuild = modDeclare.TargetGameBuild
+            };
+        }
+
+        public static bool IsNCMSMod(SyntaxTree syntaxTree)
+        {
+            var root = syntaxTree.GetCompilationUnitRoot();
+            foreach (var classdecl in root.DescendantNodes())
+            {
+                if (classdecl is not ClassDeclarationSyntax classDeclarationSyntax) continue;
+                if (classDeclarationSyntax.AttributeLists.Any(a =>
+                        a.Attributes.Any(a => a.Name.ToString().Contains("ModEntry"))))
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -9,7 +9,6 @@ namespace NCMS.Utils
 
         internal static void init()
         {
-            WindowCreator.init();
             AllWindows = ScrollWindow.allWindows;
         }
 
