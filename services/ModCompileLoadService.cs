@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using NeoModLoader.ncms_compatible_layer;
+
 #else
     using System.CodeDom.Compiler;
 #endif
@@ -32,7 +33,8 @@ public static class ModCompileLoadService
     private static MetadataReference[] _default_ref = null!;
     private static readonly Dictionary<string, MetadataReference> mod_ref = new();
     private static bool compileMod(ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
-        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false)
+        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
+        bool pDisableOptionalDepen = false)
     {
         if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl.UID, pModDecl.FolderPath))
         {
@@ -63,17 +65,19 @@ public static class ModCompileLoadService
             }
         }
 
-
-        foreach (var option_depen in pModDecl.OptionalDependencies)
+        if (!pDisableOptionalDepen)
         {
-            if (pModInc.TryGetValue(option_depen, out var value))
+            foreach (var option_depen in pModDecl.OptionalDependencies)
             {
-                list.Add(value);
-                preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
-                if (value == null)
+                if (pModInc.TryGetValue(option_depen, out var value))
                 {
-                    LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
-                    return false;
+                    list.Add(value);
+                    preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
+                    if (value == null)
+                    {
+                        LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
+                        return false;
+                    }
                 }
             }
         }
@@ -317,15 +321,24 @@ public static class ModCompileLoadService
             add_inc_path = new string[0];
         }
 #if COMPILE_METHOD_ROSLYN
+        bool disable_optional_depen = false;
+        RECOMPILE:
         compile_result =
             compileMod(pModNode.mod_decl, _default_ref,
-                add_inc_path, mod_ref, pForce
+                add_inc_path, mod_ref, pForce, disable_optional_depen
             );
         if (compile_result)
         {
             mod_ref[pModNode.mod_decl.UID] =
                 MetadataReference.CreateFromFile(Path.Combine(Paths.CompiledModsPath,
                     $"{pModNode.mod_decl.UID}.dll"));
+        }
+        else if (!disable_optional_depen && pModNode.mod_decl.OptionalDependencies.Length > 0)
+        {
+            LogService.LogWarning(
+                $"Cannot compile mod {pModNode.mod_decl.UID} with Optional Dependencies, try to disable them");
+            disable_optional_depen = true;
+            goto RECOMPILE;
         }
 #else
         compile_result = 
