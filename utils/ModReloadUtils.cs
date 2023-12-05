@@ -12,7 +12,7 @@ using NeoModLoader.api.attributes;
 using NeoModLoader.constants;
 using NeoModLoader.services;
 using ExceptionHandler = Mono.Cecil.Cil.ExceptionHandler;
-using OpCode = System.Reflection.Emit.OpCode;
+using OpCode = Mono.Cecil.Cil.OpCode;
 using OpCodes = System.Reflection.Emit.OpCodes;
 
 namespace NeoModLoader.utils;
@@ -25,11 +25,17 @@ internal static class ModReloadUtils
     private static string _new_compiled_pdb_path;
     private static AssemblyDefinition _old_assembly_definition;
     private static Dictionary<string, MethodDefinition> _old_method_definitions = new();
+    private static Dictionary<OpCode, System.Reflection.Emit.OpCode> _op_code_map = new();
+
+    private static Dictionary<MethodDefinition, MethodInfo> _regenerated_brand_new_methods = new();
+
+    private static Dictionary<Type, MethodInfo> _emit_method_cache = new();
+
     public static bool Prepare(IMod pMod)
     {
         _mod = pMod;
         _mod_declare = pMod.GetDeclaration();
-        
+
         _new_compiled_dll_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.dll");
         _new_compiled_pdb_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.pdb");
 
@@ -43,29 +49,31 @@ internal static class ModReloadUtils
         {
             // ignored
         }
-        
+
         if (!File.Exists(_new_compiled_dll_path))
         {
             LogService.LogError($"No compiled dll found for mod {_mod_declare.UID}");
             return false;
         }
-        if(File.Exists(_new_compiled_pdb_path + ".bak"))
+
+        if (File.Exists(_new_compiled_pdb_path + ".bak"))
         {
             File.Delete(_new_compiled_pdb_path + ".bak");
         }
+
         File.Copy(_new_compiled_dll_path, _new_compiled_dll_path + ".bak", true);
         _old_assembly_definition = AssemblyDefinition.ReadAssembly(_new_compiled_dll_path + ".bak");
-        
-        
+
+
         return true;
     }
 
     public static bool CompileNew()
     {
         if (!ModCompileLoadService.TryCompileModAtRuntime(_mod_declare, true)) return false;
-        foreach(var type in _old_assembly_definition.MainModule.Types)
+        foreach (var type in _old_assembly_definition.MainModule.Types)
         {
-            foreach(var method in type.Methods)
+            foreach (var method in type.Methods)
             {
                 _old_method_definitions[method.FullName] = method;
             }
@@ -75,10 +83,10 @@ internal static class ModReloadUtils
                 _old_method_definitions[method.FullName] = method;
             }
         }
-        return true;
 
+        return true;
     }
-    private static Dictionary<Mono.Cecil.Cil.OpCode, OpCode> _op_code_map = new();
+
     public static bool PatchHotfixMethods()
     {
         HarmonyFileLog.Enabled = true;
@@ -86,20 +94,21 @@ internal static class ModReloadUtils
         List<MethodDefinition> method_definitions = new();
         method_definitions.AddRange(assembly_definition.MainModule.Types.SelectMany(type => type.Methods));
 
-        foreach (TypeDefinition nested_type in assembly_definition.MainModule.Types.SelectMany(type => type.NestedTypes))
+        foreach (TypeDefinition nested_type in
+                 assembly_definition.MainModule.Types.SelectMany(type => type.NestedTypes))
         {
             method_definitions.AddRange(nested_type.Methods);
         }
 
         Assembly old_assembly = _mod.GetType().Assembly;
-        
+
         Harmony harmony = new Harmony(_mod_declare.UID);
 
         if (_op_code_map.Count == 0)
         {
             InitializeOpcodeMap();
         }
-        
+
         HashSet<MethodDefinition> brand_new_methods = new();
         foreach (var new_method in method_definitions)
         {
@@ -122,7 +131,7 @@ internal static class ModReloadUtils
             {
                 continue;
             }
-            
+
             MethodInfo old_method = old_assembly.GetType(new_method.DeclaringType.FullName).GetMethod(
                 new_method.Name,
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
@@ -131,7 +140,9 @@ internal static class ModReloadUtils
             {
                 continue;
             }
-            LogService.LogWarning($"No found method {new_method.DeclaringType.FullName}::{new_method.Name} in old assembly");
+
+            LogService.LogWarning(
+                $"No found method {new_method.DeclaringType.FullName}::{new_method.Name} in old assembly");
             brand_new_methods.Add(new_method);
         }
 
@@ -139,13 +150,14 @@ internal static class ModReloadUtils
         {
             CreateBrandNewMethods(brand_new_methods);
         }
+
         foreach (var new_method in method_definitions)
         {
-            if(new_method.HasBody is false)
+            if (new_method.HasBody is false)
             {
                 continue;
             }
-            
+
             bool hotfixable = false;
             foreach (var attribute in new_method.CustomAttributes)
             {
@@ -155,15 +167,17 @@ internal static class ModReloadUtils
                     break;
                 }
             }
+
             if (hotfixable is false)
             {
                 continue;
             }
-            
-            if(brand_new_methods.Contains(new_method))
+
+            if (brand_new_methods.Contains(new_method))
             {
                 continue;
             }
+
             try
             {
                 MethodInfo old_method = old_assembly.GetType(new_method.DeclaringType.FullName).GetMethod(
@@ -180,22 +194,25 @@ internal static class ModReloadUtils
                     LogService.LogInfo($"Method {new_method.Name} does not need hotfix");
                     continue;
                 }
-                LogService.LogInfo($"Hotfixing method {new_method.Name} with following instructions(total {new_method.Body.Instructions.Count}):");
+
+                LogService.LogInfo(
+                    $"Hotfixing method {new_method.Name} with following instructions(total {new_method.Body.Instructions.Count}):");
                 HotfixMethod(harmony, new_method, old_method);
             }
             catch (Exception e)
             {
-                LogService.LogError($"Failed to hotfix method {new_method.Name}, Most likely because NeoModLoader does not support such method hotfix now.");
+                LogService.LogError(
+                    $"Failed to hotfix method {new_method.Name}, Most likely because NeoModLoader does not support such method hotfix now.");
                 LogService.LogError(e.Message);
                 LogService.LogError(e.StackTrace);
                 continue;
             }
         }
+
         assembly_definition.Dispose();
         return true;
     }
 
-    private static Dictionary<MethodDefinition, MethodInfo> _regenerated_brand_new_methods = new();
     private static void CreateBrandNewMethods(HashSet<MethodDefinition> pBrandNewMethods)
     {
         LogService.LogWarning($"Find {pBrandNewMethods.Count} brand new methods, creating...");
@@ -218,6 +235,7 @@ internal static class ModReloadUtils
                     LogService.LogError(e.StackTrace);
                     continue;
                 }
+
                 pBrandNewMethods.Remove(method_definition);
             }
         }
@@ -225,41 +243,48 @@ internal static class ModReloadUtils
 
     private static bool NeedHotfix(MethodInfo pOldMethod, MethodDefinition pNewMethod)
     {
-        if(_old_method_definitions.TryGetValue(pNewMethod.FullName, out var old_method_definition) is false)
+        if (_old_method_definitions.TryGetValue(pNewMethod.FullName, out var old_method_definition) is false)
         {
             LogService.LogWarning($"No found method {pNewMethod.FullName} in old assembly");
             return true;
         }
+
         var old_il = old_method_definition.Body.Instructions;
         var new_il = pNewMethod.Body.Instructions;
-        
+
         if (old_il.Count != new_il.Count)
         {
             return true;
         }
+
         var old_sb = new StringBuilder();
         var new_sb = new StringBuilder();
 
         const string skipAddrFormat = "IL_0000: ";
         foreach (var inst in old_il)
         {
-            if (inst.Operand is Instruction inst_inst) {
+            if (inst.Operand is Instruction inst_inst)
+            {
                 old_sb.AppendLine($"{inst.OpCode} {inst_inst.Offset - inst.Offset}");
             }
-            else {
+            else
+            {
                 old_sb.AppendLine(inst.ToString().Substring(skipAddrFormat.Length));
             }
         }
+
         foreach (var inst in new_il)
         {
-            if (inst.Operand is Instruction inst_inst) {
+            if (inst.Operand is Instruction inst_inst)
+            {
                 new_sb.AppendLine($"{inst.OpCode} {inst_inst.Offset - inst.Offset}");
             }
-            else {
+            else
+            {
                 new_sb.AppendLine(inst.ToString().Substring(skipAddrFormat.Length));
             }
         }
-        
+
         return old_sb.ToString().GetHashCode() != new_sb.ToString().GetHashCode();
     }
 
@@ -267,12 +292,12 @@ internal static class ModReloadUtils
     {
         foreach (var field in typeof(OpCodes).GetFields())
         {
-            if (field.FieldType != typeof(OpCode)) continue;
-            var op_code = (OpCode) field.GetValue(null);
+            if (field.FieldType != typeof(System.Reflection.Emit.OpCode)) continue;
+            var op_code = (System.Reflection.Emit.OpCode)field.GetValue(null);
             try
             {
                 _op_code_map.Add(
-                    (Mono.Cecil.Cil.OpCode)typeof(Mono.Cecil.Cil.OpCodes).GetField(field.Name).GetValue(null)
+                    (OpCode)typeof(Mono.Cecil.Cil.OpCodes).GetField(field.Name).GetValue(null)
                     , op_code);
             }
             catch (Exception e)
@@ -283,10 +308,10 @@ internal static class ModReloadUtils
                 //LogService.LogError(e.StackTrace);
             }
         }
+
         _op_code_map.Add(Mono.Cecil.Cil.OpCodes.Stelem_Any, OpCodes.Stelem);
         _op_code_map.Add(Mono.Cecil.Cil.OpCodes.Ldelem_Any, OpCodes.Ldelem);
         _op_code_map.Add(Mono.Cecil.Cil.OpCodes.Tail, OpCodes.Tailcall);
-        
     }
 
     private static void HotfixMethod(Harmony pHarmony, MethodDefinition pNewMethod, MethodInfo pOldMethod)
@@ -295,6 +320,7 @@ internal static class ModReloadUtils
         //pHarmony.Unpatch(pOldMethod, HarmonyPatchType.Transpiler, pHarmony.Id);
         //pHarmony.Patch(pOldMethod, transpiler: new HarmonyMethod(AccessTools.Method(typeof(ModReloadUtils), nameof(il_code_replace_transpiler))));
     }
+
     private static void ReplaceMethod(MethodInfo pOldMethod, DynamicMethodDefinition pNewMethod)
     {
         RuntimeHelpers.PrepareMethod(pOldMethod.MethodHandle);
@@ -306,21 +332,25 @@ internal static class ModReloadUtils
 
         LogService.LogInfo($"Is 64bit: {Environment.Is64BitProcess}");
 
-        unsafe {
+        unsafe
+        {
             var ptr = (byte*)pBody.ToPointer();
             var ptr2 = (byte*)pBorrowed.ToPointer();
             var ptrDiff = ptr2 - ptr - 5;
-            if (ptrDiff < (long)0xFFFFFFFF && ptrDiff > (long)-0xFFFFFFFF) {
+            if (ptrDiff < (long)0xFFFFFFFF && ptrDiff > (long)-0xFFFFFFFF)
+            {
                 // 32-bit relative jump, available on both 32 and 64 bit arch.
                 LogService.LogInfo($"diff is {ptrDiff} doing relative jmp");
                 LogService.LogInfo(string.Format("patching on {0:X}, target: {1:X}", (ulong)ptr, (ulong)ptr2));
                 *ptr = 0xe9; // JMP
                 *((uint*)(ptr + 1)) = (uint)ptrDiff;
             }
-            else {
+            else
+            {
                 LogService.LogInfo($"diff is {ptrDiff} doing push+ret trampoline");
                 LogService.LogInfo(string.Format("patching on {0:X}, target: {1:X}", (ulong)ptr, (ulong)ptr2));
-                if (Environment.Is64BitProcess) {
+                if (Environment.Is64BitProcess)
+                {
                     // For 64bit arch and likely 64bit pointers, do:
                     // PUSH bits 0 - 32 of addr
                     // MOV [RSP+4] bits 32 - 64 of addr
@@ -337,7 +367,8 @@ internal static class ModReloadUtils
                     cursor += 4;
                     *(cursor++) = 0xc3; // RET
                 }
-                else {
+                else
+                {
                     // For 32bit arch and 32bit pointers, do: PUSH addr, RET.
                     *ptr = 0x68;
                     *((uint*)(ptr + 1)) = (uint)ptr2;
@@ -359,17 +390,19 @@ internal static class ModReloadUtils
             dynamic_method_definition.Definition.Parameters.Insert(0,
                 new ParameterDefinition(pMethodDefinition.DeclaringType));
         }
-        foreach(var parameter in pMethodDefinition.Parameters)
+
+        foreach (var parameter in pMethodDefinition.Parameters)
         {
             LogService.LogInfo($"\tDeclare parameter {parameter.ToString()}({parameter.ParameterType.FullName})");
         }
-        
+
         ILGenerator il = dynamic_method_definition.GetILGenerator();
         if (pMethodDefinition.Body.InitLocals)
         {
             dynamic_method_definition.Definition.Body.InitLocals = true;
         }
-        foreach(var local_var in pMethodDefinition.Body.Variables)
+
+        foreach (var local_var in pMethodDefinition.Body.Variables)
         {
             LogService.LogInfo($"\tDeclare local variable {local_var.ToString()}({local_var.VariableType.FullName})");
             il.DeclareLocal(local_var.VariableType.ResolveReflection());
@@ -377,9 +410,10 @@ internal static class ModReloadUtils
 
         var labels = new Dictionary<Instruction, Label>();
         // Track labels
-        foreach(var inst in pMethodDefinition.Body.Instructions)
+        foreach (var inst in pMethodDefinition.Body.Instructions)
         {
-            if (inst.Operand is Instruction opinst) {
+            if (inst.Operand is Instruction opinst)
+            {
                 LogService.LogInfo($"\tDeclare label for {opinst.ToString()}");
                 labels[opinst] = il.DefineLabel();
             }
@@ -393,8 +427,8 @@ internal static class ModReloadUtils
         }
 
         Dictionary<Instruction, ExceptionHandler> excep_handlers = new();
-        
-        foreach(var excep in pMethodDefinition.Body.ExceptionHandlers)
+
+        foreach (var excep in pMethodDefinition.Body.ExceptionHandlers)
         {
             LogService.LogInfo($"\tDeclare exception handler for {excep.ToString()}");
             excep_handlers[excep.TryStart] = excep;
@@ -455,12 +489,12 @@ internal static class ModReloadUtils
                         //il.MarkLabel(il.BeginExceptionBlock());
                         LogService.LogWarning("TryStart");
                     }
-                    
                 }
+
                 var op_code = _op_code_map[inst.OpCode];
-                
+
                 if (op_code == OpCodes.Endfinally) continue;
-                
+
                 LogService.LogInfo($"\t{op_code}\t\t {inst.Operand}({inst.Operand?.GetType().FullName})");
 
                 if (inst.Operand == null)
@@ -484,7 +518,7 @@ internal static class ModReloadUtils
                     try
                     {
                         resolved = member_reference.ResolveReflection();
-                        if(resolved == null)
+                        if (resolved == null)
                             throw new Exception($"Failed to resolve member reference {member_reference.FullName}");
                     }
                     catch (Exception e)
@@ -503,11 +537,12 @@ internal static class ModReloadUtils
                             LogService.LogError(e.StackTrace);
                         }
                     }
+
                     operand_type = resolved.GetType();
                     if (!_emit_method_cache.TryGetValue(operand_type, out var emit_method))
                     {
                         emit_method = AccessTools.Method(typeof(ILGenerator), "Emit",
-                            new Type[] { typeof(OpCode), operand_type });
+                            new Type[] { typeof(System.Reflection.Emit.OpCode), operand_type });
                         _emit_method_cache[operand_type] = emit_method;
                     }
 
@@ -530,14 +565,19 @@ internal static class ModReloadUtils
                     {
                         switch_labels[i] = labels[jump_to_insts[i]];
                     }
+
                     il.Emit(OpCodes.Switch, switch_labels);
+                }
+                else if (inst.Operand is ParameterDefinition parameter_definition)
+                {
+                    il.Emit(op_code, parameter_definition.Sequence);
                 }
                 else
                 {
                     if (!_emit_method_cache.TryGetValue(operand_type, out var emit_method))
                     {
                         emit_method = AccessTools.Method(typeof(ILGenerator), "Emit",
-                            new Type[] { typeof(OpCode), operand_type });
+                            new Type[] { typeof(System.Reflection.Emit.OpCode), operand_type });
                         _emit_method_cache[operand_type] = emit_method;
                     }
 
@@ -558,7 +598,8 @@ internal static class ModReloadUtils
                         }
                         else
                         {
-                            LogService.LogError($"Failed to emit {op_code} {inst.Operand}({inst.Operand?.GetType().FullName})");
+                            LogService.LogError(
+                                $"Failed to emit {op_code} {inst.Operand}({inst.Operand?.GetType().FullName})");
                             LogService.LogError(e.Message);
                             LogService.LogError(e.StackTrace);
                         }
@@ -582,11 +623,9 @@ internal static class ModReloadUtils
 
             LogService.LogWarning(sb.ToString());
         }
-        
+
         return dynamic_method_definition;
     }
-
-    private static Dictionary<Type, MethodInfo> _emit_method_cache = new();
 
     public static bool Reload()
     {
@@ -600,6 +639,7 @@ internal static class ModReloadUtils
             LogService.LogError(e.StackTrace);
             return false;
         }
+
         return true;
     }
 }
