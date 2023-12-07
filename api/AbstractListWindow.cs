@@ -1,9 +1,9 @@
 using NeoModLoader.General;
-using RSG;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace NeoModLoader.api;
+
 /// <summary>
 /// Abstract List Window Item
 /// </summary>
@@ -15,6 +15,7 @@ public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
     /// </summary>
     public abstract void Setup(TItem pObject);
 }
+
 /// <summary>
 /// An abstract window that contains a list of items.
 /// <para> Items are layout automatically </para>
@@ -27,12 +28,13 @@ public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
 /// <example><see cref="ui.ModListWindow"/></example>
 /// <typeparam name="T">The type of the class which inherits this class </typeparam>
 /// <typeparam name="TItem">The type of object passed into AbstractListWindowItem.Setup as parameter </typeparam>
-public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T> 
+public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
     where T : AbstractListWindow<T, TItem>
 {
     protected static AbstractListWindowItem<TItem> ItemPrefab;
-    protected Dictionary<TItem, AbstractListWindowItem<TItem>> ItemMap = new();
     private ObjectPoolGenericMono<AbstractListWindowItem<TItem>> _pool;
+    protected Dictionary<TItem, AbstractListWindowItem<TItem>> ItemMap = new();
+
     protected virtual void AddItemToList(TItem item)
     {
         if (_pool == null)
@@ -40,11 +42,16 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
             _pool = new ObjectPoolGenericMono<AbstractListWindowItem<TItem>>(ItemPrefab, ContentTransform);
         }
 
-        AbstractListWindowItem<TItem> itemobj = _pool.getNext(0);
-        itemobj.transform.localScale = Vector3.one;
-        itemobj.Setup(item);
-        ItemMap.Add(item, itemobj);
+        if (!ItemMap.TryGetValue(item, out var item_obj))
+        {
+            item_obj = _pool.getNext(0);
+            ItemMap[item] = item_obj;
+        }
+
+        item_obj.transform.localScale = Vector3.one;
+        item_obj.Setup(item);
     }
+
     protected virtual void RemoveItemFromList(TItem item)
     {
         if (ItemMap.TryGetValue(item, out var obj))
@@ -53,19 +60,22 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
             {
                 obj.gameObject.SetActive(false);
             }
+
             _pool._elements_inactive.Push(obj);
             ItemMap.Remove(item);
         }
     }
+
     protected virtual void ClearList()
     {
         _pool?.clear();
         ItemMap.Clear();
     }
+
     public static T CreateAndInit(string pWindowId)
     {
         ScrollWindow scroll_window = WindowCreator.CreateEmptyWindow(pWindowId, pWindowId + " Title");
-        
+
         GameObject window_object = scroll_window.gameObject;
         Instance = window_object.AddComponent<T>();
         Instance.gameObject.SetActive(false);
@@ -75,10 +85,10 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
 
         Instance.ContentTransform = Instance.BackgroundTransform.Find("Scroll View/Viewport/Content");
 
-        
+
         VerticalLayoutGroup layoutGroup = Instance.ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
         ContentSizeFitter sizeFitter = Instance.ContentTransform.gameObject.AddComponent<ContentSizeFitter>();
-        
+
         layoutGroup.childControlWidth = true;
         layoutGroup.childControlHeight = false;
         layoutGroup.childForceExpandWidth = true;
@@ -88,13 +98,14 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
         layoutGroup.padding = new(30, 30, 10, 10);
 
         sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        
+
         ItemPrefab = Instance.CreateItemPrefab();
         Instance.Init();
 
         Instance.Initialized = true;
-        
+
         return Instance;
     }
+
     protected abstract AbstractListWindowItem<TItem> CreateItemPrefab();
 }
