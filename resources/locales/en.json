@@ -27,6 +27,8 @@
   "NeoModLoader Updated": "NeoModLoader Updated, please restart the game.",
   "ModConfigure Title": "Mod Configure",
   "ModCommunity Title": "Mod Community",
+  "OpenFolder Title": "Open Mod Folder",
+  "ModReload Title": "Reload Mod\n<color=red>DO NOT USE IT IF YOU ARE NOT DEVELOPER</color>",
   "NeoModLoader Report": "Click to report bug or suggest new feature",
   "ModLoadFailed Title": "Failed to load mod",
   "ModLoadFailed Description": "Failed to load mod\nPlease check the mod is valid",

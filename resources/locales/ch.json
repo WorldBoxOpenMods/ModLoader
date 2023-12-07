@@ -27,6 +27,8 @@
   "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新",
   "ModConfigure Title": "配置模组",
   "ModCommunity Title": "模组社区",
+  "OpenFolder Title": "打开模组文件夹",
+  "ModReload Title": "重载模组\n<color=red>非开发者慎用</color>",
   "NeoModLoader Report": "点击反馈Bug或建议",
   "ModLoadFailed Title": "模组加载失败",
   "ModLoadFailed Description": "模组加载失败, 请检查模组是否完整或损坏\n下面是错误信息",
