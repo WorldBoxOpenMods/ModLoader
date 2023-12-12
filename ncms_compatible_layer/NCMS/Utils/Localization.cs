@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NeoModLoader.General;
+﻿using NeoModLoader.General;
 
 namespace NCMS.Utils
 {
@@ -39,7 +34,7 @@ namespace NCMS.Utils
 
         public static string Get(string key)
         {
-            return LM.Get(key);
+            return LocalizedTextManager.instance.localizedText[key];
         }
 
         [Obsolete("Localization.getLocalization is deprecated, please use Localization.Get instead")]
