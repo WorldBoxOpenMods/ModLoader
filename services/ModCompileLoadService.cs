@@ -1,25 +1,17 @@
-#define COMPILE_METHOD_ROSLYN
-
-
 using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using ModDeclaration;
 using NCMS;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.utils;
 using UnityEngine;
-#if COMPILE_METHOD_ROSLYN
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
-using NeoModLoader.ncms_compatible_layer;
-
-#else
-    using System.CodeDom.Compiler;
-#endif
 
 namespace NeoModLoader.services;
 
@@ -29,9 +21,9 @@ public static class ModCompileLoadService
     private static readonly Dictionary<string, string> mod_inc_path = new();
     private static readonly HashSet<string> _loaded_ref = new();
 
-#if COMPILE_METHOD_ROSLYN
     private static MetadataReference[] _default_ref = null!;
     private static readonly Dictionary<string, MetadataReference> mod_ref = new();
+
     private static bool compileMod(ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
         string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
         bool pDisableOptionalDepen = false)
@@ -214,61 +206,7 @@ public static class ModCompileLoadService
 
         return true;
     }
-#else
-    private static bool compileMod(ModDeclare pModDecl, string[] pDefaultInc, string[] pAddIncPath, Dictionary<string, string> pModIncPath)
-    {
-        if (!ModInfoUtils.isModNeedRecompile(pModDecl.UUID, pModDecl.FolderPath))
-        {
-            return true;
-        }
 
-        CodeDomProvider provider = CodeDomProvider.CreateProvider("cs");
-        
-        CompilerParameters parameters = new CompilerParameters();
-        parameters.GenerateExecutable = false;
-        parameters.GenerateInMemory = false;
-        parameters.OutputAssembly = Path.Combine(Paths.CompiledModsPath, $"{pModDecl.UUID}.dll");
-        
-        /* Load referenced assemblies */
-        parameters.ReferencedAssemblies.AddRange(pDefaultInc);
-        parameters.ReferencedAssemblies.AddRange(pAddIncPath);
-        foreach (var depen in pModDecl.Dependencies)
-        {
-            // It is ensured that all dependencies are compiled before compiling
-            // Consider depend mod compile failed.
-            if (!pModIncPath.ContainsKey(depen))
-            {
-                return false;
-            }
-            parameters.ReferencedAssemblies.Add(pModIncPath[depen]);
-        }
-
-        foreach (var opt_depen in pModDecl.OptionalDependencies)
-        {
-            if (!pModIncPath.ContainsKey(opt_depen))
-            {
-                continue;
-            }
-            parameters.ReferencedAssemblies.Add(pModIncPath[opt_depen]);
-        }
-        
-        /* Find code files to compile */
-        var code_files = Directory.GetFiles(pModDecl.FolderPath, "*.cs", SearchOption.AllDirectories);
-        
-        CompilerResults results = provider.CompileAssemblyFromFile(parameters, code_files);
-        
-        if(results.Errors.HasErrors)
-        {
-            foreach (CompilerError error in results.Errors)
-            {
-                Console.WriteLine(error.ErrorText);
-            }
-            return false;
-        }
-
-        return true;
-    }
-#endif
     public static void prepareCompile(List<ModDependencyNode> pModNodes)
     {
         foreach (var mod_node in pModNodes)
@@ -283,7 +221,6 @@ public static class ModCompileLoadService
         default_ref_path_list.Add(Paths.NMLModPath);
         _default_ref_path = default_ref_path_list.ToArray();
 
-#if COMPILE_METHOD_ROSLYN
         _default_ref = new MetadataReference[_default_ref_path.Length];
         for (int i = 0; i < _default_ref_path.Length; i++)
         {
@@ -297,7 +234,6 @@ public static class ModCompileLoadService
                 LogService.LogError($"Error when load default reference {_default_ref_path[i]}: {e.Message}");
             }
         }
-#endif
     }
 
     public static void prepareCompileRuntime(ModDependencyNode pModNode)
@@ -320,7 +256,7 @@ public static class ModCompileLoadService
         {
             add_inc_path = new string[0];
         }
-#if COMPILE_METHOD_ROSLYN
+
         bool disable_optional_depen = false;
         RECOMPILE:
         compile_result =
@@ -340,12 +276,6 @@ public static class ModCompileLoadService
             disable_optional_depen = true;
             goto RECOMPILE;
         }
-#else
-        compile_result = 
-            compileMod(pModNode.mod_decl, _default_ref_path, 
-                add_inc_path, mod_inc_path
-            );
-#endif
 
         if (!compile_result)
         {
