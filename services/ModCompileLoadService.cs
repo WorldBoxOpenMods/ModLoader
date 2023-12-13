@@ -22,6 +22,7 @@ public static class ModCompileLoadService
     private static readonly HashSet<string> _loaded_ref = new();
 
     private static MetadataReference[] _default_ref = null!;
+    private static MetadataReference _publicized_assembly_ref = null!;
     private static readonly Dictionary<string, MetadataReference> mod_ref = new();
 
     private static bool compileMod(ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
@@ -39,7 +40,10 @@ public static class ModCompileLoadService
         List<MetadataReference> list = pDefaultInc.ToList();
         list.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
         LoadAddInc();
-
+        if (pModDecl.UsePublicizedAssembly)
+        {
+            list.Add(_publicized_assembly_ref);
+        }
 
         foreach (var depen in pModDecl.Dependencies)
         {
@@ -234,6 +238,8 @@ public static class ModCompileLoadService
                 LogService.LogError($"Error when load default reference {_default_ref_path[i]}: {e.Message}");
             }
         }
+
+        _publicized_assembly_ref = MetadataReference.CreateFromFile(Paths.PublicizedAssemblyPath);
     }
 
     public static void prepareCompileRuntime(ModDependencyNode pModNode)

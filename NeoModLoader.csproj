@@ -465,6 +465,7 @@
       <None Remove="resources\assemblies\0Harmony.dll" />
       <EmbeddedResource Include="resources\assemblies\0Harmony.dll" />
       <None Remove="resources\assemblies\Microsoft.CodeAnalysis.dll" />
+      <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized"/>
       <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.dll" />
       <None Remove="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
       <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />

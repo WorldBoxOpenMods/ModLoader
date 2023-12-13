@@ -1,4 +1,3 @@
-
 using System.Text;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
@@ -10,12 +9,14 @@ public enum ModTypeEnum
     NORMAL,
     BEPINEX
 }
+
 internal enum ModState
 {
     DISABLED,
     LOADED,
     FAILED
 }
+
 [Serializable]
 public class ModDeclare
 {
@@ -23,9 +24,10 @@ public class ModDeclare
     ModDeclare()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     {
-        
     }
-    public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription, string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
+
+    public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription,
+        string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
     {
         Name = pName;
         Author = pAuthor;
@@ -37,24 +39,26 @@ public class ModDeclare
         IncompatibleWith = pIncompatibleWith ?? new string[0];
 
         UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol($"{Author}.{Name}");
-        
-        for(int i = 0; i < Dependencies.Length; i++)
+
+        for (int i = 0; i < Dependencies.Length; i++)
             Dependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(Dependencies[i]);
-        for(int i = 0; i < OptionalDependencies.Length; i++)
+        for (int i = 0; i < OptionalDependencies.Length; i++)
             OptionalDependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(OptionalDependencies[i]);
-        for(int i = 0; i < IncompatibleWith.Length; i++)
+        for (int i = 0; i < IncompatibleWith.Length; i++)
             IncompatibleWith[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(IncompatibleWith[i]);
-        
+
         FolderPath = pFolderPath;
     }
 
     public ModDeclare(string pFilePath)
     {
-        ModDeclare modDeclare = Newtonsoft.Json.JsonConvert.DeserializeObject<ModDeclare>(File.ReadAllText(pFilePath)) ?? throw new InvalidOperationException("Input Mod Config file path cannot be null");
+        ModDeclare modDeclare = JsonConvert.DeserializeObject<ModDeclare>(File.ReadAllText(pFilePath)) ??
+                                throw new InvalidOperationException("Input Mod Config file path cannot be null");
         if (modDeclare == null)
         {
             throw new Exception($"Mod Config file at \"{pFilePath}\" is invalid");
         }
+
         Name = modDeclare.Name;
         Author = modDeclare.Author;
         Version = modDeclare.Version;
@@ -64,33 +68,68 @@ public class ModDeclare
         OptionalDependencies = modDeclare.OptionalDependencies;
         IncompatibleWith = modDeclare.IncompatibleWith;
         ModType = modDeclare.ModType;
+        UsePublicizedAssembly = modDeclare.UsePublicizedAssembly;
 
         Dependencies ??= new string[0];
         OptionalDependencies ??= new string[0];
         IncompatibleWith ??= new string[0];
 
         UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol($"{Author}.{Name}");
-        
-        for(int i = 0; i < Dependencies.Length; i++)
+
+        for (int i = 0; i < Dependencies.Length; i++)
             Dependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(Dependencies[i]);
-        for(int i = 0; i < OptionalDependencies.Length; i++)
+        for (int i = 0; i < OptionalDependencies.Length; i++)
             OptionalDependencies[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(OptionalDependencies[i]);
-        for(int i = 0; i < IncompatibleWith.Length; i++)
+        for (int i = 0; i < IncompatibleWith.Length; i++)
             IncompatibleWith[i] = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(IncompatibleWith[i]);
-        
-        FolderPath = Path.GetDirectoryName(pFilePath) ?? throw new Exception("Cannot get folder path from input file path");
+
+        FolderPath = Path.GetDirectoryName(pFilePath) ??
+                     throw new Exception("Cannot get folder path from input file path");
     }
+
+    [JsonProperty("name")] public string Name { get; private set; }
+
+    public string UID { get; private set; }
+
+    [JsonProperty("author")] public string Author { get; private set; }
+
+    [JsonProperty("version")] public string Version { get; private set; }
+
+    [JsonProperty("description")] public string Description { get; private set; }
+
+    [JsonProperty("RepoUrl")] public string RepoUrl { get; private set; }
+
+    [JsonProperty("Dependencies")] public string[] Dependencies { get; private set; }
+
+    [JsonProperty("OptionalDependencies")] public string[] OptionalDependencies { get; private set; }
+
+    [JsonProperty("IncompatibleWith")] public string[] IncompatibleWith { get; private set; }
+
+    public string FolderPath { get; private set; } = null!;
+
+    [JsonProperty("targetGameBuild")] public int TargetGameBuild { get; private set; }
+
+    [JsonProperty("iconPath")] public string IconPath { get; private set; }
+    [JsonProperty("ModType")] public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NORMAL;
+
+    [JsonProperty("UsePublicizedAssembly")]
+    public bool UsePublicizedAssembly { get; private set; } = true;
+
+    public bool IsNCMSMod { get; internal set; } = false;
+    public StringBuilder FailReason { get; } = new();
 
     internal void SetRepoUrlToWorkshopPage(string id)
     {
         RepoUrl = $"https://steamcommunity.com/sharedfiles/filedetails/?id={id}";
     }
+
     internal void SetModType(ModTypeEnum modType)
     {
-        if(modType < ModTypeEnum.NORMAL || modType > ModTypeEnum.BEPINEX)
+        if (modType < ModTypeEnum.NORMAL || modType > ModTypeEnum.BEPINEX)
             throw new ArgumentOutOfRangeException(nameof(modType), modType, null);
         ModType = modType;
     }
+
     /// <summary>
     /// This only called for BepInEx mods
     /// </summary>
@@ -99,28 +138,4 @@ public class ModDeclare
     {
         IconPath = iconPath;
     }
-    [JsonProperty("name")]
-    public string Name { get; private set; }
-    public string UID { get; private set; }
-    [JsonProperty("author")]
-    public string Author { get; private set; }
-    [JsonProperty("version")]
-    public string Version { get; private set; }
-    [JsonProperty("description")]
-    public string Description { get; private set; }
-    [JsonProperty("RepoUrl")]
-    public string RepoUrl { get; private set; }
-    [JsonProperty("Dependencies")] public string[] Dependencies { get; private set; }
-    [JsonProperty("OptionalDependencies")]
-    public string[] OptionalDependencies { get; private set; }
-    [JsonProperty("IncompatibleWith")]
-    public string[] IncompatibleWith { get; private set; }
-    public string FolderPath { get; private set; } = null!;
-    [JsonProperty("targetGameBuild")]
-    public int TargetGameBuild { get; private set; }
-
-    [JsonProperty("iconPath")] public string IconPath { get; private set; }
-    [JsonProperty("ModType")] public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NORMAL;
-    public bool IsNCMSMod { get; internal set; } = false;
-    public StringBuilder FailReason { get; } = new();
 }
