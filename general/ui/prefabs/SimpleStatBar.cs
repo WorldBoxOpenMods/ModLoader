@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Button = UnityEngine.UIElements.Button;
 
 namespace NeoModLoader.General.UI.Prefabs;
 
