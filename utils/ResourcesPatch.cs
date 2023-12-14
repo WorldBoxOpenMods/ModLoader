@@ -1,8 +1,6 @@
 using System.Globalization;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
-using NeoModLoader.constants;
-using NeoModLoader.General;
 using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -12,10 +10,134 @@ namespace NeoModLoader.utils;
 
 internal static class ResourcesPatch
 {
+    private static ResourceTree tree;
+
+    public static Dictionary<string, Object> GetAllPatchedResources()
+    {
+        return tree.direct_objects;
+    }
+
+    internal static void Initialize()
+    {
+        tree = new ResourceTree();
+        SpriteAtlas atlas = Resources.FindObjectsOfTypeAll<SpriteAtlas>()
+            .FirstOrDefault(x => x.name == "SpriteAtlasUI");
+
+        Sprite[] sprites = new Sprite[atlas.spriteCount];
+        atlas.GetSprites(sprites);
+        foreach (var sprite in sprites)
+        {
+            tree.Add($"ui/special/{sprite.name.Replace("(Clone)", "")}", sprite);
+        }
+    }
+
+    internal static void PatchSomeResources()
+    {
+        Sprite[] items = Resources.LoadAll<Sprite>("actors/races/items");
+        foreach (Sprite item in items)
+        {
+            ActorAnimationLoader.dictItems[item.name] = item;
+        }
+    }
+
+    /// <summary>
+    /// Load a resource file from path, and named by pLowerPath.
+    /// </summary>
+    /// <remarks>
+    /// It can recognize jpg, png, jpeg by postfix now.
+    /// <para>All others will be loaded as text</para>
+    /// </remarks>
+    /// <param name="path">the path to the resource file to load</param>
+    /// <param name="pLowerPath">the lower of path with <see cref="CultureInfo.CurrentCulture"/></param>
+    /// <returns>The Objects loaded, if single Object, an array with single one; if no Objects, an empty array</returns>
+    /// It can recognize jpg, png, jpeg by postfix now
+    public static Object[] LoadResourceFile(ref string path, ref string pLowerPath)
+    {
+        if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
+            return SpriteLoadUtils.LoadSprites(path);
+        return new Object[] { LoadTextAsset(path) };
+    }
+
+    private static TextAsset LoadTextAsset(string path)
+    {
+        TextAsset textAsset = new TextAsset(File.ReadAllText(path));
+        textAsset.name = Path.GetFileNameWithoutExtension(path);
+        return textAsset;
+    }
+
+    internal static void LoadResourceFromFolder(string pFolder)
+    {
+        if (!Directory.Exists(pFolder)) return;
+
+        var files = SystemUtils.SearchFileRecursive(pFolder, filename => !filename.StartsWith("."),
+            dirname => !dirname.StartsWith("."));
+        foreach (var file in files)
+        {
+            tree.AddFromFile(file.Replace(pFolder, "").Replace('\\', '/').Substring(1), file);
+        }
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
+    {
+        typeof(string),
+        typeof(Type)
+    })]
+    private static Object[] LoadAll_Postfix(Object[] __result, string path,
+        Type systemTypeInstance)
+    {
+        if (tree == null) return __result;
+        ResourceTreeNode node = tree.Find(path);
+
+        List<Object> append_list = node != null ? node.GetAllObjects(systemTypeInstance) : new List<Object>();
+
+        foreach (var ab in tree.asset_bundles)
+        {
+            var objs = ab.GetAllObjects(path, systemTypeInstance);
+            if (objs == null || objs.Length == 0) continue;
+            append_list.AddRange(ab.GetAllObjects(path, systemTypeInstance));
+        }
+
+        if (append_list.Count == 0) return __result;
+
+        var list = new List<Object>(__result);
+
+        HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
+        list.RemoveAll(x => names.Contains(x.name));
+
+        list.AddRange(append_list);
+        return list.ToArray();
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
+    {
+        typeof(string),
+        typeof(Type)
+    })]
+    private static Object Load_Postfix(Object __result, string path,
+        Type systemTypeInstance)
+    {
+        if (tree == null) return __result;
+        var new_result = tree.Get(path);
+        if (new_result != null && systemTypeInstance.IsInstanceOfType(new_result))
+            return new_result;
+        foreach (var ab in tree.asset_bundles)
+        {
+            new_result = ab.GetObject(path, systemTypeInstance);
+            if (new_result != null)
+                return new_result;
+        }
+
+        return __result;
+    }
+
     class ResourceTree
     {
+        public readonly List<WrappedAssetBundle> asset_bundles = new();
+        internal Dictionary<string, Object> direct_objects = new();
         private ResourceTreeNode root = new(null);
-        internal Dictionary<string, UnityEngine.Object> direct_objects = new();
+
         /// <summary>
         /// Find a ResourceTreeNode by path.
         /// </summary>
@@ -54,7 +176,7 @@ internal static class ResourcesPatch
             return node;
         }
 
-        public UnityEngine.Object Get(string path)
+        public Object Get(string path)
         {
             return direct_objects.TryGetValue(path.ToLower(), out Object o) ? o : null;
         }
@@ -65,8 +187,8 @@ internal static class ResourcesPatch
             direct_objects[lower_path] = obj;
             var node = Find(path, true, false);
             node.objects[Path.GetFileNameWithoutExtension(lower_path)] = obj;
-
         }
+
         /// <summary>
         /// Load resources under absPath, and patch them to the tree under the folder of path.
         /// </summary>
@@ -81,9 +203,9 @@ internal static class ResourcesPatch
                 patchAssetBundleToTree(path, absPath);
                 return;
             }
-            
+
             string parent_path = Path.GetDirectoryName(lower_path);
-            UnityEngine.Object[] objs;
+            Object[] objs;
             try
             {
                 string abs_lower_path = absPath.ToLower();
@@ -97,7 +219,7 @@ internal static class ResourcesPatch
                     }
                     else
                     {
-                        direct_objects[Path.Combine(parent_path, obj.name).Replace('\\','/').ToLower()] = obj;
+                        direct_objects[Path.Combine(parent_path, obj.name).Replace('\\', '/').ToLower()] = obj;
                     }
                 }
             }
@@ -106,7 +228,8 @@ internal static class ResourcesPatch
                 LogService.LogWarning($"Cannot recognize resource file {path}");
                 return;
             }
-            if(objs.Length == 0) return;
+
+            if (objs.Length == 0) return;
 
             var node = Find(path, true, false);
 
@@ -125,16 +248,15 @@ internal static class ResourcesPatch
                 LogService.LogStackTraceAsError();
                 return;
             }
-            var node = Find(path, true, false);
-            node.assetBundles.Add(ab);
+
+            asset_bundles.Add(ab);
         }
     }
 
     class ResourceTreeNode
     {
         public readonly Dictionary<string, ResourceTreeNode> children = new();
-        public readonly Dictionary<string, UnityEngine.Object> objects = new();
-        public readonly List<WrappedAssetBundle> assetBundles = new();
+        public readonly Dictionary<string, Object> objects = new();
         public readonly ResourceTreeNode parent;
 
         public ResourceTreeNode(ResourceTreeNode parent)
@@ -145,7 +267,7 @@ internal static class ResourcesPatch
         public List<Object> GetAllObjects(Type systemTypeInstance)
         {
             var result = new List<Object>(objects.Count);
-            
+
             Queue<ResourceTreeNode> queue = new Queue<ResourceTreeNode>(children.Count);
             queue.Enqueue(this);
 
@@ -159,11 +281,8 @@ internal static class ResourcesPatch
                         result.Add(obj);
                     }
                 }
-                foreach(WrappedAssetBundle ab in node.assetBundles)
-                {
-                    result.AddRange(ab.GetAllObjects(systemTypeInstance));
-                }
-                foreach(var child in node.children.Values)
+
+                foreach (var child in node.children.Values)
                 {
                     queue.Enqueue(child);
                 }
@@ -172,118 +291,5 @@ internal static class ResourcesPatch
 
             return result;
         }
-    }
-
-    private static ResourceTree tree;
-
-    public static Dictionary<string, UnityEngine.Object> GetAllPatchedResources()
-    {
-        return tree.direct_objects;
-    }
-    internal static void Initialize()
-    {
-        tree = new ResourceTree();
-        SpriteAtlas atlas = Resources.FindObjectsOfTypeAll<SpriteAtlas>().FirstOrDefault(x => x.name == "SpriteAtlasUI");
-
-        Sprite[] sprites = new Sprite[atlas.spriteCount];
-        atlas.GetSprites(sprites);
-        foreach (var sprite in sprites)
-        {
-            tree.Add($"ui/special/{sprite.name.Replace("(Clone)", "")}", sprite);
-        }
-    }
-
-    internal static void PatchSomeResources()
-    {
-        Sprite[] items = Resources.LoadAll<Sprite>("actors/races/items");
-        foreach (Sprite item in items)
-        {
-            ActorAnimationLoader.dictItems[item.name] = item;
-        }
-    }
-    /// <summary>
-    /// Load a resource file from path, and named by pLowerPath.
-    /// </summary>
-    /// <remarks>
-    /// It can recognize jpg, png, jpeg by postfix now.
-    /// <para>All others will be loaded as text</para>
-    /// </remarks>
-    /// <param name="path">the path to the resource file to load</param>
-    /// <param name="pLowerPath">the lower of path with <see cref="CultureInfo.CurrentCulture"/></param>
-    /// <returns>The Objects loaded, if single Object, an array with single one; if no Objects, an empty array</returns>
-    /// It can recognize jpg, png, jpeg by postfix now
-    public static UnityEngine.Object[] LoadResourceFile(ref string path, ref string pLowerPath)
-    {
-        if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
-            return SpriteLoadUtils.LoadSprites(path);
-        return new Object[]{LoadTextAsset(path)};
-    }
-
-    private static TextAsset LoadTextAsset(string path)
-    {
-        TextAsset textAsset = new TextAsset(File.ReadAllText(path));
-        textAsset.name = Path.GetFileNameWithoutExtension(path);
-        return textAsset;
-    }
-
-    internal static void LoadResourceFromFolder(string pFolder)
-    {
-        if (!Directory.Exists(pFolder)) return;
-
-        var files = SystemUtils.SearchFileRecursive(pFolder, filename => !filename.StartsWith("."),
-            dirname => !dirname.StartsWith("."));
-        foreach (var file in files)
-        {
-            tree.AddFromFile(file.Replace(pFolder, "").Replace('\\', '/').Substring(1), file);
-        }
-    }
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
-    {
-        typeof(string),
-        typeof(Type)
-    })]
-    private static UnityEngine.Object[] LoadAll_Postfix(UnityEngine.Object[] __result, string path,
-        Type systemTypeInstance)
-    {
-        if (tree == null) return __result;
-        ResourceTreeNode node = tree.Find(path);
-        if (node == null) return __result;
-        
-        var append_list = node.GetAllObjects(systemTypeInstance);
-        
-        if(append_list.Count == 0) return __result;
-        
-        var list = new List<UnityEngine.Object>(__result);
-        
-        HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
-        list.RemoveAll(x => names.Contains(x.name));
-        
-        list.AddRange(append_list);
-        return list.ToArray();
-    }
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
-    {
-        typeof(string),
-        typeof(Type)
-    })]
-    private static UnityEngine.Object Load_Postfix(UnityEngine.Object __result, string path,
-        Type systemTypeInstance)
-    {
-        if (tree == null) return __result;
-        var new_result = tree.Get(path);
-        if (new_result != null && systemTypeInstance.IsInstanceOfType(new_result))
-            return new_result;
-        var node = tree.Find(path, false, false);
-        if (node == null)
-            return __result;
-        foreach (var ab in node.assetBundles)
-        {
-            new_result = ab.GetObject(Path.GetFileName(path), systemTypeInstance);
-            if (new_result != null)
-                return new_result;
-        }
-        return __result;
     }
 }
