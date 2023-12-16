@@ -149,11 +149,11 @@ public static class SpriteLoadUtils
 
             if (dir == Paths.ModsPath)
             {
-                return null;
+                return defaultNCMSSetting;
             }
 
             dir = Path.GetDirectoryName(dir);
-            if (string.IsNullOrEmpty(dir)) return null;
+            if (string.IsNullOrEmpty(dir)) return defaultNCMSSetting;
         }
     }
 
