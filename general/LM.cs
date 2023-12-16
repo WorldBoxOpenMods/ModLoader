@@ -1,13 +1,21 @@
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
+using NeoModLoader.services;
+using Newtonsoft.Json;
 
 namespace NeoModLoader.General;
+
 /// <summary>
 /// LM is short for Localization Manager
 /// </summary>
 public static class LM
 {
+    /// <summary>
+    /// Store all locales loaded by NML.
+    /// </summary>
+    private static Dictionary<string, Dictionary<string, string>> locales = new();
+
     /// <summary>
     /// Get localized text from key for current language
     /// </summary>
@@ -17,6 +25,7 @@ public static class LM
     {
         return LocalizedTextManager.getText(key);
     }
+
     /// <summary>
     /// Load locale from a stream (It must be a json file)
     /// </summary>
@@ -27,14 +36,15 @@ public static class LM
     {
         string text = new StreamReader(pStream).ReadToEnd();
         Dictionary<string, string> locale =
-            Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(text);
+            JsonConvert.DeserializeObject<Dictionary<string, string>>(text);
 
         if (locale == null)
         {
             throw new FormatException($"Failed to load locale file for stream as json");
         }
 
-        foreach (var (key, value) in locale.Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
+        foreach (var (key, value) in locale.Select<KeyValuePair<string, string>, (string key, string value)>(pair =>
+                     (pair.Key, pair.Value)))
         {
             Add(pLanguage, key, value);
         }
@@ -52,14 +62,15 @@ public static class LM
         if (pFilePath.ToLower().EndsWith(".json"))
         {
             Dictionary<string, string> locale =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(pFilePath));
+                JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(pFilePath));
 
             if (locale == null)
             {
                 throw new FormatException($"Failed to load locale file at {pFilePath} as json");
             }
 
-            foreach (var (key, value) in locale.Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
+            foreach (var (key, value) in locale.Select<KeyValuePair<string, string>, (string key, string value)>(pair =>
+                         (pair.Key, pair.Value)))
             {
                 Add(pLanguage, key, value);
             }
@@ -67,12 +78,12 @@ public static class LM
         /*
         else if (pFilePath.ToLower().EndsWith(".yml"))
         {
-            
+
         }
         */
         else
         {
-            throw new UnsupportedFileTypeException(pFilePath);
+            LogService.LogWarning($"Unsupported locale file type of path: {pFilePath}");
         }
     }
 
@@ -86,6 +97,7 @@ public static class LM
         LocalizedTextManager.instance.localizedText[key] = value;
         Add(LocalizedTextManager.instance.language, key, value);
     }
+
     /// <summary>
     /// Add a key-value pair to language locale
     /// <param name="language">Target language</param>
@@ -98,13 +110,10 @@ public static class LM
         {
             locales[language] = new Dictionary<string, string>();
         }
-        
+
         locales[language][key] = value;
     }
-    /// <summary>
-    /// Store all locales loaded by NML.
-    /// </summary>
-    private static Dictionary<string, Dictionary<string, string>> locales = new();
+
     /// <summary>
     /// Apply all locales loaded by this mod to target locale.
     /// <remarks>It will be called automatically by NML when language is changed.</remarks>
@@ -117,13 +126,16 @@ public static class LM
         {
             return;
         }
-        
-        foreach (var (key, value) in locales[language].Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
+
+        foreach (var (key, value) in locales[language]
+                     .Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
             LocalizedTextManager.instance.localizedText[key] = value;
         }
+
         LocalizedTextManager.updateTexts();
     }
+
     /// <summary>
     /// Apply all locales loaded by this mod to current locale.
     /// <remarks>It will be called automatically by NML when language is changed.</remarks>
@@ -135,12 +147,14 @@ public static class LM
         {
             return;
         }
-        
-        foreach (var (key, value) in locales[LocalizedTextManager.instance.language].Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
+
+        foreach (var (key, value) in locales[LocalizedTextManager.instance.language]
+                     .Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
             LocalizedTextManager.instance.localizedText[key] = value;
         }
     }
+
     /// <summary>
     /// Patch to <see cref="LocalizedTextManager.setLanguage"/>
     /// <remarks>Listen language change event</remarks>
