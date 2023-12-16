@@ -115,6 +115,11 @@ internal static class ModInfoUtils
         }
 
         string[] workshop_mod_folders;
+        if (Others.is_editor)
+        {
+            goto SKIP_WORKSHOP;
+        }
+
         try
         {
             switch (Application.platform)
@@ -126,7 +131,7 @@ internal static class ModInfoUtils
                     break;
                 default:
                     LogService.LogWarning(
-                        "Your platform doesn't have defined behaviour, trying to handle it like Windows...");
+                        $"Your platform {Application.platform.ToString()} doesn't have defined behaviour, trying to handle it like Windows...");
                     workshop_mod_folders = Directory.GetDirectories(Paths.CommonModsWorkshopPath);
                     break;
             }

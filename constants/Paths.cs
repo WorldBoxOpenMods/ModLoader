@@ -10,7 +10,11 @@ public static class Paths
     public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
     public static readonly string StreamingAssetsPath = Combine(Application.streamingAssetsPath);
     public static readonly string NativeModsPath = Combine(StreamingAssetsPath, "Mods");
-    public static readonly string ManagedPath = Combine(StreamingAssetsPath, "..", "Managed");
+
+    public static readonly string ManagedPath = Others.is_editor
+        ? Combine(StreamingAssetsPath, "..", ".Managed")
+        : Combine(StreamingAssetsPath, "..", "Managed");
+
     public static readonly string NMLPath = Combine(NativeModsPath, "NML");
 
     public static readonly string PublicizedAssemblyPath = Combine(NMLPath, "Assembly-CSharp-Publicized.dll");
@@ -18,7 +22,9 @@ public static class Paths
     public static readonly string ModsConfigPath = Combine(PersistentDataPath, "mods_config");
 
     public static readonly string BepInExPluginsPath = Combine(GamePath, "BepInEx", "plugins");
-    public static readonly string ModsPath = Combine(GamePath, "Mods");
+
+    public static readonly string ModsPath =
+        Others.is_editor ? Combine(GamePath, "Assets", "Mods") : Combine(GamePath, "Mods");
 
     public static readonly string NMLAssembliesPath = Combine(NMLPath, "Assemblies");
     public static readonly string CompiledModsPath = Combine(NMLPath, "CompiledMods");
@@ -27,7 +33,7 @@ public static class Paths
     public static readonly string ModsDisabledRecordPath = Combine(NMLPath, "disabled_mods.txt");
     public static readonly string ModDeclarationFileName = "mod.json";
     public static readonly string ModDefaultConfigFileName = "default_config.json";
-    public static readonly string ModResourceFolderName = "GameResources";
+    public static readonly string ModResourceFolderName = Others.is_editor ? "Resources" : "GameResources";
     public static readonly string NCMSAdditionModResourceFolderName = "GameResourcesReplace";
 
     public static readonly string CommonModsWorkshopPath =

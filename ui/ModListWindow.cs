@@ -41,7 +41,16 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image workshopButtonImage = workshopButton.GetComponent<Image>();
         workshopButtonImage.sprite = Resources.Load<Sprite>("ui/icons/iconSteam");
         Button workshopButtonButton = workshopButton.GetComponent<Button>();
-        workshopButtonButton.onClick.AddListener(() => { ScrollWindow.showWindow("WorkshopMods"); });
+        workshopButtonButton.onClick.AddListener(() =>
+        {
+            if (Others.is_editor)
+            {
+                InformationWindow.ShowWindow("WorkshopMods Window is not supported in editor environment");
+                return;
+            }
+
+            ScrollWindow.showWindow("WorkshopMods");
+        });
         TipButton workshopButtonTipButton = workshopButton.GetComponent<TipButton>();
         workshopButtonTipButton.textOnClick = "WorkshopMods Title";
 
