@@ -14,7 +14,7 @@ namespace NCMS.Utils
 
         public static ScrollWindow GetWindow(string pWindowID)
         {
-            return ScrollWindow.get(pWindowID);
+            return ScrollWindow.allWindows.TryGetValue(pWindowID, out var window) ? window : null;
         }
 
         public static ScrollWindow CreateNewWindow(string pWindowID, string pWindowTitle)
