@@ -1,13 +1,14 @@
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace NeoModLoader.General;
 
 public static class WindowCreator
 {
-
-    internal static void init(){
-    
+    internal static void init()
+    {
     }
+
     /// <summary>
     /// Create an empty window with a title auto localized
     /// </summary>
@@ -21,16 +22,17 @@ public static class WindowCreator
             return emptyWindow;
         }
 
-        ScrollWindow window = UnityEngine.Object.Instantiate(Resources.Load<ScrollWindow>("windows/empty"), CanvasMain.instance.transformWindows);
+        ScrollWindow window = Object.Instantiate(Resources.Load<ScrollWindow>("windows/empty"),
+            CanvasMain.instance.transformWindows);
         window.screen_id = pWindowID;
         window.name = pWindowID;
 
         LocalizedText titleText = window.titleText.GetComponent<LocalizedText>();
         titleText.key = pWindowTitleKey;
         LocalizedTextManager.instance.texts.Add(titleText);
-        
-        window.create(true);
+
         ScrollWindow.allWindows[pWindowID] = window;
+        window.create(true);
 
         return window;
     }
