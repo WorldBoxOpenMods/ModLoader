@@ -21,378 +21,57 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
       <DebugType>portable</DebugType>
     </PropertyGroup>
-  
+
+  <!-- Used for HarmonyPatch, Authentication, Auto-update, Hotfix, Steam workshop-->
     <ItemGroup>
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
+      <Reference Include="System.Net.Http">
+        <HintPath>resources\assemblies\System.Net.Http.dll</HintPath>
+      </Reference>
+      <Reference Include="Mono.Cecil">
+        <HintPath>resources\assemblies\Mono.Cecil.dll</HintPath>
+      </Reference>
+      <Reference Include="MonoMod.Utils">
+        <HintPath>resources\assemblies\MonoMod.Utils.dll</HintPath>
+      </Reference>
+      <Reference Include="Facepunch.Steamworks.Posix">
+        <HintPath>resources\assemblies\Facepunch.Steamworks.Posix.dll</HintPath>
+        <Aliases>unixsteamwork</Aliases>
+      </Reference>
+      <Reference Include="Facepunch.Steamworks.Win64">
+        <HintPath>resources\assemblies\Facepunch.Steamworks.Win64.dll</HintPath>
+        <Aliases>winsteamwork</Aliases>
+      </Reference>
+    </ItemGroup>
+
+  <!-- Used for Compile and load mods -->
+  <ItemGroup>
+      <Reference Include="Microsoft.CodeAnalysis">
+        <HintPath>resources\assemblies\Microsoft.CodeAnalysis.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis.CSharp">
+        <HintPath>resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections.Immutable">
+        <HintPath>resources\assemblies\System.Collections.Immutable.dll</HintPath>
+      </Reference>
+  </ItemGroup>
+
+  <!-- Used for UI and other services -->
+  <ItemGroup>
       <Reference Include="Assembly-CSharp">
         <HintPath>assembly-dependencies\Assembly-CSharp-Publicized.dll</HintPath>
       </Reference>
       <Reference Include="Assembly-CSharp-firstpass">
         <HintPath>assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
       </Reference>
-      <Reference Include="Facepunch.Steamworks.Posix">
-        <HintPath>assembly-dependencies\Facepunch.Steamworks.Posix.dll</HintPath>
-        <Aliases>unixsteamwork</Aliases>
-      </Reference>
-      <Reference Include="Facepunch.Steamworks.Win64">
-        <HintPath>assembly-dependencies\Facepunch.Steamworks.Win64.dll</HintPath>
-        <Aliases>winsteamwork</Aliases>
-      </Reference>
-      <Reference Include="Microsoft.CodeAnalysis, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-        <HintPath>resources\assemblies\Microsoft.CodeAnalysis.dll</HintPath>
-      </Reference>
-      <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-        <HintPath>resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil">
-        <HintPath>resources\assemblies\Mono.Cecil.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil.Mdb">
-        <HintPath>resources\assemblies\Mono.Cecil.Mdb.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil.Pdb">
-        <HintPath>resources\assemblies\Mono.Cecil.Pdb.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil.Rocks">
-        <HintPath>resources\assemblies\Mono.Cecil.Rocks.dll</HintPath>
-      </Reference>
-      <Reference Include="MonoMod.RuntimeDetour">
-        <HintPath>resources\assemblies\MonoMod.RuntimeDetour.dll</HintPath>
-      </Reference>
-      <Reference Include="MonoMod.Utils">
-        <HintPath>resources\assemblies\MonoMod.Utils.dll</HintPath>
-      </Reference>
-      <Reference Include="mscorlib">
-        <HintPath>resources\assemblies\mscorlib.dll</HintPath>
-      </Reference>
-      <Reference Include="netstandard">
-        <HintPath>resources\assemblies\netstandard.dll</HintPath>
-      </Reference>
       <Reference Include="Newtonsoft.Json">
         <HintPath>assembly-dependencies\Newtonsoft.Json.dll</HintPath>
       </Reference>
-      <Reference Include="Newtonsoft.Json.Schema">
-        <HintPath>resources\assemblies\Newtonsoft.Json.Schema.dll</HintPath>
-      </Reference>
-      <Reference Include="System.AppContext">
-        <HintPath>resources\assemblies\System.AppContext.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Buffers">
-        <HintPath>resources\assemblies\System.Buffers.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Collections">
-        <HintPath>resources\assemblies\System.Collections.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Collections.Concurrent">
-        <HintPath>resources\assemblies\System.Collections.Concurrent.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Collections.Immutable">
-        <HintPath>resources\assemblies\System.Collections.Immutable.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Collections.NonGeneric">
-        <HintPath>resources\assemblies\System.Collections.NonGeneric.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Collections.Specialized">
-        <HintPath>resources\assemblies\System.Collections.Specialized.dll</HintPath>
-      </Reference>
-      <Reference Include="System.ComponentModel">
-        <HintPath>resources\assemblies\System.ComponentModel.dll</HintPath>
-      </Reference>
-      <Reference Include="System.ComponentModel.EventBasedAsync">
-        <HintPath>resources\assemblies\System.ComponentModel.EventBasedAsync.dll</HintPath>
-      </Reference>
-      <Reference Include="System.ComponentModel.Primitives">
-        <HintPath>resources\assemblies\System.ComponentModel.Primitives.dll</HintPath>
-      </Reference>
-      <Reference Include="System.ComponentModel.TypeConverter">
-        <HintPath>resources\assemblies\System.ComponentModel.TypeConverter.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Console">
-        <HintPath>resources\assemblies\System.Console.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Data.Common">
-        <HintPath>resources\assemblies\System.Data.Common.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Data.DataSetExtensions">
-        <HintPath>resources\assemblies\System.Data.DataSetExtensions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.Contracts">
-        <HintPath>resources\assemblies\System.Diagnostics.Contracts.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.Debug">
-        <HintPath>resources\assemblies\System.Diagnostics.Debug.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.FileVersionInfo">
-        <HintPath>resources\assemblies\System.Diagnostics.FileVersionInfo.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.Process">
-        <HintPath>resources\assemblies\System.Diagnostics.Process.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.StackTrace">
-        <HintPath>resources\assemblies\System.Diagnostics.StackTrace.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.TextWriterTraceListener">
-        <HintPath>resources\assemblies\System.Diagnostics.TextWriterTraceListener.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.Tools">
-        <HintPath>resources\assemblies\System.Diagnostics.Tools.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.TraceSource">
-        <HintPath>resources\assemblies\System.Diagnostics.TraceSource.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Diagnostics.Tracing">
-        <HintPath>resources\assemblies\System.Diagnostics.Tracing.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Drawing.Primitives">
-        <HintPath>resources\assemblies\System.Drawing.Primitives.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Dynamic.Runtime">
-        <HintPath>resources\assemblies\System.Dynamic.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Globalization">
-        <HintPath>resources\assemblies\System.Globalization.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Globalization.Calendars">
-        <HintPath>resources\assemblies\System.Globalization.Calendars.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Globalization.Extensions">
-        <HintPath>resources\assemblies\System.Globalization.Extensions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO">
-        <HintPath>resources\assemblies\System.IO.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.Compression">
-        <HintPath>assembly-dependencies\System.IO.Compression.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.Compression.ZipFile">
-        <HintPath>resources\assemblies\System.IO.Compression.ZipFile.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.FileSystem">
-        <HintPath>resources\assemblies\System.IO.FileSystem.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.FileSystem.DriveInfo">
-        <HintPath>resources\assemblies\System.IO.FileSystem.DriveInfo.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.FileSystem.Primitives">
-        <HintPath>resources\assemblies\System.IO.FileSystem.Primitives.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.FileSystem.Watcher">
-        <HintPath>resources\assemblies\System.IO.FileSystem.Watcher.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.IsolatedStorage">
-        <HintPath>resources\assemblies\System.IO.IsolatedStorage.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.MemoryMappedFiles">
-        <HintPath>resources\assemblies\System.IO.MemoryMappedFiles.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.Pipes">
-        <HintPath>resources\assemblies\System.IO.Pipes.dll</HintPath>
-      </Reference>
-      <Reference Include="System.IO.UnmanagedMemoryStream">
-        <HintPath>resources\assemblies\System.IO.UnmanagedMemoryStream.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Linq">
-        <HintPath>resources\assemblies\System.Linq.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Linq.Expressions">
-        <HintPath>resources\assemblies\System.Linq.Expressions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Linq.Parallel">
-        <HintPath>resources\assemblies\System.Linq.Parallel.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Linq.Queryable">
-        <HintPath>resources\assemblies\System.Linq.Queryable.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Memory">
-        <HintPath>resources\assemblies\System.Memory.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.Http">
-        <HintPath>resources\assemblies\System.Net.Http.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.NameResolution">
-        <HintPath>resources\assemblies\System.Net.NameResolution.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.NetworkInformation">
-        <HintPath>resources\assemblies\System.Net.NetworkInformation.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.Ping">
-        <HintPath>resources\assemblies\System.Net.Ping.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.Primitives">
-        <HintPath>resources\assemblies\System.Net.Primitives.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.Requests">
-        <HintPath>resources\assemblies\System.Net.Requests.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.Security">
-        <HintPath>resources\assemblies\System.Net.Security.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.Sockets">
-        <HintPath>resources\assemblies\System.Net.Sockets.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.WebHeaderCollection">
-        <HintPath>resources\assemblies\System.Net.WebHeaderCollection.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.WebSockets">
-        <HintPath>resources\assemblies\System.Net.WebSockets.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Net.WebSockets.Client">
-        <HintPath>resources\assemblies\System.Net.WebSockets.Client.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Numerics.Vectors">
-        <HintPath>resources\assemblies\System.Numerics.Vectors.dll</HintPath>
-      </Reference>
-      <Reference Include="System.ObjectModel">
-        <HintPath>resources\assemblies\System.ObjectModel.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Reflection">
-        <HintPath>resources\assemblies\System.Reflection.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Reflection.Extensions">
-        <HintPath>resources\assemblies\System.Reflection.Extensions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Reflection.Metadata">
-        <HintPath>resources\assemblies\System.Reflection.Metadata-renamed.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Reflection.Primitives">
-        <HintPath>resources\assemblies\System.Reflection.Primitives.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Resources.Reader">
-        <HintPath>resources\assemblies\System.Resources.Reader.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Resources.ResourceManager">
-        <HintPath>resources\assemblies\System.Resources.ResourceManager.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Resources.Writer">
-        <HintPath>resources\assemblies\System.Resources.Writer.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime">
-        <HintPath>resources\assemblies\System.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.CompilerServices.Unsafe">
-        <HintPath>resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.CompilerServices.VisualC">
-        <HintPath>resources\assemblies\System.Runtime.CompilerServices.VisualC.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.Extensions">
-        <HintPath>resources\assemblies\System.Runtime.Extensions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.Handles">
-        <HintPath>resources\assemblies\System.Runtime.Handles.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.InteropServices">
-        <HintPath>resources\assemblies\System.Runtime.InteropServices.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
-        <HintPath>resources\assemblies\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.Numerics">
-        <HintPath>resources\assemblies\System.Runtime.Numerics.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.Serialization.Formatters">
-        <HintPath>resources\assemblies\System.Runtime.Serialization.Formatters.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.Serialization.Json">
-        <HintPath>resources\assemblies\System.Runtime.Serialization.Json.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.Serialization.Primitives">
-        <HintPath>resources\assemblies\System.Runtime.Serialization.Primitives.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Runtime.Serialization.Xml">
-        <HintPath>resources\assemblies\System.Runtime.Serialization.Xml.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.Claims">
-        <HintPath>resources\assemblies\System.Security.Claims.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.Cryptography.Algorithms">
-        <HintPath>resources\assemblies\System.Security.Cryptography.Algorithms.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.Cryptography.Csp">
-        <HintPath>resources\assemblies\System.Security.Cryptography.Csp.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.Cryptography.Encoding">
-        <HintPath>resources\assemblies\System.Security.Cryptography.Encoding.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.Cryptography.Primitives">
-        <HintPath>resources\assemblies\System.Security.Cryptography.Primitives.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.Cryptography.X509Certificates">
-        <HintPath>resources\assemblies\System.Security.Cryptography.X509Certificates.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.Principal">
-        <HintPath>resources\assemblies\System.Security.Principal.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Security.SecureString">
-        <HintPath>resources\assemblies\System.Security.SecureString.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Text.Encoding">
-        <HintPath>resources\assemblies\System.Text.Encoding.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Text.Encoding.CodePages">
-        <HintPath>resources\assemblies\System.Text.Encoding.CodePages.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Text.Encoding.Extensions">
-        <HintPath>resources\assemblies\System.Text.Encoding.Extensions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Text.RegularExpressions">
-        <HintPath>resources\assemblies\System.Text.RegularExpressions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading">
-        <HintPath>resources\assemblies\System.Threading.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading.Overlapped">
-        <HintPath>resources\assemblies\System.Threading.Overlapped.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading.Tasks">
-        <HintPath>resources\assemblies\System.Threading.Tasks.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading.Tasks.Extensions">
-        <HintPath>resources\assemblies\System.Threading.Tasks.Extensions.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading.Tasks.Parallel">
-        <HintPath>resources\assemblies\System.Threading.Tasks.Parallel.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading.Thread">
-        <HintPath>resources\assemblies\System.Threading.Thread.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading.ThreadPool">
-        <HintPath>resources\assemblies\System.Threading.ThreadPool.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Threading.Timer">
-        <HintPath>resources\assemblies\System.Threading.Timer.dll</HintPath>
-      </Reference>
-      <Reference Include="System.ValueTuple">
-        <HintPath>resources\assemblies\System.ValueTuple.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Xml.ReaderWriter">
-        <HintPath>resources\assemblies\System.Xml.ReaderWriter.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Xml.XDocument">
-        <HintPath>resources\assemblies\System.Xml.XDocument.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Xml.XmlDocument">
-        <HintPath>resources\assemblies\System.Xml.XmlDocument.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Xml.XmlSerializer">
-        <HintPath>resources\assemblies\System.Xml.XmlSerializer.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Xml.XPath">
-        <HintPath>resources\assemblies\System.Xml.XPath.dll</HintPath>
-      </Reference>
-      <Reference Include="System.Xml.XPath.XDocument">
-        <HintPath>resources\assemblies\System.Xml.XPath.XDocument.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine">
-        <HintPath>assembly-dependencies\UnityEngine.dll</HintPath>
-      </Reference>
       <Reference Include="UnityEngine.AssetBundleModule">
         <HintPath>assembly-dependencies\UnityEngine.AssetBundleModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ClothModule">
-        <HintPath>assembly-dependencies\UnityEngine.ClothModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.CoreModule">
         <HintPath>assembly-dependencies\UnityEngine.CoreModule.dll</HintPath>
@@ -406,9 +85,6 @@
       <Reference Include="UnityEngine.JSONSerializeModule">
         <HintPath>assembly-dependencies\UnityEngine.JSONSerializeModule.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.LocalizationModule">
-        <HintPath>assembly-dependencies\UnityEngine.LocalizationModule.dll</HintPath>
-      </Reference>
       <Reference Include="UnityEngine.TextCoreModule">
         <HintPath>assembly-dependencies\UnityEngine.TextCoreModule.dll</HintPath>
       </Reference>
@@ -418,46 +94,15 @@
       <Reference Include="UnityEngine.UI">
         <HintPath>assembly-dependencies\UnityEngine.UI.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.UIElementsModule">
-        <HintPath>assembly-dependencies\UnityEngine.UIElementsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIElementsNativeModule">
-        <HintPath>assembly-dependencies\UnityEngine.UIElementsNativeModule.dll</HintPath>
-      </Reference>
       <Reference Include="UnityEngine.UIModule">
         <HintPath>assembly-dependencies\UnityEngine.UIModule.dll</HintPath>
-      </Reference>
-      <Reference Update="System">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.Core">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.Data">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.Drawing">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.IO.Compression.FileSystem">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.Numerics">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.Runtime.Serialization">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.Xml">
-        <Private>True</Private>
-      </Reference>
-      <Reference Update="System.Xml.Linq">
-        <Private>True</Private>
       </Reference>
     </ItemGroup>
   
     <ItemGroup>
+      <!-- Used for writing config file for auto-installing BepInEx in Linux and OSX-->
       <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+      <!-- Used for reading sprite meta file generated by UnityEditor-->
       <PackageReference Include="YamlDotNet" Version="13.7.1" />
     </ItemGroup>
   
@@ -465,218 +110,29 @@
       <None Remove="resources\assemblies\0Harmony.dll" />
       <EmbeddedResource Include="resources\assemblies\0Harmony.dll" />
       <None Remove="resources\assemblies\Microsoft.CodeAnalysis.dll" />
-      <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized"/>
       <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.dll" />
       <None Remove="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
       <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
-      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.CSharp.Scripting.dll" />
-      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.CSharp.Scripting.dll" />
-      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.Scripting.dll" />
-      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.Scripting.dll" />
       <None Remove="resources\assemblies\Mono.Cecil.dll" />
       <EmbeddedResource Include="resources\assemblies\Mono.Cecil.dll" />
       <None Remove="resources\assemblies\MonoMod.RuntimeDetour.dll" />
       <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll"/>
       <None Remove="resources\assemblies\MonoMod.Utils.dll" />
       <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll"/>
-      <None Remove="resources\assemblies\mscorlib.dll" />
-      <EmbeddedResource Include="resources\assemblies\mscorlib.dll" />
-      <None Remove="resources\assemblies\netstandard.dll" />
-      <EmbeddedResource Include="resources\assemblies\netstandard.dll" />
-      <None Remove="resources\assemblies\Newtonsoft.Json.Schema.dll" />
-      <EmbeddedResource Include="resources\assemblies\Newtonsoft.Json.Schema.dll" />
-      <None Remove="resources\assemblies\System.AppContext.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.AppContext.dll" />
-      <None Remove="resources\assemblies\System.Buffers.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Buffers.dll" />
-      <None Remove="resources\assemblies\System.Collections.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Collections.dll" />
-      <None Remove="resources\assemblies\System.Collections.Concurrent.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Collections.Concurrent.dll" />
       <None Remove="resources\assemblies\System.Collections.Immutable.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Collections.Immutable.dll" />
-      <None Remove="resources\assemblies\System.Collections.NonGeneric.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Collections.NonGeneric.dll" />
-      <None Remove="resources\assemblies\System.Collections.Specialized.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Collections.Specialized.dll" />
-      <None Remove="resources\assemblies\System.ComponentModel.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.dll" />
-      <None Remove="resources\assemblies\System.ComponentModel.EventBasedAsync.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.EventBasedAsync.dll" />
-      <None Remove="resources\assemblies\System.ComponentModel.Primitives.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.Primitives.dll" />
-      <None Remove="resources\assemblies\System.ComponentModel.TypeConverter.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.ComponentModel.TypeConverter.dll" />
-      <None Remove="resources\assemblies\System.Console.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Console.dll" />
-      <None Remove="resources\assemblies\System.Data.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Data.dll" />
-      <None Remove="resources\assemblies\System.Data.Common.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Data.Common.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.Contracts.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Contracts.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.Debug.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Debug.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.FileVersionInfo.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.FileVersionInfo.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.Process.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Process.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.StackTrace.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.StackTrace.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.TextWriterTraceListener.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.TextWriterTraceListener.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.Tools.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Tools.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.TraceSource.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.TraceSource.dll" />
-      <None Remove="resources\assemblies\System.Diagnostics.Tracing.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Diagnostics.Tracing.dll" />
-      <None Remove="resources\assemblies\System.Drawing.Primitives.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Drawing.Primitives.dll" />
-      <None Remove="resources\assemblies\System.Dynamic.Runtime.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Dynamic.Runtime.dll" />
-      <None Remove="resources\assemblies\System.Globalization.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Globalization.dll" />
-      <None Remove="resources\assemblies\System.Globalization.Calendars.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Globalization.Calendars.dll" />
-      <None Remove="resources\assemblies\System.Globalization.Extensions.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Globalization.Extensions.dll" />
-      <None Remove="resources\assemblies\System.IO.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.dll" />
-      <None Remove="resources\assemblies\System.IO.Compression.ZipFile.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.Compression.ZipFile.dll" />
-      <None Remove="resources\assemblies\System.IO.FileSystem.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.dll" />
-      <None Remove="resources\assemblies\System.IO.FileSystem.DriveInfo.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.DriveInfo.dll" />
-      <None Remove="resources\assemblies\System.IO.FileSystem.Primitives.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.Primitives.dll" />
-      <None Remove="resources\assemblies\System.IO.FileSystem.Watcher.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.FileSystem.Watcher.dll" />
-      <None Remove="resources\assemblies\System.IO.IsolatedStorage.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.IsolatedStorage.dll" />
-      <None Remove="resources\assemblies\System.IO.MemoryMappedFiles.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.MemoryMappedFiles.dll" />
-      <None Remove="resources\assemblies\System.IO.Pipes.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.Pipes.dll" />
-      <None Remove="resources\assemblies\System.IO.UnmanagedMemoryStream.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.IO.UnmanagedMemoryStream.dll" />
-      <None Remove="resources\assemblies\System.Linq.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Linq.dll" />
-      <None Remove="resources\assemblies\System.Linq.Expressions.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Linq.Expressions.dll" />
-      <None Remove="resources\assemblies\System.Linq.Parallel.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Linq.Parallel.dll" />
-      <None Remove="resources\assemblies\System.Linq.Queryable.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Linq.Queryable.dll" />
       <None Remove="resources\assemblies\System.Memory.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Memory.dll" />
       <None Remove="resources\assemblies\System.Net.Http.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Net.Http.dll" />
-      <None Remove="resources\assemblies\System.Net.NameResolution.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.NameResolution.dll" />
-      <None Remove="resources\assemblies\System.Net.NetworkInformation.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.NetworkInformation.dll" />
-      <None Remove="resources\assemblies\System.Net.Ping.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.Ping.dll" />
-      <None Remove="resources\assemblies\System.Net.Primitives.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.Primitives.dll" />
-      <None Remove="resources\assemblies\System.Net.Requests.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.Requests.dll" />
-      <None Remove="resources\assemblies\System.Net.Security.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.Security.dll" />
-      <None Remove="resources\assemblies\System.Net.Sockets.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.Sockets.dll" />
-      <None Remove="resources\assemblies\System.Net.WebHeaderCollection.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.WebHeaderCollection.dll" />
-      <None Remove="resources\assemblies\System.Net.WebSockets.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.WebSockets.dll" />
-      <None Remove="resources\assemblies\System.Net.WebSockets.Client.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.WebSockets.Client.dll" />
-      <None Remove="resources\assemblies\System.Numerics.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Numerics.dll" />
       <None Remove="resources\assemblies\System.Numerics.Vectors.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Numerics.Vectors.dll" />
-      <None Remove="resources\assemblies\System.ObjectModel.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.ObjectModel.dll" />
-      <None Remove="resources\assemblies\System.Reflection.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Reflection.dll" />
-      <None Remove="resources\assemblies\System.Reflection.Extensions.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Reflection.Extensions.dll" />
-      <None Remove="resources\assemblies\System.Reflection.Primitives.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Reflection.Primitives.dll" />
-      <None Remove="resources\assemblies\System.Resources.Reader.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Resources.Reader.dll" />
-      <None Remove="resources\assemblies\System.Resources.ResourceManager.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Resources.ResourceManager.dll" />
-      <None Remove="resources\assemblies\System.Resources.Writer.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Resources.Writer.dll" />
-      <None Remove="resources\assemblies\System.Runtime.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.dll" />
       <None Remove="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
-      <None Remove="resources\assemblies\System.Runtime.CompilerServices.VisualC.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.CompilerServices.VisualC.dll" />
-      <None Remove="resources\assemblies\System.Runtime.Extensions.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.Extensions.dll" />
-      <None Remove="resources\assemblies\System.Runtime.Handles.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.Handles.dll" />
-      <None Remove="resources\assemblies\System.Runtime.InteropServices.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.InteropServices.dll" />
-      <None Remove="resources\assemblies\System.Runtime.InteropServices.RuntimeInformation.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.InteropServices.RuntimeInformation.dll" />
-      <None Remove="resources\assemblies\System.Runtime.Numerics.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.Numerics.dll" />
-      <None Remove="resources\assemblies\System.Runtime.Serialization.Formatters.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Formatters.dll" />
-      <None Remove="resources\assemblies\System.Runtime.Serialization.Json.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Json.dll" />
-      <None Remove="resources\assemblies\System.Runtime.Serialization.Primitives.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Primitives.dll" />
-      <None Remove="resources\assemblies\System.Runtime.Serialization.Xml.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.Serialization.Xml.dll" />
-      <None Remove="resources\assemblies\System.Security.Claims.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.Claims.dll" />
-      <None Remove="resources\assemblies\System.Security.Cryptography.Algorithms.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Algorithms.dll" />
-      <None Remove="resources\assemblies\System.Security.Cryptography.Csp.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Csp.dll" />
-      <None Remove="resources\assemblies\System.Security.Cryptography.Encoding.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Encoding.dll" />
-      <None Remove="resources\assemblies\System.Security.Cryptography.Primitives.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.Primitives.dll" />
-      <None Remove="resources\assemblies\System.Security.Cryptography.X509Certificates.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.Cryptography.X509Certificates.dll" />
-      <None Remove="resources\assemblies\System.Security.Principal.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.Principal.dll" />
-      <None Remove="resources\assemblies\System.Security.SecureString.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Security.SecureString.dll" />
-      <None Remove="resources\assemblies\System.Text.Encoding.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.dll" />
       <None Remove="resources\assemblies\System.Text.Encoding.CodePages.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.CodePages.dll" />
-      <None Remove="resources\assemblies\System.Text.Encoding.Extensions.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.Extensions.dll" />
-      <None Remove="resources\assemblies\System.Text.RegularExpressions.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Text.RegularExpressions.dll" />
-      <None Remove="resources\assemblies\System.Threading.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.dll" />
-      <None Remove="resources\assemblies\System.Threading.Overlapped.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.Overlapped.dll" />
-      <None Remove="resources\assemblies\System.Threading.Tasks.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.dll" />
       <None Remove="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
-      <None Remove="resources\assemblies\System.Threading.Tasks.Parallel.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.Parallel.dll" />
-      <None Remove="resources\assemblies\System.Threading.Thread.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.Thread.dll" />
-      <None Remove="resources\assemblies\System.Threading.ThreadPool.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.ThreadPool.dll" />
-      <None Remove="resources\assemblies\System.Threading.Timer.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.Timer.dll" />
-      <None Remove="resources\assemblies\System.ValueTuple.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.ValueTuple.dll" />
       <None Remove="resources\assemblies\YamlDotNet.dll" />
       <EmbeddedResource Include="resources\assemblies\YamlDotNet.dll" />
       <None Remove="resources\assemblies\Facepunch.Steamworks.Posix.dll" />
@@ -703,12 +159,8 @@
       <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
       <None Remove="resources\reload.png" />
       <EmbeddedResource Include="resources\reload.png" />
-      <None Remove="resources\assemblies\Mono.Cecil.Mdb.dll" />
-      <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Mdb.dll" />
-      <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll" />
-      <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll" />
-      <None Remove="resources\assemblies\Mono.Cecil.Rocks.dll" />
-      <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Rocks.dll" />
+      <None Remove="resources\assemblies\Assembly-CSharp-Publicized"/>
+      <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized"/>
     </ItemGroup>
   
     <ItemGroup>
