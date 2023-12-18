@@ -12,40 +12,196 @@ namespace NeoModLoader.services;
 
 internal static class NMLAutoUpdateService
 {
-    private static readonly string RELEASE_APIURL = $"https://api.github.com/repos/{CoreConstants.OrgName}/{CoreConstants.RepoName}/releases/latest";
-    private static readonly string COMMMIT_APIURL = $"https://api.github.com/repos/{CoreConstants.OrgName}/{CoreConstants.RepoName}/commits/tag_name";
+    private static readonly string RELEASE_APIURL =
+        $"https://api.github.com/repos/{CoreConstants.OrgName}/{CoreConstants.RepoName}/releases/latest";
+
+    private static readonly string COMMMIT_APIURL =
+        $"https://api.github.com/repos/{CoreConstants.OrgName}/{CoreConstants.RepoName}/commits/tag_name";
+
+    public static void CheckWorkshopUpdate()
+    {
+        string workshopPath = Path.Combine(Paths.CommonModsWorkshopPath, CoreConstants.WorkshopFileId.ToString());
+        if (!Directory.Exists(workshopPath))
+        {
+            return;
+        }
+
+        string[] files = Directory.GetFiles(workshopPath);
+        string dll_path = null;
+        string pdb_path = null;
+        foreach (string file in files)
+        {
+            if (file.EndsWith(".dll"))
+            {
+                dll_path = file;
+            }
+
+            if (file.EndsWith(".pdb"))
+            {
+                pdb_path = file;
+            }
+        }
+
+        if (dll_path == null)
+        {
+            return;
+        }
+
+        bool updated = false;
+        FileInfo dll_info = new FileInfo(dll_path);
+        FileInfo last_info = new FileInfo(Paths.NMLModPath);
+
+        void update_in_turn()
+        {
+            if (!last_info.Exists || dll_info.LastWriteTime <= last_info.LastWriteTime) return;
+            try
+            {
+                last_info.Delete();
+                File.Copy(dll_path, Paths.NMLModPath, true);
+                updated = true;
+                LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                if (Paths.NMLModPath.EndsWith("_memload.dll"))
+                {
+                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll"));
+                    if (another_one.Exists)
+                    {
+                        another_one.Delete();
+                    }
+
+                    File.Copy(dll_path, Paths.NMLModPath.Replace("_memload.dll", ".dll"), true);
+                }
+                else
+                {
+                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace(".dll", "_memload.dll"));
+                    if (another_one.Exists)
+                    {
+                        another_one.Delete();
+                    }
+
+                    File.Copy(dll_path, Paths.NMLModPath.Replace(".dll", "_memload.dll"), true);
+                }
+            }
+        }
+
+        update_in_turn();
+        if (Paths.NMLModPath.Contains("_memload.dll"))
+        {
+            last_info = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll"));
+        }
+        else
+        {
+            last_info = new FileInfo(Paths.NMLModPath.Replace(".dll", "_memload.dll"));
+        }
+
+        update_in_turn();
+
+        FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
+        FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll").Replace(".dll", ".pdb"));
+        if (pdb_info != null && (!last_pdb_info.Exists || pdb_info.LastWriteTime > last_pdb_info.LastWriteTime))
+        {
+            try
+            {
+                if (last_pdb_info.Exists)
+                    last_pdb_info.Delete();
+                File.Copy(pdb_path, Paths.NMLModPath.Replace("_memload.dll", ".dll").Replace(".dll", ".pdb"), true);
+                updated = true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // ignored
+            }
+        }
+
+        if (updated)
+        {
+            InformationWindow.ShowWindow(LM.Get("NeoModLoader Updated"));
+        }
+    }
+
+    public static bool CheckUpdate()
+    {
+        VersionInfo info = JsonConvert.DeserializeObject<VersionInfo>(HttpUtils.Request(RELEASE_APIURL));
+        if (info == null)
+        {
+            return false;
+        }
+
+        if (info.IsPrerelease) return false;
+        RefInfo refInfo =
+            JsonConvert.DeserializeObject<RefInfo>(HttpUtils.Request(COMMMIT_APIURL.Replace("tag_name", info.TagName)));
+
+        var s = WorldBoxMod.NeoModLoaderAssembly.GetManifestResourceStream("NeoModLoader.resources.commit");
+
+        string current_commit = new StreamReader(s).ReadToEnd();
+
+        s.Close();
+        current_commit = current_commit.Replace("\n", "").Replace("\r", "");
+
+        if (current_commit == refInfo.sha)
+        {
+            return false;
+        }
+
+        PopupUpdateWindow(info, refInfo.sha);
+        return true;
+    }
+
+    private static void PopupUpdateWindow(VersionInfo info, string commit)
+    {
+        UpdateWindow.CreateAndInit("NeoModLoader Update").Show(info, commit);
+    }
+
     class VersionInfo
     {
-        [JsonProperty("name")]
-        public string Name { get; private set; }
-        [JsonProperty("tag_name")]
-        public string TagName { get; private set; }
-        [JsonProperty("body")]
-        public string Content { get; private set; }
-        [JsonProperty("prerelease")]
-        public bool IsPrerelease { get; private set; }
-        [JsonProperty("assets")]
-        public ReleaseAsset[] Assets { get; private set; }
+        [JsonProperty("name")] public string Name { get; private set; }
+
+        [JsonProperty("tag_name")] public string TagName { get; private set; }
+
+        [JsonProperty("body")] public string Content { get; private set; }
+
+        [JsonProperty("prerelease")] public bool IsPrerelease { get; private set; }
+
+        [JsonProperty("assets")] public ReleaseAsset[] Assets { get; private set; }
     }
 
     class RefInfo
     {
-        [JsonProperty("sha")]
-        public string sha { get; private set; }
+        [JsonProperty("sha")] public string sha { get; private set; }
     }
 
     class ReleaseAsset
     {
-        [JsonProperty("name")]
-        public string Name { get; private set; }
-        [JsonProperty("size")]
-        public string Size { get; private set; }
-        [JsonProperty("browser_download_url")]
-        public string DownloadUrl { get; private set; }
+        [JsonProperty("name")] public string Name { get; private set; }
+
+        [JsonProperty("size")] public string Size { get; private set; }
+
+        [JsonProperty("browser_download_url")] public string DownloadUrl { get; private set; }
     }
 
     class UpdateWindow : AbstractWindow<UpdateWindow>
     {
+        private Text content_text;
+        private string dll_download_path;
+        private bool downloaded;
+        private string downloaded_version_name;
+        private string pdb_download_path;
+        private Text title_text;
+        private Button update_button;
+
+        private void Update()
+        {
+            if (downloaded)
+            {
+                WorldTip.showNowTop(string.Format(LM.Get("NeoModLoader Update Complete"), downloaded_version_name));
+                update_button.transform.Find("Icon").GetComponent<Image>().sprite =
+                    SpriteTextureLoader.getSprite("ui/icons/iconOn");
+                downloaded = false;
+            }
+        }
+
         protected override void Init()
         {
             ContentSizeFitter fitter = ContentTransform.gameObject.AddComponent<ContentSizeFitter>();
@@ -58,8 +214,8 @@ internal static class NMLAutoUpdateService
             layoutGroup.childAlignment = TextAnchor.UpperCenter;
             layoutGroup.spacing = 3;
             layoutGroup.padding = new(30, 30, 10, 10);
-            
-            
+
+
             GameObject update_title = new GameObject("Update Title", typeof(Text));
             update_title.transform.SetParent(ContentTransform);
             title_text = update_title.GetComponent<Text>();
@@ -67,7 +223,7 @@ internal static class NMLAutoUpdateService
             title_text.alignment = TextAnchor.MiddleCenter;
             title_text.transform.localScale = Vector3.one;
             update_title.GetComponent<RectTransform>().sizeDelta = new(0, 24);
-            
+
             GameObject update_content = new GameObject("Update Content", typeof(Text));
             update_content.transform.SetParent(ContentTransform);
             content_text = update_content.GetComponent<Text>();
@@ -90,23 +246,6 @@ internal static class NMLAutoUpdateService
             update_button_icon_obj.GetComponent<RectTransform>().sizeDelta = button_size;
             update_button_icon_obj.GetComponent<Image>().sprite = Resources.Load<Sprite>("ui/icons/iconSteam");
         }
-        private Text title_text;
-        private Text content_text;
-        private Button update_button;
-        private string dll_download_path;
-        private string pdb_download_path;
-        private bool downloaded;
-        private string downloaded_version_name;
-
-        private void Update()
-        {
-            if (downloaded)
-            {
-                WorldTip.showNowTop(string.Format(LM.Get("NeoModLoader Update Complete"), downloaded_version_name));
-                update_button.transform.Find("Icon").GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/icons/iconOn");
-                downloaded = false;
-            }
-        }
 
         public void Show(VersionInfo info, string commit)
         {
@@ -120,7 +259,6 @@ internal static class NMLAutoUpdateService
                 pdb_download_path = Path.Combine(download_path, $"NML_{commit}.pdb");
                 new Task(() =>
                 {
-
                     using WebClient client = new WebClient();
                     foreach (ReleaseAsset asset in info.Assets)
                     {
@@ -140,129 +278,18 @@ internal static class NMLAutoUpdateService
                         File.Delete(Paths.NMLModPath);
                         File.Copy(dll_download_path, Paths.NMLModPath);
                     }
+
                     if (File.Exists(pdb_download_path))
                     {
                         File.Delete(Paths.NMLModPath.Replace(".dll", ".pdb"));
                         File.Copy(pdb_download_path, Paths.NMLModPath.Replace(".dll", ".pdb"));
                     }
+
                     downloaded_version_name = info.Name;
                     downloaded = true;
                 }).Start();
             });
             ScrollWindow.showWindow("NeoModLoader Update");
         }
-    }
-
-    public static void CheckWorkshopUpdate()
-    {
-        string workshopPath = Path.Combine(Paths.CommonModsWorkshopPath, CoreConstants.WorkshopFileId.ToString());
-        if (!Directory.Exists(workshopPath))
-        {
-            return;
-        }
-        string[] files = Directory.GetFiles(workshopPath);
-        string dll_path = null;
-        string pdb_path = null;
-        foreach (string file in files)
-        {
-            if (file.EndsWith(".dll"))
-            {
-                dll_path = file;
-            }
-            if (file.EndsWith(".pdb"))
-            {
-                pdb_path = file;
-            }
-        }
-        if (dll_path == null)
-        {
-            return;
-        }
-
-        bool updated = false;
-        FileInfo dll_info = new FileInfo(dll_path);
-        FileInfo last_info = new FileInfo(Paths.NMLModPath);
-        if(dll_info.LastWriteTime > last_info.LastWriteTime)
-        {
-            updated = true;
-            LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
-            try
-            {
-                last_info.Delete();
-                File.Copy(dll_path, Paths.NMLModPath, true);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                if (Paths.NMLModPath.EndsWith("_memload.dll"))
-                {
-                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll"));
-                    if (another_one.Exists)
-                    {
-                        another_one.Delete();
-                    }
-                    File.Copy(dll_path, Paths.NMLModPath.Replace("_memload.dll", ".dll"), true);
-                }
-                else
-                {
-                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace(".dll", "_memload.dll"));
-                    if (another_one.Exists)
-                    {
-                        another_one.Delete();
-                    }
-                    File.Copy(dll_path, Paths.NMLModPath.Replace(".dll", "_memload.dll"), true);
-                }
-            }
-        }
-        
-        FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
-        FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll").Replace(".dll", ".pdb"));
-        if(pdb_info != null && (!last_pdb_info.Exists || pdb_info.LastWriteTime > last_pdb_info.LastWriteTime))
-        {
-            try
-            {
-                if (last_pdb_info.Exists)
-                    last_pdb_info.Delete();
-                File.Copy(pdb_path, Paths.NMLModPath.Replace("_memload.dll", ".dll").Replace(".dll", ".pdb"), true);
-                updated = true;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // ignored
-            }
-        }
-
-        if (updated)
-        {
-            InformationWindow.ShowWindow(LM.Get("NeoModLoader Updated"));
-        }
-    }
-    public static bool CheckUpdate()
-    {
-        VersionInfo info = JsonConvert.DeserializeObject<VersionInfo>(HttpUtils.Request(RELEASE_APIURL));
-        if (info == null)
-        {
-            return false;
-        }
-        if (info.IsPrerelease) return false;
-        RefInfo refInfo = JsonConvert.DeserializeObject<RefInfo>(HttpUtils.Request(COMMMIT_APIURL.Replace("tag_name", info.TagName)));
-
-        var s = WorldBoxMod.NeoModLoaderAssembly.GetManifestResourceStream("NeoModLoader.resources.commit");
-
-        string current_commit = new StreamReader(s).ReadToEnd();
-        
-        s.Close();
-        current_commit = current_commit.Replace("\n", "").Replace("\r", "");
-
-        if (current_commit == refInfo.sha)
-        {
-            return false;
-        }
-        PopupUpdateWindow(info, refInfo.sha);
-        return true;
-    }
-    
-    private static void PopupUpdateWindow(VersionInfo info, string commit)
-    {
-        UpdateWindow.CreateAndInit("NeoModLoader Update").Show(info, commit);
     }
 }
