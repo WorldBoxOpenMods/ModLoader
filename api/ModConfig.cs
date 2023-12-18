@@ -155,8 +155,39 @@ public class ModConfig
         get => _config[pGroupId];
     }
 
+    /// <summary>
+    ///     Merge with default config. Keep all items in default config, and remove items not in default config.
+    /// </summary>
     public void MergeWith(ModConfig pDefaultConfig)
     {
+        HashSet<string> group_to_remove = new();
+        foreach (var key in _config.Keys)
+        {
+            if (!pDefaultConfig._config.ContainsKey(key))
+            {
+                group_to_remove.Add(key);
+                continue;
+            }
+
+            var group = _config[key];
+            var default_group = pDefaultConfig._config[key];
+            HashSet<string> item_to_remove = new();
+            foreach (string item in group.Keys.Where(item => !default_group.ContainsKey(item)))
+            {
+                item_to_remove.Add(item);
+            }
+
+            foreach (string item in item_to_remove)
+            {
+                group.Remove(item);
+            }
+        }
+
+        foreach (var group in group_to_remove)
+        {
+            _config.Remove(group);
+        }
+
         foreach (var key in pDefaultConfig._config.Keys)
         {
             if (!_config.ContainsKey(key))
