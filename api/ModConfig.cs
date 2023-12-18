@@ -1,3 +1,4 @@
+using HarmonyLib;
 using NeoModLoader.services;
 using Newtonsoft.Json;
 
@@ -29,6 +30,7 @@ public class ModConfigItem
     [JsonProperty("MinFloatVal")] public float MinFloatVal { get; internal set; } = 0;
 
     [JsonProperty("IntVal")] public int IntVal { get; internal set; }
+    [JsonProperty("Callback")] public string CallBack { get; internal set; }
 
     public void SetFloatRange(float pMin, float pMax)
     {
@@ -44,17 +46,117 @@ public class ModConfigItem
             switch (Type)
             {
                 case ConfigItemType.SWITCH:
+                    bool old_bool_value = BoolVal;
                     BoolVal = Convert.ToBoolean(val);
+                    if (!string.IsNullOrEmpty(CallBack))
+                    {
+                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(bool) });
+                        if (method == null)
+                        {
+                            LogService.LogWarning($"No found method({typeof(bool)}) {CallBack}");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                method.Invoke(null, new object[] { BoolVal });
+                            }
+                            catch (Exception e)
+                            {
+                                LogService.LogError(
+                                    $"Failed to set value '{BoolVal}'({typeof(bool)}) for config item '{Id}'");
+                                LogService.LogError(e.Message);
+                                LogService.LogError(e.StackTrace);
+                                BoolVal = old_bool_value;
+                            }
+                        }
+                    }
+
                     break;
                 case ConfigItemType.SLIDER:
+                    float old_float_value = FloatVal;
                     FloatVal = Convert.ToSingle(val);
                     FloatVal = Math.Max(MinFloatVal, Math.Min(MaxFloatVal, FloatVal));
+                    if (!string.IsNullOrEmpty(CallBack))
+                    {
+                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(float) });
+                        if (method == null)
+                        {
+                            LogService.LogWarning($"No found method({typeof(float)}) {CallBack}");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                method.Invoke(null, new object[] { FloatVal });
+                            }
+                            catch (Exception e)
+                            {
+                                LogService.LogError(
+                                    $"Failed to set value '{FloatVal}'({typeof(float)}) for config item '{Id}'");
+                                LogService.LogError(e.Message);
+                                LogService.LogError(e.StackTrace);
+                                FloatVal = old_float_value;
+                            }
+                        }
+                    }
+
                     break;
                 case ConfigItemType.TEXT:
+                    string old_text_value = TextVal;
                     TextVal = Convert.ToString(val);
+                    if (!string.IsNullOrEmpty(CallBack))
+                    {
+                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(string) });
+                        if (method == null)
+                        {
+                            LogService.LogWarning($"No found method({typeof(string)}) {CallBack}");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                method.Invoke(null, new object[] { TextVal });
+                            }
+                            catch (Exception e)
+                            {
+                                LogService.LogError(
+                                    $"Failed to set value '{TextVal}'({typeof(string)}) for config item '{Id}'");
+                                LogService.LogError(e.Message);
+                                LogService.LogError(e.StackTrace);
+                                TextVal = old_text_value;
+                            }
+                        }
+                    }
+
                     break;
                 case ConfigItemType.SELECT:
+                    int old_int_value = IntVal;
                     IntVal = Convert.ToInt32(val);
+                    if (!string.IsNullOrEmpty(CallBack))
+                    {
+                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(int) });
+                        if (method == null)
+                        {
+                            LogService.LogWarning($"No found method({typeof(int)}) {CallBack}");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                method.Invoke(null, new object[] { IntVal });
+                            }
+                            catch (Exception e)
+                            {
+                                LogService.LogError(
+                                    $"Failed to set value '{IntVal}'({typeof(int)}) for config item '{Id}'");
+                                LogService.LogError(e.Message);
+                                LogService.LogError(e.StackTrace);
+                                IntVal = old_int_value;
+                            }
+                        }
+                    }
+
                     break;
             }
         }
@@ -144,8 +246,9 @@ public class ModConfig
                 if (item.Type == ConfigItemType.SLIDER)
                 {
                     if (item.MaxFloatVal < item.MinFloatVal) item.SetFloatRange(item.MinFloatVal, item.MinFloatVal);
-                    item.SetValue(item.GetValue());
                 }
+
+                item.SetValue(item.GetValue());
             }
         }
     }

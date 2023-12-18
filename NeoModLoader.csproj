@@ -476,7 +476,9 @@
       <None Remove="resources\assemblies\Mono.Cecil.dll" />
       <EmbeddedResource Include="resources\assemblies\Mono.Cecil.dll" />
       <None Remove="resources\assemblies\MonoMod.RuntimeDetour.dll" />
+      <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll"/>
       <None Remove="resources\assemblies\MonoMod.Utils.dll" />
+      <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll"/>
       <None Remove="resources\assemblies\mscorlib.dll" />
       <EmbeddedResource Include="resources\assemblies\mscorlib.dll" />
       <None Remove="resources\assemblies\netstandard.dll" />
@@ -701,8 +703,6 @@
       <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
       <None Remove="resources\reload.png" />
       <EmbeddedResource Include="resources\reload.png" />
-      <None Remove="resources\assemblies\MonoMod.Backports.dll" />
-      <None Remove="resources\assemblies\MonoMod.ILHelpers.dll" />
       <None Remove="resources\assemblies\Mono.Cecil.Mdb.dll" />
       <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Mdb.dll" />
       <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll" />
@@ -714,8 +714,6 @@
     <ItemGroup>
       <Content Include=".github\ISSUE_TEMPLATE\bug-report-en.yaml" />
       <Content Include=".github\ISSUE_TEMPLATE\bug-report-zh.yaml" />
-      <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll" />
-      <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll" />
     </ItemGroup>
   
     <ItemGroup>
