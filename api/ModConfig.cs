@@ -302,10 +302,11 @@ public class ModConfig
             var default_group = pDefaultConfig._config[group_id];
             foreach (string item_id in default_group.Keys.Where(item => group.ContainsKey(item)))
             {
+                group[item_id].CallBack = default_group[item_id].CallBack;
                 if (group[item_id].Type != default_group[item_id].Type)
                 {
                     AddConfigItem(group_id, item_id, default_group[item_id].Type, default_group[item_id].GetValue(),
-                        default_group[item_id].IconPath);
+                        default_group[item_id].IconPath, default_group[item_id].CallBack);
                 }
                 else if (group[item_id].Type == ConfigItemType.SLIDER)
                 {
@@ -321,7 +322,7 @@ public class ModConfig
             foreach (string item in default_group.Keys.Where(item => !group.ContainsKey(item)))
             {
                 AddConfigItem(group_id, item, default_group[item].Type, default_group[item].GetValue(),
-                    default_group[item].IconPath);
+                    default_group[item].IconPath, default_group[item].CallBack);
             }
         }
     }
@@ -357,7 +358,7 @@ public class ModConfig
     }
 
     public ModConfigItem AddConfigItem(string pGroupId, string pId, ConfigItemType pType, object pDefaultValue,
-        string pIconPath = "")
+        string pIconPath = "", string pCallback = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
@@ -379,13 +380,14 @@ public class ModConfig
         }
 
         group[pId].Type = pType;
+        group[pId].CallBack = pCallback;
         group[pId].SetValue(pDefaultValue);
         group[pId].IconPath = pIconPath;
         return group[pId];
     }
 
     public ModConfigItem AddConfigSliderItemWithRange(string pGroupId, string pId, float pDefaultValue, float pMinValue,
-        float pMaxValue, string pIconPath = "")
+        float pMaxValue, string pIconPath = "", string pCallback = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
@@ -407,6 +409,7 @@ public class ModConfig
         }
 
         group[pId].Type = ConfigItemType.SLIDER;
+        group[pId].CallBack = pCallback;
         group[pId].SetFloatRange(pMinValue, pMaxValue);
         group[pId].SetValue(pDefaultValue);
         group[pId].IconPath = pIconPath;
