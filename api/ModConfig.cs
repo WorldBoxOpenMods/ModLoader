@@ -1,3 +1,4 @@
+using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.services;
 using Newtonsoft.Json;
@@ -14,6 +15,7 @@ public enum ConfigItemType
 
 public class ModConfigItem
 {
+    private MethodInfo callback;
     [JsonProperty("Type")] public ConfigItemType Type { get; internal set; }
 
     [JsonProperty("Id")] public string Id { get; internal set; }
@@ -50,16 +52,20 @@ public class ModConfigItem
                     BoolVal = Convert.ToBoolean(val);
                     if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
-                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(bool) });
-                        if (method == null)
+                        if (callback == null)
                         {
-                            LogService.LogWarning($"No found method({typeof(bool)}) {CallBack}");
+                            callback = AccessTools.Method(CallBack, new Type[1] { typeof(bool) });
+                        }
+
+                        if (callback == null)
+                        {
+                            LogService.LogWarning($"No found callback({typeof(bool)}) {CallBack}");
                         }
                         else
                         {
                             try
                             {
-                                method.Invoke(null, new object[] { BoolVal });
+                                callback.Invoke(null, new object[] { BoolVal });
                             }
                             catch (Exception e)
                             {
@@ -79,16 +85,16 @@ public class ModConfigItem
                     FloatVal = Math.Max(MinFloatVal, Math.Min(MaxFloatVal, FloatVal));
                     if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
-                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(float) });
-                        if (method == null)
+                        var callback = AccessTools.Method(CallBack, new Type[1] { typeof(float) });
+                        if (callback == null)
                         {
-                            LogService.LogWarning($"No found method({typeof(float)}) {CallBack}");
+                            LogService.LogWarning($"No found callback({typeof(float)}) {CallBack}");
                         }
                         else
                         {
                             try
                             {
-                                method.Invoke(null, new object[] { FloatVal });
+                                callback.Invoke(null, new object[] { FloatVal });
                             }
                             catch (Exception e)
                             {
@@ -107,16 +113,16 @@ public class ModConfigItem
                     TextVal = Convert.ToString(val);
                     if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
-                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(string) });
-                        if (method == null)
+                        var callback = AccessTools.Method(CallBack, new Type[1] { typeof(string) });
+                        if (callback == null)
                         {
-                            LogService.LogWarning($"No found method({typeof(string)}) {CallBack}");
+                            LogService.LogWarning($"No found callback({typeof(string)}) {CallBack}");
                         }
                         else
                         {
                             try
                             {
-                                method.Invoke(null, new object[] { TextVal });
+                                callback.Invoke(null, new object[] { TextVal });
                             }
                             catch (Exception e)
                             {
@@ -135,16 +141,16 @@ public class ModConfigItem
                     IntVal = Convert.ToInt32(val);
                     if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
-                        var method = AccessTools.Method(CallBack, new Type[1] { typeof(int) });
-                        if (method == null)
+                        var callback = AccessTools.Method(CallBack, new Type[1] { typeof(int) });
+                        if (callback == null)
                         {
-                            LogService.LogWarning($"No found method({typeof(int)}) {CallBack}");
+                            LogService.LogWarning($"No found callback({typeof(int)}) {CallBack}");
                         }
                         else
                         {
                             try
                             {
-                                method.Invoke(null, new object[] { IntVal });
+                                callback.Invoke(null, new object[] { IntVal });
                             }
                             catch (Exception e)
                             {
