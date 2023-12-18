@@ -77,6 +77,26 @@ internal static class ResourcesPatch
         }
     }
 
+    internal static void LoadAssetBundlesFromFolder(string pFolder)
+    {
+        if (!Directory.Exists(pFolder)) return;
+
+        string platform_subfolder_name = Application.platform switch
+        {
+            RuntimePlatform.WindowsPlayer => "win",
+            RuntimePlatform.WindowsEditor => "win",
+            RuntimePlatform.OSXPlayer => "osx",
+            RuntimePlatform.OSXEditor => "osx",
+            RuntimePlatform.LinuxPlayer => "linux",
+            RuntimePlatform.LinuxEditor => "linux",
+            _ => "win"
+        };
+        string platform_folder = Path.Combine(pFolder, platform_subfolder_name);
+        if (!Directory.Exists(platform_folder)) return;
+
+        AssetBundleUtils.LoadFromFolder(platform_folder);
+    }
+
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
@@ -88,15 +108,8 @@ internal static class ResourcesPatch
     {
         if (tree == null) return __result;
         ResourceTreeNode node = tree.Find(path);
-
-        List<Object> append_list = node != null ? node.GetAllObjects(systemTypeInstance) : new List<Object>();
-
-        foreach (var ab in tree.asset_bundles)
-        {
-            var objs = ab.GetAllObjects(path, systemTypeInstance);
-            if (objs == null || objs.Length == 0) continue;
-            append_list.AddRange(ab.GetAllObjects(path, systemTypeInstance));
-        }
+        if (node == null) return __result;
+        List<Object> append_list = node.GetAllObjects(systemTypeInstance);
 
         if (append_list.Count == 0) return __result;
 
@@ -122,19 +135,12 @@ internal static class ResourcesPatch
         var new_result = tree.Get(path);
         if (new_result != null && systemTypeInstance.IsInstanceOfType(new_result))
             return new_result;
-        foreach (var ab in tree.asset_bundles)
-        {
-            new_result = ab.GetObject(path, systemTypeInstance);
-            if (new_result != null)
-                return new_result;
-        }
 
         return __result;
     }
 
     class ResourceTree
     {
-        public readonly List<WrappedAssetBundle> asset_bundles = new();
         internal Dictionary<string, Object> direct_objects = new();
         private ResourceTreeNode root = new(null);
 
@@ -198,11 +204,6 @@ internal static class ResourcesPatch
         {
             string lower_path = path.ToLower();
             if (lower_path.EndsWith(".meta") || lower_path.EndsWith("sprites.json")) return;
-            if (lower_path.EndsWith(".ab"))
-            {
-                patchAssetBundleToTree(path, absPath);
-                return;
-            }
 
             string parent_path = Path.GetDirectoryName(lower_path);
             Object[] objs;
@@ -237,19 +238,6 @@ internal static class ResourcesPatch
             {
                 node.objects[obj.name.ToLower()] = obj;
             }
-        }
-
-        private void patchAssetBundleToTree(string path, string absPath)
-        {
-            WrappedAssetBundle ab = AssetBundleUtils.LoadFromFile(absPath);
-            if (ab == null)
-            {
-                LogService.LogError($"Cannot load asset bundle {path}");
-                LogService.LogStackTraceAsError();
-                return;
-            }
-
-            asset_bundles.Add(ab);
         }
     }
 

@@ -35,6 +35,7 @@ public static class Paths
     public static readonly string ModDefaultConfigFileName = "default_config.json";
     public static readonly string ModResourceFolderName = Others.is_editor ? "Resources" : "GameResources";
     public static readonly string NCMSAdditionModResourceFolderName = "GameResourcesReplace";
+    public static readonly string ModAssetBundleFolderName = "AssetBundles";
 
     public static readonly string CommonModsWorkshopPath =
         Combine(GamePath, "..", "..", "workshop", "content", CoreConstants.GameId.ToString());

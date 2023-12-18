@@ -111,6 +111,8 @@ public class WorldBoxMod : MonoBehaviour
                             Paths.ModResourceFolderName));
                         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
                             Paths.NCMSAdditionModResourceFolderName));
+                        ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(mod.mod_decl.FolderPath,
+                            Paths.ModAssetBundleFolderName));
                     }
                 }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
