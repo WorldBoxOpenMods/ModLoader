@@ -39,7 +39,7 @@ public class ModConfigItem
         MaxFloatVal = pMax;
     }
 
-    public void SetValue(object val)
+    public void SetValue(object val, bool pSkipCallback = false)
     {
         try
         {
@@ -48,7 +48,7 @@ public class ModConfigItem
                 case ConfigItemType.SWITCH:
                     bool old_bool_value = BoolVal;
                     BoolVal = Convert.ToBoolean(val);
-                    if (!string.IsNullOrEmpty(CallBack))
+                    if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
                         var method = AccessTools.Method(CallBack, new Type[1] { typeof(bool) });
                         if (method == null)
@@ -77,7 +77,7 @@ public class ModConfigItem
                     float old_float_value = FloatVal;
                     FloatVal = Convert.ToSingle(val);
                     FloatVal = Math.Max(MinFloatVal, Math.Min(MaxFloatVal, FloatVal));
-                    if (!string.IsNullOrEmpty(CallBack))
+                    if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
                         var method = AccessTools.Method(CallBack, new Type[1] { typeof(float) });
                         if (method == null)
@@ -105,7 +105,7 @@ public class ModConfigItem
                 case ConfigItemType.TEXT:
                     string old_text_value = TextVal;
                     TextVal = Convert.ToString(val);
-                    if (!string.IsNullOrEmpty(CallBack))
+                    if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
                         var method = AccessTools.Method(CallBack, new Type[1] { typeof(string) });
                         if (method == null)
@@ -133,7 +133,7 @@ public class ModConfigItem
                 case ConfigItemType.SELECT:
                     int old_int_value = IntVal;
                     IntVal = Convert.ToInt32(val);
-                    if (!string.IsNullOrEmpty(CallBack))
+                    if (!string.IsNullOrEmpty(CallBack) && !pSkipCallback)
                     {
                         var method = AccessTools.Method(CallBack, new Type[1] { typeof(int) });
                         if (method == null)
@@ -209,11 +209,11 @@ public class ModConfig
     internal Dictionary<string, Dictionary<string, ModConfigItem>> _config = new();
     private string _path;
 
-    public ModConfig(string path, bool pPossibleNew = false)
+    public ModConfig(string path, bool pIsPersistent = false)
     {
         if (!File.Exists(path))
         {
-            if (!pPossibleNew) LogService.LogWarning($"ModConfig file {path} does not exist, suggest to create one");
+            if (!pIsPersistent) LogService.LogWarning($"ModConfig file {path} does not exist, suggest to create one");
             else
             {
                 _path = path;
@@ -226,7 +226,7 @@ public class ModConfig
         var raw_config = JsonConvert.DeserializeObject<Dictionary<string, List<ModConfigItem>>>(json_text);
         if (raw_config == null)
         {
-            if (!pPossibleNew) LogService.LogWarning($"ModConfig file {path} is empty or in invalid format!");
+            if (!pIsPersistent) LogService.LogWarning($"ModConfig file {path} is empty or in invalid format!");
             else
             {
                 _path = path;
@@ -248,7 +248,7 @@ public class ModConfig
                     if (item.MaxFloatVal < item.MinFloatVal) item.SetFloatRange(item.MinFloatVal, item.MinFloatVal);
                 }
 
-                item.SetValue(item.GetValue());
+                item.SetValue(item.GetValue(), !pIsPersistent);
             }
         }
     }
@@ -291,31 +291,36 @@ public class ModConfig
             _config.Remove(group);
         }
 
-        foreach (var key in pDefaultConfig._config.Keys)
+        foreach (var group_id in pDefaultConfig._config.Keys)
         {
-            if (!_config.ContainsKey(key))
+            if (!_config.ContainsKey(group_id))
             {
-                _config[key] = new();
+                _config[group_id] = new Dictionary<string, ModConfigItem>();
             }
 
-            var group = _config[key];
-            var default_group = pDefaultConfig._config[key];
-            foreach (string item in default_group.Keys.Where(item => group.ContainsKey(item)))
+            var group = _config[group_id];
+            var default_group = pDefaultConfig._config[group_id];
+            foreach (string item_id in default_group.Keys.Where(item => group.ContainsKey(item)))
             {
-                if (group[item].Type != default_group[item].Type)
+                if (group[item_id].Type != default_group[item_id].Type)
                 {
-                    AddConfigItem(key, item, default_group[item].Type, default_group[item].GetValue(),
-                        default_group[item].IconPath);
+                    AddConfigItem(group_id, item_id, default_group[item_id].Type, default_group[item_id].GetValue(),
+                        default_group[item_id].IconPath);
                 }
-                else if (group[item].Type == ConfigItemType.SLIDER)
+                else if (group[item_id].Type == ConfigItemType.SLIDER)
                 {
-                    group[item].SetFloatRange(default_group[item].MinFloatVal, default_group[item].MaxFloatVal);
+                    group[item_id].SetFloatRange(default_group[item_id].MinFloatVal,
+                        default_group[item_id].MaxFloatVal);
+                    float current_value = group[item_id].GetValue() is float ? (float)group[item_id].GetValue() : 0;
+                    if (current_value < default_group[item_id].MinFloatVal ||
+                        current_value > default_group[item_id].MaxFloatVal)
+                        group[item_id].SetValue(default_group[item_id].GetValue());
                 }
             }
 
             foreach (string item in default_group.Keys.Where(item => !group.ContainsKey(item)))
             {
-                AddConfigItem(key, item, default_group[item].Type, default_group[item].GetValue(),
+                AddConfigItem(group_id, item, default_group[item].Type, default_group[item].GetValue(),
                     default_group[item].IconPath);
             }
         }
