@@ -301,8 +301,8 @@ internal static class ModDependencyUtils
         Queue<ModDependencyNode> queue = new Queue<ModDependencyNode>();
         foreach (var node in pGraph.nodes)
         {
-            node_in_degree.Add(node, node.depend_by.Count);
-            if (node.depend_by.Count == 0)
+            node_in_degree.Add(node, node.depend_on.Count);
+            if (node.depend_on.Count == 0)
             {
                 queue.Enqueue(node);
             }
@@ -314,7 +314,7 @@ internal static class ModDependencyUtils
             ModDependencyNode curr_node = queue.Dequeue();
             mods.Add(curr_node);
 
-            foreach (var depend_on_node in curr_node.depend_on)
+            foreach (var depend_on_node in curr_node.depend_by)
             {
                 node_in_degree[depend_on_node]--;
                 if (node_in_degree[depend_on_node] == 0)

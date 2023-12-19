@@ -6,10 +6,11 @@ namespace NeoModLoader.services;
 internal static class ModDepenSolveService
 {
     private static ModDependencyGraph graph;
+
     public static List<ModDependencyNode> SolveModDependencies(List<api.ModDeclare> mods)
     {
         graph = new ModDependencyGraph(mods);
-        
+
         mods.Clear();
         // Remove circle dependencies, make sure more mods load.
         // and log error/pop up warning if there is any. 
@@ -21,9 +22,9 @@ internal static class ModDepenSolveService
 
         // Sort mods compile order from dependency topology.
         var ret = ModDependencyUtils.SortModsCompileOrderFromDependencyTopology(graph);
-        ret.Reverse();
-        return ret; 
+        return ret;
     }
+
     /// <summary>
     /// Get a mod's dependency node at runtime.
     /// </summary>
