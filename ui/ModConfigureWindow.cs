@@ -247,9 +247,10 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
         foreach (var modified_item in _modifiedItems)
         {
-            if (modified_item.Key.GetValue() != modified_item.Value)
+            object current_value = modified_item.Key.GetValue();
+            if (current_value != modified_item.Value)
             {
-                modified_item.Key.SetValue(modified_item.Value);
+                modified_item.Key.SetValue(current_value);
             }
         }
 
