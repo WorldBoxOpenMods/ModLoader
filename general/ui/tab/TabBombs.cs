@@ -1,6 +1,8 @@
 namespace NeoModLoader.General.UI.Tab;
 
-public static class TabBombs
+public class TabBombs : ReconstructedVanillaTab
 {
-    
+    public override void Init()
+    {
+    }
 }

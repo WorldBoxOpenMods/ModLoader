@@ -48,6 +48,13 @@ public static class TabManager
             tab_names.Add(_tab_names[i]);
             tab_names_set.Add(_tab_names[i]);
         }
+
+        new TabMain().Init();
+        new TabDrawing().Init();
+        new TabKingdoms().Init();
+        new TabCreatures().Init();
+        new TabNature().Init();
+        new TabOther().Init();
     }
 
     private static void _loadPredefinedOrder()
