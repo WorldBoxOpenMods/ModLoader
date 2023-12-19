@@ -52,7 +52,23 @@ internal static class ModInfoUtils
                     Directory.Delete(extract_path, true);
                 }
 
-                ZipFile.ExtractToDirectory(zipped_mod, extract_path);
+                try
+                {
+                    ZipFile.ExtractToDirectory(zipped_mod, extract_path);
+                }
+                catch (Exception e)
+                {
+                    if (Directory.Exists(extract_path))
+                    {
+                        Directory.Delete(extract_path, true);
+                    }
+
+                    LogService.LogError($"Error occurs when extracting {zipped_mod}");
+                    LogService.LogError(e.Message);
+                    LogService.LogError(e.StackTrace);
+                    continue;
+                }
+
                 var mod_json_files = SystemUtils.SearchFileRecursive(extract_path,
                     (filename) => filename == Paths.ModDeclarationFileName, (dirname) => true);
                 if (mod_json_files.Count == 0)
