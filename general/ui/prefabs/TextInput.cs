@@ -6,10 +6,11 @@ namespace NeoModLoader.General.UI.Prefabs;
 
 public class TextInput : APrefab<TextInput>
 {
-    private Text _text;
-    private InputField _input;
     private Image _icon;
+    private InputField _input;
+    private Text _text;
     public TipButton tip_button { get; private set; }
+
     private void Awake()
     {
         _text = transform.Find("InputField").GetComponent<Text>();
@@ -18,12 +19,31 @@ public class TextInput : APrefab<TextInput>
         tip_button = GetComponent<TipButton>();
     }
 
-    public void Setup(string value, UnityAction<string> value_update)
+    public void Setup(string value, UnityAction<string> value_update, Sprite pIcon = null, Sprite pBackground = null)
     {
         _input.onEndEdit.RemoveAllListeners();
         _input.text = value;
         _input.onEndEdit.AddListener(value_update);
+
+        if (pIcon == null)
+        {
+            _icon.sprite = SpriteTextureLoader.getSprite("ui/special/inputFieldIcon");
+        }
+        else
+        {
+            _icon.sprite = pIcon;
+        }
+
+        if (pBackground == null)
+        {
+            GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
+        }
+        else
+        {
+            GetComponent<Image>().sprite = pBackground;
+        }
     }
+
     public void SetSize(Vector2 size)
     {
         GetComponent<RectTransform>().sizeDelta = size;
@@ -32,11 +52,12 @@ public class TextInput : APrefab<TextInput>
         _text.transform.localPosition = new Vector3(-size.x / 2, 0);
         _icon.transform.localPosition = new Vector3((size.x - size.y / 2) / 2, 0);
     }
+
     internal static void _init()
     {
         GameObject text_input = new GameObject("TextInput", typeof(TipButton), typeof(Image));
         text_input.transform.SetParent(WorldBoxMod.Transform);
-        
+
         Image bg = text_input.GetComponent<Image>();
         bg.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
         bg.type = Image.Type.Sliced;
@@ -45,17 +66,17 @@ public class TextInput : APrefab<TextInput>
         input_field.transform.SetParent(text_input.transform);
         input_field.transform.localScale = Vector3.one;
         input_field.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
-        
+
         Text text = input_field.GetComponent<Text>();
         OT.InitializeCommonText(text);
         text.alignment = TextAnchor.MiddleLeft;
         text.resizeTextForBestFit = true;
-        
+
         InputField input = input_field.GetComponent<InputField>();
         input.textComponent = text;
         input.text = "";
         input.lineType = InputField.LineType.SingleLine;
-        
+
         GameObject icon = new GameObject("Icon", typeof(Image));
         icon.transform.SetParent(text_input.transform);
         icon.transform.localScale = Vector3.one;
