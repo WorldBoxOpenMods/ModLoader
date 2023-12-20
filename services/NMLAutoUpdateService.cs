@@ -51,42 +51,29 @@ internal static class NMLAutoUpdateService
         FileInfo dll_info = new FileInfo(dll_path);
         FileInfo last_info = new FileInfo(Paths.NMLModPath);
 
-        void update_in_turn()
+        void update_in_turn(bool pCreate)
         {
-            if (!last_info.Exists || dll_info.LastWriteTime <= last_info.LastWriteTime) return;
-            try
+            if ((!last_info.Exists && !pCreate) || dll_info.LastWriteTime <= last_info.LastWriteTime) return;
+            if (last_info.Exists)
             {
                 last_info.Delete();
-                File.Copy(dll_path, Paths.NMLModPath, true);
-                updated = true;
-                LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
             }
-            catch (UnauthorizedAccessException)
-            {
-                if (Paths.NMLModPath.EndsWith("_memload.dll"))
-                {
-                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll"));
-                    if (another_one.Exists)
-                    {
-                        another_one.Delete();
-                    }
 
-                    File.Copy(dll_path, Paths.NMLModPath.Replace("_memload.dll", ".dll"), true);
-                }
-                else
-                {
-                    FileInfo another_one = new FileInfo(Paths.NMLModPath.Replace(".dll", "_memload.dll"));
-                    if (another_one.Exists)
-                    {
-                        another_one.Delete();
-                    }
-
-                    File.Copy(dll_path, Paths.NMLModPath.Replace(".dll", "_memload.dll"), true);
-                }
-            }
+            File.Copy(dll_path, last_info.FullName, true);
+            updated = true;
+            LogService.LogInfo($"{dll_info.LastWriteTime} : {last_info.LastWriteTime}");
         }
 
-        update_in_turn();
+        bool error_happens = false;
+        try
+        {
+            update_in_turn(false);
+        }
+        catch (Exception)
+        {
+            error_happens = true;
+        }
+
         if (Paths.NMLModPath.Contains("_memload.dll"))
         {
             last_info = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll"));
@@ -96,7 +83,14 @@ internal static class NMLAutoUpdateService
             last_info = new FileInfo(Paths.NMLModPath.Replace(".dll", "_memload.dll"));
         }
 
-        update_in_turn();
+        try
+        {
+            update_in_turn(error_happens);
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
 
         FileInfo pdb_info = pdb_path == null ? null : new FileInfo(pdb_path);
         FileInfo last_pdb_info = new FileInfo(Paths.NMLModPath.Replace("_memload.dll", ".dll").Replace(".dll", ".pdb"));
