@@ -13,14 +13,22 @@ public class TextInput : APrefab<TextInput>
 
     private void Awake()
     {
+        if (!Initialized) Init();
+    }
+
+    protected override void Init()
+    {
+        base.Init();
         _text = transform.Find("InputField").GetComponent<Text>();
         _input = transform.Find("InputField").GetComponent<InputField>();
         _icon = transform.Find("Icon").GetComponent<Image>();
         tip_button = GetComponent<TipButton>();
     }
 
-    public void Setup(string value, UnityAction<string> value_update, Sprite pIcon = null, Sprite pBackground = null)
+    public virtual void Setup(string value, UnityAction<string> value_update, Sprite pIcon = null,
+        Sprite pBackground = null)
     {
+        if (!Initialized) Init();
         _input.onEndEdit.RemoveAllListeners();
         _input.text = value;
         _input.onEndEdit.AddListener(value_update);
@@ -44,8 +52,9 @@ public class TextInput : APrefab<TextInput>
         }
     }
 
-    public void SetSize(Vector2 size)
+    public virtual void SetSize(Vector2 size)
     {
+        if (!Initialized) Init();
         GetComponent<RectTransform>().sizeDelta = size;
         _text.GetComponent<RectTransform>().sizeDelta = size - new Vector2(size.y / 2 + 4, 2);
         _icon.GetComponent<RectTransform>().sizeDelta = new Vector2(size.y, size.y) - new Vector2(2, 2);

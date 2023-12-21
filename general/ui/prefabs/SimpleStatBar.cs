@@ -12,15 +12,23 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
 
     private void Awake()
     {
+        if (!Initialized) Init();
+    }
+
+    protected override void Init()
+    {
+        base.Init();
         stat_bar = GetComponent<StatBar>();
         background = GetComponent<Image>();
         icon = transform.Find("Icon").GetComponent<Image>();
         bar = transform.Find("Mask/Bar").GetComponent<Image>();
     }
 
-    public void Setup(float value, float max_value, string pEndText, Sprite pIcon, Sprite pBackground, Color pBarColor,
+    public virtual void Setup(float value, float max_value, string pEndText, Sprite pIcon, Sprite pBackground,
+        Color pBarColor,
         Vector2 pSize, bool pReset = true, bool pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
     {
+        if (!Initialized) Init();
         icon.sprite = pIcon;
         background.sprite = pBackground;
 
@@ -53,6 +61,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
     public void UpdateBar(float value, float max_value, string pEndText, Color pBarColor = default, bool pReset = true,
         bool pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
     {
+        if (!Initialized) Init();
         if (pBarColor != default)
         {
             bar.color = pBarColor;

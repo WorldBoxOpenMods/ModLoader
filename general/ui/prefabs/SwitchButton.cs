@@ -5,12 +5,19 @@ namespace NeoModLoader.General.UI.Prefabs;
 
 public class SwitchButton : APrefab<SwitchButton>
 {
-    private Text _text;
-    private Image _icon;
     private Button _button;
+    private Image _icon;
+    private Text _text;
     public TipButton tip_button { get; private set; }
+
     private void Awake()
     {
+        if (!Initialized) Init();
+    }
+
+    protected override void Init()
+    {
+        base.Init();
         _button = GetComponent<Button>();
         _text = transform.Find("Text").GetComponent<Text>();
         _icon = transform.Find("Icon").GetComponent<Image>();
@@ -19,7 +26,10 @@ public class SwitchButton : APrefab<SwitchButton>
 
     public void Setup(bool value, Action value_update)
     {
-        _icon.sprite = value ? SpriteTextureLoader.getSprite("ui/icons/iconOn") : SpriteTextureLoader.getSprite("ui/icons/iconOff");
+        if (!Initialized) Init();
+        _icon.sprite = value
+            ? SpriteTextureLoader.getSprite("ui/icons/iconOn")
+            : SpriteTextureLoader.getSprite("ui/icons/iconOff");
         _text.text = value ? LM.Get("short_on") : LM.Get("short_off");
         _button.onClick.RemoveAllListeners();
         _button.onClick.AddListener(() =>
@@ -31,16 +41,17 @@ public class SwitchButton : APrefab<SwitchButton>
 
     internal static void _init()
     {
-        GameObject switch_button = new GameObject("SwitchButton", typeof(Image), typeof(Button), typeof(TipButton), typeof(HorizontalLayoutGroup));
+        GameObject switch_button = new GameObject("SwitchButton", typeof(Image), typeof(Button), typeof(TipButton),
+            typeof(HorizontalLayoutGroup));
         switch_button.transform.SetParent(WorldBoxMod.Transform);
         switch_button.transform.localScale = Vector3.one;
         switch_button.GetComponent<RectTransform>().sizeDelta = new(50, 18);
-        
+
         HorizontalLayoutGroup layout = switch_button.GetComponent<HorizontalLayoutGroup>();
         layout.childControlWidth = false;
         layout.childControlHeight = false;
         layout.childAlignment = TextAnchor.MiddleCenter;
-        
+
         switch_button.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
         switch_button.GetComponent<Image>().type = Image.Type.Sliced;
         GameObject switch_button_icon = new GameObject("Icon", typeof(Image));
@@ -55,7 +66,7 @@ public class SwitchButton : APrefab<SwitchButton>
         text.resizeTextForBestFit = true;
         OT.InitializeCommonText(text);
         text.alignment = TextAnchor.MiddleCenter;
-        
+
         Prefab = switch_button.AddComponent<SwitchButton>();
     }
 }
