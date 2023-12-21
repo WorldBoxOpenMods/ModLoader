@@ -294,6 +294,21 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                         // Check mod loaded or not has been done in the following method.
                         ModCompileLoadService.TryCompileAndLoadModAtRuntime(mod_declare);
                     }
+                    else if (mod is IUnloadable unloadable)
+                    {
+                        try
+                        {
+                            unloadable.OnUnload();
+                            WorldBoxMod.LoadedMods.Remove(mod);
+                            WorldBoxMod.AllRecognizedMods[mod_declare] = ModState.DISABLED;
+                        }
+                        catch (Exception e)
+                        {
+                            LogService.LogError("Failed to unload mod");
+                            LogService.LogError(e.Message);
+                            LogService.LogError(e.StackTrace);
+                        }
+                    }
                 });
                 icon_tip_button.text_description_2 = "";
             }
