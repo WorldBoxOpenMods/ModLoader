@@ -336,6 +336,7 @@ public class ModConfig
     public void Save(string path = null)
     {
         path ??= _path;
+        if (string.IsNullOrEmpty(path)) return;
         var raw_config = new Dictionary<string, List<ModConfigItem>>();
         foreach (var key in _config.Keys)
         {
