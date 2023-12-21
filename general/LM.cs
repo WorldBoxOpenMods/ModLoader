@@ -243,6 +243,8 @@ public static class LM
         {
             LocalizedTextManager.instance.localizedText[key] = value;
         }
+
+        LocalizedTextManager.updateTexts();
     }
 
     /// <summary>
