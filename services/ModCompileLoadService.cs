@@ -29,7 +29,7 @@ public static class ModCompileLoadService
         string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
         bool pDisableOptionalDepen = false)
     {
-        if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl.UID, pModDecl.FolderPath))
+        if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl))
         {
             LoadAddInc();
             return true;

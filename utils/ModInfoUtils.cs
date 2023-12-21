@@ -532,10 +532,35 @@ internal static class ModInfoUtils
     }
 
     // ReSharper disable once InconsistentNaming
-    public static bool isModNeedRecompile(string pModUUID, string pModFolderPath)
+    public static bool isModNeedRecompile(ModDeclare pModDeclare)
     {
-        return getModLastCompileTimestamp(pModUUID) <
-               Others.confirmed_compile_time + getModNewestUpdateTimestamp(pModFolderPath);
+        long last_compile_time = getModLastCompileTimestamp(pModDeclare.UID);
+        bool need_recompile = last_compile_time <
+                              Others.confirmed_compile_time + getModNewestUpdateTimestamp(pModDeclare.FolderPath);
+        if (!need_recompile)
+        {
+            foreach (string depen in pModDeclare.Dependencies)
+            {
+                need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
+                if (need_recompile)
+                {
+                    return true;
+                }
+            }
+
+            foreach (string depen in pModDeclare.OptionalDependencies)
+            {
+                need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
+                if (need_recompile)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     public static void updateModCompileTimestamp(string pModUUID)
@@ -580,6 +605,22 @@ internal static class ModInfoUtils
         if (!mod_compile_timestamps.ContainsKey(pModUUID))
         {
             mod_compile_timestamps.Add(pModUUID, 0);
+        }
+        else
+        {
+            long last_compile_time = mod_compile_timestamps[pModUUID];
+
+            if (last_compile_time > 0)
+            {
+                foreach (var mod in WorldBoxMod.AllRecognizedMods.Keys)
+                {
+                    if (mod.UID == pModUUID) return last_compile_time;
+                }
+
+                return long.MaxValue;
+            }
+
+            return last_compile_time;
         }
 
         return mod_compile_timestamps[pModUUID];
