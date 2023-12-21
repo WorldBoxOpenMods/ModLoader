@@ -411,9 +411,21 @@ public static class ModCompileLoadService
                             var files = Directory.GetFiles(locales_dir);
                             foreach (var locale_file in files)
                             {
-                                LogService.LogInfo(
-                                    $"Load {locale_file} as {Path.GetFileNameWithoutExtension(locale_file)}");
-                                LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
+                                try
+                                {
+                                    if (locale_file.EndsWith(".json"))
+                                    {
+                                        LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
+                                    }
+                                    else if (locale_file.EndsWith(".csv"))
+                                    {
+                                        LM.LoadLocales(locale_file);
+                                    }
+                                }
+                                catch (FormatException e)
+                                {
+                                    LogService.LogWarning(e.Message);
+                                }
                             }
 
                             LM.ApplyLocale();

@@ -27,6 +27,96 @@ public static class LM
     }
 
     /// <summary>
+    ///     Load locales from a file(Only support csv file)
+    /// </summary>
+    /// <param name="pFilePath">Path to csv file</param>
+    /// <exception cref="FormatException">Invalid csv file</exception>
+    public static void LoadLocales(string pFilePath)
+    {
+        if (pFilePath.ToLower().EndsWith(".csv"))
+        {
+            Dictionary<string, Dictionary<string, string>> locale = ParseCSV(File.ReadAllText(pFilePath));
+
+            if (locale == null)
+            {
+                throw new FormatException($"Failed to load locale file at {pFilePath} as csv");
+            }
+
+            foreach (var language in locale.Keys)
+            {
+                var dict = locale[language];
+                foreach (var k in dict.Keys)
+                {
+                    Add(language, k, dict[k]);
+                }
+            }
+        }
+        else
+        {
+            LogService.LogWarning($"Unsupported locale file type of path: {pFilePath}");
+        }
+    }
+
+    /// <summary>
+    ///     Load locales from a text stream(Only support csv text)
+    /// </summary>
+    /// <param name="pStream">Stream of a csv text</param>
+    /// <exception cref="FormatException">Invalid csv text</exception>
+    public static void LoadLocales(Stream pStream)
+    {
+        string text = new StreamReader(pStream).ReadToEnd();
+        Dictionary<string, Dictionary<string, string>> locale = ParseCSV(text);
+
+        if (locale == null)
+        {
+            throw new FormatException("Failed to load locale file for stream as csv");
+        }
+
+        foreach (var language in locale.Keys)
+        {
+            var dict = locale[language];
+            foreach (var k in dict.Keys)
+            {
+                Add(language, k, dict[k]);
+            }
+        }
+    }
+
+    private static Dictionary<string, Dictionary<string, string>> ParseCSV(string pText)
+    {
+        var lines = pText.Split('\n');
+
+        if (lines.Length < 2) return null;
+        if (string.IsNullOrEmpty(lines[0].Trim())) return null;
+        if (!lines[0].Contains(',')) return null;
+
+        var languages = lines[0].Split(',');
+        var locale = new Dictionary<string, Dictionary<string, string>>();
+        for (int i = 1; i < languages.Length; i++)
+        {
+            locale[languages[i]] = new Dictionary<string, string>();
+        }
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            if (string.IsNullOrEmpty(lines[i].Trim())) continue;
+            if (!lines[i].Contains(',')) continue;
+
+            var line = lines[i].Split(',');
+            var key = line[0];
+
+            if (string.IsNullOrEmpty(key)) continue;
+
+            for (int j = 1; j < line.Length; j++)
+            {
+                locale[languages[j]][key] = line[j];
+            }
+        }
+
+        return locale;
+    }
+
+    /// <summary>
     /// Load locale from a stream (It must be a json file)
     /// </summary>
     /// <param name="pLanguage">Target save language</param>
