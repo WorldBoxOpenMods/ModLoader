@@ -39,6 +39,16 @@ public class WrappedAssetBundle
 
     public string Name => assetBundle.name;
 
+    public string[] GetAllAssetNames()
+    {
+        return assetBundle.GetAllAssetNames();
+    }
+
+    public string[] GetAllScenePaths()
+    {
+        return assetBundle.GetAllScenePaths();
+    }
+
     public Object GetObject(string pName)
     {
         return assetBundle.LoadAsset(pName);
