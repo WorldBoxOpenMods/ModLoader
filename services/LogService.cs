@@ -53,10 +53,10 @@ public static class LogService
                         LogInfo(message.message);
                         break;
                     case LogType.Warning:
-                        LogInfo(message.message);
+                        LogWarning(message.message);
                         break;
                     case LogType.Error:
-                        LogInfo(message.message);
+                        LogError(message.message);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -64,6 +64,32 @@ public static class LogService
                 if(_pool.Count >= pool_size) continue;
                 _pool.Add(message);
             }
+        }
+    }
+    /// <summary>
+    /// Pull all concurrent log to current thread. Often used in unit test.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public static void PullAllConcurrentLogToCurrentThread()
+    {
+        while (concurrent_log_queue.TryDequeue(out WrappedMessage message))
+        {
+            switch (message.type)
+            {
+                case LogType.Info:
+                    LogInfo(message.message);
+                    break;
+                case LogType.Warning:
+                    LogWarning(message.message);
+                    break;
+                case LogType.Error:
+                    LogError(message.message);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            if (_pool.Count >= pool_size) continue;
+            _pool.Add(message);
         }
     }
     internal static void Init()
