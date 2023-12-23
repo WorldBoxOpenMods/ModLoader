@@ -83,7 +83,8 @@ public class SimpleButton : APrefab<SimpleButton>
     private void SetSize(Vector2 pSize)
     {
         GetComponent<RectTransform>().sizeDelta = pSize;
-        Icon.GetComponent<RectTransform>().sizeDelta = pSize * 0.875f;
+        float min_edge = Mathf.Min(pSize.x, pSize.y);
+        Icon.GetComponent<RectTransform>().sizeDelta = new Vector2(min_edge, min_edge) * 0.875f;
         Text.GetComponent<RectTransform>().sizeDelta = pSize * 0.875f;
     }
 
