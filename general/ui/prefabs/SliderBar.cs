@@ -51,7 +51,7 @@ public class SliderBar : APrefab<SliderBar>
     /// <param name="min">Min</param>
     /// <param name="max">Max</param>
     /// <param name="value_update">Action when slider value updated</param>
-    public void Setup(float value, float min, float max, UnityAction<float> value_update)
+    public void Setup(float value, float min, float max, UnityAction<float> value_update, Vector2 size = default)
     {
         if (!Initialized) Init();
         _slider.onValueChanged.RemoveAllListeners();
@@ -59,6 +59,10 @@ public class SliderBar : APrefab<SliderBar>
         _slider.maxValue = max;
         _slider.value = value;
         _slider.onValueChanged.AddListener(value_update);
+        if(size != default)
+        {
+            SetSize(size);
+        }
     }
 
     /// <summary>
