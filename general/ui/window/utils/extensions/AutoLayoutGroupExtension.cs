@@ -1,0 +1,113 @@
+using NeoModLoader.General.UI.Window.Layout;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace NeoModLoader.General.UI.Window.Utils.Extensions;
+
+public static class AutoLayoutGroupExtension
+{
+    public static AutoHoriLayoutGroup BeginHoriGroup<T>(
+        this AutoLayoutGroup<T> pThis,
+        Vector2 pSize = default,
+        TextAnchor pAlignment = TextAnchor.MiddleLeft,
+        float pSpacing = 3,
+        RectOffset pPadding = null
+        )
+        where T : LayoutGroup
+    {
+        var auto_layout_group = pThis.BeginSubGroup<AutoHoriLayoutGroup, HorizontalLayoutGroup>(pSize);
+
+        if(pSize == default)
+        {
+            ContentSizeFitter fitter = auto_layout_group.gameObject.GetComponent<ContentSizeFitter>();
+            if(fitter == null)
+            {
+                auto_layout_group.gameObject.AddComponent<ContentSizeFitter>();
+            }
+            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+
+        var layout_group = auto_layout_group.GetLayoutGroup();
+
+        layout_group.childAlignment = pAlignment;
+        layout_group.childControlHeight = false;
+        layout_group.childControlWidth = false;
+        layout_group.childForceExpandHeight = false;
+        layout_group.childForceExpandWidth = false;
+        layout_group.childScaleHeight = false;
+        layout_group.childScaleWidth = false;
+        layout_group.spacing = pSpacing;
+        layout_group.padding = pPadding ?? new RectOffset(3, 3, 3, 3);
+        
+        return auto_layout_group;
+    }
+    public static AutoVertLayoutGroup BeginVertGroup<T>(this AutoLayoutGroup<T> pThis,
+        Vector2 pSize = default,
+        TextAnchor pAlignment = TextAnchor.UpperCenter,
+        float pSpacing = 3,
+        RectOffset pPadding = null)
+    where T : LayoutGroup
+    {
+        var auto_layout_group = pThis.BeginSubGroup<AutoVertLayoutGroup, VerticalLayoutGroup>(pSize);
+        if (pSize == default)
+        {
+            ContentSizeFitter fitter = auto_layout_group.gameObject.GetComponent<ContentSizeFitter>();
+            if (fitter == null)
+            {
+                auto_layout_group.gameObject.AddComponent<ContentSizeFitter>();
+            }
+            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+        var layout_group = auto_layout_group.GetLayoutGroup();
+
+        layout_group.childAlignment = pAlignment;
+        layout_group.childControlHeight = false;
+        layout_group.childControlWidth = false;
+        layout_group.childForceExpandHeight = false;
+        layout_group.childForceExpandWidth = false;
+        layout_group.childScaleHeight = false;
+        layout_group.childScaleWidth = false;
+        layout_group.spacing = pSpacing;
+        layout_group.padding = pPadding ?? new RectOffset(3, 3, 3, 3);
+        
+        return auto_layout_group;
+    }
+
+    public static AutoGridLayoutGroup BeginGridGroup<T>(this AutoLayoutGroup<T> pThis, 
+        int pConstraintCount,
+        GridLayoutGroup.Constraint pConstraint = GridLayoutGroup.Constraint.FixedColumnCount,
+        Vector2 pSize = default,
+        Vector2 pCellSize = default,
+        Vector2 pSpacing = default,
+        GridLayoutGroup.Axis pStartAxis = GridLayoutGroup.Axis.Horizontal,
+        GridLayoutGroup.Corner pStartCorner = GridLayoutGroup.Corner.UpperLeft
+    ) 
+        where T : LayoutGroup
+    {
+        var auto_layout_group = pThis.BeginSubGroup<AutoGridLayoutGroup, GridLayoutGroup>(pSize);
+        if (pSize == default)
+        {
+            ContentSizeFitter fitter = auto_layout_group.gameObject.GetComponent<ContentSizeFitter>();
+            if (fitter == null)
+            {
+                auto_layout_group.gameObject.AddComponent<ContentSizeFitter>();
+            }
+            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+        var layout_group = auto_layout_group.GetLayoutGroup();
+
+        layout_group.constraint = pConstraint;
+        layout_group.constraintCount = pConstraintCount;
+        
+        layout_group.cellSize = pCellSize == default ? new Vector2(16, 16) : pCellSize;
+        layout_group.spacing = pSpacing == default ? new Vector2(3, 3) : pSpacing;
+
+        layout_group.startAxis = pStartAxis;
+        layout_group.startCorner = pStartCorner;
+        
+        return auto_layout_group;
+    }
+}
