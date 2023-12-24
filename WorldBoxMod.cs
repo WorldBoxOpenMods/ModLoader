@@ -62,7 +62,6 @@ public class WorldBoxMod : MonoBehaviour
             ResourcesPatch.Initialize();
             LoadLocales();
             LM.ApplyLocale();
-            PrefabManager._init();
             TabManager._init();
             WindowCreator.init();
             ListenerManager._init();
