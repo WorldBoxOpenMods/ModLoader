@@ -34,12 +34,12 @@ public class PlotStartListener : AbstractListener<PlotStartListener, PlotStartHa
         }
     }
     [HarmonyTranspiler]
-    [HarmonyPatch(typeof(WarManager), nameof(WarManager.newWar))]
-    private static IEnumerable<CodeInstruction> _newWar_Patch(IEnumerable<CodeInstruction> instr)
+    [HarmonyPatch(typeof(PlotManager), nameof(PlotManager.newPlot), new Type[] {typeof(Actor), typeof(PlotAsset)})]
+    private static IEnumerable<CodeInstruction> _newPlot_Patch(IEnumerable<CodeInstruction> instr)
     {
         List<CodeInstruction> codes = new(instr);
-        
-        int insert_index = 25;
+
+        int insert_index = codes.FindIndex(code => code.opcode == OpCodes.Ret);
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Dup));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_2));
