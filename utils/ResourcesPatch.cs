@@ -143,7 +143,10 @@ internal static class ResourcesPatch
     {
         internal Dictionary<string, Object> direct_objects = new();
         private ResourceTreeNode root = new(null);
-
+        public ResourceTree()
+        {
+            root.parent = root;
+        }
         /// <summary>
         /// Find a ResourceTreeNode by path.
         /// </summary>
@@ -169,6 +172,13 @@ internal static class ResourcesPatch
             for (int i = 0; i < parts.Length - (visitLast ? 0 : 1); i++)
             {
                 var part = parts[i];
+                if (part == "..")
+                {
+                    node = node.parent;
+                    continue;
+                }
+                if (part == ".") continue;
+
                 if (!node.children.ContainsKey(part))
                 {
                     if (!createNodeAlong)
@@ -184,7 +194,19 @@ internal static class ResourcesPatch
 
         public Object Get(string path)
         {
-            return direct_objects.TryGetValue(path.ToLower(), out Object o) ? o : null;
+            if(direct_objects.TryGetValue(path.ToLower(), out Object o))
+            {
+                return o;
+            }
+            var node = Find(path, true, false);
+
+            if (node == null) return null;
+            if (node.objects.TryGetValue(Path.GetFileNameWithoutExtension(path.ToLower()), out o))
+            {
+                direct_objects[path] = o;
+                return o;
+            }
+            return null;
         }
 
         public void Add(string path, Object obj)
@@ -245,7 +267,7 @@ internal static class ResourcesPatch
     {
         public readonly Dictionary<string, ResourceTreeNode> children = new();
         public readonly Dictionary<string, Object> objects = new();
-        public readonly ResourceTreeNode parent;
+        public ResourceTreeNode parent { get; internal set; }
 
         public ResourceTreeNode(ResourceTreeNode parent)
         {
