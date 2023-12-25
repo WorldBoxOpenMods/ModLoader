@@ -4,43 +4,91 @@ using NeoModLoader.services;
 using Newtonsoft.Json;
 
 namespace NeoModLoader.api;
-
+/// <summary>
+/// Type of <see cref="ModConfigItem"/>
+/// </summary>
 public enum ConfigItemType
 {
+    /// <summary>
+    /// A <see cref="ModConfigItem"/> with this will be displayed as a switch button. Only <see cref="ModConfigItem.BoolVal"/> is valid
+    /// </summary>
     SWITCH,
+    /// <summary>
+    /// A <see cref="ModConfigItem"/> with this will be displayed as a slider. Only <see cref="ModConfigItem.FloatVal"/> is valid
+    /// </summary>
     SLIDER,
+    /// <summary>
+    /// A <see cref="ModConfigItem"/> with this will be displayed as a text box. Only <see cref="ModConfigItem.TextVal"/> is valid
+    /// </summary>
     TEXT,
+    /// <summary>
+    /// A <see cref="ModConfigItem"/> with this will be displayed as a select box. Only <see cref="ModConfigItem.IntVal"/> is valid
+    /// </summary>
     SELECT
 }
-
+/// <summary>
+/// The item of <see cref="ModConfig"/>
+/// </summary>
 public class ModConfigItem
 {
     private MethodInfo callback;
+    /// <summary>
+    /// Type of this item
+    /// </summary>
     [JsonProperty("Type")] public ConfigItemType Type { get; internal set; }
-
+    /// <summary>
+    /// 
+    /// </summary>
     [JsonProperty("Id")] public string Id { get; internal set; }
-
+    /// <summary>
+    /// 
+    /// </summary>
     [JsonProperty("IconPath")] public string IconPath { get; internal set; }
-
+    /// <summary>
+    /// It is valid only when <see cref="Type"/> is <see cref="ConfigItemType.SWITCH"/>
+    /// </summary>
     [JsonProperty("BoolVal")] public bool BoolVal { get; internal set; }
-
+    /// <summary>
+    /// It is valid only when <see cref="Type"/> is <see cref="ConfigItemType.TEXT"/>
+    /// </summary>
     [JsonProperty("TextVal")] public string TextVal { get; internal set; }
-
+    /// <summary>
+    /// It is valid only when <see cref="Type"/> is <see cref="ConfigItemType.SLIDER"/>
+    /// </summary>
     [JsonProperty("FloatVal")] public float FloatVal { get; internal set; }
-
+    /// <summary>
+    /// It is valid only when <see cref="Type"/> is <see cref="ConfigItemType.SLIDER"/>
+    /// </summary>
     [JsonProperty("MaxFloatVal")] public float MaxFloatVal { get; internal set; } = 1;
+    /// <summary>
+    /// It is valid only when <see cref="Type"/> is <see cref="ConfigItemType.SLIDER"/>
+    /// </summary>
     [JsonProperty("MinFloatVal")] public float MinFloatVal { get; internal set; } = 0;
-
+    /// <summary>
+    /// It is not implemented.
+    /// </summary>
     [JsonProperty("IntVal")] public int IntVal { get; internal set; }
+    /// <summary>
+    /// Callback "Type:Method", the method must be static and have only one parameter(see <see cref="Type"/>)
+    /// </summary>
     [JsonProperty("Callback")] public string CallBack { get; internal set; }
-
+    /// <summary>
+    /// Set float range, it is valid only when <see cref="Type"/> is <see cref="ConfigItemType.SLIDER"/>
+    /// </summary>
+    /// <param name="pMin"></param>
+    /// <param name="pMax"></param>
+    /// <exception cref="ArgumentException"><paramref name="pMax"/> is smaller than <paramref name="pMin"/></exception>
     public void SetFloatRange(float pMin, float pMax)
     {
         if (pMax < pMin) throw new ArgumentException("Max value must be greater than min value!");
         MinFloatVal = pMin;
         MaxFloatVal = pMax;
     }
-
+    /// <summary>
+    /// Set value of this item
+    /// </summary>
+    /// <param name="val">It's type should match this item's <see cref="Type"/></param>
+    /// <param name="pSkipCallback">Wheather skip calling callback when value updated</param>
     public void SetValue(object val, bool pSkipCallback = false)
     {
         try
@@ -188,7 +236,11 @@ public class ModConfigItem
             }
         }
     }
-
+    /// <summary>
+    /// Get value of this item
+    /// </summary>
+    /// <returns>The actual type of return value matches <see cref="Type"/></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public object GetValue()
     {
         return Type switch
@@ -214,7 +266,11 @@ public class ModConfig
 {
     internal Dictionary<string, Dictionary<string, ModConfigItem>> _config = new();
     private string _path;
-
+    /// <summary>
+    /// Create a new <see cref="ModConfig"/> instance from <paramref name="path"/>
+    /// </summary>
+    /// <param name="path">Path to read/save</param>
+    /// <param name="pIsPersistent">Wheather to skip callback of all items</param>
     public ModConfig(string path, bool pIsPersistent = false)
     {
         if (!File.Exists(path))
@@ -258,7 +314,11 @@ public class ModConfig
             }
         }
     }
-
+    /// <summary>
+    /// Get a <see cref="Dictionary{TKey,TValue}"/> of <see cref="ModConfigItem"/> by <paramref name="pGroupId"/>
+    /// </summary>
+    /// <param name="pGroupId"></param>
+    /// <returns></returns>
     public Dictionary<string, ModConfigItem> this[string pGroupId]
     {
         get => _config[pGroupId];
@@ -332,7 +392,10 @@ public class ModConfig
             }
         }
     }
-
+    /// <summary>
+    /// Save config
+    /// </summary>
+    /// <param name="path">Overwrite save path</param>
     public void Save(string path = null)
     {
         path ??= _path;
@@ -351,7 +414,10 @@ public class ModConfig
         string json_text = JsonConvert.SerializeObject(raw_config);
         File.WriteAllText(path, json_text);
     }
-
+    /// <summary>
+    /// Create a item group with id <paramref name="pId"/>
+    /// </summary>
+    /// <param name="pId"></param>
     public void CreateGroup(string pId)
     {
         if (_config.ContainsKey(pId))
@@ -363,7 +429,16 @@ public class ModConfig
 
         _config[pId] = new Dictionary<string, ModConfigItem>();
     }
-
+    /// <summary>
+    /// Add a new Config item to <paramref name="pGroupId"/>.
+    /// </summary>
+    /// <param name="pGroupId"></param>
+    /// <param name="pId"></param>
+    /// <param name="pType"></param>
+    /// <param name="pDefaultValue"></param>
+    /// <param name="pIconPath"></param>
+    /// <param name="pCallback"></param>
+    /// <returns></returns>
     public ModConfigItem AddConfigItem(string pGroupId, string pId, ConfigItemType pType, object pDefaultValue,
         string pIconPath = "", string pCallback = "")
     {
@@ -392,7 +467,17 @@ public class ModConfig
         group[pId].IconPath = pIconPath;
         return group[pId];
     }
-
+    /// <summary>
+    /// Add a new Config item typed <see cref="ConfigItemType.SLIDER"/> to <paramref name="pGroupId"/>
+    /// </summary>
+    /// <param name="pGroupId"></param>
+    /// <param name="pId"></param>
+    /// <param name="pDefaultValue"></param>
+    /// <param name="pMinValue"></param>
+    /// <param name="pMaxValue"></param>
+    /// <param name="pIconPath"></param>
+    /// <param name="pCallback"></param>
+    /// <returns></returns>
     public ModConfigItem AddConfigSliderItemWithRange(string pGroupId, string pId, float pDefaultValue, float pMinValue,
         float pMaxValue, string pIconPath = "", string pCallback = "")
     {

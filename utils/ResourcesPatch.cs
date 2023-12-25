@@ -143,7 +143,7 @@ internal static class ResourcesPatch
 
         HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
         list.RemoveAll(x => names.Contains(x.name));
-
+        
         list.AddRange(append_list);
         return list.ToArray();
     }

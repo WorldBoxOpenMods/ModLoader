@@ -29,6 +29,13 @@ public static class RF
     static Dictionary<Type, Dictionary<string, Delegate>> _method_cache = new();
     static Dictionary<Type, Dictionary<string, Delegate>> _getter_cache = new();
     static Dictionary<Type, Dictionary<string, Delegate>> _setter_cache = new();
+    /// <summary>
+    /// Get a method delegate
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="name">Name of the method to get</param>
+    /// <param name="is_static"></param>
+    /// <returns></returns>
     public static Delegate GetMethodDelegate(this Type type, string name, bool is_static = false)
     {
         if (_method_cache.TryGetValue(type, out var methods))
@@ -46,7 +53,14 @@ public static class RF
         _method_cache.Add(type, new Dictionary<string, Delegate> { { name, newMethod } });
         return newMethod;
     }
-
+    /// <summary>
+    /// Get field value typed <typeparamref name="TF"/> of an object instance typed <typeparamref name="TI"/>
+    /// </summary>
+    /// <typeparam name="TF"></typeparam>
+    /// <typeparam name="TI"></typeparam>
+    /// <param name="obj"></param>
+    /// <param name="name">Name of the field to get</param>
+    /// <returns></returns>
     public static TF GetField<TF, TI>(this TI obj, string name)
     {
         if (_getter_cache.TryGetValue(typeof(TI), out var getters))
@@ -63,6 +77,14 @@ public static class RF
         _getter_cache.Add(typeof(TI), new Dictionary<string, Delegate> { { name, newGetter } });
         return newGetter(obj);
     }
+    /// <summary>
+    /// Get field value typed <typeparamref name="TF"/> of <paramref name="obj"/>
+    /// </summary>
+    /// <remarks>It has lower performance than the one with TI and field_type. Though it is a little</remarks>
+    /// <typeparam name="TF"></typeparam>
+    /// <param name="obj"></param>
+    /// <param name="name">Name of the field to get</param>
+    /// <returns></returns>
     public static TF GetField<TF>(this Object obj, string name)
     {
         Type TI = obj.GetType();
@@ -80,6 +102,14 @@ public static class RF
         _getter_cache.Add(TI, new Dictionary<string, Delegate> { { name, newGetter } });
         return (TF)newGetter.DynamicInvoke(obj);
     }
+    /// <summary>
+    /// Get field value typed <paramref name="field_type"/> of <paramref name="obj"/>
+    /// </summary>
+    /// <remarks>It has lower performance than the one with TI. Though it is a little</remarks>
+    /// <param name="obj"></param>
+    /// <param name="name">Name of the field to get</param>
+    /// <param name="field_type"></param>
+    /// <returns></returns>
     public static Object GetField(this Object obj, string name, Type field_type)
     {
         Type TI = obj.GetType();
@@ -97,7 +127,13 @@ public static class RF
         _getter_cache.Add(TI, new Dictionary<string, Delegate> { { name, newGetter } });
         return newGetter.DynamicInvoke(obj);
     }
-
+    /// <summary>
+    /// Get static field value typed <typeparamref name="TF"/> of <typeparamref name="TI"/>
+    /// </summary>
+    /// <typeparam name="TF"></typeparam>
+    /// <typeparam name="TI"></typeparam>
+    /// <param name="name">Name of the field to get</param>
+    /// <returns></returns>
     public static TF GetStaticField<TF, TI>(string name)
     {
         FieldInfo fieldInfo = typeof(TI).GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -113,7 +149,36 @@ public static class RF
         }
         return default;
     }
-    
+    /// <summary>
+    /// Get static field value typed <typeparamref name="TF"/> of <paramref name="type"/>
+    /// </summary>
+    /// <typeparam name="TF"></typeparam>
+    /// <param name="name">Name of the field to get</param>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static TF GetStaticField<TF>(string name, Type type)
+    {
+        FieldInfo fieldInfo = type.GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        if (fieldInfo != null) return (TF)fieldInfo.GetValue(null);
+        LogService.LogWarning($"Cannot find '{name}' in type {type.FullName}. Return default value.");
+        try
+        {
+            throw new Exception();
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning(e.StackTrace);
+        }
+        return default;
+    }
+    /// <summary>
+    /// Set field value typed <typeparamref name="TF"/> of <paramref name="obj"/>
+    /// </summary>
+    /// <typeparam name="TF"></typeparam>
+    /// <typeparam name="TI"></typeparam>
+    /// <param name="obj"></param>
+    /// <param name="name">Name of the field to set</param>
+    /// <param name="value"></param>
     public static void SetField<TF, TI>(this TI obj, string name, TF value)
     {
         if (_setter_cache.TryGetValue(typeof(TI), out var setters))
@@ -132,6 +197,13 @@ public static class RF
         _setter_cache.Add(typeof(TI), new Dictionary<string, Delegate> { { name, newSetter } });
         newSetter(obj, value);
     }
+    /// <summary>
+    /// Set static field value typed <typeparamref name="TF"/> of <typeparamref name="TI"/>
+    /// </summary>
+    /// <typeparam name="TF"></typeparam>
+    /// <typeparam name="TI"></typeparam>
+    /// <param name="name">Name of the field to set</param>
+    /// <param name="value"></param>
     public static void SetStaticField<TF, TI>(string name, TF value)
     {
         FieldInfo fieldInfo = typeof(TI).GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -150,6 +222,13 @@ public static class RF
             LogService.LogWarning(e.StackTrace);
         }
     }
+    /// <summary>
+    /// Set static field value typed <typeparamref name="TF"/> of <paramref name="TI"/>
+    /// </summary>
+    /// <typeparam name="TF"></typeparam>
+    /// <param name="name">Name of the field to set</param>
+    /// <param name="value"></param>
+    /// <param name="TI"></param>
     public static void SetStaticField<TF>(string name, TF value, Type TI)
     {
         FieldInfo fieldInfo = TI.GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);

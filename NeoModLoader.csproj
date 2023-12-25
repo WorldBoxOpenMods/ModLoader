@@ -125,9 +125,9 @@
       <None Remove="resources\assemblies\Mono.Cecil.dll" />
       <EmbeddedResource Include="resources\assemblies\Mono.Cecil.dll" />
       <None Remove="resources\assemblies\MonoMod.RuntimeDetour.dll" />
-      <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll"/>
+      <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll" />
       <None Remove="resources\assemblies\MonoMod.Utils.dll" />
-      <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll"/>
+      <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll" />
       <None Remove="resources\assemblies\System.Collections.Immutable.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Collections.Immutable.dll" />
       <None Remove="resources\assemblies\System.Memory.dll" />
@@ -168,8 +168,8 @@
       <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
       <None Remove="resources\reload.png" />
       <EmbeddedResource Include="resources\reload.png" />
-      <None Remove="resources\assemblies\Assembly-CSharp-Publicized"/>
-      <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized"/>
+      <None Remove="resources\assemblies\Assembly-CSharp-Publicized" />
+      <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized" />
     </ItemGroup>
   
     <ItemGroup>
@@ -179,6 +179,10 @@
   
     <ItemGroup>
       <Folder Include=".github\ASSETS\" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <None Include=".github\workflows\build.yml" />
     </ItemGroup>
   
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">

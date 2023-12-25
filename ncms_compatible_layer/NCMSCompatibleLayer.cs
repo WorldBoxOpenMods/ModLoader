@@ -8,6 +8,7 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.ncms_compatible_layer
 {
+#pragma warning disable CS0618
     internal static class NCMSCompatibleLayer
     {
         public const string modGlobalObject = @"
@@ -130,4 +131,5 @@ namespace NeoModLoader.ncms_compatible_layer
             return false;
         }
     }
+#pragma warning restore
 }

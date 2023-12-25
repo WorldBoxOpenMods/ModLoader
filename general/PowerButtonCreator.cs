@@ -20,7 +20,7 @@ public static class PowerButtonCreator
     /// <param name="pWindowId">Id of the window to open</param>
     /// <param name="pIcon">The icon of the button</param>
     /// <param name="pParent">Which transform the button attached to</param>
-    /// <param name="pLocalPosition">The button position in <see cref="pParent"/></param>
+    /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
     public static PowerButton CreateWindowButton([NotNull]string pId, [NotNull]string pWindowId,
         Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
@@ -71,7 +71,7 @@ public static class PowerButtonCreator
     /// <param name="pAction">The action of the button</param>
     /// <param name="pIcon">The icon of the button</param>
     /// <param name="pParent">Which transform the button attached to</param>
-    /// <param name="pLocalPosition">The button position in <see cref="pParent"/></param>
+    /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
     public static PowerButton CreateSimpleButton([NotNull]string pId, [NotNull]UnityAction pAction,
         Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
@@ -124,7 +124,7 @@ public static class PowerButtonCreator
     /// <param name="pGodPowerId">The god power's id bind to the button</param>
     /// <param name="pIcon">The icon of the button</param>
     /// <param name="pParent">Which transform the button attached to</param>
-    /// <param name="pLocalPosition">The button position in &lt;see cref="pParent"/&gt;</param>
+    /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
     public static PowerButton CreateGodPowerButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
     {
@@ -178,7 +178,7 @@ public static class PowerButtonCreator
     /// <param name="pGodPowerId">The god power's id bind to the button</param>
     /// <param name="pIcon">The icon of the button</param>
     /// <param name="pParent">Which transform the button attached to</param>
-    /// <param name="pLocalPosition">The button position in &lt;see cref="pParent"/&gt;</param>
+    /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <param name="pNoAutoSetToggleAction">Not set god power's toggle_action automatically if it's not null</param>
     /// <returns>The PowerButton created</returns>
     public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default, bool pNoAutoSetToggleAction = false)

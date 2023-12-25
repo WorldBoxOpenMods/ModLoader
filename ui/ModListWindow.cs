@@ -1,5 +1,6 @@
 using NeoModLoader.api;
 using NeoModLoader.constants;
+using NeoModLoader.General;
 using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
@@ -209,7 +210,26 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             ModState mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
 
             Text text = transform.Find("Text").GetComponent<Text>();
-            text.text = $"{mod_declare.Name}\t{mod_declare.Version}\n{mod_declare.Author}\n{mod_declare.Description}";
+            string mod_name = mod_declare.Name;
+            string mod_author = mod_declare.Author;
+            string mod_desc = mod_declare.Description;
+            string multilang_mod_name_key = $"{mod_name}_{LocalizedTextManager.instance.language}";
+            string multilang_mod_author_key = $"{mod_author}_{LocalizedTextManager.instance.language}";
+            string multilang_mod_desc_key = $"{mod_desc}_{LocalizedTextManager.instance.language}";
+
+            if (LocalizedTextManager.stringExists(multilang_mod_name_key))
+            {
+                mod_name = LM.Get(multilang_mod_name_key);
+            }
+            if (LocalizedTextManager.stringExists(multilang_mod_author_key))
+            {
+                mod_author = LM.Get(multilang_mod_author_key);
+            }
+            if (LocalizedTextManager.stringExists(multilang_mod_desc_key))
+            {
+                mod_desc = LM.Get(multilang_mod_desc_key);
+            }
+            text.text = $"{mod_name}\t{mod_declare.Version}\n{mod_author}\n{mod_desc}";
 
             Sprite sprite = null;
             if (!string.IsNullOrEmpty(mod_declare.IconPath))

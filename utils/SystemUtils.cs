@@ -19,7 +19,10 @@ public static class SystemUtils
         startInfo.Verb = "runas";
         System.Diagnostics.Process.Start(startInfo);
     }
-   
+    /// <summary>
+    /// Run bash with parameters
+    /// </summary>
+    /// <param name="parameters"></param>
     public static void BashRun(string[] parameters)
     {
         var startInfo = new System.Diagnostics.ProcessStartInfo();

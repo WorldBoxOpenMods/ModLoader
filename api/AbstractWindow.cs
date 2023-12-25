@@ -37,7 +37,11 @@ public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow
     /// WindowId of <see cref="Instance"/>
     /// </summary>
     public static string WindowId { get; protected set; }
-
+    /// <summary>
+    /// 以 pWindowId 创建并初始化一个 T 类型的窗口
+    /// </summary>
+    /// <param name="pWindowId"></param>
+    /// <returns></returns>
     public static T CreateAndInit(string pWindowId)
     {
         WindowId = pWindowId;
@@ -58,7 +62,9 @@ public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow
         
         return Instance;
     }
-
+    /// <summary>
+    /// You should override this method to initialize your window.
+    /// </summary>
     protected abstract void Init();
 
     private void OnEnable()
@@ -79,15 +85,21 @@ public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow
         IsOpened = false;
         OnNormalDisable();
     }
-
+    /// <summary>
+    /// To replace <see cref="OnDisable"/>, It is called after <see cref="Init"/>(same as <see cref="Initialized"/> = true.
+    /// </summary>
     public virtual void OnNormalDisable()
     {
     }
-
+    /// <summary>
+    /// Is is called after <see cref="Init"/> and first open of <see cref="Instance"/>. After this, <see cref="OnNormalEnable"/> will be called at same <see cref="OnEnable"/>
+    /// </summary>
     public virtual void OnFirstEnable()
     {
     }
-
+    /// <summary>
+    /// It is called after <see cref="Init"/> and <see cref="OnFirstEnable"/>.
+    /// </summary>
     public virtual void OnNormalEnable()
     {
     }

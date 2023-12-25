@@ -14,7 +14,9 @@ using NeoModLoader.utils;
 using UnityEngine;
 
 namespace NeoModLoader.services;
-
+/// <summary>
+/// Service of mod compiling and loading. 
+/// </summary>
 public static class ModCompileLoadService
 {
     private static string[] _default_ref_path = null!;
@@ -210,7 +212,10 @@ public static class ModCompileLoadService
 
         return true;
     }
-
+    /// <summary>
+    /// Prepare references for mod nodes
+    /// </summary>
+    /// <param name="pModNodes"></param>
     public static void prepareCompile(List<ModDependencyNode> pModNodes)
     {
         foreach (var mod_node in pModNodes)
@@ -241,13 +246,21 @@ public static class ModCompileLoadService
 
         _publicized_assembly_ref = MetadataReference.CreateFromFile(Paths.PublicizedAssemblyPath);
     }
-
+    /// <summary>
+    /// Prepare references for a single mod node
+    /// </summary>
+    /// <param name="pModNode"></param>
     public static void prepareCompileRuntime(ModDependencyNode pModNode)
     {
         mod_inc_path.Add(pModNode.mod_decl.UID,
             Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll"));
     }
-
+    /// <summary>
+    /// Public mod compiling method
+    /// </summary>
+    /// <param name="pModNode">The mod to compile</param>
+    /// <param name="pForce">Wheather recompile when the mod does not need to recompile</param>
+    /// <returns></returns>
     public static bool compileMod(ModDependencyNode pModNode, bool pForce = false)
     {
         bool compile_result = false;
@@ -297,7 +310,10 @@ public static class ModCompileLoadService
 
         return compile_result;
     }
-
+    /// <summary>
+    /// Load a list of mods
+    /// </summary>
+    /// <param name="mods_to_load"></param>
     public static void loadMods(List<ModDeclare> mods_to_load)
     {
         // It can be sure that all mods are compiled successfully.
@@ -327,7 +343,10 @@ public static class ModCompileLoadService
             }
         }
     }
-
+    /// <summary>
+    /// Load a single mod
+    /// </summary>
+    /// <param name="pMod"></param>
     public static void LoadMod(ModDeclare pMod)
     {
         Assembly mod_assembly = Assembly.Load(
@@ -340,6 +359,7 @@ public static class ModCompileLoadService
             if (type.GetInterface(nameof(IMod)) == null)
             {
                 // Check if it is a NCMS Mod
+#pragma warning disable CS0618 // It is a NCMS mod
                 if (Attribute.GetCustomAttribute(type, typeof(ModEntry)) != null &&
                     type.IsSubclassOf(typeof(MonoBehaviour)))
                 {
@@ -379,6 +399,7 @@ public static class ModCompileLoadService
                     WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
                     return;
                 }
+#pragma warning restore CS0618
 
                 continue;
             }
@@ -455,12 +476,16 @@ public static class ModCompileLoadService
 
         pMod.FailReason.AppendLine("No Valid Mod Component Found");
     }
-
-    public static bool IsModLoaded(string uuid)
+    /// <summary>
+    /// Check whether a mod loaded with mod's UID
+    /// </summary>
+    /// <param name="uid"></param>
+    /// <returns></returns>
+    public static bool IsModLoaded(string uid)
     {
         foreach (var mod in WorldBoxMod.LoadedMods)
         {
-            if (mod.GetDeclaration().UID == uuid)
+            if (mod.GetDeclaration().UID == uid)
             {
                 return true;
             }
@@ -468,7 +493,12 @@ public static class ModCompileLoadService
 
         return false;
     }
-
+    /// <summary>
+    /// Compile mod at runtime.
+    /// </summary>
+    /// <param name="pModDeclare">Info of to be compiled mod</param>
+    /// <param name="pForce">Wheather recompile mod if the mod has been compiled</param>
+    /// <returns></returns>
     public static bool TryCompileModAtRuntime(ModDeclare pModDeclare, bool pForce = false)
     {
         if (pModDeclare.ModType == ModTypeEnum.BEPINEX)
@@ -500,7 +530,11 @@ public static class ModCompileLoadService
 
         return true;
     }
-
+    /// <summary>
+    /// Compile and load mod at runtime
+    /// </summary>
+    /// <param name="mod_declare">Info of to be compiled mo</param>
+    /// <returns></returns>
     public static bool TryCompileAndLoadModAtRuntime(ModDeclare mod_declare)
     {
         bool actually_loaded = IsModLoaded(mod_declare.UID);
@@ -513,7 +547,9 @@ public static class ModCompileLoadService
         LoadMod(mod_declare);
         return true;
     }
-
+    /// <summary>
+    /// Load information of all BepInEx plugins which is made only for Worldbox
+    /// </summary>
     public static void loadInfoOfBepInExPlugins()
     {
         List<ModDeclare> bepInExMods = ModInfoUtils.recogBepInExMods();

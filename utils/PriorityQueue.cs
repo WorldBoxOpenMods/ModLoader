@@ -9,8 +9,15 @@ public class PriorityQueue<T>
     private IComparer<T> comparer;
     private T[] heap;
     private int size;
-
+    /// <summary>
+    /// Current size of the PriorityQueue
+    /// </summary>
     public int Count => size;
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="capacity"></param>
+    /// <param name="comparer"></param>
     public PriorityQueue(int capacity, IComparer<T> comparer)
     {
         this.comparer = comparer;
@@ -24,6 +31,11 @@ public class PriorityQueue<T>
     {
         return (i << 1) + 1;
     }
+    /// <summary>
+    /// View the top element of the PriorityQueue
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public T Peek()
     {
         if (size == 0)
@@ -32,6 +44,10 @@ public class PriorityQueue<T>
         }
         return heap[0];
     }
+    /// <summary>
+    /// Enqueue an element into the PriorityQueue
+    /// </summary>
+    /// <param name="x"></param>
     public void Enqueue(T x)
     {
         if (size == heap.Length)
@@ -57,6 +73,11 @@ public class PriorityQueue<T>
         }
         heap[i] = x;
     }
+    /// <summary>
+    /// Dequeue an element from the PriorityQueue
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public T Dequeue()
     {
         if (size == 0)

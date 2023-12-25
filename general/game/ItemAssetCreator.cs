@@ -8,6 +8,21 @@ namespace NeoModLoader.General.Game;
 /// </summary>
 public static class ItemAssetCreator
 {
+    /// <summary>
+    /// Create material for weapon
+    /// </summary>
+    /// <remarks>You should add it to <see cref="AssetManager.items_material_weapon"/> manually</remarks>
+    /// <param name="id"></param>
+    /// <param name="base_stats"></param>
+    /// <param name="cost_gold"></param>
+    /// <param name="cost_resources"></param>
+    /// <param name="equipment_value"></param>
+    /// <param name="metallic"></param>
+    /// <param name="minimum_city_storage_resource_1"></param>
+    /// <param name="mod_rank"></param>
+    /// <param name="quality"></param>
+    /// <param name="tech_needed"></param>
+    /// <returns></returns>
     public static ItemAsset CreateWeaponMaterial(
         string id,
         BaseStats base_stats = null,
@@ -26,7 +41,20 @@ public static class ItemAssetCreator
         asset.metallic = metallic;
         return asset;
     }
-    
+    /// <summary>
+    /// Create material for accessory or armor.
+    /// </summary>
+    /// <remarks>You should add it to <see cref="AssetManager.items_material_accessory"/> or <see cref="AssetManager.items_material_armor"/> manually</remarks>
+    /// <param name="id"></param>
+    /// <param name="base_stats"></param>
+    /// <param name="cost_gold"></param>
+    /// <param name="cost_resources"></param>
+    /// <param name="equipment_value"></param>
+    /// <param name="minimum_city_storage_resource_1"></param>
+    /// <param name="mod_rank"></param>
+    /// <param name="quality"></param>
+    /// <param name="tech_needed"></param>
+    /// <returns></returns>
     public static ItemAsset CreateAccessoryOrArmorMaterial(
         string id,
         BaseStats base_stats = null,
@@ -71,7 +99,22 @@ public static class ItemAssetCreator
         }
         return asset;
     }
-
+    /// <summary>
+    /// Create and add an item modifier
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="mod_type"></param>
+    /// <param name="mod_rank"></param>
+    /// <param name="translation_key"></param>
+    /// <param name="pools"></param>
+    /// <param name="rarity"></param>
+    /// <param name="equipment_value"></param>
+    /// <param name="quality"></param>
+    /// <param name="base_stats"></param>
+    /// <param name="action_attack_target"></param>
+    /// <param name="action_special_effect"></param>
+    /// <param name="special_effect_interval"></param>
+    /// <returns></returns>
     public static ItemAsset CreateAndAddModifier(
         string id,
         string mod_type,
@@ -127,7 +170,22 @@ public static class ItemAssetCreator
         
         return asset;
     }
-
+    /// <summary>
+    /// Create and add a melee weapon
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="base_stats"></param>
+    /// <param name="materials"></param>
+    /// <param name="item_modifiers"></param>
+    /// <param name="name_class"></param>
+    /// <param name="name_templates"></param>
+    /// <param name="tech_needed"></param>
+    /// <param name="action_attack_target"></param>
+    /// <param name="action_special_effect"></param>
+    /// <param name="special_effect_interval"></param>
+    /// <param name="equipment_value"></param>
+    /// <param name="path_slash_animation"></param>
+    /// <returns></returns>
     public static ItemAsset CreateMeleeWeapon(
         string id,
         BaseStats base_stats = null,
@@ -161,7 +219,23 @@ public static class ItemAssetCreator
         asset.equipmentType = EquipmentType.Weapon;
         return asset;
     }
-
+    /// <summary>
+    /// Create and add a range weapon
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="projectile"></param>
+    /// <param name="base_stats"></param>
+    /// <param name="materials"></param>
+    /// <param name="item_modifiers"></param>
+    /// <param name="name_class"></param>
+    /// <param name="name_templates"></param>
+    /// <param name="tech_needed"></param>
+    /// <param name="action_attack_target"></param>
+    /// <param name="action_special_effect"></param>
+    /// <param name="special_effect_interval"></param>
+    /// <param name="equipment_value"></param>
+    /// <param name="path_slash_animation"></param>
+    /// <returns></returns>
     public static ItemAsset CreateRangeWeapon(
         string id,
         string projectile,
@@ -205,6 +279,23 @@ public static class ItemAssetCreator
         
         return asset;
     }
+    /// <summary>
+    /// Create and add an armor or accessory item.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="equipmentType"></param>
+    /// <param name="base_stats"></param>
+    /// <param name="materials"></param>
+    /// <param name="item_modifiers"></param>
+    /// <param name="name_class"></param>
+    /// <param name="name_templates"></param>
+    /// <param name="tech_needed"></param>
+    /// <param name="action_attack_target"></param>
+    /// <param name="action_special_effect"></param>
+    /// <param name="special_effect_interval"></param>
+    /// <param name="equipment_value"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public static ItemAsset CreateArmorOrAccessory(
         string id,
         EquipmentType equipmentType,

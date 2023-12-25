@@ -121,7 +121,7 @@ public static class LM
     /// </summary>
     /// <param name="pLanguage">Target save language</param>
     /// <param name="pStream">Stream of locale file</param>
-    /// <exception cref="FormatException">Text in <see cref="pStream"/> is not in correct format to its file name extension</exception>
+    /// <exception cref="FormatException">Text in <see name="pStream"/> is not in correct format to its file name extension</exception>
     public static void LoadLocale(string pLanguage, Stream pStream)
     {
         string text = new StreamReader(pStream).ReadToEnd();
@@ -145,8 +145,8 @@ public static class LM
     /// </summary>
     /// <param name="pLanguage">Target save language</param>
     /// <param name="pFilePath">Path to locale file</param>
-    /// <exception cref="UnsupportedFileTypeException">Only support <see cref="pFilePath"/> ends with ".json"</exception>
-    /// <exception cref="FormatException">File at <see cref="pFilePath"/> is not in correct format to its file name extension</exception>
+    /// <exception cref="UnsupportedFileTypeException">Only support <see name="pFilePath"/> ends with ".json"</exception>
+    /// <exception cref="FormatException">File at <see name="pFilePath"/> is not in correct format to its file name extension</exception>
     public static void LoadLocale(string pLanguage, string pFilePath)
     {
         if (pFilePath.ToLower().EndsWith(".json"))
@@ -191,6 +191,8 @@ public static class LM
     /// <summary>
     /// Add a key-value pair to language locale
     /// <param name="language">Target language</param>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
     /// <remarks>Overwrite if key exists</remarks>
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.Synchronized)]

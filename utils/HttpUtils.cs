@@ -3,9 +3,17 @@ using System.Text;
 using NeoModLoader.services;
 
 namespace NeoModLoader.utils;
-
+/// <summary>
+/// This class is made as utility to make http request easier. Maybe not, just for myself --inmny.
+/// </summary>
 public static class HttpUtils
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="headers"></param>
+    /// <returns></returns>
     public static HttpResponseMessage Get(string url, Dictionary<string, string> headers)
     {
         using var client = new HttpClient();
@@ -16,7 +24,13 @@ public static class HttpUtils
         }
         return client.GetAsync(url).Result;
     }
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="params"></param>
+    /// <param name="headers"></param>
+    /// <returns></returns>
     public static string Post(string url, Dictionary<string, string> @params,
         Dictionary<string, string> headers = null)
     {
@@ -34,6 +48,13 @@ public static class HttpUtils
         var response = client.PostAsync(url, content).Result;
         return response.Content.ReadAsStringAsync().Result;
     }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="param"></param>
+    /// <param name="method"></param>
+    /// <returns></returns>
     public static string Request(string url, string param = "", string method = "get")
     {
         ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;//TLS1.2=3702

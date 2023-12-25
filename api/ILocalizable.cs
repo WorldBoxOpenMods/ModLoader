@@ -4,7 +4,7 @@ namespace NeoModLoader.api;
 /// </summary>
 public interface ILocalizable
 {
-    /// <param name="pModDeclare">Because your mod have not been loaded, you should use <see cref="pModDeclare"/> instead of <see cref="IMod.GetDeclaration"/> to visit your mod's information</param>
+    /// <param name="pModDeclare">Because your mod have not been loaded, you should use <see href="pModDeclare"/> instead of <see cref="IMod.GetDeclaration"/> to visit your mod's information</param>
     /// <returns>The path to the directory of your locale files</returns>
     public abstract string GetLocaleFilesDirectory(ModDeclare pModDeclare);
 }

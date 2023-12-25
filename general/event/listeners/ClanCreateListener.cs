@@ -6,9 +6,16 @@ using NeoModLoader.General.Event.Handlers;
 using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
-
+/// <summary>
+/// A listener at the end of <see cref="ClanManager.newClan"/> method.
+/// </summary>
 public class ClanCreateListener : AbstractListener<ClanCreateListener, ClanCreateHandler>
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pClan"></param>
+    /// <param name="pActor"></param>
     protected static void HandleAll(Clan pClan, Actor pActor)
     {
         StringBuilder sb = null;
@@ -218,6 +225,5 @@ public class ClanCreateListener : AbstractListener<ClanCreateListener, ClanCreat
         
         Delegate method = dm.CreateDelegate(typeof(Delegate));
         return method.GetMethodInfo();
-        return null;
     }
 }

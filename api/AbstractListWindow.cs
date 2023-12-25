@@ -31,10 +31,19 @@ public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
 public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
     where T : AbstractListWindow<T, TItem>
 {
+    /// <summary>
+    /// Prefab of list item
+    /// </summary>
     protected static AbstractListWindowItem<TItem> ItemPrefab;
     private ObjectPoolGenericMono<AbstractListWindowItem<TItem>> _pool;
+    /// <summary>
+    /// A map of item to its corresponding <see cref="AbstractListWindowItem{TItem}"/>
+    /// </summary>
     protected Dictionary<TItem, AbstractListWindowItem<TItem>> ItemMap = new();
-
+    /// <summary>
+    /// Add an item to the list
+    /// </summary>
+    /// <param name="item"></param>
     protected virtual void AddItemToList(TItem item)
     {
         if (_pool == null)
@@ -51,7 +60,10 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
         item_obj.transform.localScale = Vector3.one;
         item_obj.Setup(item);
     }
-
+    /// <summary>
+    /// Remove an item from the list
+    /// </summary>
+    /// <param name="item"></param>
     protected virtual void RemoveItemFromList(TItem item)
     {
         if (ItemMap.TryGetValue(item, out var obj))
@@ -65,14 +77,20 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
             ItemMap.Remove(item);
         }
     }
-
+    /// <summary>
+    /// Clear all items in list
+    /// </summary>
     protected virtual void ClearList()
     {
         _pool?.clear();
         ItemMap.Clear();
     }
-
-    public static T CreateAndInit(string pWindowId)
+    /// <summary>
+    /// Create and initilize a window instance of your subclass window
+    /// </summary>
+    /// <param name="pWindowId"></param>
+    /// <returns></returns>
+    public static new T CreateAndInit(string pWindowId)
     {
         ScrollWindow scroll_window = WindowCreator.CreateEmptyWindow(pWindowId, pWindowId + " Title");
 
@@ -106,6 +124,9 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
 
         return Instance;
     }
-
+    /// <summary>
+    /// You should override this to make or load your own item prefab.
+    /// </summary>
+    /// <returns></returns>
     protected abstract AbstractListWindowItem<TItem> CreateItemPrefab();
 }

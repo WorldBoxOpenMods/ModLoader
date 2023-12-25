@@ -13,9 +13,14 @@ using NeoModLoader.utils;
 using UnityEngine;
 
 namespace NeoModLoader;
-
+/// <summary>
+/// Main class
+/// </summary>
 public class WorldBoxMod : MonoBehaviour
 {
+    /// <summary>
+    /// All successfully loaded mods.
+    /// </summary>
     public static List<IMod> LoadedMods = new();
     internal static Dictionary<ModDeclare, ModState> AllRecognizedMods = new();
     internal static Transform Transform;
@@ -55,7 +60,6 @@ public class WorldBoxMod : MonoBehaviour
         ModUploadAuthenticationService.AutoAuth();
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        float time = 0;
 
         SmoothLoader.add(() =>
         {

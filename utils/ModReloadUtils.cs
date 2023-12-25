@@ -45,7 +45,7 @@ internal static class ModReloadUtils
             _old_assembly_definition = null;
             _old_method_definitions.Clear();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // ignored
         }
@@ -300,7 +300,7 @@ internal static class ModReloadUtils
                     (OpCode)typeof(Mono.Cecil.Cil.OpCodes).GetField(field.Name).GetValue(null)
                     , op_code);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Ignored, some opcodes are invalid, useful opcodes are added manually below
                 //LogService.LogError($"Failed to initialize opcode map for {field.Name}");
@@ -530,7 +530,7 @@ internal static class ModReloadUtils
                                 resolved = _regenerated_brand_new_methods[method_reference.Resolve()];
                             }
                         }
-                        catch (Exception exception)
+                        catch (Exception)
                         {
                             LogService.LogError($"Failed to resolve member reference {member_reference.FullName}");
                             LogService.LogError(e.Message);

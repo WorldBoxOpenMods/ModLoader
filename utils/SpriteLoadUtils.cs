@@ -43,7 +43,12 @@ public static class SpriteLoadUtils
 
     private static IDeserializer deserializer =
         new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
-
+    /// <summary>
+    /// Load a single sprite from file path
+    /// </summary>
+    /// <remarks>It will not check sprite setting file. Load the raw file as a sprite</remarks>
+    /// <param name="path">Path to the file</param>
+    /// <returns></returns>
     public static Sprite LoadSingleSprite(string path)
     {
         if (singleSpriteCache.TryGetValue(path, out Sprite s))
@@ -55,7 +60,12 @@ public static class SpriteLoadUtils
         singleSpriteCache[path] = sprite;
         return sprite;
     }
-
+    /// <summary>
+    /// Load a single/sheet sprites from a path.
+    /// </summary>
+    /// <remarks>If there is a file named "{path}.meta" and it describes a SpriteSheet, all sprites under the sprite sheet will be loaded together. Otherwise, the return array contains only one sprite</remarks>
+    /// <param name="path"></param>
+    /// <returns></returns>
     public static Sprite[] LoadSprites(string path)
     {
         TextureImporter textureImporter = loadMeta($"{path}.meta");
@@ -217,14 +227,17 @@ public static class SpriteLoadUtils
             public float PixelsPerUnit = 1f;
             public float RectX = 0.0f;
             public float RectY = 0.0f;
-
+            public float BorderL = 0.0f;
+            public float BorderR = 0.0f;
+            public float BorderT = 0.0f;
+            public float BorderB = 0.0f;
             public Sprite loadFromPath(string path)
             {
                 Texture2D texture = new(0, 0);
                 texture.filterMode = FilterMode.Point;
                 texture.LoadImage(File.ReadAllBytes(path));
                 Sprite sprite = Sprite.Create(texture, new Rect(RectX, RectY, texture.width, texture.height),
-                    new Vector2(PivotX, PivotY), PixelsPerUnit);
+                    new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight, new Vector4(BorderL, BorderB, BorderR, BorderT));
                 sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
                 return sprite;
             }

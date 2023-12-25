@@ -304,7 +304,7 @@ internal static class ModInfoUtils
         {
             ZipFile.ExtractToDirectory(download_path, Paths.GamePath);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // ignored. maybe file already exists
         }

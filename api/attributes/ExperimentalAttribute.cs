@@ -11,11 +11,16 @@ namespace NeoModLoader.api.attributes
     /// </summary>
     public class ExperimentalAttribute : Attribute
     {
+        /// <summary>
+        /// Tag a feature as experimental
+        /// </summary>
         public ExperimentalAttribute()
         {
-            
-        }
 
+        }
+        /// <summary>
+        /// Tag a feature as experimental with tip string
+        /// </summary>
         public ExperimentalAttribute(string tip)
         {
             
