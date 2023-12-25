@@ -97,6 +97,32 @@ internal static class ResourcesPatch
         AssetBundleUtils.LoadFromFolder(platform_folder);
     }
 
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
+    {
+        typeof(string),
+        typeof(Type)
+    })]
+    private static void LoadAll_Prefix(ref string path)
+    {
+        if (!path.Contains("..")) return;
+        string[] parts = path.Split('/');
+        List<string> new_parts = new List<string>(parts.Length);
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (parts[i] == ".." && new_parts.Count > 0)
+            {
+                new_parts.RemoveAt(new_parts.Count - 1);
+            }
+            else
+            {
+                new_parts.Add(parts[i]);
+            }
+        }
+
+        path = string.Join("/", new_parts);
+    }
+
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
@@ -122,6 +148,32 @@ internal static class ResourcesPatch
         return list.ToArray();
     }
 
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
+    {
+        typeof(string),
+        typeof(Type)
+    })]
+    private static void Load_Prefix(ref string path)
+    {
+        if (!path.Contains("..")) return;
+        string[] parts = path.Split('/');
+        List<string> new_parts = new List<string>(parts.Length);
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (parts[i] == ".." && new_parts.Count > 0)
+            {
+                new_parts.RemoveAt(new_parts.Count - 1);
+            }
+            else
+            {
+                new_parts.Add(parts[i]);
+            }
+        }
+
+        path = string.Join("/", new_parts);
+    }
+
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
@@ -143,10 +195,12 @@ internal static class ResourcesPatch
     {
         internal Dictionary<string, Object> direct_objects = new();
         private ResourceTreeNode root = new(null);
+
         public ResourceTree()
         {
             root.parent = root;
         }
+
         /// <summary>
         /// Find a ResourceTreeNode by path.
         /// </summary>
@@ -177,6 +231,7 @@ internal static class ResourcesPatch
                     node = node.parent;
                     continue;
                 }
+
                 if (part == ".") continue;
 
                 if (!node.children.ContainsKey(part))
@@ -194,10 +249,11 @@ internal static class ResourcesPatch
 
         public Object Get(string path)
         {
-            if(direct_objects.TryGetValue(path.ToLower(), out Object o))
+            if (direct_objects.TryGetValue(path.ToLower(), out Object o))
             {
                 return o;
             }
+
             var node = Find(path, true, false);
 
             if (node == null) return null;
@@ -206,6 +262,7 @@ internal static class ResourcesPatch
                 direct_objects[path] = o;
                 return o;
             }
+
             return null;
         }
 
@@ -267,12 +324,13 @@ internal static class ResourcesPatch
     {
         public readonly Dictionary<string, ResourceTreeNode> children = new();
         public readonly Dictionary<string, Object> objects = new();
-        public ResourceTreeNode parent { get; internal set; }
 
         public ResourceTreeNode(ResourceTreeNode parent)
         {
             this.parent = parent;
         }
+
+        public ResourceTreeNode parent { get; internal set; }
 
         public List<Object> GetAllObjects(Type systemTypeInstance)
         {
