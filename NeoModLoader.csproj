@@ -10,7 +10,7 @@
         <PackageProjectUrl>https://github.com/WorldBoxOpenMods</PackageProjectUrl>
         <RepositoryUrl>https://github.com/WorldBoxOpenMods/ModLoader</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-      <AssemblyVersion>1.0.6</AssemblyVersion>
+        <AssemblyVersion>1.0.6.1</AssemblyVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
