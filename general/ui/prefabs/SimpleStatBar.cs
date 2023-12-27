@@ -3,6 +3,10 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.General.UI.Prefabs;
 
+/// <summary>
+///     This class is used to create a simple stat bar(like health bar) with prefab.
+/// </summary>
+/// <inheritdoc cref="APrefab{T}" />
 public class SimpleStatBar : APrefab<SimpleStatBar>
 {
     private Image background;
@@ -15,6 +19,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         if (!Initialized) Init();
     }
 
+    /// <inheritdoc cref="APrefab{T}.Init" />
     protected override void Init()
     {
         base.Init();
@@ -24,6 +29,22 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         bar = transform.Find("Mask/Bar").GetComponent<Image>();
     }
 
+    /// <summary>
+    /// </summary>
+    /// <param name="value">Bar's value and displayed text</param>
+    /// <param name="max_value">Bar's max value, not displayed</param>
+    /// <param name="pEndText">
+    ///     The text append to the end of <paramref name="value" />. If you want to display max value,
+    ///     append it here
+    /// </param>
+    /// <param name="pIcon">The icon at the left</param>
+    /// <param name="pBackground">The background of bar</param>
+    /// <param name="pBarColor">The color of bar</param>
+    /// <param name="pSize">Size of background, bar's size will be changed automatically</param>
+    /// <param name="pReset"></param>
+    /// <param name="pFloat"></param>
+    /// <param name="pUpdateText"></param>
+    /// <param name="pWithoutTween"></param>
     public virtual void Setup(float value, float max_value, string pEndText, Sprite pIcon, Sprite pBackground,
         Color pBarColor,
         Vector2 pSize, bool pReset = true, bool pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
@@ -58,6 +79,17 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         UpdateBar(value, max_value, pEndText, pBarColor, pReset, pFloat, pUpdateText, pWithoutTween);
     }
 
+    /// <summary>
+    ///     Update Bar and Bar Text
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="max_value"></param>
+    /// <param name="pEndText"></param>
+    /// <param name="pBarColor"></param>
+    /// <param name="pReset"></param>
+    /// <param name="pFloat"></param>
+    /// <param name="pUpdateText"></param>
+    /// <param name="pWithoutTween"></param>
     public void UpdateBar(float value, float max_value, string pEndText, Color pBarColor = default, bool pReset = true,
         bool pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
     {

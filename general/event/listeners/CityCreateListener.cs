@@ -6,8 +6,16 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
+/// <summary>
+///     This class is used to listen to <see cref="City.newCityEvent" /> event. And call all
+///     <see cref="CityCreateHandler.Handle" /> when the event is triggered.
+/// </summary>
 public class CityCreateListener : AbstractListener<CityCreateListener, CityCreateHandler>
 {
+    /// <summary>
+    ///     Call all <see cref="CityCreateHandler.Handle" /> when the event is triggered.
+    /// </summary>
+    /// <inheritdoc cref="CityCreateHandler.Handle" />
     protected static void HandleAll(City pCity)
     {
         StringBuilder sb = null;
@@ -22,6 +30,7 @@ public class CityCreateListener : AbstractListener<CityCreateListener, CityCreat
                 {
                     instance.handlers[idx].Handle(pCity);
                 }
+
                 finished = true;
             }
             catch (Exception e)
@@ -34,11 +43,13 @@ public class CityCreateListener : AbstractListener<CityCreateListener, CityCreat
                 idx++;
             }
         }
-        if(sb != null)
+
+        if (sb != null)
         {
             LogService.LogError(sb.ToString());
         }
     }
+
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(City), nameof(City.newCityEvent))]
     private static IEnumerable<CodeInstruction> _newCityEvent_Patch(IEnumerable<CodeInstruction> instr)
@@ -47,7 +58,7 @@ public class CityCreateListener : AbstractListener<CityCreateListener, CityCreat
 
         int insert_index = 4;
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_0));
-        
+
         InsertCallHandleCode(codes, insert_index);
         return codes;
     }

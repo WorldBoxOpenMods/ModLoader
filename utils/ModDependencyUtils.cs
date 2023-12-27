@@ -4,12 +4,30 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.utils;
 
+/// <summary>
+///     Dependency node for mod dependency graph.
+/// </summary>
 public class ModDependencyNode
 {
+    /// <summary>
+    ///     Mods that depend on this mod.
+    /// </summary>
     public HashSet<ModDependencyNode> depend_by;
+
+    /// <summary>
+    ///     Mods that this mod depends on.
+    /// </summary>
     public HashSet<ModDependencyNode> depend_on;
+
+    /// <summary>
+    ///     Necessary mods that this mod depends on.
+    /// </summary>
     public HashSet<ModDependencyNode> necessary_depend_on;
 
+    /// <summary>
+    ///     Create a new mod dependency node for a mod declaration
+    /// </summary>
+    /// <param name="pModDecl"></param>
     public ModDependencyNode(ModDeclare pModDecl)
     {
         mod_decl = pModDecl;
@@ -18,13 +36,26 @@ public class ModDependencyNode
         depend_by = new HashSet<ModDependencyNode>();
     }
 
+    /// <summary>
+    ///     Related mod declaration
+    /// </summary>
     public ModDeclare mod_decl { get; }
 }
 
+/// <summary>
+///     This class is used to solve mod dependency. And generate mod loading order.
+/// </summary>
 public class ModDependencyGraph
 {
+    /// <summary>
+    ///     All nodes in the graph.
+    /// </summary>
     public HashSet<ModDependencyNode> nodes;
 
+    /// <summary>
+    ///     Create a new mod dependency graph from a collection of mod declarations.
+    /// </summary>
+    /// <param name="mods"></param>
     public ModDependencyGraph(ICollection<ModDeclare> mods)
     {
         Dictionary<string, ModDependencyNode> node_map = new Dictionary<string, ModDependencyNode>();

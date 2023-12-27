@@ -3,6 +3,9 @@ using Object = UnityEngine.Object;
 
 namespace NeoModLoader.General;
 
+/// <summary>
+///     This class is used to create different windows
+/// </summary>
 public static class WindowCreator
 {
     internal static void init()

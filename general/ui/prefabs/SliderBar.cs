@@ -37,6 +37,7 @@ public class SliderBar : APrefab<SliderBar>
         if (!Initialized) Init();
     }
 
+    /// <inheritdoc cref="APrefab{T}.Init" />
     protected override void Init()
     {
         base.Init();
@@ -59,7 +60,7 @@ public class SliderBar : APrefab<SliderBar>
         _slider.maxValue = max;
         _slider.value = value;
         _slider.onValueChanged.AddListener(value_update);
-        if(size != default)
+        if (size != default)
         {
             SetSize(size);
         }
@@ -68,8 +69,8 @@ public class SliderBar : APrefab<SliderBar>
     /// <summary>
     /// Set the size of the slider bar, other components will be resized automatically
     /// </summary>
-    /// <param name="size">The size of the root GameObject</param>
-    public void SetSize(Vector2 size)
+    /// <inheritdoc cref="APrefab{T}.SetSize"/>
+    public override void SetSize(Vector2 size)
     {
         if (!Initialized) Init();
         GetComponent<RectTransform>().sizeDelta = size;

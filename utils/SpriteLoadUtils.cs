@@ -5,7 +5,7 @@ using UnityEngine;
 using YamlDotNet.Serialization;
 
 namespace NeoModLoader.utils;
-
+#pragma warning disable CS0649 // They are assigned by deserializer
 [Serializable]
 class TextureImporter
 {
@@ -27,6 +27,7 @@ class SingleSpriteMetaData
     public Vector2 pivot;
     public Vector4 border;
 }
+#pragma warning restore CS0649 // They are assigned by deserializer
 
 /// <summary>
 /// A utility class for loading sprites.
@@ -43,6 +44,7 @@ public static class SpriteLoadUtils
 
     private static IDeserializer deserializer =
         new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
+
     /// <summary>
     /// Load a single sprite from file path
     /// </summary>
@@ -60,6 +62,7 @@ public static class SpriteLoadUtils
         singleSpriteCache[path] = sprite;
         return sprite;
     }
+
     /// <summary>
     /// Load a single/sheet sprites from a path.
     /// </summary>
@@ -204,6 +207,7 @@ public static class SpriteLoadUtils
         return metaFile?.TextureImporter;
     }
 
+#pragma warning disable CS0649 // They are assigned by deserializer
     class MetaFile
     {
         public TextureImporter TextureImporter;
@@ -213,6 +217,7 @@ public static class SpriteLoadUtils
     {
         public SpecificSetting Default;
         public List<SpecificSetting> Specific;
+#pragma warning restore CS0649 // They are assigned by deserializer
 
         public override String ToString()
         {
@@ -221,23 +226,25 @@ public static class SpriteLoadUtils
 
         public class SpecificSetting
         {
+            public float BorderB = 0.0f;
+            public float BorderL = 0.0f;
+            public float BorderR = 0.0f;
+            public float BorderT = 0.0f;
             public string Path = "\\";
             public float PivotX = 0.5f;
             public float PivotY = 0.0f;
             public float PixelsPerUnit = 1f;
             public float RectX = 0.0f;
             public float RectY = 0.0f;
-            public float BorderL = 0.0f;
-            public float BorderR = 0.0f;
-            public float BorderT = 0.0f;
-            public float BorderB = 0.0f;
+
             public Sprite loadFromPath(string path)
             {
                 Texture2D texture = new(0, 0);
                 texture.filterMode = FilterMode.Point;
                 texture.LoadImage(File.ReadAllBytes(path));
                 Sprite sprite = Sprite.Create(texture, new Rect(RectX, RectY, texture.width, texture.height),
-                    new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight, new Vector4(BorderL, BorderB, BorderR, BorderT));
+                    new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
+                    new Vector4(BorderL, BorderB, BorderR, BorderT));
                 sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
                 return sprite;
             }

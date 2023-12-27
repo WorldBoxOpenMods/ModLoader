@@ -6,72 +6,39 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
 
-public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, ModDeclare>
+internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, ModDeclare>
 {
-    public class WorkshopModListItem : AbstractListWindowItem<ModDeclare>
-    {
-        public override void Setup(ModDeclare modDeclare)
-        {
-            Text text = transform.Find("Text").GetComponent<Text>();
-            text.text = $"{modDeclare.Name}\t{modDeclare.Version}\n{modDeclare.Author}\n{modDeclare.Description}";
-            Sprite sprite = null;
-            if(!string.IsNullOrEmpty(modDeclare.IconPath))
-            {
-                sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath));
-            }
-            if (sprite == null)
-            {
-                sprite = InternalResourcesGetter.GetIcon();
-            }
-            Image icon = transform.Find("Icon").GetComponent<Image>();
-            icon.sprite = sprite;
-            
-            Button loadButton = transform.Find("Load").GetComponent<Button>();
-            loadButton.onClick.AddListener(() =>
-            {
-                if (ModCompileLoadService.IsModLoaded(modDeclare.UID))
-                {
-                    ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
-                                               $"Mod already loaded.";
-                    ScrollWindow.get("error_with_reason").clickShow();
-                    return;
-                }
-                // Check mod loaded or not has been done in the following method.
-                ModCompileLoadService.TryCompileAndLoadModAtRuntime(modDeclare);
-            });
-            Button websiteButton = transform.Find("Website").GetComponent<Button>();
-            websiteButton.onClick.AddListener(() =>
-            {
-                string name = Path.GetFileName(modDeclare.FolderPath);
-                Application.OpenURL($"https://steamcommunity.com/sharedfiles/filedetails/?id={name}");
-            });
-        }
-    }
-    protected override void Init()
-    {
-        
-    }
-
-    public override void OnNormalEnable()
-    {
-        ModWorkshopService.steamWorkshopPromise.Then(ModWorkshopService.FindSubscribedMods).Catch(delegate(Exception err)
-        {
-            Debug.LogError(err);
-            ErrorWindow.errorMessage = "Error happened while connecting to Steam Workshop:\n" + err.Message.ToString();
-            ScrollWindow.get("error_with_reason").clickShow();
-        });
-    }
     private float checkTimer = 0.015f;
+    private HashSet<string> showedMods = new();
+
     private void Update()
     {
-        if(checkTimer > 0)
+        if (checkTimer > 0)
         {
             checkTimer -= Time.deltaTime;
             return;
         }
+
         checkTimer = 0.015f;
         showNextMod();
     }
+
+    protected override void Init()
+    {
+    }
+
+    public override void OnNormalEnable()
+    {
+        ModWorkshopService.steamWorkshopPromise.Then(ModWorkshopService.FindSubscribedMods).Catch(
+            delegate(Exception err)
+            {
+                Debug.LogError(err);
+                ErrorWindow.errorMessage =
+                    "Error happened while connecting to Steam Workshop:\n" + err.Message.ToString();
+                ScrollWindow.get("error_with_reason").clickShow();
+            });
+    }
+
     private void showNextMod()
     {
         ModDeclare mod = ModWorkshopService.GetNextModFromWorkshopItem();
@@ -79,9 +46,10 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         {
             return;
         }
+
         AddItemToList(mod);
     }
-    private HashSet<string> showedMods = new();
+
     protected override void AddItemToList(ModDeclare item)
     {
         if (showedMods.Contains(item.UID))
@@ -97,7 +65,7 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
     {
         GameObject obj = new GameObject("WorkshopModListItemPrefab", typeof(Image), typeof(WorkshopModListItem));
         obj.SetActive(false);
-        
+
         obj.transform.SetParent(WorldBoxMod.Transform);
 
         obj.GetComponent<RectTransform>().sizeDelta = new(0, 50);
@@ -112,16 +80,17 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         icon.GetComponent<RectTransform>().sizeDelta = new(40, 40);
         Image iconImage = icon.GetComponent<Image>();
         iconImage.sprite = InternalResourcesGetter.GetIcon();
-        
+
         GameObject iconFrame = new GameObject("IconFrame", typeof(Image));
         iconFrame.transform.SetParent(icon.transform);
         iconFrame.transform.localPosition = Vector3.zero;
         iconFrame.transform.localScale = Vector3.one;
-        iconFrame.GetComponent<RectTransform>().sizeDelta = icon.GetComponent<RectTransform>().sizeDelta + new Vector2(5, 5);
+        iconFrame.GetComponent<RectTransform>().sizeDelta =
+            icon.GetComponent<RectTransform>().sizeDelta + new Vector2(5, 5);
         Image iconFrameImage = iconFrame.GetComponent<Image>();
         iconFrameImage.sprite = InternalResourcesGetter.GetIconFrame();
         iconFrameImage.type = Image.Type.Sliced;
-        
+
         GameObject text = new GameObject("Text", typeof(Text));
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = new(12.5f, 0);
@@ -131,7 +100,7 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         textText.font = LocalizedTextManager.currentFont;
         textText.fontSize = 6;
         textText.supportRichText = true;
-        
+
         Vector2 single_button_size = new(22, 22);
         GameObject download = new GameObject("Load", typeof(Image), typeof(Button));
         download.transform.SetParent(obj.transform);
@@ -148,7 +117,7 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         downloadIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
         Image configureIconImage = downloadIcon.GetComponent<Image>();
         configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconGameServices");
-        
+
         GameObject website = new GameObject("Website", typeof(Image), typeof(Button));
         website.transform.SetParent(obj.transform);
         website.transform.localPosition = new(87, -12);
@@ -166,5 +135,48 @@ public class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow, M
         websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconCommunity");
 
         return obj.GetComponent<WorkshopModListItem>();
+    }
+
+    public class WorkshopModListItem : AbstractListWindowItem<ModDeclare>
+    {
+        public override void Setup(ModDeclare modDeclare)
+        {
+            Text text = transform.Find("Text").GetComponent<Text>();
+            text.text = $"{modDeclare.Name}\t{modDeclare.Version}\n{modDeclare.Author}\n{modDeclare.Description}";
+            Sprite sprite = null;
+            if (!string.IsNullOrEmpty(modDeclare.IconPath))
+            {
+                sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(modDeclare.FolderPath, modDeclare.IconPath));
+            }
+
+            if (sprite == null)
+            {
+                sprite = InternalResourcesGetter.GetIcon();
+            }
+
+            Image icon = transform.Find("Icon").GetComponent<Image>();
+            icon.sprite = sprite;
+
+            Button loadButton = transform.Find("Load").GetComponent<Button>();
+            loadButton.onClick.AddListener(() =>
+            {
+                if (ModCompileLoadService.IsModLoaded(modDeclare.UID))
+                {
+                    ErrorWindow.errorMessage = $"Failed to load mod {modDeclare.Name}:\n" +
+                                               $"Mod already loaded.";
+                    ScrollWindow.get("error_with_reason").clickShow();
+                    return;
+                }
+
+                // Check mod loaded or not has been done in the following method.
+                ModCompileLoadService.TryCompileAndLoadModAtRuntime(modDeclare);
+            });
+            Button websiteButton = transform.Find("Website").GetComponent<Button>();
+            websiteButton.onClick.AddListener(() =>
+            {
+                string name = Path.GetFileName(modDeclare.FolderPath);
+                Application.OpenURL($"https://steamcommunity.com/sharedfiles/filedetails/?id={name}");
+            });
+        }
     }
 }

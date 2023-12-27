@@ -9,10 +9,7 @@ public class PriorityQueue<T>
     private IComparer<T> comparer;
     private T[] heap;
     private int size;
-    /// <summary>
-    /// Current size of the PriorityQueue
-    /// </summary>
-    public int Count => size;
+
     /// <summary>
     /// 
     /// </summary>
@@ -23,14 +20,40 @@ public class PriorityQueue<T>
         this.comparer = comparer;
         this.heap = new T[capacity > 0 ? capacity : 8];
     }
+
+    /// <summary>
+    /// Current size of the PriorityQueue
+    /// </summary>
+    public int Count => size;
+
+    /// <summary>
+    ///     Get value
+    /// </summary>
+    /// <param name="index"></param>
+    /// <exception cref="IndexOutOfRangeException"></exception>
+    public T this[int index]
+    {
+        get
+        {
+            if (index > size || index < 0)
+            {
+                throw new IndexOutOfRangeException($"{index} / {size}");
+            }
+
+            return this[index];
+        }
+    }
+
     private static int Parent(int i)
     {
         return (i - 1) >> 1;
     }
+
     private static int Left(int i)
     {
         return (i << 1) + 1;
     }
+
     /// <summary>
     /// View the top element of the PriorityQueue
     /// </summary>
@@ -42,23 +65,27 @@ public class PriorityQueue<T>
         {
             throw new InvalidOperationException("PriorityQueue is empty");
         }
+
         return heap[0];
     }
+
     /// <summary>
     /// Enqueue an element into the PriorityQueue
     /// </summary>
     /// <param name="x"></param>
-    public void Enqueue(T x)
+    public int Enqueue(T x)
     {
         if (size == heap.Length)
         {
             Array.Resize(ref heap, size << 1);
         }
+
         size++;
         heap[size - 1] = x;
-        SiftUp(size - 1);
+        return SiftUp(size - 1);
     }
-    private void SiftUp(int i)
+
+    private int SiftUp(int i)
     {
         T x = heap[i];
         while (i > 0)
@@ -68,11 +95,15 @@ public class PriorityQueue<T>
             {
                 break;
             }
+
             heap[i] = heap[p];
             i = p;
         }
+
         heap[i] = x;
+        return i;
     }
+
     /// <summary>
     /// Dequeue an element from the PriorityQueue
     /// </summary>
@@ -84,6 +115,7 @@ public class PriorityQueue<T>
         {
             throw new InvalidOperationException("PriorityQueue is empty");
         }
+
         T x = heap[0];
         T y = heap[size - 1];
         size--;
@@ -91,9 +123,10 @@ public class PriorityQueue<T>
         {
             SiftDown(0, y);
         }
+
         return x;
     }
-    
+
     private void SiftDown(int i, T x)
     {
         while (true)
@@ -103,15 +136,18 @@ public class PriorityQueue<T>
             {
                 break;
             }
+
             int r = l + 1;
             int c = (r > size - 1 || comparer.Compare(heap[l], heap[r]) <= 0) ? l : r;
             if (comparer.Compare(x, heap[c]) <= 0)
             {
                 break;
             }
+
             heap[i] = heap[c];
             i = c;
         }
+
         heap[i] = x;
     }
 }

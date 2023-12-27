@@ -1,28 +1,53 @@
 using DG.Tweening;
-using DG.Tweening.Core;
-using DG.Tweening.Plugins.Options;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.General.UI.Prefabs;
 
+/// <summary>
+///     This class is used to create a simple button with prefab.
+/// </summary>
+/// <inheritdoc cref="APrefab{T}" />
 public class SimpleButton : APrefab<SimpleButton>
 {
+    /// <summary>
+    ///     The <see cref="Button" /> component
+    /// </summary>
     public Button Button { get; private set; }
+
+    /// <summary>
+    ///     The <see cref="TipButton" /> component
+    /// </summary>
     public TipButton TipButton { get; private set; }
+
+    /// <summary>
+    ///     The <see cref="Image" /> component of the background
+    /// </summary>
     public Image Background { get; private set; }
+
+    /// <summary>
+    ///     The <see cref="Image" /> component of the button icon
+    /// </summary>
     public Image Icon { get; private set; }
+
+    /// <summary>
+    ///     The <see cref="Text" /> component of the button text
+    /// </summary>
     public Text Text { get; private set; }
 
     private void Awake()
     {
-        if(!Initialized) Init();
+        if (!Initialized) Init();
     }
 
+    /// <summary>
+    ///     Initialize the instance after it is created.
+    /// </summary>
     protected override void Init()
     {
-        base.Init();
+        if (Initialized) return;
+        Initialized = true;
         Button = GetComponent<Button>();
         Background = GetComponent<Image>();
         Icon = transform.Find("Icon").GetComponent<Image>();
@@ -30,10 +55,20 @@ public class SimpleButton : APrefab<SimpleButton>
         TipButton = GetComponent<TipButton>();
     }
 
-    public void Setup(UnityAction pClickAction, Sprite pIcon, string pText = null, Vector2 pSize = default, string pTipType = null,
+    /// <summary>
+    ///     Setup the button
+    /// </summary>
+    /// <param name="pClickAction">Action on button clicked</param>
+    /// <param name="pIcon">The icon of button</param>
+    /// <param name="pText">The text of button(When it is not null, <paramref name="pIcon" /> will be disabled)</param>
+    /// <param name="pSize">The size of button rect</param>
+    /// <param name="pTipType">When it is empty, <see cref="SimpleButton.TipButton" /> will be disabled</param>
+    /// <param name="pTipData">TooltipData, it is available only when <paramref name="pTipType" /> is not null or empty</param>
+    public void Setup(UnityAction pClickAction, Sprite pIcon, string pText = null, Vector2 pSize = default,
+        string pTipType = null,
         TooltipData pTipData = default)
     {
-        if(!Initialized) Init();
+        if (!Initialized) Init();
         if (pSize == default)
         {
             pSize = new Vector2(32, 32);
@@ -50,6 +85,7 @@ public class SimpleButton : APrefab<SimpleButton>
             Icon.gameObject.SetActive(false);
             Text.gameObject.SetActive(true);
         }
+
         Icon.sprite = pIcon;
         Text.text = pText;
         Button.onClick.RemoveAllListeners();
@@ -80,7 +116,8 @@ public class SimpleButton : APrefab<SimpleButton>
         }
     }
 
-    private void SetSize(Vector2 pSize)
+    /// <inheritdoc cref="APrefab{T}.SetSize" />
+    public override void SetSize(Vector2 pSize)
     {
         GetComponent<RectTransform>().sizeDelta = pSize;
         float min_edge = Mathf.Min(pSize.x, pSize.y);
@@ -100,7 +137,7 @@ public class SimpleButton : APrefab<SimpleButton>
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = Vector3.zero;
         icon.transform.localScale = Vector3.one;
-        
+
         GameObject text = new GameObject("Text", typeof(Text));
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = Vector3.zero;

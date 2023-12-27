@@ -1,14 +1,22 @@
-using System.Security.Authentication;
 using NeoModLoader.ui;
 using NeoModLoader.utils.authentication;
 using RSG;
 
 namespace NeoModLoader.services;
 
+/// <summary>
+///     Authentication service for mod upload.
+/// </summary>
 public static class ModUploadAuthenticationService
 {
+    /// <summary>
+    ///     Whether the user has authenticated.
+    /// </summary>
     public static bool Authed { get; private set; } = false;
 
+    /// <summary>
+    ///     Start auto authenticating task
+    /// </summary>
     public static void AutoAuth()
     {
         new Task(() =>
@@ -42,6 +50,11 @@ public static class ModUploadAuthenticationService
             }
         }).Start();
     }
+
+    /// <summary>
+    ///     Start authentication window and watch for the result.
+    /// </summary>
+    /// <returns>The Promise, Resolve: successfully authenticate/skip, Reject: Cancel authentication</returns>
     public static Promise Authenticate()
     {
         Promise promise = new Promise();
@@ -54,6 +67,7 @@ public static class ModUploadAuthenticationService
             }).Start();
             return promise;
         }
+
         ScrollWindow.showWindow(ModUploadAuthenticationWindow.WindowId);
         new Task(() =>
         {
@@ -64,12 +78,13 @@ public static class ModUploadAuthenticationService
                     promise.Reject(new Exception("Canceled"));
                     break;
                 }
+
                 if (ModUploadAuthenticationWindow.Instance.AuthSkipped)
                 {
                     promise.Resolve();
                     break;
                 }
-                
+
                 if (ModUploadAuthenticationWindow.Instance.AuthFuncSelected)
                 {
                     // TODO: Maybe memory error when Auth Button clicked too fast?
@@ -78,12 +93,14 @@ public static class ModUploadAuthenticationService
                     try
                     {
                         auth_result = ModUploadAuthenticationWindow.Instance.AuthFunc();
-                    } catch (AuthenticaticationException e)
+                    }
+                    catch (AuthenticaticationException e)
                     {
                         // TODO: Handle the error in some way
                         ModUploadAuthenticationWindow.SetState(false, e.Message);
                         continue;
                     }
+
                     if (auth_result)
                     {
                         Authed = true;
@@ -91,12 +108,12 @@ public static class ModUploadAuthenticationService
                         promise.Resolve();
                         break;
                     }
+
                     ModUploadAuthenticationWindow.SetState(false);
                 }
             }
-
         }).Start();
-        
+
         return promise;
     }
 }

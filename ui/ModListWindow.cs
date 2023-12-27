@@ -8,6 +8,9 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
 
+/// <summary>
+///     List window of all mods recognized by NeoModLoader.
+/// </summary>
 public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 {
     private ModDeclare clickedMod;
@@ -32,6 +35,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         }
     }
 
+    /// <inheritdoc cref="AbstractListWindow{T,TItem}.Init" />
     protected override void Init()
     {
         GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image), typeof(Button), typeof(TipButton));
@@ -71,6 +75,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         modloaderButtonButton.onClick.AddListener(() => { Application.OpenURL(CoreConstants.RepoURL); });
     }
 
+    /// <inheritdoc cref="AbstractListWindow{T,TItem}.OnNormalEnable" />
     public override void OnNormalEnable()
     {
         needRefresh = true;
@@ -89,6 +94,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         }
     }
 
+    /// <inheritdoc cref="AbstractListWindow{T,TItem}.CreateItemPrefab" />
     protected override AbstractListWindowItem<IMod> CreateItemPrefab()
     {
         GameObject obj = new GameObject("ModListItemPrefab", typeof(Image), typeof(ModListItem));
@@ -202,8 +208,13 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         return obj.GetComponent<ModListItem>();
     }
 
+    /// <summary>
+    ///     A single list item for <see cref="ModListWindow" />.
+    /// </summary>
     public class ModListItem : AbstractListWindowItem<IMod>
     {
+        /// <inheritdoc cref="AbstractListWindowItem{TItem}.Setup" />
+        /// <param name="mod">The mod to display</param>
         public override void Setup(IMod mod)
         {
             ModDeclare mod_declare = mod.GetDeclaration();
@@ -221,14 +232,17 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             {
                 mod_name = LM.Get(multilang_mod_name_key);
             }
+
             if (LocalizedTextManager.stringExists(multilang_mod_author_key))
             {
                 mod_author = LM.Get(multilang_mod_author_key);
             }
+
             if (LocalizedTextManager.stringExists(multilang_mod_desc_key))
             {
                 mod_desc = LM.Get(multilang_mod_desc_key);
             }
+
             text.text = $"{mod_name}\t{mod_declare.Version}\n{mod_author}\n{mod_desc}";
 
             Sprite sprite = null;

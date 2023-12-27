@@ -7,16 +7,17 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
 
-public class ModUploadWindow : AbstractWindow<ModUploadWindow>
+internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
 {
-    private IMod selected_mod;
-    private Image mod_icon_image;
-    private Text mod_name_text;
+    private Text changelog_text;
     private Text mod_author_text;
-    private Text mod_version_text;
     private Text mod_description_text;
     private Text mod_fileid_text;
-    private Text changelog_text;
+    private Image mod_icon_image;
+    private Text mod_name_text;
+    private Text mod_version_text;
+    private IMod selected_mod;
+
     public static void ShowWindow(IMod mod)
     {
         Instance.selected_mod = mod;
@@ -31,11 +32,12 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
                 SpriteLoadUtils.LoadSingleSprite(Path.Combine(mod_decl.FolderPath,
                     mod_decl.IconPath));
         }
+
         Instance.mod_name_text.text = mod_decl.Name;
         Instance.mod_author_text.text = mod_decl.Author;
         Instance.mod_version_text.text = mod_decl.Version;
         Instance.mod_description_text.text = mod_decl.Description;
-        
+
         ScrollWindow.showWindow(WindowId);
     }
 
@@ -53,19 +55,19 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         layout.childScaleWidth = false;
         layout.spacing = 10;
         layout.padding = new(0, 0, 5, 0);
-        
+
         GameObject top_bar = new GameObject("TopBar", typeof(RectTransform));
         top_bar.transform.SetParent(ContentTransform);
         top_bar.transform.localScale = Vector3.one;
         top_bar.GetComponent<RectTransform>().sizeDelta = new(190, 17);
-        
+
         GameObject desc_mod_icon = new GameObject("DescIcon", typeof(Image));
         desc_mod_icon.transform.SetParent(top_bar.transform);
         desc_mod_icon.transform.localPosition = new(-90, 0);
         desc_mod_icon.transform.localScale = Vector3.one;
         desc_mod_icon.GetComponent<RectTransform>().sizeDelta = new(15, 15);
         desc_mod_icon.GetComponent<Image>().sprite = InternalResourcesGetter.GetIcon();
-        
+
         GameObject input_fileid = new GameObject("Input FileId", typeof(Image));
         input_fileid.transform.SetParent(top_bar.transform);
         input_fileid.transform.localScale = Vector3.one;
@@ -85,27 +87,25 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         input_fileid_inputfield_text.alignment = TextAnchor.MiddleLeft;
         input_fileid_inputfield_text.resizeTextForBestFit = true;
         input_fileid_inputfield_text.resizeTextMinSize = 6;
-        
+
         GameObject input_icon = new GameObject("Image", typeof(Image));
         input_icon.transform.SetParent(input_fileid.transform);
         input_icon.transform.localPosition = new(77, 0);
         input_icon.transform.localScale = Vector3.one;
         input_icon.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/inputFieldIcon");
         input_icon.GetComponent<RectTransform>().sizeDelta = new(15, 15);
-        
+
         NameInput input_fileid_input = input_fileid.AddComponent<NameInput>();
         input_fileid_input.inputField = input_fileid_inputfield.GetComponent<InputField>();
         input_fileid_input.textField = input_fileid_inputfield_text;
-        input_fileid_input.addListener((fileid) =>
-        {
-            
-        });
-        
+        input_fileid_input.addListener((fileid) => { });
+
         RectTransform input_fileid_inputfield_rect = input_fileid_inputfield.GetComponent<RectTransform>();
         input_fileid_inputfield_rect.sizeDelta = new(170, 15);
-        input_fileid.GetComponent<RectTransform>().sizeDelta = input_fileid_inputfield_rect.sizeDelta + new Vector2(2, 2);
-        
-        
+        input_fileid.GetComponent<RectTransform>().sizeDelta =
+            input_fileid_inputfield_rect.sizeDelta + new Vector2(2, 2);
+
+
         GameObject mod_info = new GameObject("ModInfo", typeof(Image));
         mod_info.transform.SetParent(ContentTransform);
         mod_info.transform.localPosition = new(130, -78, 0);
@@ -113,7 +113,7 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         mod_info.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
         mod_info.GetComponent<Image>().type = Image.Type.Sliced;
         mod_info.GetComponent<RectTransform>().sizeDelta = new(190, 95);
-        
+
         GameObject mod_icon = new GameObject("ModIcon", typeof(Image));
         mod_icon.transform.SetParent(mod_info.transform);
         mod_icon.transform.localScale = Vector3.one;
@@ -125,7 +125,7 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         mod_icon_frame.GetComponent<Image>().sprite = InternalResourcesGetter.GetIconFrame();
         mod_icon_frame.GetComponent<Image>().type = Image.Type.Sliced;
         mod_icon_frame.GetComponent<RectTransform>().sizeDelta = mod_icon.GetComponent<RectTransform>().sizeDelta;
-        
+
         GameObject info_grids = new GameObject("InfoGrids", typeof(GridLayoutGroup));
         info_grids.transform.SetParent(mod_info.transform);
         info_grids.transform.localScale = Vector3.one;
@@ -144,7 +144,7 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
             Transform transform1;
             (transform1 = _tmp.transform).SetParent(info_grids.transform);
             transform1.localScale = Vector3.one;
-            
+
             OT.InitializeCommonText(_tmp);
             _tmp.resizeTextForBestFit = true;
             _tmp.resizeTextMaxSize = 10;
@@ -153,18 +153,18 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
             _tmp.alignment = TextAnchor.MiddleLeft;
             return _tmp;
         }
+
         mod_name_text = create_grid_text("Mod Name");
         mod_author_text = create_grid_text("Mod Author");
         mod_version_text = create_grid_text("Mod Version");
         mod_description_text = create_grid_text("Mod Description");
 
 
-
         GameObject input_changelog = new GameObject("Input ChangeLog", typeof(Image));
         input_changelog.transform.SetParent(ContentTransform);
         input_changelog.transform.localScale = Vector3.one;
         input_changelog.transform.localPosition = new(130f, -170f);
-        
+
         Image input_changelog_bg = input_changelog.GetComponent<Image>();
         input_changelog_bg.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
         input_changelog_bg.type = Image.Type.Sliced;
@@ -182,19 +182,17 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         input_changelog_inputfield_text.resizeTextMinSize = 6;
         input_changelog_inputfield_text.resizeTextMaxSize = 10;
         input_changelog_inputfield.GetComponent<InputField>().lineType = InputField.LineType.MultiLineNewline;
-        
+
         NameInput input_changelog_input = input_changelog.AddComponent<NameInput>();
         input_changelog_input.inputField = input_changelog_inputfield.GetComponent<InputField>();
         input_changelog_input.textField = input_changelog_inputfield_text;
-        input_changelog_input.addListener((fileid) =>
-        {
-            
-        });
-        
+        input_changelog_input.addListener((fileid) => { });
+
         RectTransform input_changelog_inputfield_rect = input_changelog_inputfield.GetComponent<RectTransform>();
         input_changelog_inputfield_rect.sizeDelta = new(190, 80);
-        input_changelog.GetComponent<RectTransform>().sizeDelta = input_changelog_inputfield_rect.sizeDelta + new Vector2(2, 2);
-        
+        input_changelog.GetComponent<RectTransform>().sizeDelta =
+            input_changelog_inputfield_rect.sizeDelta + new Vector2(2, 2);
+
         GameObject upload_button = new GameObject("UploadButton", typeof(Image), typeof(Button));
         upload_button.transform.SetParent(ContentTransform);
         upload_button.transform.localPosition = new(130, -260);
@@ -237,13 +235,16 @@ public class ModUploadWindow : AbstractWindow<ModUploadWindow>
         {
             fileId = null;
         }
+
         if (string.IsNullOrEmpty(fileId))
         {
             ModUploadAuthenticationService.Authenticate().Then(
                 () => ModWorkshopService.UploadMod(selected_mod, changelog_text.text,
-                    ModUploadAuthenticationService.Authed)).Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload);
+                    ModUploadAuthenticationService.Authed)).Then(ModUploadingProgressWindow.FinishUpload,
+                ModUploadingProgressWindow.ErrorUpload);
             return;
         }
+
         ulong fileIdLong = ulong.Parse(fileId);
         ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
             .Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload).Done();

@@ -5,9 +5,14 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
 
+/// <summary>
+///     A window that shows simple text.
+/// </summary>
 public class InformationWindow : AbstractWindow<InformationWindow>
 {
     private Text text;
+
+    /// <inheritdoc cref="InformationWindow.Init" />
     protected override void Init()
     {
         text = new GameObject("Text", typeof(Text)).GetComponent<Text>();
@@ -22,6 +27,10 @@ public class InformationWindow : AbstractWindow<InformationWindow>
         ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
     }
 
+    /// <summary>
+    ///     Show the window with the given text.
+    /// </summary>
+    /// <param name="info"></param>
     public static void ShowWindow(string info)
     {
         Instance.text.text = info;

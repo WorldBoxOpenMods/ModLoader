@@ -1,5 +1,6 @@
 namespace NCMS.Extensions;
 
+#pragma warning disable CS1591 // No comment for NCMS compatible layer
 public static class DictionaryRange
 {
     // Token: 0x060000A1 RID: 161 RVA: 0x00008098 File Offset: 0x00006298

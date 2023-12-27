@@ -1,24 +1,23 @@
 using UnityEngine;
-using UnityEngine.UI;
-using System.Collections.Generic;
-using NeoModLoader.utils;
-using UnityEngine.SearchService;
 using Object = UnityEngine.Object;
 
 namespace NeoModLoader.General;
+
 /// <summary>
 /// This class is used to find resources and inactive GameObject easily.
 /// </summary>
 public static class ResourcesFinder
 {
+    private static Dictionary<Type, Dictionary<string, Object>> objects_cache = new();
+
     /// <summary>
-    /// Find all UnityEngine.Object named <see cref="name"/> as type <see cref="T"/>
+    /// Find all UnityEngine.Object named <paramref name="name"/> as type <typeparamref name="T"/>
     /// </summary>
-    public static T[] FindResources<T>(string name) where T : UnityEngine.Object
+    public static T[] FindResources<T>(string name) where T : Object
     {
         T[] first_search = Resources.FindObjectsOfTypeAll<T>();
         List<T> result = new List<T>(first_search.Length / 16);
-        
+
         string lower_name = name.ToLower();
         foreach (var obj in first_search)
         {
@@ -27,16 +26,15 @@ public static class ResourcesFinder
                 result.Add(obj);
             }
         }
+
         return result.ToArray();
     }
 
-    private static Dictionary<Type, Dictionary<string, UnityEngine.Object>> objects_cache = new();
-    
     /// <summary>
-    /// Find a UnityEngine.Object named <see cref="name"/> as type <see cref="T"/>
+    /// Find a UnityEngine.Object named <paramref name="name"/> as type <typeparamref name="T"/>
     /// </summary>
     /// <returns>null if not find</returns>
-    public static T FindResource<T>(string name) where T : UnityEngine.Object
+    public static T FindResource<T>(string name) where T : Object
     {
         string lower_name = name.ToLower();
         if (objects_cache.TryGetValue(typeof(T), out var dict))
@@ -45,11 +43,13 @@ public static class ResourcesFinder
             {
                 return (T)result;
             }
+
             goto FINDANDADD;
         }
+
         dict = new();
         objects_cache.Add(typeof(T), dict);
-        
+
         FINDANDADD:
         T[] first_search = Resources.FindObjectsOfTypeAll<T>();
         foreach (var obj in first_search)

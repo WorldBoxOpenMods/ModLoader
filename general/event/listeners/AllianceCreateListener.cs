@@ -6,9 +6,16 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
+/// <summary>
+///     This class is used to listen to <see cref="AllianceManager.newAlliance" /> event. And call all
+///     <see cref="AllianceCreateHandler.Handle" /> when the event is triggered.
+/// </summary>
 public class AllianceCreateListener : AbstractListener<AllianceCreateListener, AllianceCreateHandler>
 {
-    
+    /// <summary>
+    ///     Call all <see cref="AllianceCreateHandler.Handle" /> when the event is triggered.
+    /// </summary>
+    /// <inheritdoc cref="AllianceCreateHandler.Handle" />
     protected static void HandleAll(Alliance pAlliance, Kingdom pKingdom, Kingdom pKingdom2)
     {
         StringBuilder sb = null;
@@ -23,6 +30,7 @@ public class AllianceCreateListener : AbstractListener<AllianceCreateListener, A
                 {
                     instance.handlers[idx].Handle(pAlliance, pKingdom, pKingdom2);
                 }
+
                 finished = true;
             }
             catch (Exception e)
@@ -35,11 +43,13 @@ public class AllianceCreateListener : AbstractListener<AllianceCreateListener, A
                 idx++;
             }
         }
-        if(sb != null)
+
+        if (sb != null)
         {
             LogService.LogError(sb.ToString());
         }
     }
+
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(AllianceManager), nameof(AllianceManager.newAlliance))]
     private static IEnumerable<CodeInstruction> _newAllianceEvent_Patch(IEnumerable<CodeInstruction> instr)
@@ -50,7 +60,7 @@ public class AllianceCreateListener : AbstractListener<AllianceCreateListener, A
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Dup));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_2));
-        
+
         InsertCallHandleCode(codes, insert_index);
         return codes;
     }

@@ -2,10 +2,13 @@ using UnityEngine;
 
 namespace NCMS;
 
+#pragma warning disable CS1591 // No comment for NCMS compatible layer
 public class Core
 {
     // For compatibility, use all same with NCMS.
-    public static string WBGamePath = ((Application.platform == RuntimePlatform.WindowsPlayer) ? (Application.dataPath + "/..") : (Application.dataPath + "/../.."));
+    public static string WBGamePath = ((Application.platform == RuntimePlatform.WindowsPlayer)
+        ? (Application.dataPath + "/..")
+        : (Application.dataPath + "/../.."));
 
     public static string ModsPath = Application.streamingAssetsPath + "/Mods";
 

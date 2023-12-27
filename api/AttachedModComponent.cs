@@ -3,9 +3,13 @@ using UnityEngine;
 
 namespace NeoModLoader.api;
 
-internal class AttachedModComponent : MonoBehaviour, IMod
+/// <summary>
+///     This class is made for ncms mod to get <see cref="ModDeclare" /> for themselves
+/// </summary>
+public class AttachedModComponent : MonoBehaviour, IMod
 {
     private ModDeclare _declare;
+
     public ModDeclare GetDeclaration()
     {
         return _declare;

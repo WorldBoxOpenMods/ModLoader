@@ -1,3 +1,4 @@
+using NeoModLoader.General.UI.Prefabs;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,18 +14,20 @@ public abstract class AutoLayoutGroup<T> : AutoLayoutElement<AutoLayoutGroup<T>>
         var child_count = transform.childCount;
         child_transform.SetSiblingIndex((pIndex + child_count) % child_count);
     }
+
     public virtual T GetLayoutGroup()
     {
         T layout_group = gameObject.GetComponent<T>();
-        
+
         return layout_group != null ? layout_group : gameObject.AddComponent<T>();
     }
-    public TSub BeginSubGroup<TSub, TSubGroup>(Vector2 pSize = default) 
+
+    public TSub BeginSubGroup<TSub, TSubGroup>(Vector2 pSize = default)
         where TSub : AutoLayoutGroup<TSubGroup>
         where TSubGroup : LayoutGroup
     {
         GameObject game_object =
-            new (nameof(TSubGroup), typeof(TSub), typeof(TSubGroup));
+            new(nameof(TSubGroup), typeof(TSub), typeof(TSubGroup));
 
         TSub sub_group = game_object.GetComponent<TSub>();
 
@@ -37,7 +40,9 @@ public abstract class AutoLayoutGroup<T> : AutoLayoutElement<AutoLayoutGroup<T>>
 
         return sub_group;
     }
-    public virtual void SetSize(Vector2 pSize)
+
+    /// <inheritdoc cref="APrefab{T}.SetSize" />
+    public override void SetSize(Vector2 pSize)
     {
         GetComponent<RectTransform>().sizeDelta = pSize;
     }

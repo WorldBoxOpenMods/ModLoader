@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
 
+/// <summary>
+///     Configuration window for <see cref="ModConfig" />
+/// </summary>
 public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 {
     private static ModConfigGrid _gridPrefab;
@@ -15,6 +18,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
     private readonly Dictionary<ModConfigItem, object> _modifiedItems = new();
     private ModConfig _config;
 
+    /// <inheritdoc cref="AbstractWindow{T}.Init" />
     protected override void Init()
     {
         VerticalLayoutGroup layout = ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -222,6 +226,9 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         _gridPrefab = config_grid.AddComponent<ModConfigGrid>();
     }
 
+    /// <summary>
+    ///     Display window for given mod config.
+    /// </summary>
     public static void ShowWindow(ModConfig pConfig)
     {
         if (pConfig == null) return;
@@ -229,6 +236,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         ScrollWindow.showWindow(WindowId);
     }
 
+    /// <inheritdoc cref="AbstractWindow{T}.OnNormalEnable" />
     public override void OnNormalEnable()
     {
         _modifiedItems.Clear();
@@ -240,6 +248,10 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         }
     }
 
+    /// <summary>
+    ///     Apply and save changes.
+    /// </summary>
+    /// <inheritdoc cref="AbstractWindow{T}.OnNormalDisable" />
     public override void OnNormalDisable()
     {
         _gridPool.clear();
