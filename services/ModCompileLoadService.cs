@@ -14,6 +14,7 @@ using NeoModLoader.utils;
 using UnityEngine;
 
 namespace NeoModLoader.services;
+
 /// <summary>
 /// Service of mod compiling and loading. 
 /// </summary>
@@ -212,6 +213,7 @@ public static class ModCompileLoadService
 
         return true;
     }
+
     /// <summary>
     /// Prepare references for mod nodes
     /// </summary>
@@ -246,6 +248,7 @@ public static class ModCompileLoadService
 
         _publicized_assembly_ref = MetadataReference.CreateFromFile(Paths.PublicizedAssemblyPath);
     }
+
     /// <summary>
     /// Prepare references for a single mod node
     /// </summary>
@@ -255,6 +258,7 @@ public static class ModCompileLoadService
         mod_inc_path.Add(pModNode.mod_decl.UID,
             Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll"));
     }
+
     /// <summary>
     /// Public mod compiling method
     /// </summary>
@@ -310,6 +314,7 @@ public static class ModCompileLoadService
 
         return compile_result;
     }
+
     /// <summary>
     /// Load a list of mods
     /// </summary>
@@ -343,6 +348,7 @@ public static class ModCompileLoadService
             }
         }
     }
+
     /// <summary>
     /// Load a single mod
     /// </summary>
@@ -376,9 +382,12 @@ public static class ModCompileLoadService
                     ncmsGlobalObjectType.GetField("Info")
                         ?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
                     ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
-                    mod_instance.AddComponent(type);
                     try
                     {
+                        var mod_component = mod_instance.AddComponent(type);
+
+                        auto_localize(mod_component);
+
                         AttachedModComponent mod_interface = mod_instance.AddComponent<AttachedModComponent>();
                         mod_interface.OnLoad(pMod, mod_instance);
                         mod_instance.SetActive(true);
@@ -424,34 +433,7 @@ public static class ModCompileLoadService
                         break;
                     }
 
-                    if (mod_interface is ILocalizable localizable)
-                    {
-                        string locales_dir = localizable.GetLocaleFilesDirectory(pMod);
-                        if (Directory.Exists(locales_dir))
-                        {
-                            var files = Directory.GetFiles(locales_dir);
-                            foreach (var locale_file in files)
-                            {
-                                try
-                                {
-                                    if (locale_file.EndsWith(".json"))
-                                    {
-                                        LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
-                                    }
-                                    else if (locale_file.EndsWith(".csv"))
-                                    {
-                                        LM.LoadLocales(locale_file);
-                                    }
-                                }
-                                catch (FormatException e)
-                                {
-                                    LogService.LogWarning(e.Message);
-                                }
-                            }
-
-                            LM.ApplyLocale();
-                        }
-                    }
+                    auto_localize(mod_interface);
 
                     mod_interface.OnLoad(pMod, mod_instance);
                     mod_instance.SetActive(true);
@@ -475,7 +457,40 @@ public static class ModCompileLoadService
         }
 
         pMod.FailReason.AppendLine("No Valid Mod Component Found");
+
+        void auto_localize(object mod_component)
+        {
+            if (mod_component is ILocalizable localizable)
+            {
+                string locales_dir = localizable.GetLocaleFilesDirectory(pMod);
+                if (Directory.Exists(locales_dir))
+                {
+                    var files = Directory.GetFiles(locales_dir);
+                    foreach (var locale_file in files)
+                    {
+                        try
+                        {
+                            if (locale_file.EndsWith(".json"))
+                            {
+                                LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
+                            }
+                            else if (locale_file.EndsWith(".csv"))
+                            {
+                                LM.LoadLocales(locale_file);
+                            }
+                        }
+                        catch (FormatException e)
+                        {
+                            LogService.LogWarning(e.Message);
+                        }
+                    }
+
+                    LM.ApplyLocale();
+                }
+            }
+        }
     }
+
     /// <summary>
     /// Check whether a mod loaded with mod's UID
     /// </summary>
@@ -493,6 +508,7 @@ public static class ModCompileLoadService
 
         return false;
     }
+
     /// <summary>
     /// Compile mod at runtime.
     /// </summary>
@@ -530,6 +546,7 @@ public static class ModCompileLoadService
 
         return true;
     }
+
     /// <summary>
     /// Compile and load mod at runtime
     /// </summary>
@@ -547,6 +564,7 @@ public static class ModCompileLoadService
         LoadMod(mod_declare);
         return true;
     }
+
     /// <summary>
     /// Load information of all BepInEx plugins which is made only for Worldbox
     /// </summary>
