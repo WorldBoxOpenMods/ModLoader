@@ -1,19 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace NeoModLoader.General.UI.Window.Layout;
 
 public class AutoGridLayoutGroup : AutoLayoutGroup<GridLayoutGroup>
 {
-    public ContentSizeFitter fitter { get; private set; }
-    public GridLayoutGroup layout { get; private set; }
-    protected override void Init()
-    {
-        if (Initialized) return;
-        Initialized = true;
-        fitter = gameObject.GetComponent<ContentSizeFitter>();
-        layout = gameObject.GetComponent<GridLayoutGroup>();
-    }
     public void Setup(
         int pConstraintCount,
         GridLayoutGroup.Constraint pConstraint = GridLayoutGroup.Constraint.FixedColumnCount,

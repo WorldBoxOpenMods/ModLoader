@@ -1,23 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace NeoModLoader.General.UI.Window.Layout;
 
 public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup>
 {
-    public ContentSizeFitter fitter { get; private set; }
-    public VerticalLayoutGroup layout { get; private set; }
-    protected override void Init()
-    {
-        if (Initialized) return;
-        Initialized = true;
-        fitter = gameObject.GetComponent<ContentSizeFitter>();
-        layout = gameObject.GetComponent<VerticalLayoutGroup>();
-    }
     public void Setup(Vector2 pSize = default, TextAnchor pAlignment = TextAnchor.UpperCenter, float pSpacing = 3, RectOffset pPadding = null)
     {
         Init();
-        if(pSize == default)
+        if (pSize == default)
         {
             fitter.enabled = true;
         }

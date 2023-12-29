@@ -1,19 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace NeoModLoader.General.UI.Window.Layout;
 
 public class AutoHoriLayoutGroup : AutoLayoutGroup<HorizontalLayoutGroup>
 {
-    public ContentSizeFitter fitter { get; private set; }
-    public HorizontalLayoutGroup layout { get; private set; }
-    protected override void Init()
-    {
-        if (Initialized) return;
-        Initialized = true;
-        fitter = gameObject.GetComponent<ContentSizeFitter>();
-        layout = gameObject.GetComponent<HorizontalLayoutGroup>();
-    }
     public void Setup(Vector2 pSize = default, TextAnchor pAlignment = TextAnchor.MiddleLeft, float pSpacing = 3, RectOffset pPadding = null)
     {
         Init();
