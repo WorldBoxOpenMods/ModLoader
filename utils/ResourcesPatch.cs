@@ -5,16 +5,33 @@ using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
-
 namespace NeoModLoader.utils;
 
-internal static class ResourcesPatch
+/// <summary>
+///     This class is used to patch resources.
+/// </summary>
+public static class ResourcesPatch
 {
     private static ResourceTree tree;
-
+    /// <summary>
+    ///     Get all patched resources.
+    /// </summary>
+    /// <remarks>
+    ///     Not suggested to use this method.
+    /// </remarks>
+    /// <returns></returns>
     public static Dictionary<string, Object> GetAllPatchedResources()
     {
         return tree.direct_objects;
+    }
+    /// <summary>
+    ///     Patch a resource to the tree at runtime.
+    /// </summary>
+    /// <param name="pPath"></param>
+    /// <param name="pObject"></param>
+    public static void PatchResource(string pPath, Object pObject)
+    {
+        tree.Add(pPath, pObject);
     }
 
     internal static void Initialize()
@@ -55,7 +72,10 @@ internal static class ResourcesPatch
     {
         if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
             return SpriteLoadUtils.LoadSprites(path);
-        return new Object[] { LoadTextAsset(path) };
+        return new Object[]
+        {
+            LoadTextAsset(path)
+        };
     }
 
     private static TextAsset LoadTextAsset(string path)
@@ -100,8 +120,7 @@ internal static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string),
-        typeof(Type)
+        typeof(string), typeof(Type)
     })]
     private static void LoadAll_Prefix(ref string path)
     {
@@ -126,8 +145,7 @@ internal static class ResourcesPatch
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string),
-        typeof(Type)
+        typeof(string), typeof(Type)
     })]
     private static Object[] LoadAll_Postfix(Object[] __result, string path,
         Type systemTypeInstance)
@@ -143,7 +161,7 @@ internal static class ResourcesPatch
 
         HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
         list.RemoveAll(x => names.Contains(x.name));
-        
+
         list.AddRange(append_list);
         return list.ToArray();
     }
@@ -151,8 +169,7 @@ internal static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string),
-        typeof(Type)
+        typeof(string), typeof(Type)
     })]
     private static void Load_Prefix(ref string path)
     {
@@ -177,8 +194,7 @@ internal static class ResourcesPatch
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string),
-        typeof(Type)
+        typeof(string), typeof(Type)
     })]
     private static Object Load_Postfix(Object __result, string path,
         Type systemTypeInstance)
