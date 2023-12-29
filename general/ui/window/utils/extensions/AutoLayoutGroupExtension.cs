@@ -1,7 +1,6 @@
 using NeoModLoader.General.UI.Window.Layout;
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace NeoModLoader.General.UI.Window.Utils.Extensions;
 
 /// <summary>
@@ -132,7 +131,7 @@ public static class AutoLayoutGroupExtension
             ContentSizeFitter fitter = auto_layout_group.gameObject.GetComponent<ContentSizeFitter>();
             if (fitter == null)
             {
-                auto_layout_group.gameObject.AddComponent<ContentSizeFitter>();
+                fitter = auto_layout_group.gameObject.AddComponent<ContentSizeFitter>();
             }
 
             fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
