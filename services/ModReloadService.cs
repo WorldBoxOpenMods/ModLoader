@@ -1,16 +1,14 @@
-using JetBrains.Annotations;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.utils;
-
 namespace NeoModLoader.services;
 
 internal static class ModReloadService
 {
-    public static bool HotfixMethods(IMod pMod)
+    public static bool HotfixMethods(IReloadable pMod, ModDeclare pModDeclare)
     {
-        if (!ModReloadUtils.Prepare(pMod)) return false;
+        if (!ModReloadUtils.Prepare(pMod, pModDeclare)) return false;
         if (!ModReloadUtils.CompileNew()) return false;
         if (!ModReloadUtils.PatchHotfixMethods()) return false;
         return true;
@@ -22,7 +20,7 @@ internal static class ModReloadService
             Paths.ModResourceFolderName));
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath,
             Paths.NCMSAdditionModResourceFolderName));
-        
+
         return false;
     }
 
@@ -33,7 +31,7 @@ internal static class ModReloadService
 
         string locale_path = localizable_mod.GetLocaleFilesDirectory(pMod.GetDeclaration());
         if (!Directory.Exists(locale_path)) return;
-        
+
         var files = Directory.GetFiles(locale_path);
         foreach (var locale_file in files)
         {

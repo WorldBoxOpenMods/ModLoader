@@ -14,12 +14,11 @@ using NeoModLoader.services;
 using ExceptionHandler = Mono.Cecil.Cil.ExceptionHandler;
 using OpCode = Mono.Cecil.Cil.OpCode;
 using OpCodes = System.Reflection.Emit.OpCodes;
-
 namespace NeoModLoader.utils;
 
 internal static class ModReloadUtils
 {
-    private static IMod _mod;
+    private static IReloadable _mod;
     private static ModDeclare _mod_declare;
     private static string _new_compiled_dll_path;
     private static string _new_compiled_pdb_path;
@@ -31,10 +30,10 @@ internal static class ModReloadUtils
 
     private static Dictionary<Type, MethodInfo> _emit_method_cache = new();
 
-    public static bool Prepare(IMod pMod)
+    public static bool Prepare(IReloadable pMod, ModDeclare pModDeclare)
     {
         _mod = pMod;
-        _mod_declare = pMod.GetDeclaration();
+        _mod_declare = pModDeclare;
 
         _new_compiled_dll_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.dll");
         _new_compiled_pdb_path = Path.Combine(Paths.CompiledModsPath, $"{_mod_declare.UID}.pdb");
@@ -542,7 +541,10 @@ internal static class ModReloadUtils
                     if (!_emit_method_cache.TryGetValue(operand_type, out var emit_method))
                     {
                         emit_method = AccessTools.Method(typeof(ILGenerator), "Emit",
-                            new Type[] { typeof(System.Reflection.Emit.OpCode), operand_type });
+                            new Type[]
+                            {
+                                typeof(System.Reflection.Emit.OpCode), operand_type
+                            });
                         _emit_method_cache[operand_type] = emit_method;
                     }
 
@@ -551,7 +553,10 @@ internal static class ModReloadUtils
                         throw new Exception($"Failed to get emit method for {operand_type.FullName}");
                     }
 
-                    emit_method.Invoke(il, new object[] { op_code, resolved });
+                    emit_method.Invoke(il, new object[]
+                    {
+                        op_code, resolved
+                    });
                 }
                 else if (inst.Operand is VariableReference variable_reference)
                 {
@@ -577,7 +582,10 @@ internal static class ModReloadUtils
                     if (!_emit_method_cache.TryGetValue(operand_type, out var emit_method))
                     {
                         emit_method = AccessTools.Method(typeof(ILGenerator), "Emit",
-                            new Type[] { typeof(System.Reflection.Emit.OpCode), operand_type });
+                            new Type[]
+                            {
+                                typeof(System.Reflection.Emit.OpCode), operand_type
+                            });
                         _emit_method_cache[operand_type] = emit_method;
                     }
 
@@ -588,7 +596,10 @@ internal static class ModReloadUtils
 
                     try
                     {
-                        emit_method.Invoke(il, new object[] { op_code, inst.Operand });
+                        emit_method.Invoke(il, new object[]
+                        {
+                            op_code, inst.Operand
+                        });
                     }
                     catch (Exception e)
                     {
@@ -631,7 +642,7 @@ internal static class ModReloadUtils
     {
         try
         {
-            ((IReloadable)_mod).Reload();
+            _mod.Reload();
         }
         catch (Exception e)
         {

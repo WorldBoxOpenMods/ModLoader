@@ -5,7 +5,6 @@ using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace NeoModLoader.ui;
 
 /// <summary>
@@ -364,7 +363,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 reload_button.onClick.RemoveAllListeners();
                 reload_button.onClick.AddListener(() =>
                 {
-                    if (!ModReloadUtils.Prepare(mod))
+                    if (!ModReloadUtils.Prepare(reloadable, mod_declare))
                     {
                         LogService.LogWarning($"Failed to prepare mod {mod_declare.Name} for reloading.");
                         return;
