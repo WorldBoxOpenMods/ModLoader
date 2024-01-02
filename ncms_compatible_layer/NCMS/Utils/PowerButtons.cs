@@ -107,7 +107,7 @@ namespace NCMS.Utils
             button_obj.transform.SetParent(parent);
             button_obj.transform.localScale = Vector3.one;
             button_obj.transform.localPosition = position;
-            button_obj.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/buttonWhite");
+            button_obj.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
             button_obj.GetComponent<Image>().color = color;
             button_obj.GetComponent<Image>().SetNativeSize();
             button_obj.GetComponent<Button>().onClick.AddListener(callback);
