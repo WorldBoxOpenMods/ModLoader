@@ -561,6 +561,11 @@ public static class ModCompileLoadService
         bool compile_success = TryCompileModAtRuntime(mod_declare);
 
         if (!compile_success) return false;
+
+        ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod_declare.FolderPath, Paths.ModResourceFolderName));
+        ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod_declare.FolderPath,
+            Paths.NCMSAdditionModResourceFolderName));
+
         LoadMod(mod_declare);
         return true;
     }
