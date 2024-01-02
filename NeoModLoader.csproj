@@ -170,6 +170,10 @@
       <EmbeddedResource Include="resources\reload.png" />
       <None Remove="resources\assemblies\Assembly-CSharp-Publicized" />
       <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized" />
+        <None Remove="resources\window_empty_frame.png"/>
+        <EmbeddedResource Include="resources\window_empty_frame.png"/>
+        <None Remove="resources\windowBigCloseSliced.png"/>
+        <EmbeddedResource Include="resources\windowBigCloseSliced.png"/>
     </ItemGroup>
   
     <ItemGroup>

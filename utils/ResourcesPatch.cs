@@ -5,6 +5,7 @@ using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
+
 namespace NeoModLoader.utils;
 
 /// <summary>
@@ -13,6 +14,7 @@ namespace NeoModLoader.utils;
 public static class ResourcesPatch
 {
     private static ResourceTree tree;
+
     /// <summary>
     ///     Get all patched resources.
     /// </summary>
@@ -24,6 +26,7 @@ public static class ResourcesPatch
     {
         return tree.direct_objects;
     }
+
     /// <summary>
     ///     Patch a resource to the tree at runtime.
     /// </summary>
@@ -44,7 +47,15 @@ public static class ResourcesPatch
         atlas.GetSprites(sprites);
         foreach (var sprite in sprites)
         {
-            tree.Add($"ui/special/{sprite.name.Replace("(Clone)", "")}", sprite);
+            sprite.name = sprite.name.Replace("(Clone)", "");
+            tree.Add($"ui/special/{sprite.name}", sprite);
+        }
+
+        foreach (var method in typeof(InternalResourcesGetter).GetMethods())
+        {
+            if (method.ReturnType != typeof(Sprite)) continue;
+            if (method.GetParameters().Length != 0) continue;
+            method.Invoke(null, null);
         }
     }
 
