@@ -29,6 +29,7 @@ public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup, AutoVert
         GameObject game_object =
             new(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup),
                 typeof(ContentSizeFitter));
+        game_object.transform.SetParent(WorldBoxMod.Transform);
 
         ContentSizeFitter fitter = game_object.GetComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
