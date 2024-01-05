@@ -174,6 +174,8 @@
         <EmbeddedResource Include="resources\window_empty_frame.png"/>
         <None Remove="resources\windowBigCloseSliced.png"/>
         <EmbeddedResource Include="resources\windowBigCloseSliced.png"/>
+        <None Remove="resources\windowVertNamePlate.png"/>
+        <EmbeddedResource Include="resources\windowVertNamePlate.png"/>
     </ItemGroup>
   
     <ItemGroup>

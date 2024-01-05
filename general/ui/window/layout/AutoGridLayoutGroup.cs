@@ -1,8 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace NeoModLoader.General.UI.Window.Layout;
 
-public class AutoGridLayoutGroup : AutoLayoutGroup<GridLayoutGroup>
+public class AutoGridLayoutGroup : AutoLayoutGroup<GridLayoutGroup, AutoGridLayoutGroup>
 {
     public void Setup(
         int pConstraintCount,
@@ -23,6 +24,7 @@ public class AutoGridLayoutGroup : AutoLayoutGroup<GridLayoutGroup>
             fitter.enabled = false;
             GetComponent<RectTransform>().sizeDelta = pSize;
         }
+
         layout.constraint = pConstraint;
         layout.constraintCount = pConstraintCount;
 
@@ -32,10 +34,12 @@ public class AutoGridLayoutGroup : AutoLayoutGroup<GridLayoutGroup>
         layout.startAxis = pStartAxis;
         layout.startCorner = pStartCorner;
     }
+
     internal static void _init()
     {
         GameObject game_object =
-            new(nameof(AutoGridLayoutGroup), typeof(GridLayoutGroup), typeof(AutoGridLayoutGroup), typeof(ContentSizeFitter));
+            new(nameof(AutoGridLayoutGroup), typeof(GridLayoutGroup), typeof(AutoGridLayoutGroup),
+                typeof(ContentSizeFitter));
 
         ContentSizeFitter fitter = game_object.GetComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;

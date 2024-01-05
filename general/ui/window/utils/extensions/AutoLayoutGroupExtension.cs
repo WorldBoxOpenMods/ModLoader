@@ -1,6 +1,7 @@
 using NeoModLoader.General.UI.Window.Layout;
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace NeoModLoader.General.UI.Window.Utils.Extensions;
 
 /// <summary>
@@ -17,15 +18,16 @@ public static class AutoLayoutGroupExtension
     /// <param name="pSpacing"></param>
     /// <param name="pPadding"></param>
     /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TElement"></typeparam>
     /// <returns></returns>
-    public static AutoHoriLayoutGroup BeginHoriGroup<T>(
-        this AutoLayoutGroup<T> pThis,
+    public static AutoHoriLayoutGroup BeginHoriGroup<T, TElement>(
+        this AutoLayoutGroup<T, TElement> pThis,
         Vector2 pSize = default,
         TextAnchor pAlignment = TextAnchor.MiddleLeft,
         float pSpacing = 3,
         RectOffset pPadding = null
     )
-        where T : LayoutGroup
+        where T : LayoutGroup where TElement : AutoLayoutGroup<T, TElement>
     {
         var auto_layout_group = pThis.BeginSubGroup<AutoHoriLayoutGroup, HorizontalLayoutGroup>(pSize);
 
@@ -65,13 +67,14 @@ public static class AutoLayoutGroupExtension
     /// <param name="pSpacing"></param>
     /// <param name="pPadding"></param>
     /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TElement"></typeparam>
     /// <returns></returns>
-    public static AutoVertLayoutGroup BeginVertGroup<T>(this AutoLayoutGroup<T> pThis,
+    public static AutoVertLayoutGroup BeginVertGroup<T, TElement>(this AutoLayoutGroup<T, TElement> pThis,
         Vector2 pSize = default,
         TextAnchor pAlignment = TextAnchor.UpperCenter,
         float pSpacing = 3,
         RectOffset pPadding = null)
-        where T : LayoutGroup
+        where T : LayoutGroup where TElement : AutoLayoutGroup<T, TElement>
     {
         var auto_layout_group = pThis.BeginSubGroup<AutoVertLayoutGroup, VerticalLayoutGroup>(pSize);
         if (pSize == default)
@@ -113,8 +116,9 @@ public static class AutoLayoutGroupExtension
     /// <param name="pStartAxis"></param>
     /// <param name="pStartCorner"></param>
     /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TElement"></typeparam>
     /// <returns></returns>
-    public static AutoGridLayoutGroup BeginGridGroup<T>(this AutoLayoutGroup<T> pThis,
+    public static AutoGridLayoutGroup BeginGridGroup<T, TElement>(this AutoLayoutGroup<T, TElement> pThis,
         int pConstraintCount,
         GridLayoutGroup.Constraint pConstraint = GridLayoutGroup.Constraint.FixedColumnCount,
         Vector2 pSize = default,
@@ -123,7 +127,7 @@ public static class AutoLayoutGroupExtension
         GridLayoutGroup.Axis pStartAxis = GridLayoutGroup.Axis.Horizontal,
         GridLayoutGroup.Corner pStartCorner = GridLayoutGroup.Corner.UpperLeft
     )
-        where T : LayoutGroup
+        where T : LayoutGroup where TElement : AutoLayoutGroup<T, TElement>
     {
         var auto_layout_group = pThis.BeginSubGroup<AutoGridLayoutGroup, GridLayoutGroup>(pSize);
         if (pSize == default)

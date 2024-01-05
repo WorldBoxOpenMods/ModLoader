@@ -11,6 +11,7 @@ internal static class InternalResourcesGetter
     private static Sprite github_icon;
     private static Sprite window_empty_frame;
     private static Sprite window_big_close;
+    private static Sprite window_vert_name_plate;
     private static string commit = "";
 
     private static Texture2D LoadManifestTexture(string path_under_resources)
@@ -118,5 +119,19 @@ internal static class InternalResourcesGetter
         SpriteTextureLoader.cached_sprites[$"ui/special/{window_big_close.name}"] = window_big_close;
 
         return window_big_close;
+    }
+
+    public static Sprite GetWindowVertNamePlate()
+    {
+        if (window_vert_name_plate != null) return window_vert_name_plate;
+
+        var texture = LoadManifestTexture("windowVertNamePlate.png");
+
+        window_vert_name_plate = Sprite.Create(texture, new Rect(0, 0, 18, 43), new Vector2(0.5f, 0.5f), 1, 1,
+            SpriteMeshType.Tight, new Vector4(2, 2, 2, 2));
+        window_vert_name_plate.name = "windowVertNamePlate";
+        SpriteTextureLoader.cached_sprites[$"ui/special/{window_vert_name_plate.name}"] = window_vert_name_plate;
+
+        return window_vert_name_plate;
     }
 }

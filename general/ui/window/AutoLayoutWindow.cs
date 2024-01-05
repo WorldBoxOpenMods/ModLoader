@@ -1,6 +1,7 @@
 using NeoModLoader.General.UI.Window.Layout;
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace NeoModLoader.General.UI.Window;
 
 public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLayoutWindow<T>
@@ -9,30 +10,36 @@ public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLa
     /// It will be set to true after <see cref="Init"/> is called.
     /// </summary>
     protected new bool Initialized;
+
     /// <summary>
     /// It will be set to false after <see cref="OnFirstEnable"/> called.
     /// </summary>
     protected bool IsFirstOpen = true;
+
     /// <summary>
     /// It will be set to true after <see cref="OnFirstEnable"/> and <see cref="OnNormalEnable"/> called.
     /// </summary>
     protected bool IsOpened;
+
     /// <summary>
     /// Component ScrollWindow of Instance for easy click show/hide/back
     /// </summary>
-    protected ScrollWindow ScrollWindowComponent { get; private set; }
+    protected ScrollWindow ScrollWindowComponent { get; set; }
+
     /// <summary>
     /// Transform of Background/Scroll View/Viewport/Content of Instance
     /// </summary>
     protected Transform ContentTransform { get; set; }
+
     /// <summary>
     /// Transform of Background of Instance
     /// </summary>
     protected Transform BackgroundTransform { get; set; }
+
     /// <summary>
     /// WindowID of Instance
     /// </summary>
-    protected string WindowID { get; private set; }
+    protected string WindowID { get; set; }
 
     private void OnEnable()
     {
@@ -42,6 +49,7 @@ public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLa
             IsFirstOpen = false;
             OnFirstEnable();
         }
+
         OnNormalEnable();
         IsOpened = true;
     }
@@ -52,6 +60,7 @@ public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLa
         IsOpened = false;
         OnNormalDisable();
     }
+
     public static T CreateWindow(string pWindowID, string pWindowTitleKey)
     {
         ScrollWindow window = WindowCreator.CreateEmptyWindow(pWindowID, pWindowTitleKey);
@@ -90,7 +99,9 @@ public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLa
 
         return auto_layout_window;
     }
+
     protected abstract new void Init();
+
     public static void Reconstruct(ref T pWindow)
     {
         pWindow.ScrollWindowComponent.clickHide();

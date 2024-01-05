@@ -1,12 +1,15 @@
 using NeoModLoader.General.UI.Prefabs;
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace NeoModLoader.General.UI.Window;
 
-public abstract class AutoLayoutGroup<T> : AutoLayoutElement<AutoLayoutGroup<T>> where T : LayoutGroup
+public abstract class AutoLayoutGroup<T, TElement> : AutoLayoutElement<TElement>
+    where T : LayoutGroup where TElement : AutoLayoutGroup<T, TElement>
 {
     protected ContentSizeFitter m_fitter;
     protected T m_layout;
+
     public ContentSizeFitter fitter
     {
         get
@@ -15,9 +18,11 @@ public abstract class AutoLayoutGroup<T> : AutoLayoutElement<AutoLayoutGroup<T>>
             {
                 m_fitter = gameObject.GetComponent<ContentSizeFitter>();
             }
+
             return m_fitter;
         }
     }
+
     public T layout
     {
         get
@@ -26,9 +31,11 @@ public abstract class AutoLayoutGroup<T> : AutoLayoutElement<AutoLayoutGroup<T>>
             {
                 m_layout = GetLayoutGroup();
             }
+
             return m_layout;
         }
     }
+
     public virtual void AddChild(GameObject pChild, int pIndex = -1)
     {
         Transform child_transform;
@@ -46,7 +53,7 @@ public abstract class AutoLayoutGroup<T> : AutoLayoutElement<AutoLayoutGroup<T>>
     }
 
     public TSub BeginSubGroup<TSub, TSubGroup>(Vector2 pSize = default)
-        where TSub : AutoLayoutGroup<TSubGroup>
+        where TSub : AutoLayoutGroup<TSubGroup, TSub>
         where TSubGroup : LayoutGroup
     {
         GameObject game_object =

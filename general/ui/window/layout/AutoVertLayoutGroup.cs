@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace NeoModLoader.General.UI.Window.Layout;
 
-public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup>
+public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup, AutoVertLayoutGroup>
 {
-    public void Setup(Vector2 pSize = default, TextAnchor pAlignment = TextAnchor.UpperCenter, float pSpacing = 3, RectOffset pPadding = null)
+    public void Setup(Vector2 pSize = default, TextAnchor pAlignment = TextAnchor.UpperCenter, float pSpacing = 3,
+        RectOffset pPadding = null)
     {
         Init();
         if (pSize == default)
@@ -16,14 +18,17 @@ public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup>
             fitter.enabled = false;
             GetComponent<RectTransform>().sizeDelta = pSize;
         }
+
         layout.childAlignment = pAlignment;
         layout.spacing = pSpacing;
         layout.padding = pPadding ?? new RectOffset(3, 3, 3, 3);
     }
+
     internal static void _init()
     {
         GameObject game_object =
-            new(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup), typeof(ContentSizeFitter));
+            new(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup),
+                typeof(ContentSizeFitter));
 
         ContentSizeFitter fitter = game_object.GetComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
