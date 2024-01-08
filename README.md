@@ -5,58 +5,52 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.md"><img alt="zh" src="https://img.shields.io/badge/zh-简体中文-red.svg"></a>
-  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.en.md"><img alt="en" src="https://img.shields.io/badge/en-English-green.svg"></a>
+  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.md"><img alt="zh" src="https://img.shields.io/badge/切换语言-简体中文-red.svg"></a>
+  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.en.md"><img alt="en" src="https://img.shields.io/badge/Change Language-English-green.svg"></a>
+<br/>
+    <small><small>图标由微软Image Creator于2023/10/13生成, 如有侵权联系更换</small></small>
 </p>
 
-为[Worldbox](http://www.superworldbox.com/)提供继[NCMS](https://denq04.github.io/ncms/)后的新模组加载器
+为[Worldbox](http://www.superworldbox.com/)提供继[NCMS](https://denq04.github.io/ncms/)后的新模组加载器, 简称NML.
+详细介绍见[Gitbook](https://worldboxopenmods.gitbook.io/mod-tutorial-zh/)
 
-## 目前支持的模组加载直接相关功能
+<p align="center" style="font-size:24px;font-weight: bold"> 预览 </p>
 
-1. 在GAMEPATH/Mods搜索mod.json并加载模组
-2. 模组的简单依赖管理(部分边界情况尚未处理, 环依赖未处理)
-3. 模组编译结果缓存
-4. 支持NCMS的模组(几乎所有)
-5. 支持识别BepInEx模组(仍需手动安装BepInEx)
-6. 上传, 订阅Steam创意工坊模组(仍在实验测试阶段)
-7. NCMS存在时放弃编译加载游戏路径下Mods中的模组
-8. 基于创意工坊的加载器自动更新(仍在实验测试阶段)
 
-## 近期计划
-
-1. ~~较为完善的上传验证机制~~
-2. ~~根据mod.json直接加载Mods文件夹下的已编译模组~~
-3. ~~加载zip等压缩包中的模组~~
-4. 完成简单的[模组教程](https://github.com/WorldBoxOpenMods/ModLoader/wiki/Home(简体中文))
-
-## 安装方法
+<p align="center" style="font-size:24px;font-weight: bold">
+    安装方法
+</p>
 
 1. 下载NeoModLoader.dll(和NeoModLoader.pdb)放入GAMEPATH/worldbox_Data/StreamingAssets/mods文件夹
 2. 删除NCMS_memload.dll (它们可以同时安装, 但不推荐)
 3. 在开启实验模式的情况下启动游戏
 4. 从创意工坊订阅该加载器以便自动更新(自动更新只有当该加载器已安装才会生效)
 
-## 如何反馈BUG
-[提交issue](https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-zh.yaml&title=%5BBug%5D%3A+)
+<p align="center" style="font-size:24px;font-weight: bold">其他相关</p>
+<p align="center" style="font-size:16px;font-weight: bold">
+    <a href="https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-zh.yaml&title=%5BBug%5D%3A+">反馈BUG</a>
+</p>
+<p align="center" style="font-size:16px;font-weight: bold">
+    <a href="https://worldboxopenmods.gitbook.io/mod-tutorial-zh/mo-zu-zhi-zuo-jiao-cheng/start">制作模组</a>
+</p>
+<p align="center" style="font-size:16px;font-weight: bold">
+    自行编译NML
+</p>
 
-## 如何制作模组
-
-[模组教程](https://github.com/WorldBoxOpenMods/ModLoader/wiki/Home(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#%E5%A6%82%E4%BD%95%E5%88%B6%E4%BD%9Cmod)
-
-## 如何编译
-
-简单流程:
+#### 简单流程
 
 1. clone
 2. 用Visual Studio/Rider打开NeoModLoader.csproj, 点击编译
 
-用命令行编译:
+#### 用命令行编译
 1. clone
 2. 下载[.NET Core SDK](https://dotnet.microsoft.com/download)
 3. 到NeoModLoader.csproj所在目录
 4. 执行`dotnet build NeoModLoader.csproj`
 
-## 如何贡献代码
+<p align="center" style="font-size:16px;font-weight: bold">
+    贡献代码
+</p>
 
 对于小修补:
 
@@ -69,3 +63,7 @@
 
 1. 提交issue
 2. 讨论通过后再重复上述步骤
+
+<p align="center" style="font-size:16px;font-weight: bold">
+    后续开发路线
+</p>
