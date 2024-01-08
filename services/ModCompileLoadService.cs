@@ -567,6 +567,8 @@ public static class ModCompileLoadService
             Paths.NCMSAdditionModResourceFolderName));
 
         LoadMod(mod_declare);
+
+        ResourcesPatch.PatchSomeResources();
         return true;
     }
 

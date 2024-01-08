@@ -64,6 +64,7 @@ public static class ResourcesPatch
         Sprite[] items = Resources.LoadAll<Sprite>("actors/races/items");
         foreach (Sprite item in items)
         {
+            if (ActorAnimationLoader.dictItems.ContainsKey(item.name)) continue;
             ActorAnimationLoader.dictItems[item.name] = item;
         }
     }
