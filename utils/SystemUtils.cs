@@ -1,6 +1,8 @@
-using System.Runtime.InteropServices;
+using System.Diagnostics;
+using NeoModLoader.services;
 
 namespace NeoModLoader.utils;
+
 /// <summary>
 /// It contains methods which act outside Game and Loader
 /// </summary>
@@ -12,25 +14,27 @@ public static class SystemUtils
     /// <param name="parameters">parameters passed into cmd</param>
     public static void CmdRunAs(string[] parameters)
     {
-        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+        ProcessStartInfo startInfo = new ProcessStartInfo();
         startInfo.FileName = "cmd.exe";
         startInfo.Arguments = String.Join(" ", parameters);
         Console.WriteLine(startInfo.Arguments);
         startInfo.Verb = "runas";
-        System.Diagnostics.Process.Start(startInfo);
+        Process.Start(startInfo);
     }
+
     /// <summary>
     /// Run bash with parameters
     /// </summary>
     /// <param name="parameters"></param>
     public static void BashRun(string[] parameters)
     {
-        var startInfo = new System.Diagnostics.ProcessStartInfo();
+        var startInfo = new ProcessStartInfo();
         startInfo.FileName = "bash";
         startInfo.Arguments = String.Join(" ", parameters);
         Console.WriteLine(startInfo.Arguments);
-        System.Diagnostics.Process.Start(startInfo);
+        Process.Start(startInfo);
     }
+
     /// <summary>
     /// Search all directories dirname filtered for files' fullpath with filename filtered 
     /// </summary>
@@ -54,7 +58,8 @@ public static class SystemUtils
                     result.Add(file.FullName);
                 }
             }
-            foreach(var subDir in dir.GetDirectories())
+
+            foreach (var subDir in dir.GetDirectories())
             {
                 if (dirNameJudge(subDir.Name))
                 {
@@ -64,5 +69,34 @@ public static class SystemUtils
         }
 
         return result;
+    }
+
+    public static void CopyDirectory(string pSource, string pTarget)
+    {
+        if (string.IsNullOrEmpty(pSource) || string.IsNullOrEmpty(pTarget))
+        {
+            LogService.LogWarning("Source or target is null or empty");
+            LogService.LogStackTraceAsWarning();
+            return;
+        }
+
+        if (!Directory.Exists(pSource))
+        {
+            LogService.LogWarning($"Source directory {pSource} does not exist");
+            LogService.LogStackTraceAsWarning();
+            return;
+        }
+
+        if (!Directory.Exists(pTarget)) Directory.CreateDirectory(pTarget);
+        var queue = new Queue<string>();
+        queue.Enqueue("");
+        while (queue.Count > 0)
+        {
+            var relative_dir = queue.Dequeue();
+            var dir = new DirectoryInfo(Path.Combine(pSource, relative_dir));
+            if (!dir.Exists) dir.Create();
+            foreach (var file in dir.GetFiles()) file.CopyTo(Path.Combine(pTarget, relative_dir, file.Name), true);
+            foreach (var subDir in dir.GetDirectories()) queue.Enqueue(Path.Combine(relative_dir, subDir.Name));
+        }
     }
 }

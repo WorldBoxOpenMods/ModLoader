@@ -84,7 +84,7 @@ internal static class ModInfoUtils
 
                 try
                 {
-                    Directory.Move(Path.GetDirectoryName(mod_json_files[0]),
+                    SystemUtils.CopyDirectory(Path.GetDirectoryName(mod_json_files[0]),
                         Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(zipped_mod)));
                 }
                 catch (UnauthorizedAccessException)
@@ -392,9 +392,20 @@ internal static class ModInfoUtils
         var mod_config_path = Path.Combine(pModFolderPath, Paths.ModDeclarationFileName);
         if (!File.Exists(mod_config_path))
         {
-            if (pLogModJsonNotFound)
-                LogService.LogWarning($"No mod.json file for folder {pModFolderPath} in Mods");
-            return null;
+            var possible_mod_config_path = SystemUtils.SearchFileRecursive(pModFolderPath,
+                file_name => file_name == Paths.ModDeclarationFileName,
+                _ => true);
+            if (possible_mod_config_path.Count == 0)
+            {
+                if (pLogModJsonNotFound)
+                    LogService.LogWarning($"No mod.json file for folder {pModFolderPath} in Mods");
+                return null;
+            }
+
+            if (possible_mod_config_path.Count > 1)
+                LogService.LogWarning(
+                    $"More than one mod.json file in mod folder, only load the first one at '{possible_mod_config_path[0]}'");
+            mod_config_path = possible_mod_config_path[0];
         }
 
         try
