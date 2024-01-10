@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using NeoModLoader.General;
 
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 namespace ReflectionUtility
@@ -21,6 +22,7 @@ namespace ReflectionUtility
 
         public static object CallStaticMethod(Type type, string methodName, params object[] args)
         {
+            type.GetMethodDelegate(methodName, true)?.DynamicInvoke(args);
             MethodInfo method = type.GetMethod(methodName,
                 BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
             if (method == null)
@@ -28,7 +30,7 @@ namespace ReflectionUtility
                 throw new MissingMethodException(type.Name, methodName);
             }
 
-            return method.Invoke(null, args);
+            return type.GetMethodDelegate(methodName, true)?.DynamicInvoke(args);
         }
 
         public static object GetField(Type type, object instance, string fieldName)
@@ -45,28 +47,12 @@ namespace ReflectionUtility
 
         public static void SetField<T>(object originalObject, string fieldName, T newValue)
         {
-            Type type = originalObject.GetType();
-            FieldInfo field = type.GetField(fieldName,
-                BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-            if (field == null)
-            {
-                throw new MissingFieldException(type.Name, fieldName);
-            }
-
-            field.SetValue(originalObject, newValue);
+            originalObject?.SetField(fieldName, newValue);
         }
 
         public static void SetStaticField<T>(Type objectType, string fieldName, T newValue)
         {
-            Type type = objectType.GetType();
-            FieldInfo field = type.GetField(fieldName,
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field == null)
-            {
-                throw new MissingFieldException(type.Name, fieldName);
-            }
-
-            field.SetValue(null, newValue);
+            RF.SetStaticField(fieldName, newValue, objectType);
         }
     }
 }

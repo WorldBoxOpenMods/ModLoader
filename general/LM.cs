@@ -3,6 +3,7 @@ using HarmonyLib;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.services;
 using Newtonsoft.Json;
+
 namespace NeoModLoader.General;
 
 /// <summary>
@@ -14,6 +15,7 @@ public static class LM
     /// Store all locales loaded by NML.
     /// </summary>
     private static Dictionary<string, Dictionary<string, string>> locales = new();
+
     private static readonly Dictionary<string, string> str2esc = new()
     {
         {
@@ -110,6 +112,7 @@ public static class LM
             }
         }
     }
+
     private static Dictionary<string, Dictionary<string, string>> ParseCSV(string pText)
     {
         var lines = pText.Split('\n');
@@ -129,7 +132,8 @@ public static class LM
         {
             if (string.IsNullOrEmpty(lines[i].Trim())) continue;
             if (!lines[i].Contains(',')) continue;
-            var line = str2esc.Keys.Aggregate(lines[i], (current, key) => current.Replace(key, str2esc[key])).Split(',');
+            var line = str2esc.Keys.Aggregate(lines[i], (current, key) => current.Replace(key, str2esc[key]))
+                .Split(',');
             var key = line[0];
 
             if (string.IsNullOrEmpty(key)) continue;
@@ -260,7 +264,7 @@ public static class LM
     /// <remarks>It will be called automatically by NML when language is changed.</remarks>
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public static void ApplyLocale()
+    public static void ApplyLocale(bool pUpdateTexts = true)
     {
         if (!locales.ContainsKey(LocalizedTextManager.instance.language))
         {
@@ -273,7 +277,7 @@ public static class LM
             LocalizedTextManager.instance.localizedText[key] = value;
         }
 
-        LocalizedTextManager.updateTexts();
+        if (pUpdateTexts) LocalizedTextManager.updateTexts();
     }
 
     /// <summary>

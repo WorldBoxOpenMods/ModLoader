@@ -3,8 +3,10 @@ using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace NeoModLoader.General;
+
 /// <summary>
 /// This class is used to create power buttons easily
 /// </summary>
@@ -22,45 +24,47 @@ public static class PowerButtonCreator
     /// <param name="pParent">Which transform the button attached to</param>
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateWindowButton([NotNull]string pId, [NotNull]string pWindowId,
-        Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
+    public static PowerButton CreateWindowButton([NotNull] string pId, [NotNull] string pWindowId,
+        Sprite pIcon, [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
     {
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("worldlaws");
-        
+
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
         {
             prefab.gameObject.SetActive(false);
         }
+
         PowerButton obj;
         if (pParent == null)
         {
-            obj = GameObject.Instantiate(prefab);
+            obj = Object.Instantiate(prefab);
         }
         else
         {
-            obj = GameObject.Instantiate(prefab, pParent);
+            obj = Object.Instantiate(prefab, pParent);
         }
-        
+
         if (found_active)
         {
             prefab.gameObject.SetActive(true);
         }
-        
-        
+
+
         obj.name = pId;
         obj.icon.sprite = pIcon;
         obj.open_window_id = pWindowId;
         obj.type = PowerButtonType.Window;
 
         var transform = obj.transform;
-        
+
         transform.localPosition = pLocalPosition;
         transform.localScale = Vector3.one;
-        
+
         obj.gameObject.SetActive(true);
         return obj;
     }
+
     /// <summary>
     /// Create a simple power button with click action
     /// </summary>
@@ -73,45 +77,40 @@ public static class PowerButtonCreator
     /// <param name="pParent">Which transform the button attached to</param>
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateSimpleButton([NotNull]string pId, [NotNull]UnityAction pAction,
-        Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
+    public static PowerButton CreateSimpleButton([NotNull] string pId, UnityAction pAction,
+        Sprite pIcon, [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
     {
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("worldlaws");
-        
+
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
         {
             prefab.gameObject.SetActive(false);
         }
+
         PowerButton obj;
-        if (pParent == null)
-        {
-            obj = GameObject.Instantiate(prefab);
-        }
-        else
-        {
-            obj = GameObject.Instantiate(prefab, pParent);
-        }
-        
+        obj = pParent == null ? Object.Instantiate(prefab) : Object.Instantiate(prefab, pParent);
+
         if (found_active)
         {
             prefab.gameObject.SetActive(true);
         }
-        
-        
+
+
         obj.name = pId;
         obj.icon.sprite = pIcon;
         obj.type = PowerButtonType.Library;
-        obj.GetComponent<Button>().onClick.AddListener(pAction);
+        if (pAction != null) obj.GetComponent<Button>().onClick.AddListener(pAction);
 
         var transform = obj.transform;
-        
+
         transform.localPosition = pLocalPosition;
         transform.localScale = Vector3.one;
-        
+
         obj.gameObject.SetActive(true);
         return obj;
     }
+
     /// <summary>
     /// Create a button to use common god power
     /// </summary>
@@ -126,31 +125,26 @@ public static class PowerButtonCreator
     /// <param name="pParent">Which transform the button attached to</param>
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateGodPowerButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default)
+    public static PowerButton CreateGodPowerButton(string pGodPowerId, Sprite pIcon,
+        [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
     {
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("inspect");
-        
+
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
         {
             prefab.gameObject.SetActive(false);
         }
+
         PowerButton obj;
-        if (pParent == null)
-        {
-            obj = GameObject.Instantiate(prefab);
-        }
-        else
-        {
-            obj = GameObject.Instantiate(prefab, pParent);
-        }
-        
+        obj = pParent == null ? Object.Instantiate(prefab) : Object.Instantiate(prefab, pParent);
+
         if (found_active)
         {
             prefab.gameObject.SetActive(true);
         }
-        
-        
+
+
         obj.name = pGodPowerId;
         obj.icon.sprite = pIcon;
         obj.open_window_id = null;
@@ -158,13 +152,14 @@ public static class PowerButtonCreator
         // More settings for it
 
         var transform = obj.transform;
-        
+
         transform.localPosition = pLocalPosition;
         transform.localScale = Vector3.one;
-        
+
         obj.gameObject.SetActive(true);
         return obj;
     }
+
     /// <summary>
     /// Create a button to use toggle god power
     /// </summary>
@@ -181,7 +176,8 @@ public static class PowerButtonCreator
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <param name="pNoAutoSetToggleAction">Not set god power's toggle_action automatically if it's not null</param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull]Transform pParent = null, Vector2 pLocalPosition = default, bool pNoAutoSetToggleAction = false)
+    public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull] Transform pParent = null,
+        Vector2 pLocalPosition = default, bool pNoAutoSetToggleAction = false)
     {
         GodPower god_power = AssetManager.powers.get(pGodPowerId);
         if (god_power == null)
@@ -189,7 +185,7 @@ public static class PowerButtonCreator
             LogService.LogError("Cannot find GodPower with id " + pGodPowerId);
             return null;
         }
-        
+
         void toggleOption(string pPower)
         {
             GodPower power = AssetManager.powers.get(pPower);
@@ -203,12 +199,13 @@ public static class PowerButtonCreator
                 };
                 PlayerConfig.instance.data.add(_option);
             }
-            
+
             _option.boolVal = !_option.boolVal;
             if (_option.boolVal && power.map_modes_switch)
                 AssetManager.powers.disableAllOtherMapModes(pPower);
             PlayerConfig.saveData();
         }
+
         if (god_power.toggle_action == null)
         {
             god_power.toggle_action = toggleOption;
@@ -218,7 +215,8 @@ public static class PowerButtonCreator
             god_power.toggle_action = (PowerToggleAction)Delegate.Combine(god_power.toggle_action,
                 new PowerToggleAction(toggleOption));
         }
-        if(!PlayerConfig.dict.TryGetValue(god_power.toggle_name, out var option))
+
+        if (!PlayerConfig.dict.TryGetValue(god_power.toggle_name, out var option))
         {
             AssetManager.options_library.add(new OptionAsset()
             {
@@ -231,30 +229,24 @@ public static class PowerButtonCreator
                 boolVal = false
             });
         }
-        
+
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("kingsAndLeaders");
-        
+
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
         {
             prefab.gameObject.SetActive(false);
         }
+
         PowerButton obj;
-        if (pParent == null)
-        {
-            obj = GameObject.Instantiate(prefab);
-        }
-        else
-        {
-            obj = GameObject.Instantiate(prefab, pParent);
-        }
-        
+        obj = pParent == null ? Object.Instantiate(prefab) : Object.Instantiate(prefab, pParent);
+
         if (found_active)
         {
             prefab.gameObject.SetActive(true);
         }
-        
-        
+
+
         obj.name = pGodPowerId;
         obj.icon.sprite = pIcon;
         obj.open_window_id = null;
@@ -264,13 +256,14 @@ public static class PowerButtonCreator
         // More settings for it
 
         var transform = obj.transform;
-        
+
         transform.localPosition = pLocalPosition;
         transform.localScale = Vector3.one;
-        
+
         obj.gameObject.SetActive(true);
         return obj;
     }
+
     /// <summary>
     /// Get a tab by its Object Name
     /// </summary>
@@ -281,14 +274,10 @@ public static class PowerButtonCreator
         if (string.IsNullOrEmpty(pId)) return null;
         Transform tabTransform = CanvasMain.instance.canvas_ui.transform.Find(
             $"CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/buttons/{pId}");
-        
-        if (tabTransform == null)
-        {
-            return null;
-        }
 
-        return tabTransform.GetComponent<PowersTab>();
+        return tabTransform == null ? null : tabTransform.GetComponent<PowersTab>();
     }
+
     /// <summary>
     /// Add a button to a tab
     /// </summary>

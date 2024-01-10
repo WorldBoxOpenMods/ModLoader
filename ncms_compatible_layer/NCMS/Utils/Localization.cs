@@ -9,6 +9,7 @@ namespace NCMS.Utils
         public static void Add(string key, string value)
         {
             LM.AddToCurrentLocale(key, value);
+            LM.ApplyLocale(false);
         }
 
         [Obsolete("Localization.addLocalization is deprecated, please use Localization.Add instead")]
@@ -35,6 +36,7 @@ namespace NCMS.Utils
 
         public static string Get(string key)
         {
+            // There is a mod uses exception to check if the key exists and do something. So keep it.
             return LocalizedTextManager.instance.localizedText[key];
         }
 

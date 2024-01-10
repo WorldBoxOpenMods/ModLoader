@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using NeoModLoader.General;
+using UnityEngine;
 
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 namespace NCMS.Utils
@@ -9,16 +10,7 @@ namespace NCMS.Utils
         [Obsolete("Use ResourcesFinder.FindResources<T>(string name) instead")]
         public static GameObject FindEvenInactive(string Name)
         {
-            GameObject[] array = Resources.FindObjectsOfTypeAll<GameObject>();
-            foreach (var obj in array)
-            {
-                if (obj.name.ToLower() == Name.ToLower())
-                {
-                    return obj;
-                }
-            }
-
-            return null;
+            return ResourcesFinder.FindResource<GameObject>(Name);
         }
     }
 }

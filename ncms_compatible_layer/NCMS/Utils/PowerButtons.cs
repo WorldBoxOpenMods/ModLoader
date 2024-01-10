@@ -1,8 +1,8 @@
 ﻿using NeoModLoader.General;
-using ReflectionUtility;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 namespace NCMS.Utils
@@ -11,48 +11,37 @@ namespace NCMS.Utils
     public class PowerButtons
     {
         private static Dictionary<string, PowerButton> toggle_buttons = new Dictionary<string, PowerButton>();
-        private static Dictionary<string, bool> bak_toggle_values = new Dictionary<string, bool>();
 
         public static Dictionary<string, PowerButton> CustomButtons = new Dictionary<string, PowerButton>();
-        public static Dictionary<string, bool> ToggleValues = bak_toggle_values;
+        public static Dictionary<string, bool> ToggleValues = new();
 
         public static PowerButton CreateButton(string name, Sprite sprite, string title, string description,
             Vector2 position, ButtonType type = ButtonType.Click, Transform parent = null, UnityAction call = null)
         {
             LM.AddToCurrentLocale(name, title);
             LM.AddToCurrentLocale(name + " Description", description);
+            LM.ApplyLocale(false);
 
-            string prefab_name;
             switch (type)
             {
-                case ButtonType.GodPower:
-                    prefab_name = "inspect";
-                    break;
                 case ButtonType.Click:
-                    prefab_name = "worldlaws";
-                    break;
+                    return PowerButtonCreator.CreateSimpleButton(name, call, sprite, parent, position);
+                case ButtonType.GodPower:
+                    return PowerButtonCreator.CreateGodPowerButton(name, sprite, parent, position);
                 case ButtonType.Toggle:
-                    prefab_name = "kingsAndLeaders";
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
 
-            GameObject prefab = GameObjects.FindEvenInactive(prefab_name);
+            // NCMS implements toggle button with its own way. So we cannot use PowerButtonCreator.CreateToggleButton here.
+            var prefab = ResourcesFinder.FindResource<PowerButton>("kingsAndLeaders").gameObject;
 
             // To avoid PowerButton's OnEnable() method
             bool found_active = prefab.activeSelf;
             prefab.SetActive(false);
 
-            GameObject obj;
-            if (parent == null)
-            {
-                obj = GameObject.Instantiate(prefab);
-            }
-            else
-            {
-                obj = GameObject.Instantiate(prefab, parent);
-            }
+            var obj = parent == null ? Object.Instantiate(prefab) : Object.Instantiate(prefab, parent);
 
             prefab.SetActive(found_active);
             obj.transform.localPosition = position;
@@ -62,39 +51,27 @@ namespace NCMS.Utils
             Button asButton = obj.GetComponent<Button>();
 
             asButton.onClick.RemoveAllListeners();
+
+            // Set custom click callback
+            if (call != null) asButton.onClick.AddListener(call);
+
             asPowerButton.open_window_id = string.Empty;
 
             // Set name
             asPowerButton.name = name;
 
             // Set sprite
-            obj.transform.Find("Icon").GetComponent<Image>().sprite = sprite;
+            asPowerButton.icon.sprite = sprite;
 
-            switch (type)
-            {
-                case ButtonType.Click:
-                    asPowerButton.type = PowerButtonType.Library;
-                    break;
-                case ButtonType.GodPower:
-                    asPowerButton.type = PowerButtonType.Active;
-                    break;
-                case ButtonType.Toggle:
-                    asPowerButton.type = PowerButtonType.Library;
-                    toggle_buttons.Add(name, asPowerButton);
-                    bak_toggle_values.Add(name, false);
-                    asButton.onClick.AddListener(() => ToggleButton(name));
-                    obj.transform.Find("ToggleIcon").GetComponent<ToggleIcon>()
-                        .CallMethod("updateIcon", bak_toggle_values[name]);
-                    break;
-            }
+            asPowerButton.type = PowerButtonType.Library;
+            // DO NOT catch repeat key exception here. There is a NCMS mod that use it.
+            toggle_buttons.Add(name, asPowerButton);
+            ToggleValues.Add(name, false);
 
-            // Set custom click callback
-            if (call != null)
-            {
-                asButton.onClick.AddListener(call);
-            }
+            asButton.onClick.AddListener(() => ToggleButton(name));
+            obj.transform.Find("ToggleIcon").GetComponent<ToggleIcon>().updateIcon(false);
 
-            obj.gameObject.SetActive(true);
+            obj.SetActive(true);
 
             CustomButtons[name] = asPowerButton;
             return asPowerButton;
@@ -103,10 +80,12 @@ namespace NCMS.Utils
         public static Button CreateTextButton(string name, string text, Vector2 position, Color color,
             Transform parent = null, UnityAction callback = null)
         {
+            // Since this will be removed, it's not necessary to move it into APrefab
             GameObject button_obj = new GameObject(name, typeof(Image), typeof(Button));
-            button_obj.transform.SetParent(parent);
+            if (parent != null) button_obj.transform.SetParent(parent);
             button_obj.transform.localScale = Vector3.one;
             button_obj.transform.localPosition = position;
+            // There may be wrong color compared to NCMS in most cases. But it's not an actual problem.
             button_obj.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
             button_obj.GetComponent<Image>().color = color;
             button_obj.GetComponent<Image>().SetNativeSize();
@@ -116,6 +95,7 @@ namespace NCMS.Utils
             text_obj.transform.SetParent(button_obj.transform);
             text_obj.transform.localScale = Vector3.one;
             text_obj.transform.localPosition = Vector3.zero;
+
             Text text_text = text_obj.GetComponent<Text>();
             text_text.font = Resources.Load<Font>("fonts/roboto-bold");
             text_text.color = Color.white;
@@ -127,10 +107,6 @@ namespace NCMS.Utils
             Outline outline = text_obj.GetComponent<Outline>();
             outline.effectDistance = new Vector2(1f, -1f);
             outline.effectColor = new Color(0f, 0f, 0f, 0.2f);
-            if (parent != null)
-            {
-                button_obj.transform.SetParent(parent);
-            }
 
             return button_obj.GetComponent<Button>();
         }
@@ -142,26 +118,13 @@ namespace NCMS.Utils
 
         public static bool GetToggleValue(string name)
         {
-            if (toggle_buttons.TryGetValue(name, out PowerButton button))
-            {
-                Transform toggle = button.transform.Find("ToggleIcon");
-                if (toggle == null)
-                {
-                    throw new Exception($"Toggle button added by NCMS Method is invalid for {name}");
-                }
+            if (!toggle_buttons.TryGetValue(name, out var button))
+                throw new Exception($"Toggle button added by NCMS Method not found for {name}");
+            if (button.transform.Find("ToggleIcon") == null)
+                throw new Exception($"Toggle button added by NCMS Method is invalid for {name}");
 
-                GodPower power = AssetManager.powers.get(name);
-                if (power == null)
-                {
-                    return bak_toggle_values[name];
-                    throw new Exception(
-                        $"Toggle button added by NCMS Method is invalid, GodPower not found for {name}");
-                }
-
-                return PlayerConfig.dict[power.toggle_name].boolVal;
-            }
-
-            throw new Exception($"Toggle button added by NCMS Method not found for {name}");
+            var power = AssetManager.powers.get(name);
+            return power == null ? ToggleValues[name] : PlayerConfig.dict[power.toggle_name].boolVal;
         }
 
         public static void ToggleButton(string name)
@@ -169,7 +132,7 @@ namespace NCMS.Utils
             if (toggle_buttons.TryGetValue(name, out PowerButton button))
             {
                 Transform toggle = button.transform.Find("ToggleIcon");
-                if (toggle == null)
+                if (button.transform.Find("ToggleIcon") == null)
                 {
                     throw new Exception($"Toggle button added by NCMS Method is invalid for {name}");
                 }
@@ -177,11 +140,9 @@ namespace NCMS.Utils
                 GodPower power = AssetManager.powers.get(name);
                 if (power == null)
                 {
-                    bak_toggle_values[name] = !bak_toggle_values[name];
-                    toggle.GetComponent<ToggleIcon>().CallMethod("updateIcon", bak_toggle_values[name]);
+                    ToggleValues[name] = !ToggleValues[name];
+                    toggle.GetComponent<ToggleIcon>().updateIcon(ToggleValues[name]);
                     return;
-                    throw new Exception(
-                        $"Toggle button added by NCMS Method is invalid, GodPower not found for {name}");
                 }
 
                 PlayerConfig.dict[power.toggle_name].boolVal = !PlayerConfig.dict[power.toggle_name].boolVal;

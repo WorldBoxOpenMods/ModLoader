@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿extern alias unixsteamwork;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NCMS;
@@ -12,78 +13,67 @@ namespace NeoModLoader.ncms_compatible_layer
     internal static class NCMSCompatibleLayer
     {
         public const string modGlobalObject = @"
-                                        using System;
-                                        using System.IO;
-                                        using System.Reflection;
-                                        using UnityEngine;
-                                        using UnityEngine.Events;
-                                        using UnityEngine.UI;
+    using System;
+    using System.IO;
+    using System.Reflection;
+    using UnityEngine;
+    using UnityEngine.Events;
+    using UnityEngine.UI;
 
-                                        internal class Mod
-                                        {
-                                            public static ModDeclaration.Info Info;
-                                            public static GameObject GameObject;
-                                            public static Action OnDebug;
+                                        
+    internal class Mod
+    {
+        public static ModDeclaration.Info Info;
+        public static GameObject GameObject;
+        public static Action OnDebug;
 
-                                            private static int debugClicked = 0;
-                                            
-                                            public static void Initialize(Button button)
-                                            {
-                                                OnDebug += new Action(() => {
-                                                    Debug.Log($""Debug toggled for mod {Info.Name}"");
-                                                });
+        private static int debugClicked = 0;
 
-                                                button.onClick.AddListener(new UnityAction(() =>
-                                                {
-                                                    if(debugClicked < 10)
-                                                    {
-                                                        debugClicked++;
-                                                        return;
-                                                    }
-                                                    
-                                                    OnDebug();
-                                                }));
-                                            }
-                                            
-                                            public class EmbededResources
-                                            {
-                                                public static Sprite LoadSprite(string name, float pivotX = 0, float pivotY = 0, float pixelsPerUnit = 1f)
-                                                {
-                                                    //Assembly myAssembly = Assembly.GetExecutingAssembly();
-                                                    //Stream myStream = myAssembly.GetManifestResourceStream(name);
+        public static void Initialize(Button button)
+        {
+            OnDebug += new Action(() => { LogService.LogInfo($""Debug toggled for mod {Info.Name}""); });
 
-                                                    byte[] data = GetBytes(name);
-                                                    Texture2D texture2D = new Texture2D(1, 1);
-                                                    texture2D.anisoLevel = 0;
-                                                    texture2D.LoadImage(data);
-                                                    texture2D.filterMode = FilterMode.Point;
-                                                    return Sprite.Create(texture2D, new Rect(0.0f, 0.0f, (float)texture2D.width, (float)texture2D.height), new Vector2(pivotX, pivotX), pixelsPerUnit);
-                                                }
+            button.onClick.AddListener(new UnityAction(() =>
+            {
+                if (debugClicked < 10)
+                {
+                    debugClicked++;
+                    return;
+                }
 
-                                                public static byte[] GetBytes(string name)
-                                                {
-                                                    Assembly myAssembly = Assembly.GetExecutingAssembly();
-                                                    Stream myStream = myAssembly.GetManifestResourceStream(name);
+                OnDebug();
+            }));
+        }
 
-                                                    return ReadFully(myStream);
-                                                }
+        public class EmbededResources
+        {
+            private static Assembly this_assembly = Assembly.GetExecutingAssembly();
+            public static Sprite LoadSprite(string name, float pivotX = 0, float pivotY = 0, float pixelsPerUnit = 1f)
+            {
+                Texture2D texture2D = new Texture2D(0, 0);
+                texture2D.LoadImage(GetBytes(name));
+                texture2D.anisoLevel = 0;
+                texture2D.filterMode = FilterMode.Point;
+                return Sprite.Create(texture2D, new Rect(0.0f, 0.0f, (float)texture2D.width, (float)texture2D.height),
+                    new Vector2(pivotX, pivotY), pixelsPerUnit);
+            }
+            private static Dictionary<string, byte[]> bytes_cache = new();
 
-                                                internal static byte[] ReadFully(Stream input)
-                                                {
-                                                    byte[] buffer = new byte[16 * 1024];
-                                                    using (MemoryStream ms = new MemoryStream())
-                                                    {
-                                                        int read;
-                                                        while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                                                        {
-                                                            ms.Write(buffer, 0, read);
-                                                        }
-                                                        return ms.ToArray();
-                                                    }
-                                                }
-                                            }
+            public static byte[] GetBytes(string name)
+            {
+                if(!bytes_cache.ContainsKey(name))
+                    bytes_cache.Add(name, ReadFully(this_assembly.GetManifestResourceStream(name)));
+                return bytes_cache[name];
+            }
 
-                                        }";
+            internal static byte[] ReadFully(Stream input)
+            {
+                using var ms = new MemoryStream();
+                input.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+    }";
 
         public static void PreInit()
         {
