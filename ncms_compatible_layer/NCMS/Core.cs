@@ -3,6 +3,10 @@ using UnityEngine;
 namespace NCMS;
 
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
+
+/// <remarks>
+///     From [NCMS](https://denq04.github.io/ncms/)
+/// </remarks>
 public class Core
 {
     // For compatibility, use all same with NCMS.

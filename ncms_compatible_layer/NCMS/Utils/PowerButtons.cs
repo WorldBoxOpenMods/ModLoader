@@ -15,6 +15,9 @@ namespace NCMS.Utils
         public static Dictionary<string, PowerButton> CustomButtons = new Dictionary<string, PowerButton>();
         public static Dictionary<string, bool> ToggleValues = new();
 
+        /// <remarks>
+        ///     From [NCMS](https://denq04.github.io/ncms/)
+        /// </remarks>
         public static PowerButton CreateButton(string name, Sprite sprite, string title, string description,
             Vector2 position, ButtonType type = ButtonType.Click, Transform parent = null, UnityAction call = null)
         {
@@ -77,6 +80,10 @@ namespace NCMS.Utils
             return asPowerButton;
         }
 
+        /// <remarks>
+        ///     From [NCMS](https://denq04.github.io/ncms/).
+        ///     <para>ATTENTION! button background color is modified to RED</para>
+        /// </remarks>
         public static Button CreateTextButton(string name, string text, Vector2 position, Color color,
             Transform parent = null, UnityAction callback = null)
         {
@@ -116,6 +123,9 @@ namespace NCMS.Utils
             PowerButtonCreator.AddButtonToTab(button, PowerButtonCreator.GetTab("Tab_" + tab.ToString()), position);
         }
 
+        /// <remarks>
+        ///     From [NCMS](https://denq04.github.io/ncms/)
+        /// </remarks>
         public static bool GetToggleValue(string name)
         {
             if (!toggle_buttons.TryGetValue(name, out var button))
@@ -127,6 +137,9 @@ namespace NCMS.Utils
             return power == null ? ToggleValues[name] : PlayerConfig.dict[power.toggle_name].boolVal;
         }
 
+        /// <remarks>
+        ///     From [NCMS](https://denq04.github.io/ncms/)
+        /// </remarks>
         public static void ToggleButton(string name)
         {
             if (toggle_buttons.TryGetValue(name, out PowerButton button))

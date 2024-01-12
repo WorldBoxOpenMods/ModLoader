@@ -163,7 +163,7 @@ internal static class ModInfoUtils
             var mod = recogMod(mod_folder, false);
             if (mod != null)
             {
-                if (mod.ModType == ModTypeEnum.NORMAL)
+                if (mod.ModType == ModTypeEnum.NEOMOD)
                 {
                     if (findModsIDs.Contains(mod.UID))
                     {

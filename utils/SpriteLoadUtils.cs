@@ -213,6 +213,9 @@ public static class SpriteLoadUtils
         public TextureImporter TextureImporter;
     }
 
+    /// <remarks>
+    ///     Prototype comes from [NCMS](https://denq04.github.io/ncms/)
+    /// </remarks>
     class NCMSSpritesSettings
     {
         public SpecificSetting Default;
@@ -224,6 +227,9 @@ public static class SpriteLoadUtils
             return JsonConvert.SerializeObject(this);
         }
 
+        /// <remarks>
+        ///     Prototype comes from [NCMS](https://denq04.github.io/ncms/)
+        /// </remarks>
         public class SpecificSetting
         {
             public float BorderB = 0.0f;

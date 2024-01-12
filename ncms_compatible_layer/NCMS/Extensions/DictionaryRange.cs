@@ -3,6 +3,9 @@ namespace NCMS.Extensions;
 // Several stupid NCMS mods use this class, so we have to implement it.
 // Idk why they do not use a loop directly.
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
+/// <remarks>
+///     From [NCMS](https://denq04.github.io/ncms/)
+/// </remarks>
 public static class DictionaryRange
 {
     public static void AddRangeOverride<TKey, TValue>(this IDictionary<TKey, TValue> dic,

@@ -17,6 +17,7 @@ public static class PowerButtonCreator
     /// </summary>
     /// <remarks>
     ///     Please set "{pId}"[Necessary] and "{pId} Description"[Optional] in locale file and load it.
+    /// <para>Prototype comes from NCMS</para>
     /// </remarks>
     /// <param name="pId">PowerButton's name, determines title and desc key of tooltip</param>
     /// <param name="pWindowId">Id of the window to open</param>
@@ -70,6 +71,7 @@ public static class PowerButtonCreator
     /// </summary>
     /// <remarks>
     ///     Please set "{pId}"[Necessary] and "{pId} Description"[Optional] in locale file and load it.
+    /// <para>Prototype comes from NCMS</para>
     /// </remarks>
     /// <param name="pId">PowerButton's name, determines title and desc key of tooltip</param>
     /// <param name="pAction">The action of the button</param>

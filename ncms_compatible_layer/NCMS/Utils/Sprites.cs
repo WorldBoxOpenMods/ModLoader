@@ -5,6 +5,9 @@ namespace NCMS.Utils;
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 public class Sprites
 {
+    /// <remarks>
+    ///     From [NCMS](https://denq04.github.io/ncms/)
+    /// </remarks>
     public static Sprite LoadSprite(string path, float offsetX = 0f, float offsetY = 0f)
     {
         // Maybe a NCMS mod will use exception to do something, so we do not catch it.

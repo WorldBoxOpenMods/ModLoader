@@ -11,6 +11,9 @@ namespace NeoModLoader.ncms_compatible_layer
 #pragma warning disable CS0618
     internal static class NCMSCompatibleLayer
     {
+        /// <summary>
+        ///     An improved variant of mod global object in [NCMS](https://denq04.github.io/ncms/)
+        /// </summary>
         public const string modGlobalObject = @"
     using System;
     using System.IO;
@@ -18,8 +21,10 @@ namespace NeoModLoader.ncms_compatible_layer
     using UnityEngine;
     using UnityEngine.Events;
     using UnityEngine.UI;
+    using NeoModLoader.services;
+    using System.Collections.Generic;
 
-                                        
+
     internal class Mod
     {
         public static ModDeclaration.Info Info;
@@ -47,22 +52,27 @@ namespace NeoModLoader.ncms_compatible_layer
         public class EmbededResources
         {
             private static Assembly this_assembly = Assembly.GetExecutingAssembly();
+
             public static Sprite LoadSprite(string name, float pivotX = 0, float pivotY = 0, float pixelsPerUnit = 1f)
             {
+                string hash = $""{name}-{pivotX}-{pivotY}-{pixelsPerUnit}"";
+                if (sprite_cache.TryGetValue(hash, out var sprite))
+                    return sprite;
                 Texture2D texture2D = new Texture2D(0, 0);
                 texture2D.LoadImage(GetBytes(name));
                 texture2D.anisoLevel = 0;
                 texture2D.filterMode = FilterMode.Point;
-                return Sprite.Create(texture2D, new Rect(0.0f, 0.0f, (float)texture2D.width, (float)texture2D.height),
+                sprite = Sprite.Create(texture2D, new Rect(0.0f, 0.0f, (float)texture2D.width, (float)texture2D.height),
                     new Vector2(pivotX, pivotY), pixelsPerUnit);
+                sprite_cache.Add(hash, sprite);
+                return sprite;
             }
-            private static Dictionary<string, byte[]> bytes_cache = new();
+
+            private static Dictionary<string, Sprite> sprite_cache = new();
 
             public static byte[] GetBytes(string name)
             {
-                if(!bytes_cache.ContainsKey(name))
-                    bytes_cache.Add(name, ReadFully(this_assembly.GetManifestResourceStream(name)));
-                return bytes_cache[name];
+                return ReadFully(this_assembly.GetManifestResourceStream(name));
             }
 
             internal static byte[] ReadFully(Stream input)

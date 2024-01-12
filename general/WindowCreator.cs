@@ -17,6 +17,9 @@ public static class WindowCreator
     /// </summary>
     /// <param name="pWindowID">It should be unique, suggest start with your own mod's UUID</param>
     /// <param name="pWindowTitleKey">It should be unique, suggest start with your own mod's UUID</param>
+    /// <remarks>
+    /// Prototype comes from [NCMS](https://denq04.github.io/ncms/)
+    /// </remarks>
     /// <returns></returns>
     public static ScrollWindow CreateEmptyWindow(string pWindowID, string pWindowTitleKey)
     {
