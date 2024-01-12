@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
+using NeoModLoader.constants;
 using NeoModLoader.services;
 using Newtonsoft.Json;
 
@@ -242,12 +243,13 @@ public static class LM
     /// <remarks>It will be called automatically by NML when language is changed.</remarks>
     /// </summary>
     /// <param name="language">Language to apply</param>
+    /// <param name="pUpdateTexts"></param>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public static void ApplyLocale(string language)
+    public static void ApplyLocale(string language, bool pUpdateTexts = true)
     {
         if (!locales.ContainsKey(language))
         {
-            return;
+            locales[language] = new Dictionary<string, string>();
         }
 
         foreach (var (key, value) in locales[language]
@@ -255,6 +257,10 @@ public static class LM
         {
             LocalizedTextManager.instance.localizedText[key] = value;
         }
+
+        foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
+                     .Where(key => !LocalizedTextManager.instance.localizedText.ContainsKey(key)))
+            LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         LocalizedTextManager.updateTexts();
     }
@@ -268,7 +274,7 @@ public static class LM
     {
         if (!locales.ContainsKey(LocalizedTextManager.instance.language))
         {
-            return;
+            locales[LocalizedTextManager.instance.language] = new Dictionary<string, string>();
         }
 
         foreach (var (key, value) in locales[LocalizedTextManager.instance.language]
@@ -276,6 +282,10 @@ public static class LM
         {
             LocalizedTextManager.instance.localizedText[key] = value;
         }
+
+        foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
+                     .Where(key => !LocalizedTextManager.instance.localizedText.ContainsKey(key)))
+            LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         if (pUpdateTexts) LocalizedTextManager.updateTexts();
     }
