@@ -12,12 +12,22 @@ public enum ModTypeEnum
     /// <summary>
     /// NeoMod
     /// </summary>
-    NORMAL,
+    NEOMOD,
+
+    /// <summary>
+    ///     Compiled NeoMod
+    /// </summary>
+    COMPILED_NEOMOD,
 
     /// <summary>
     /// BepInEx
     /// </summary>
-    BEPINEX
+    BEPINEX,
+
+    /// <summary>
+    ///     Resource Pack
+    /// </summary>
+    RESOURCE_PACK
 }
 
 internal enum ModState
@@ -196,7 +206,7 @@ public class ModDeclare
     /// Mod type.
     /// </summary>
     [JsonProperty("ModType")]
-    public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NORMAL;
+    public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NEOMOD;
 
     /// <summary>
     /// Wheather use publicized assembly.
@@ -221,7 +231,7 @@ public class ModDeclare
 
     internal void SetModType(ModTypeEnum modType)
     {
-        if (modType < ModTypeEnum.NORMAL || modType > ModTypeEnum.BEPINEX)
+        if (modType < ModTypeEnum.NEOMOD || modType > ModTypeEnum.RESOURCE_PACK)
             throw new ArgumentOutOfRangeException(nameof(modType), modType, null);
         ModType = modType;
     }
