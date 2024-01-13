@@ -116,6 +116,7 @@ public static class LM
 
     private static Dictionary<string, Dictionary<string, string>> ParseCSV(string pText)
     {
+        pText = pText.Replace("\r\n", "\n");
         var lines = pText.Split('\n');
 
         if (lines.Length < 2) return null;
