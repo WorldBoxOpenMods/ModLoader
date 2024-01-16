@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.ui;
