@@ -16,7 +16,7 @@
 </p>
 
 A new mod loader for [Worldbox](http://www.superworldbox.com/) after [NCMS](https://denq04.github.io/ncms/), called NML
-for short. Detailed introduction look [Gitbook] (Not Released yet).
+for short. Detailed introduction look [Gitbook](https://worldboxopenmods.gitbook.io/mod-tutorial-en).
 
 <h2 align="center"> Overview </h2>
 
@@ -34,10 +34,11 @@ for short. Detailed introduction look [Gitbook] (Not Released yet).
     <a href="https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-en.yaml&title=%5BBug%5D%3A+">Report BUG</a>
 </h3>
 <h3 align="center">
-    <a href="https://worldboxopenmods.gitbook.io/mod-tutorial-zh/mo-zu-zhi-zuo-jiao-cheng/start">Make mod</a>
+<a href="https://worldboxopenmods.gitbook.io/mod-tutorial-en/make-mod/start">Make mod</a>
 </h3>
 <p align="center">
-    Only Chinese version yet. You can use Google Translate. Or you can contact with wbopenmods@gmail.com to translate or make a version of other language</p>
+    You can contribute to accelerate the <a href="https://github.com/WorldBoxOpenMods/Documentation-en">English Version</a>
+</p>
 <h3 align="center">
     How to compile NML
 </h3>
@@ -75,3 +76,8 @@ New features or code reconstruction:
 <h3 align="center">
     Future roadmap
 </h3>
+
+1. Auto layout window
+2. Mod one-click install for various platforms
+3. Manage vanilla tab buttons
+4. Assembly-CSharp mod support(modify game code)
