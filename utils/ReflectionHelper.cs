@@ -13,12 +13,14 @@ internal static class ReflectionHelper
             ? typeof(T).GetMethod(method_name, BindingFlags.Static | BindingFlags.NonPublic)
             : AccessTools.Method(typeof(T), method_name));
     }
+
     internal static Delegate GetMethod(Type type, string method_name, bool is_static = false)
     {
         return createMethodDelegate(is_static
             ? type.GetMethod(method_name, BindingFlags.Static | BindingFlags.NonPublic)
             : AccessTools.Method(type, method_name));
     }
+
     internal static Delegate CreateFieldGetter(string field_name, Type instance_type, Type output_type)
     {
         FieldInfo field =
@@ -62,10 +64,12 @@ internal static class ReflectionHelper
             return null;
         }
     }
+
     internal static Delegate CreateFieldGetter<OutType>(string field_name, Type instance_type)
     {
         return CreateFieldGetter(field_name, instance_type, typeof(OutType));
     }
+
     internal static Func<InstanceType, OutType> CreateFieldGetter<InstanceType, OutType>(string field_name)
     {
         FieldInfo field =
@@ -116,7 +120,15 @@ internal static class ReflectionHelper
             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         ParameterExpression instance = Expression.Parameter(typeof(TI), "instance");
         ParameterExpression parameter = Expression.Parameter(typeof(TF), field_name);
-        return Expression.Lambda<Action<TI, TF>>(Expression.Assign(Expression.Field(instance, field), parameter),
+        if (field.FieldType == typeof(TF))
+            return Expression.Lambda<Action<TI, TF>>(
+                Expression.Assign(Expression.Field(instance, field), parameter), instance, parameter).Compile();
+        return Expression.Lambda<Action<TI, TF>>(
+            Expression.Assign(
+                Expression.Field(instance, field),
+                field.FieldType.IsValueType
+                    ? Expression.Convert(parameter, field.FieldType)
+                    : Expression.TypeAs(parameter, field.FieldType)),
             instance, parameter).Compile();
     }
 
