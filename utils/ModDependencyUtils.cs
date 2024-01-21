@@ -276,6 +276,9 @@ internal static class ModDependencyUtils
                     check_nodes.Enqueue(depend_by_node);
                 }
 
+                foreach (ModDependencyNode depend_on_node in curr_node.depend_on)
+                    depend_on_node.depend_by.Remove(curr_node);
+
                 pGraph.nodes.Remove(curr_node);
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"Mod {curr_node.mod_decl.UID} has missing dependencies:");
@@ -347,10 +350,16 @@ internal static class ModDependencyUtils
 
             foreach (var depend_on_node in curr_node.depend_by)
             {
-                node_in_degree[depend_on_node]--;
-                if (node_in_degree[depend_on_node] == 0)
+                try
                 {
-                    queue.Enqueue(depend_on_node);
+                    node_in_degree[depend_on_node]--;
+                    if (node_in_degree[depend_on_node] == 0) queue.Enqueue(depend_on_node);
+                }
+                catch (KeyNotFoundException)
+                {
+                    // ignored
+                    LogService
+                        .LogError($"Key {depend_on_node.mod_decl.UID} not found in node_in_degree when checking {curr_node.mod_decl.UID}");
                 }
             }
         }
