@@ -5,10 +5,10 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.md"><img alt="zh" src="https://img.shields.io/badge/切换语言-简体中文-red.svg"></a>
+  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.cz.md"><img alt="zh" src="https://img.shields.io/badge/切换语言-简体中文-red.svg"></a>
   <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.en.md"><img alt="en" src="https://img.shields.io/badge/Change Language-English-green.svg"></a>
 <br/>
-      <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.md">中文介绍</a>
+      <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.cz.md">中文介绍</a>
     |
   <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.en.md">README in English</a>
 <br/>
@@ -25,7 +25,8 @@ for short. Detailed introduction look [Gitbook](https://worldboxopenmods.gitbook
     How to install
 </h3>
 
-1. Download NeoModLoader.dll (and NeoModLoader.pdb) and put it in GAMEPATH/worldbox_Data/StreamingAssets/mods folder
+1. Download NeoModLoader.dll (and NeoModLoader.pdb) in "releases" at the right of the page and put it in
+   GAMEPATH/worldbox_Data/StreamingAssets/mods folder
 2. Delete NCMS_memload.dll (They can be installed together but not suggested)
 3. Start the game with experimental mode enabled
 

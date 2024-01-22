@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.md"><img alt="zh" src="https://img.shields.io/badge/浏览介绍-简体中文-red.svg"></a>
+  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.cz.md"><img alt="zh" src="https://img.shields.io/badge/浏览介绍-简体中文-red.svg"></a>
   <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.en.md"><img alt="en" src="https://img.shields.io/badge/README-English-green.svg"></a>
 <br/>
     <small><small>图标由微软Image Creator于2023/10/13生成, 如有侵权联系更换</small></small>
