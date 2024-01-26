@@ -20,17 +20,17 @@ namespace NeoModLoader.services;
 /// </summary>
 public static class ModCompileLoadService
 {
-    private static string[] _default_ref_path = null!;
-    private static readonly Dictionary<string, string> mod_inc_path = new();
-    private static readonly HashSet<string> _loaded_ref = new();
+    private static          string[]                   _default_ref_path = null!;
+    private static readonly Dictionary<string, string> mod_inc_path      = new();
+    private static readonly HashSet<string>            _loaded_ref       = new();
 
-    private static MetadataReference[] _default_ref = null!;
-    private static MetadataReference _publicized_assembly_ref = null!;
-    private static readonly Dictionary<string, MetadataReference> mod_ref = new();
+    private static          MetadataReference[]                   _default_ref             = null!;
+    private static          MetadataReference                     _publicized_assembly_ref = null!;
+    private static readonly Dictionary<string, MetadataReference> mod_ref                  = new();
 
     private static bool compileMod(ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
-        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
-        bool pDisableOptionalDepen = false)
+                                   string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
+                                   bool pDisableOptionalDepen = false)
     {
         if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl))
         {
@@ -83,8 +83,10 @@ public static class ModCompileLoadService
 
         var syntaxTrees = new List<SyntaxTree>();
         var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
-            file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
-            dir_name => !dir_name.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dir_name));
+                                                         file_name =>
+                                                             file_name.EndsWith(".cs") && !file_name.StartsWith("."),
+                                                         dir_name => !dir_name.StartsWith(".") &&
+                                                                     !Paths.IgnoreSearchDirectories.Contains(dir_name));
         var embeded_resources = new List<ResourceDescription>();
 
         bool is_ncms_mod = false;
@@ -95,10 +97,10 @@ public static class ModCompileLoadService
             SourceText sourceText = SourceText.From(File.ReadAllText(code_file), Encoding.UTF8);
             SyntaxTree syntaxTree =
                 CSharpSyntaxTree.ParseText(
-                    sourceText,
-                    parse_option,
-                    code_file.Substring(pModDecl.FolderPath.Length + 1)
-                );
+                                           sourceText,
+                                           parse_option,
+                                           code_file.Substring(pModDecl.FolderPath.Length + 1)
+                                          );
             syntaxTrees.Add(syntaxTree);
             if (!is_ncms_mod)
             {
@@ -114,17 +116,18 @@ public static class ModCompileLoadService
             if (Directory.Exists(embeded_resource_folder))
             {
                 var embeded_resource_files = Directory.GetFiles(
-                    embeded_resource_folder, "*", SearchOption.AllDirectories);
+                                                                embeded_resource_folder, "*",
+                                                                SearchOption.AllDirectories);
                 foreach (var file in embeded_resource_files)
                 {
                     var relative_path = file.Substring(embeded_resource_folder.Length + 1);
                     var resource_name =
                         $"{pModDecl.Name}.Resources.{relative_path.Replace('\\', '.').Replace('/', '.')}";
                     var resource_desc = new ResourceDescription(
-                        resource_name,
-                        () => File.OpenRead(file),
-                        true
-                    );
+                                                                resource_name,
+                                                                () => File.OpenRead(file),
+                                                                true
+                                                               );
                     embeded_resources.Add(resource_desc);
                 }
             }
@@ -133,10 +136,10 @@ public static class ModCompileLoadService
             SourceText global_object_sourceText = SourceText.From(NCMSCompatibleLayer.modGlobalObject, Encoding.UTF8);
             SyntaxTree global_object_syntaxTree =
                 CSharpSyntaxTree.ParseText(
-                    global_object_sourceText,
-                    parse_option,
-                    $"{pModDecl.Name}.GlobalObject.cs"
-                );
+                                           global_object_sourceText,
+                                           parse_option,
+                                           $"{pModDecl.Name}.GlobalObject.cs"
+                                          );
             syntaxTrees.Add(global_object_syntaxTree);
         }
 
@@ -170,11 +173,12 @@ public static class ModCompileLoadService
 
 
         var compilation = CSharpCompilation.Create(
-            $"{pModDecl.UID}",
-            syntaxTrees,
-            list,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)
-        );
+                                                   $"{pModDecl.UID}",
+                                                   syntaxTrees,
+                                                   list,
+                                                   new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+                                                                                    allowUnsafe: true)
+                                                  );
 
         using MemoryStream dllms = new MemoryStream();
         using MemoryStream pdbms = new MemoryStream();
@@ -183,12 +187,13 @@ public static class ModCompileLoadService
         string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{pModDecl.UID}.pdb");
 
         var result = compilation.Emit(dllms, pdbms,
-            manifestResources: embeded_resources,
-            options: new EmitOptions(
-                debugInformationFormat: DebugInformationFormat.PortablePdb,
-                pdbFilePath: pdb_path
-            )
-        );
+                                      manifestResources: embeded_resources,
+                                      options: new EmitOptions(
+                                                               debugInformationFormat: DebugInformationFormat
+                                                                   .PortablePdb,
+                                                               pdbFilePath: pdb_path
+                                                              )
+                                     );
 
         if (!result.Success)
         {
@@ -223,11 +228,11 @@ public static class ModCompileLoadService
         foreach (var mod_node in pModNodes)
         {
             mod_inc_path.Add(mod_node.mod_decl.UID,
-                Path.Combine(Paths.CompiledModsPath, $"{mod_node.mod_decl.UID}.dll"));
+                             Path.Combine(Paths.CompiledModsPath, $"{mod_node.mod_decl.UID}.dll"));
         }
 
         var default_ref_path_list = new List<string>();
-        default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath, "*.dll"));
+        default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath,       "*.dll"));
         default_ref_path_list.AddRange(Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"));
         default_ref_path_list.Add(Paths.NMLModPath);
         _default_ref_path = default_ref_path_list.ToArray();
@@ -256,7 +261,7 @@ public static class ModCompileLoadService
     public static void prepareCompileRuntime(ModDependencyNode pModNode)
     {
         mod_inc_path.Add(pModNode.mod_decl.UID,
-            Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll"));
+                         Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll"));
     }
 
     /// <summary>
@@ -273,7 +278,7 @@ public static class ModCompileLoadService
         try
         {
             add_inc_path = Directory.GetFiles(
-                Path.Combine(pModNode.mod_decl.FolderPath, "Assemblies"), "*.dll");
+                                              Path.Combine(pModNode.mod_decl.FolderPath, "Assemblies"), "*.dll");
         }
         catch (DirectoryNotFoundException)
         {
@@ -284,18 +289,18 @@ public static class ModCompileLoadService
         RECOMPILE:
         compile_result =
             compileMod(pModNode.mod_decl, _default_ref,
-                add_inc_path, mod_ref, pForce, disable_optional_depen
-            );
+                       add_inc_path,      mod_ref, pForce, disable_optional_depen
+                      );
         if (compile_result)
         {
             mod_ref[pModNode.mod_decl.UID] =
                 MetadataReference.CreateFromFile(Path.Combine(Paths.CompiledModsPath,
-                    $"{pModNode.mod_decl.UID}.dll"));
+                                                              $"{pModNode.mod_decl.UID}.dll"));
         }
         else if (!disable_optional_depen && pModNode.mod_decl.OptionalDependencies.Length > 0)
         {
             LogService.LogWarning(
-                $"Cannot compile mod {pModNode.mod_decl.UID} with Optional Dependencies, try to disable them");
+                                  $"Cannot compile mod {pModNode.mod_decl.UID} with Optional Dependencies, try to disable them");
             disable_optional_depen = true;
             goto RECOMPILE;
         }
@@ -304,7 +309,7 @@ public static class ModCompileLoadService
         {
             mod_inc_path.Remove(pModNode.mod_decl.UID);
             pModNode.mod_decl.FailReason.AppendLine(
-                "Compile Failed\n Check Log for details\n All mods compiled before it will be recompiled next time");
+                                                    "Compile Failed\n Check Log for details\n All mods compiled before it will be recompiled next time");
             File.WriteAllText(Paths.ModCompileRecordPath, "");
         }
         else
@@ -331,7 +336,7 @@ public static class ModCompileLoadService
             catch (ReflectionTypeLoadException)
             {
                 LogService.LogError(
-                    $"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unorder it");
+                                    $"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unorder it");
                 string dll_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.dll");
                 string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.pdb");
                 if (File.Exists(dll_path))
@@ -356,104 +361,71 @@ public static class ModCompileLoadService
     public static void LoadMod(ModDeclare pMod)
     {
         Assembly mod_assembly = Assembly.Load(
-            File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.dll")),
-            File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
-        );
+                                              File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath,
+                                                                             $"{pMod.UID}.dll")),
+                                              File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
+                                             );
         GameObject mod_instance;
         foreach (var type in mod_assembly.GetTypes())
         {
-            if (type.GetInterface(nameof(IMod)) == null)
+            var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
+            if (!type.IsSubclassOf(typeof(MonoBehaviour)) ||
+                (type.GetInterface(nameof(IMod)) == null && mod_entry == null)) continue;
+
+
+            mod_instance = new GameObject(pMod.Name)
             {
-                // Check if it is a NCMS Mod
-#pragma warning disable CS0618 // It is a NCMS mod
-                if (Attribute.GetCustomAttribute(type, typeof(ModEntry)) != null &&
-                    type.IsSubclassOf(typeof(MonoBehaviour)))
+                transform =
                 {
-                    pMod.IsNCMSMod = true;
-                    mod_instance = new GameObject(pMod.Name)
-                    {
-                        transform =
-                        {
-                            parent = GameObject.Find("Services/ModLoader").transform
-                        }
-                    };
-                    mod_instance.SetActive(false);
-                    Type ncmsGlobalObjectType = mod_assembly.GetType("Mod");
-                    ncmsGlobalObjectType.GetField("Info")
-                        ?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
-                    ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
-                    try
-                    {
-                        var mod_component = mod_instance.AddComponent(type);
-
-                        auto_localize(mod_component);
-
-                        AttachedModComponent mod_interface = mod_instance.AddComponent<AttachedModComponent>();
-                        mod_interface.OnLoad(pMod, mod_instance);
-                        mod_instance.SetActive(true);
-                    }
-                    catch (Exception e)
-                    {
-                        LogService.LogError(e.Message);
-                        if (e.StackTrace != null) LogService.LogError(e.StackTrace);
-
-                        mod_instance.SetActive(false);
-                        LogService.LogError(
-                            $"{pMod.Name} has been disabled due to an error. Please check the log for details.");
-
-                        continue;
-                    }
-
-                    WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<AttachedModComponent>());
-                    WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
-                    return;
+                    parent = GameObject.Find("Services/ModLoader").transform
                 }
-#pragma warning restore CS0618
+            };
+            mod_instance.SetActive(false);
+
+            if (mod_entry != null)
+            {
+                pMod.IsNCMSMod = true;
+                Type ncmsGlobalObjectType = mod_assembly.GetType("Mod");
+                ncmsGlobalObjectType.GetField("Info")
+                                    ?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
+                ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
+            }
+
+            IMod mod_interface = null;
+            try
+            {
+                MonoBehaviour main_component = null;
+                if (type.GetInterface(nameof(IMod)) == null)
+                {
+                    mod_interface = mod_instance.AddComponent<AttachedModComponent>();
+                    main_component = (MonoBehaviour)mod_instance.AddComponent(type);
+                }
+                else
+                {
+                    mod_interface = (IMod)mod_instance.AddComponent(type);
+                    main_component = (MonoBehaviour)mod_interface;
+                }
+
+                auto_localize(main_component);
+
+                mod_interface.OnLoad(pMod, mod_instance);
+                mod_instance.SetActive(true);
+            }
+            catch (Exception e)
+            {
+                LogService.LogError(e.Message);
+                if (e.StackTrace != null) LogService.LogError(e.StackTrace);
+
+                mod_instance.SetActive(false);
+                LogService.LogError(
+                                    $"{pMod.Name} has been disabled due to an error. Please check the log for details.");
 
                 continue;
             }
 
-            if (type.IsSubclassOf(typeof(MonoBehaviour)))
-            {
-                mod_instance = new GameObject(pMod.Name)
-                {
-                    transform =
-                    {
-                        parent = GameObject.Find("Services/ModLoader").transform
-                    }
-                };
-                mod_instance.SetActive(false);
-                try
-                {
-                    IMod mod_interface = (IMod)mod_instance.AddComponent(type);
 
-                    if (mod_interface == null)
-                    {
-                        LogService.LogError($"Some Errors happen, Mod component cannot be attached");
-                        break;
-                    }
-
-                    auto_localize(mod_interface);
-
-                    mod_interface.OnLoad(pMod, mod_instance);
-                    mod_instance.SetActive(true);
-                }
-                catch (Exception e)
-                {
-                    LogService.LogError(e.Message);
-                    if (e.StackTrace != null) LogService.LogError(e.StackTrace);
-
-                    mod_instance.SetActive(false);
-                    LogService.LogError(
-                        $"{pMod.Name} has been disabled due to an error. Please check the log for details.");
-
-                    continue;
-                }
-
-                WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
-                WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
-                return;
-            }
+            WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
+            WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
         }
 
         pMod.FailReason.AppendLine("No Valid Mod Component Found");
@@ -528,7 +500,7 @@ public static class ModCompileLoadService
         if (node == null)
         {
             ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
-                                       $"Failed to solve mod dependency." +
+                                       $"Failed to solve mod dependency."          +
                                        $"Check Incompatible mods and dependencies, then try again.";
             ScrollWindow.get("error_with_reason").clickShow();
             return false;
@@ -538,7 +510,7 @@ public static class ModCompileLoadService
         if (!success)
         {
             ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
-                                       $"Failed to compile mod." +
+                                       $"Failed to compile mod."                   +
                                        $"Check Incompatible mods and dependencies, then try again.";
             ScrollWindow.get("error_with_reason").clickShow();
             return false;
@@ -564,7 +536,7 @@ public static class ModCompileLoadService
 
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod_declare.FolderPath, Paths.ModResourceFolderName));
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod_declare.FolderPath,
-            Paths.NCMSAdditionModResourceFolderName));
+                                                           Paths.NCMSAdditionModResourceFolderName));
 
         LoadMod(mod_declare);
 
