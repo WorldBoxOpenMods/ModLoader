@@ -1,5 +1,6 @@
 using NeoModLoader.api;
 using NeoModLoader.General;
+using NeoModLoader.services;
 using NeoModLoader.utils;
 using NeoModLoader.utils.authentication;
 using UnityEngine;
@@ -34,7 +35,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
     };
 
     private Transform auth_grid_transform;
-    private Text auth_text;
+    private Text      auth_text;
 
     /// <summary>
     /// The function to be called when the button is clicked. Methods in it might throw an AuthenticationException if something goes wrong with the authentication process.
@@ -43,8 +44,8 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
 
     internal bool AuthFuncSelected = false;
 
-    internal bool AuthSkipped;
-    private LocalizedText localized_auth_text;
+    internal bool          AuthSkipped;
+    private  LocalizedText localized_auth_text;
 
     protected override void Init()
     {
@@ -99,9 +100,9 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
 
 
         CreateAuthButton("DiscordAuth", "ui/icons/iconDiscordWhite", DiscordRoleAuthViaUserLoginUtils.Authenticate,
-            new(42, 30.7f));
+                         new(42, 30.7f));
         CreateAuthButton("GithubAuth", InternalResourcesGetter.GetGitHubIcon(), GithubOrgAuthUtils.Authenticate);
-        CreateAuthButton("SkipAuth", "ui/icons/iconArrowBack", null);
+        CreateAuthButton("SkipAuth",   "ui/icons/iconArrowBack",                null);
     }
 
     private Button CreateAuthButton(string pId, Sprite pIcon, Func<bool> pAuthFunc, Vector2 pIconSize = default)
@@ -126,7 +127,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
             }
         });
         var tip_button = button.GetComponent<TipButton>();
-        tip_button.textOnClick = pId + " Title";
+        tip_button.textOnClick = pId        + " Title";
         tip_button.text_description_2 = pId + " Description";
         return button;
     }
@@ -144,7 +145,14 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
         if (!string.IsNullOrEmpty(pTipText))
         {
             Instance.auth_text.text += $"\n{pTipText}";
+            LogService.LogInfoConcurrent(pTipText);
         }
+    }
+
+    public static void SetText(string pText, Color pColor = default)
+    {
+        Instance.auth_text.color = pColor == default ? Color.white : pColor;
+        Instance.auth_text.text = pText;
     }
 
     public bool Opened()

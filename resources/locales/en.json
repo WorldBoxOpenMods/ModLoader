@@ -16,6 +16,7 @@
   "ModUploadAuthentication Title": "Upload Authentication",
   "NML_AUTHENTICATION": "Select a way to authenticate",
   "NML_AUTHENTICATED": "Authenticated",
+  "NML_AUTHENTICATION_WAITING": "Waiting for authentication...(At most 60s)",
   "NML_AUTHENTICATION_FAILED": "Authentication failed, please try again.",
   "DiscordAuth Title": "Discord Authentication",
   "DiscordAuth Description": "Redirect to Discord to authenticate your account\nRequires you having Modder role in Worldbox Discord channel\n",

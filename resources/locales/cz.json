@@ -16,6 +16,7 @@
   "ModUploadAuthentication Title": "模组上传验证",
   "NML_AUTHENTICATION": "选择验证方式或跳过验证",
   "NML_AUTHENTICATED": "验证成功",
+  "NML_AUTHENTICATION_WAITING": "正在验证，耐心等待......(至多60s)",
   "NML_AUTHENTICATION_FAILED": "验证失败, 重试其他方式或跳过验证",
   "DiscordAuth Title": "Discord验证",
   "DiscordAuth Description": "跳转到Discord验证你的身份组\n要求WorldBox Discord群组的Modder role",

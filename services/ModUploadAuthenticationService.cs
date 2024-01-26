@@ -1,3 +1,4 @@
+using NeoModLoader.General;
 using NeoModLoader.ui;
 using NeoModLoader.utils.authentication;
 using RSG;
@@ -62,7 +63,7 @@ public static class ModUploadAuthenticationService
         {
             new Task(() =>
             {
-                Thread.Sleep(100);
+                Thread.Sleep(500);
                 promise.Resolve();
             }).Start();
             return promise;
@@ -92,14 +93,46 @@ public static class ModUploadAuthenticationService
                     bool auth_result;
                     try
                     {
-                        auth_result = ModUploadAuthenticationWindow.Instance.AuthFunc();
+                        var cancel_token = new CancellationTokenSource();
+                        var auth_task =
+                            new Task<bool>(ModUploadAuthenticationWindow.Instance.AuthFunc, cancel_token.Token);
+
+                        ModUploadAuthenticationWindow.SetText(LM.Get("NML_AUTHENTICATION_WAITING"));
+
+                        auth_task.Start();
+                        var time = 0;
+                        while (!auth_task.IsCompleted)
+                        {
+                            Thread.Sleep(100);
+                            time += 100;
+                            if (time >= 60000)
+                            {
+                                cancel_token.Cancel();
+                                throw new AuthenticaticationException("Authentication timeout.");
+                            }
+                        }
+
+                        if (auth_task.IsFaulted)
+                            if (auth_task.Exception != null)
+                                throw auth_task.Exception;
+
+                        auth_result = auth_task.Result;
                     }
                     catch (AuthenticaticationException e)
                     {
+                        LogService.LogInfoConcurrent($"Exception when auth: {e.Message}\n{e.StackTrace}");
                         // TODO: Handle the error in some way
                         ModUploadAuthenticationWindow.SetState(false, e.Message);
                         continue;
                     }
+                    catch (Exception e)
+                    {
+                        LogService.LogInfoConcurrent($"Exception when auth: {e.Message}\n{e.StackTrace}");
+                        ModUploadAuthenticationWindow.SetState(false, e.Message);
+                        continue;
+                    }
+
+                    LogService.LogInfoConcurrent($"Auth result: {auth_result}");
 
                     if (auth_result)
                     {
