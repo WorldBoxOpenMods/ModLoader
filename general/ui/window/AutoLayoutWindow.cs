@@ -39,7 +39,7 @@ public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLa
     /// <summary>
     /// WindowID of Instance
     /// </summary>
-    protected string WindowID { get; set; }
+    protected internal string WindowID { get; set; }
 
     private void OnEnable()
     {

@@ -1,5 +1,5 @@
-using NeoModLoader.api;
 using NeoModLoader.General;
+using NeoModLoader.General.UI.Window;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +8,7 @@ namespace NeoModLoader.ui;
 /// <summary>
 ///     A window that shows simple text.
 /// </summary>
-public class InformationWindow : AbstractWindow<InformationWindow>
+public class InformationWindow : SingleAutoLayoutWindow<InformationWindow>
 {
     private Text text;
 
@@ -17,14 +17,12 @@ public class InformationWindow : AbstractWindow<InformationWindow>
     {
         text = new GameObject("Text", typeof(Text)).GetComponent<Text>();
         OT.InitializeCommonText(text);
-        RectTransform transform1;
-        (transform1 = (RectTransform)text.transform).SetParent(ContentTransform);
         text.resizeTextForBestFit = true;
         text.resizeTextMinSize = 10;
         text.resizeTextMaxSize = 14;
         text.alignment = TextAnchor.MiddleCenter;
 
-        ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
+        AddChild(text.gameObject);
     }
 
     /// <summary>
