@@ -97,10 +97,10 @@ public static class ModCompileLoadService
             SourceText sourceText = SourceText.From(File.ReadAllText(code_file), Encoding.UTF8);
             SyntaxTree syntaxTree =
                 CSharpSyntaxTree.ParseText(
-                                           sourceText,
-                                           parse_option,
-                                           code_file.Substring(pModDecl.FolderPath.Length + 1)
-                                          );
+                    sourceText,
+                    parse_option,
+                    code_file.Substring(pModDecl.FolderPath.Length + 1)
+                );
             syntaxTrees.Add(syntaxTree);
             if (!is_ncms_mod)
             {
@@ -116,18 +116,18 @@ public static class ModCompileLoadService
             if (Directory.Exists(embeded_resource_folder))
             {
                 var embeded_resource_files = Directory.GetFiles(
-                                                                embeded_resource_folder, "*",
-                                                                SearchOption.AllDirectories);
+                    embeded_resource_folder, "*",
+                    SearchOption.AllDirectories);
                 foreach (var file in embeded_resource_files)
                 {
                     var relative_path = file.Substring(embeded_resource_folder.Length + 1);
                     var resource_name =
                         $"{pModDecl.Name}.Resources.{relative_path.Replace('\\', '.').Replace('/', '.')}";
                     var resource_desc = new ResourceDescription(
-                                                                resource_name,
-                                                                () => File.OpenRead(file),
-                                                                true
-                                                               );
+                        resource_name,
+                        () => File.OpenRead(file),
+                        true
+                    );
                     embeded_resources.Add(resource_desc);
                 }
             }
@@ -136,10 +136,10 @@ public static class ModCompileLoadService
             SourceText global_object_sourceText = SourceText.From(NCMSCompatibleLayer.modGlobalObject, Encoding.UTF8);
             SyntaxTree global_object_syntaxTree =
                 CSharpSyntaxTree.ParseText(
-                                           global_object_sourceText,
-                                           parse_option,
-                                           $"{pModDecl.Name}.GlobalObject.cs"
-                                          );
+                    global_object_sourceText,
+                    parse_option,
+                    $"{pModDecl.Name}.GlobalObject.cs"
+                );
             syntaxTrees.Add(global_object_syntaxTree);
         }
 
@@ -173,12 +173,12 @@ public static class ModCompileLoadService
 
 
         var compilation = CSharpCompilation.Create(
-                                                   $"{pModDecl.UID}",
-                                                   syntaxTrees,
-                                                   list,
-                                                   new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                                                                                    allowUnsafe: true)
-                                                  );
+            $"{pModDecl.UID}",
+            syntaxTrees,
+            list,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+                                         allowUnsafe: true)
+        );
 
         using MemoryStream dllms = new MemoryStream();
         using MemoryStream pdbms = new MemoryStream();
@@ -189,11 +189,11 @@ public static class ModCompileLoadService
         var result = compilation.Emit(dllms, pdbms,
                                       manifestResources: embeded_resources,
                                       options: new EmitOptions(
-                                                               debugInformationFormat: DebugInformationFormat
-                                                                   .PortablePdb,
-                                                               pdbFilePath: pdb_path
-                                                              )
-                                     );
+                                          debugInformationFormat: DebugInformationFormat
+                                              .PortablePdb,
+                                          pdbFilePath: pdb_path
+                                      )
+        );
 
         if (!result.Success)
         {
@@ -278,7 +278,7 @@ public static class ModCompileLoadService
         try
         {
             add_inc_path = Directory.GetFiles(
-                                              Path.Combine(pModNode.mod_decl.FolderPath, "Assemblies"), "*.dll");
+                Path.Combine(pModNode.mod_decl.FolderPath, "Assemblies"), "*.dll");
         }
         catch (DirectoryNotFoundException)
         {
@@ -290,7 +290,7 @@ public static class ModCompileLoadService
         compile_result =
             compileMod(pModNode.mod_decl, _default_ref,
                        add_inc_path,      mod_ref, pForce, disable_optional_depen
-                      );
+            );
         if (compile_result)
         {
             mod_ref[pModNode.mod_decl.UID] =
@@ -300,7 +300,7 @@ public static class ModCompileLoadService
         else if (!disable_optional_depen && pModNode.mod_decl.OptionalDependencies.Length > 0)
         {
             LogService.LogWarning(
-                                  $"Cannot compile mod {pModNode.mod_decl.UID} with Optional Dependencies, try to disable them");
+                $"Cannot compile mod {pModNode.mod_decl.UID} with Optional Dependencies, try to disable them");
             disable_optional_depen = true;
             goto RECOMPILE;
         }
@@ -309,7 +309,7 @@ public static class ModCompileLoadService
         {
             mod_inc_path.Remove(pModNode.mod_decl.UID);
             pModNode.mod_decl.FailReason.AppendLine(
-                                                    "Compile Failed\n Check Log for details\n All mods compiled before it will be recompiled next time");
+                "Compile Failed\n Check Log for details\n All mods compiled before it will be recompiled next time");
             File.WriteAllText(Paths.ModCompileRecordPath, "");
         }
         else
@@ -336,7 +336,7 @@ public static class ModCompileLoadService
             catch (ReflectionTypeLoadException)
             {
                 LogService.LogError(
-                                    $"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unorder it");
+                    $"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unorder it");
                 string dll_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.dll");
                 string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.pdb");
                 if (File.Exists(dll_path))
@@ -361,16 +361,16 @@ public static class ModCompileLoadService
     public static void LoadMod(ModDeclare pMod)
     {
         Assembly mod_assembly = Assembly.Load(
-                                              File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath,
-                                                                             $"{pMod.UID}.dll")),
-                                              File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
-                                             );
+            File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath,
+                                           $"{pMod.UID}.dll")),
+            File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
+        );
         GameObject mod_instance;
         foreach (var type in mod_assembly.GetTypes())
         {
             var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
-            if (!type.IsSubclassOf(typeof(MonoBehaviour)) ||
-                (type.GetInterface(nameof(IMod)) == null && mod_entry == null)) continue;
+            if (!type.IsSubclassOf(typeof(MonoBehaviour))                      ||
+                (type.GetInterface(nameof(IMod)) == null && mod_entry == null) || type.IsAbstract) continue;
 
 
             mod_instance = new GameObject(pMod.Name)
@@ -418,7 +418,7 @@ public static class ModCompileLoadService
 
                 mod_instance.SetActive(false);
                 LogService.LogError(
-                                    $"{pMod.Name} has been disabled due to an error. Please check the log for details.");
+                    $"{pMod.Name} has been disabled due to an error. Please check the log for details.");
 
                 continue;
             }
