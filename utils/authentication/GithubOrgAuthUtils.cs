@@ -33,12 +33,12 @@ public static class GithubOrgAuthUtils
         UserInfo info = JsonConvert.DeserializeObject<UserInfo>(res.Content.ReadAsStringAsync().Result);
 
         res = HttpUtils.Get($"https://api.github.com/orgs/{CoreConstants.OrgName}/members/{info.login}",
-            new Dictionary<string, string>()
-            {
-                { "Authorization", "Bearer " + token },
-                { "User-Agent", "NeoModLoader" },
-                { "Accept", "application/vnd.github.v3+json" }
-            });
+                            new Dictionary<string, string>()
+                            {
+                                { "Authorization", "Bearer " + token },
+                                { "User-Agent", "NeoModLoader" },
+                                { "Accept", "application/vnd.github.v3+json" }
+                            });
 
         // https://docs.github.com/zh/rest/orgs/members?apiVersion=2022-11-28#check-organization-membership-for-a-user
         if (res.StatusCode == HttpStatusCode.NoContent)
@@ -83,6 +83,8 @@ public static class GithubOrgAuthUtils
             }
         }
 
+        InformationWindow.Back();
+
         return JsonConvert.DeserializeObject<TokenInfo>(res).access_token;
     }
 #pragma warning disable CS0649 // They are assigned by Newtonsoft.Json.JsonConvert.DeserializeObject<T>
@@ -103,8 +105,8 @@ public static class GithubOrgAuthUtils
         public string device_code;
         public string user_code;
         public string verification_uri;
-        public int interval;
-        public int expires_in;
+        public int    interval;
+        public int    expires_in;
     }
 #pragma warning restore CS0649 // They are assigned by Newtonsoft.Json.JsonConvert.DeserializeObject<T>
 }

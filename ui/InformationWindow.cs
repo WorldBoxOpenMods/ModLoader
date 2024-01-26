@@ -36,4 +36,20 @@ public class InformationWindow : AbstractWindow<InformationWindow>
         Instance.text.text = info;
         ScrollWindow.showWindow(WindowId);
     }
+
+    /// <summary>
+    ///     Hide all windows.
+    /// </summary>
+    public static void HideWindow()
+    {
+        Instance.ScrollWindowComponent.clickHide();
+    }
+
+    /// <summary>
+    ///     Go back to the previous window.
+    /// </summary>
+    public static void Back()
+    {
+        Instance.ScrollWindowComponent.clickBack();
+    }
 }
