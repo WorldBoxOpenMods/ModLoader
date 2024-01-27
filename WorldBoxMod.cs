@@ -4,7 +4,6 @@ using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.General.Event;
-using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.General.UI.Tab;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.services;
@@ -13,6 +12,7 @@ using NeoModLoader.utils;
 using UnityEngine;
 
 namespace NeoModLoader;
+
 /// <summary>
 /// Main class
 /// </summary>
@@ -22,12 +22,13 @@ public class WorldBoxMod : MonoBehaviour
     /// All successfully loaded mods.
     /// </summary>
     public static List<IMod> LoadedMods = new();
+
     internal static Dictionary<ModDeclare, ModState> AllRecognizedMods = new();
-    internal static Transform Transform;
-    internal static Transform InactiveTransform;
-    internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
-    private bool initialized = false;
-    private bool initialized_successfully = false;
+    internal static Transform                        Transform;
+    internal static Transform                        InactiveTransform;
+    internal static Assembly                         NeoModLoaderAssembly     = Assembly.GetExecutingAssembly();
+    private         bool                             initialized              = false;
+    private         bool                             initialized_successfully = false;
 
     private void Start()
     {
@@ -58,7 +59,7 @@ public class WorldBoxMod : MonoBehaviour
 
         initialized = true;
         ModUploadAuthenticationService.AutoAuth();
-        Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
+        Harmony.CreateAndPatchAll(typeof(LM),             Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
 
         SmoothLoader.add(() =>
@@ -111,11 +112,11 @@ public class WorldBoxMod : MonoBehaviour
                     if (mods_to_load.Contains(mod.mod_decl))
                     {
                         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                            Paths.ModResourceFolderName));
+                                                                           Paths.ModResourceFolderName));
                         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                            Paths.NCMSAdditionModResourceFolderName));
+                                                                           Paths.NCMSAdditionModResourceFolderName));
                         ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                            Paths.ModAssetBundleFolderName));
+                                                                               Paths.ModAssetBundleFolderName));
                     }
                 }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
@@ -135,6 +136,7 @@ public class WorldBoxMod : MonoBehaviour
 
                 ModInfoUtils.DealWithBepInExModLinkRequests();
 
+                LM.ApplyLocale();
                 initialized_successfully = true;
 
                 try
@@ -166,7 +168,7 @@ public class WorldBoxMod : MonoBehaviour
             if (!resource_path.StartsWith(locale_path)) continue;
 
             LM.LoadLocale(resource_path.Replace(locale_path, "").Replace(".json", ""),
-                NeoModLoaderAssembly.GetManifestResourceStream(resource_path));
+                          NeoModLoaderAssembly.GetManifestResourceStream(resource_path));
         }
     }
 
@@ -292,7 +294,7 @@ public class WorldBoxMod : MonoBehaviour
                         continue;
                 }
 
-                LogService.LogError($"" +
+                LogService.LogError($""                          +
                                     $"BadImageFormatException: " +
                                     $"The file {file_full_path} is not a valid assembly.");
             }

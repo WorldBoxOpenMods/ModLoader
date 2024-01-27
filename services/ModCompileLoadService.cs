@@ -457,7 +457,7 @@ public static class ModCompileLoadService
                         }
                     }
 
-                    LM.ApplyLocale();
+                    LM.ApplyLocale(false);
                 }
             }
         }

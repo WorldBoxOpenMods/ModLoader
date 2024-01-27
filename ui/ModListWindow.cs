@@ -5,6 +5,7 @@ using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace NeoModLoader.ui;
 
 /// <summary>
@@ -13,10 +14,10 @@ namespace NeoModLoader.ui;
 public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 {
     private ModDeclare clickedMod;
-    private int clickTimes;
-    private float lastClickTime;
-    private bool needRefresh = false;
-    private List<IMod> to_add = new();
+    private int        clickTimes;
+    private float      lastClickTime;
+    private bool       needRefresh = false;
+    private List<IMod> to_add      = new();
 
     private void Update()
     {
@@ -68,7 +69,9 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         modloaderButtonImage.sprite = InternalResourcesGetter.GetIcon();
         TipButton modloaderButtonTipButton = modloaderButton.GetComponent<TipButton>();
         modloaderButtonTipButton.textOnClick = "NeoModLoader-v" + WorldBoxMod.NeoModLoaderAssembly.GetName().Version;
-        modloaderButtonTipButton.text_description_2 = "commit\n" + InternalResourcesGetter.GetCommit();
+        foreach (var lang in LocalizedTextManager.getAllLanguages())
+            LM.Add(lang, "NMLCommit", $"commit\n{InternalResourcesGetter.GetCommit()}");
+        modloaderButtonTipButton.text_description_2 = "NMLCommit";
         modloaderButtonTipButton.textOnClickDescription = "NeoModLoader Report";
         Button modloaderButtonButton = modloaderButton.GetComponent<Button>();
         modloaderButtonButton.onClick.AddListener(() => { Application.OpenURL(CoreConstants.RepoURL); });
