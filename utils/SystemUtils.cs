@@ -96,7 +96,7 @@ public static class SystemUtils
             var dir = new DirectoryInfo(Path.Combine(pSource, relative_dir));
             if (!dir.Exists) dir.Create();
             foreach (var file in dir.GetFiles()) file.CopyTo(Path.Combine(pTarget, relative_dir, file.Name), true);
-            foreach (var subDir in dir.GetDirectories()) queue.Enqueue(Path.Combine(relative_dir, subDir.Name));
+            foreach (var subDir in dir.GetDirectories()) CopyDirectory(subDir.FullName, Path.Combine(pTarget, relative_dir, subDir.Name));
         }
     }
 }
