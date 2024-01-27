@@ -265,7 +265,8 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             TipButton icon_tip_button = icon.GetComponent<TipButton>();
 
             icon.sprite = sprite;
-            configure_button.gameObject.SetActive(mod is IConfigurable);
+            var configurable = mod.GetGameObject()?.GetComponent<IConfigurable>();
+            configure_button.gameObject.SetActive(configurable != null);
 
             icon.GetComponent<Button>().onClick.RemoveAllListeners();
             configure_button.onClick.RemoveAllListeners();
@@ -352,50 +353,52 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             configure_button.onClick.AddListener(() =>
             {
                 // It can be sure that if mod is IConfigurable, then mod is loaded actually.
-                if (mod is IConfigurable configurable)
-                {
-                    ModConfigureWindow.ShowWindow(configurable.GetConfig());
-                }
+                ModConfigureWindow.ShowWindow(configurable?.GetConfig());
             });
             website_button.onClick.AddListener(() => { Application.OpenURL(mod.GetUrl()); });
 
-            if (Config.isEditor && mod is IReloadable reloadable)
-            {
-                Button reload_button = transform.Find("Reload").GetComponent<Button>();
-                reload_button.gameObject.SetActive(true);
-                reload_button.onClick.RemoveAllListeners();
-                reload_button.onClick.AddListener(() =>
-                {
-                    if (!ModReloadUtils.Prepare(reloadable, mod_declare))
-                    {
-                        LogService.LogWarning($"Failed to prepare mod {mod_declare.Name} for reloading.");
-                        return;
-                    }
-
-                    if (!ModReloadUtils.CompileNew())
-                    {
-                        LogService.LogWarning($"Failed to compile new mod {mod_declare.Name} for reloading.");
-                        return;
-                    }
-
-                    if (!ModReloadUtils.PatchHotfixMethods())
-                    {
-                        LogService.LogWarning(
-                            $"Failed to patch hotfix methods of mod {mod_declare.Name} for reloading.");
-                        return;
-                    }
-
-                    if (!ModReloadUtils.Reload())
-                    {
-                        LogService.LogWarning($"Failed to reload mod {mod_declare.Name}.");
-                        return;
-                    }
-                });
-            }
-            else
+            if (!Config.isEditor)
             {
                 transform.Find("Reload").gameObject.SetActive(false);
+                return;
             }
+
+            var reloadable = mod.GetGameObject()?.GetComponent<IReloadable>();
+            if (reloadable == null)
+            {
+                transform.Find("Reload").gameObject.SetActive(false);
+                return;
+            }
+
+            var reload_button = transform.Find("Reload").GetComponent<Button>();
+            reload_button.gameObject.SetActive(true);
+            reload_button.onClick.RemoveAllListeners();
+            reload_button.onClick.AddListener(() =>
+            {
+                if (!ModReloadUtils.Prepare(reloadable, mod_declare))
+                {
+                    LogService.LogWarning($"Failed to prepare mod {mod_declare.Name} for reloading.");
+                    return;
+                }
+
+                if (!ModReloadUtils.CompileNew())
+                {
+                    LogService.LogWarning($"Failed to compile new mod {mod_declare.Name} for reloading.");
+                    return;
+                }
+
+                if (!ModReloadUtils.PatchHotfixMethods())
+                {
+                    LogService.LogWarning(
+                        $"Failed to patch hotfix methods of mod {mod_declare.Name} for reloading.");
+                    return;
+                }
+
+                if (!ModReloadUtils.Reload())
+                {
+                    LogService.LogWarning($"Failed to reload mod {mod_declare.Name}.");
+                }
+            });
         }
     }
 }
