@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.cz.md"><img alt="zh" src="https://img.shields.io/badge/切换语言-简体中文-red.svg"></a>
-  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.en.md"><img alt="en" src="https://img.shields.io/badge/Change Language-English-green.svg"></a>
+  <a href="https://github.com/WorldBoxOpenMods/ModLoader/blob/master/README.md"><img alt="en" src="https://img.shields.io/badge/Change Language-English-green.svg"></a>
 <br/>
     <small><small>图标由微软Image Creator于2023/10/13生成, 如有侵权联系更换</small></small>
 </p>
@@ -21,10 +21,17 @@
     安装方法
 </h2>
 
+### 一键安装(仅限Windows)
+
+链接: https://pan.baidu.com/s/17YB5QRHPsDdQrbMwh908uA?pwd=e9cn 提取码: e9cn 仅Windows可用
+
+### 手动安装
+
 1. 下载NeoModLoader.dll(和NeoModLoader.pdb)放入GAMEPATH/worldbox_Data/StreamingAssets/mods文件夹
 2. 删除NCMS_memload.dll (它们可以同时安装, 但不推荐)
 3. 在开启实验模式的情况下启动游戏
-4. 从创意工坊订阅该加载器以便自动更新(自动更新只有当该加载器已安装才会生效)
+
+推荐在创意工坊订阅该加载器以便自动更新(自动更新只有当该加载器已安装才会生效)
 
 <h2 align="center">其他相关</h2>
 <h3 align="center">
