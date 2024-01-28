@@ -176,6 +176,8 @@
         <EmbeddedResource Include="resources\windowBigCloseSliced.png"/>
         <None Remove="resources\windowVertNamePlate.png"/>
         <EmbeddedResource Include="resources\windowVertNamePlate.png"/>
+        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate"/>
+        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate"/>
     </ItemGroup>
   
     <ItemGroup>

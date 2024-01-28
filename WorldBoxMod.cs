@@ -313,5 +313,14 @@ public class WorldBoxMod : MonoBehaviour
                 LogService.LogError(e.StackTrace);
             }
         }
+
+        File.WriteAllText(Paths.NMLCommitPath, InternalResourcesGetter.GetCommit());
+        if (!File.Exists(Paths.NMLAutoUpdateModulePath))
+        {
+            using Stream stream = NeoModLoaderAssembly.GetManifestResourceStream(
+                "NeoModLoader.resources.assemblies.NeoModLoader.AutoUpdate");
+            using var file = new FileStream(Paths.NMLAutoUpdateModulePath, FileMode.CreateNew, FileAccess.Write);
+            stream.CopyTo(file);
+        }
     }
 }
