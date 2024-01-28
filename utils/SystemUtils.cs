@@ -42,8 +42,8 @@ public static class SystemUtils
     /// <param name="fileNameJudge">File name filter</param>
     /// <param name="dirNameJudge">Directory name filter</param>
     /// <returns>All found files' fullpath(Path root reset to '/' or 'C:')</returns>
-    public static List<string> SearchFileRecursive(string path, Func<string, bool> fileNameJudge,
-        Func<string, bool> dirNameJudge)
+    public static List<string> SearchFileRecursive(string             path, Func<string, bool> fileNameJudge,
+                                                   Func<string, bool> dirNameJudge)
     {
         List<string> result = new List<string>();
         Queue<DirectoryInfo> queue = new Queue<DirectoryInfo>();
@@ -93,10 +93,13 @@ public static class SystemUtils
         while (queue.Count > 0)
         {
             var relative_dir = queue.Dequeue();
-            var dir = new DirectoryInfo(Path.Combine(pSource, relative_dir));
-            if (!dir.Exists) dir.Create();
-            foreach (var file in dir.GetFiles()) file.CopyTo(Path.Combine(pTarget, relative_dir, file.Name), true);
-            foreach (var subDir in dir.GetDirectories()) CopyDirectory(subDir.FullName, Path.Combine(pTarget, relative_dir, subDir.Name));
+            var source_dir = new DirectoryInfo(Path.Combine(pSource, relative_dir));
+            var target_dir = new DirectoryInfo(Path.Combine(pTarget, relative_dir));
+            if (!target_dir.Exists) target_dir.Create();
+            foreach (FileInfo file in source_dir.GetFiles())
+                file.CopyTo(Path.Combine(pTarget, relative_dir, file.Name), true);
+            foreach (DirectoryInfo subDir in source_dir.GetDirectories())
+                queue.Enqueue(Path.Combine(relative_dir, subDir.Name));
         }
     }
 }
