@@ -156,6 +156,7 @@ public class WorldBoxMod : MonoBehaviour
                     ScrollWindow.get("error_with_reason").clickShow();
                 }
             }, "NeoModLoader Post Initialize");
+            SmoothLoader.add(ExternalModInstallService.CheckExternalModInstall, "Check External Mods to Install");
         }, "Compile Mods And Load resources");
     }
 

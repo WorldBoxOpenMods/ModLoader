@@ -20,7 +20,7 @@ namespace NeoModLoader.utils;
 internal static class ModInfoUtils
 {
     private static Queue<ModDeclare> link_request_mods = new();
-    private static bool to_install_bepinex;
+    private static bool              to_install_bepinex;
 
     private static HashSet<string> mods_disabled = null;
 
@@ -31,6 +31,76 @@ internal static class ModInfoUtils
         ContractResolver = new DefaultContractResolver()
     };
 
+    public static string TryToUnzipModZip(string pZipFile)
+    {
+        var extract_path = Path.Combine(Application.temporaryCachePath,
+                                        Path.GetFileNameWithoutExtension(pZipFile));
+        if (Directory.Exists(extract_path)) Directory.Delete(extract_path, true);
+
+        try
+        {
+            ZipFile.ExtractToDirectory(pZipFile, extract_path);
+        }
+        catch (Exception e)
+        {
+            if (Directory.Exists(extract_path)) Directory.Delete(extract_path, true);
+
+            LogService.LogError($"Error occurs when extracting {pZipFile}");
+            LogService.LogError(e.Message);
+            LogService.LogError(e.StackTrace);
+            return "";
+        }
+
+        var mod_json_files = SystemUtils.SearchFileRecursive(extract_path,
+                                                             filename => filename == Paths.ModDeclarationFileName,
+                                                             dirname => true);
+        if (mod_json_files.Count == 0)
+        {
+            Directory.Delete(extract_path, true);
+            return "";
+        }
+
+        if (mod_json_files.Count > 1)
+            LogService.LogWarning($"More than one mod.json file in {pZipFile}, only load the first one");
+        var target_folder_name = Path.GetFileNameWithoutExtension(pZipFile);
+        try
+        {
+            ModDeclare mod_declare = new(mod_json_files[0]);
+            target_folder_name = mod_declare.UID;
+        }
+        catch (Exception e)
+        {
+            return "";
+        }
+
+        try
+        {
+            SystemUtils.CopyDirectory(Path.GetDirectoryName(mod_json_files[0]),
+                                      Path.Combine(Paths.ModsPath, target_folder_name));
+            return Path.Combine(Paths.ModsPath, target_folder_name);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            ZipFile.ExtractToDirectory(pZipFile,
+                                       Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(pZipFile)));
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(pZipFile);
+                if (Directory.Exists(extract_path))
+                    Directory.Delete(extract_path, true);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        return "";
+    }
+
     public static List<ModDeclare> findAndPrepareMods()
     {
         HashSet<string> findModsIDs = new();
@@ -38,74 +108,12 @@ internal static class ModInfoUtils
         if (!NCMSHere())
         {
             var zipped_mods = new HashSet<string>(Directory.GetFiles(Paths.ModsPath, "*.zip"))
-                .Union(Directory.GetFiles(Paths.ModsPath, "*.7z"))
-                .Union(Directory.GetFiles(Paths.ModsPath, "*.rar"))
-                .Union(Directory.GetFiles(Paths.ModsPath, "*.tar"))
-                .Union(Directory.GetFiles(Paths.ModsPath, "*.tar.gz"))
-                .Union(Directory.GetFiles(Paths.ModsPath, "*.mod"));
-            foreach (var zipped_mod in zipped_mods)
-            {
-                string extract_path = Path.Combine(Application.temporaryCachePath,
-                    Path.GetFileNameWithoutExtension(zipped_mod));
-                if (Directory.Exists(extract_path))
-                {
-                    Directory.Delete(extract_path, true);
-                }
-
-                try
-                {
-                    ZipFile.ExtractToDirectory(zipped_mod, extract_path);
-                }
-                catch (Exception e)
-                {
-                    if (Directory.Exists(extract_path))
-                    {
-                        Directory.Delete(extract_path, true);
-                    }
-
-                    LogService.LogError($"Error occurs when extracting {zipped_mod}");
-                    LogService.LogError(e.Message);
-                    LogService.LogError(e.StackTrace);
-                    continue;
-                }
-
-                var mod_json_files = SystemUtils.SearchFileRecursive(extract_path,
-                    (filename) => filename == Paths.ModDeclarationFileName, (dirname) => true);
-                if (mod_json_files.Count == 0)
-                {
-                    Directory.Delete(extract_path, true);
-                    continue;
-                }
-
-                if (mod_json_files.Count > 1)
-                {
-                    LogService.LogWarning($"More than one mod.json file in {zipped_mod}, only load the first one");
-                }
-
-                try
-                {
-                    SystemUtils.CopyDirectory(Path.GetDirectoryName(mod_json_files[0]),
-                        Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(zipped_mod)));
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    ZipFile.ExtractToDirectory(zipped_mod,
-                        Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(zipped_mod)));
-                }
-                finally
-                {
-                    try
-                    {
-                        File.Delete(zipped_mod);
-                        if (Directory.Exists(extract_path))
-                            Directory.Delete(extract_path, true);
-                    }
-                    catch (Exception)
-                    {
-                        // ignored
-                    }
-                }
-            }
+                              .Union(Directory.GetFiles(Paths.ModsPath, "*.7z"))
+                              .Union(Directory.GetFiles(Paths.ModsPath, "*.rar"))
+                              .Union(Directory.GetFiles(Paths.ModsPath, "*.tar"))
+                              .Union(Directory.GetFiles(Paths.ModsPath, "*.tar.gz"))
+                              .Union(Directory.GetFiles(Paths.ModsPath, "*.mod"));
+            foreach (var zipped_mod in zipped_mods) TryToUnzipModZip(zipped_mod);
 
             var mod_folders = Directory.GetDirectories(Paths.ModsPath);
             foreach (var mod_folder in mod_folders)
@@ -341,7 +349,7 @@ internal static class ModInfoUtils
                 if (Application.platform == RuntimePlatform.LinuxPlayer)
                 {
                     string launch_script_path = string.Format(Paths.LinuxSteamLocalConfigPath,
-                        SteamClient.SteamId.AccountId.ToString());
+                                                              SteamClient.SteamId.AccountId.ToString());
 
                     var result = VdfConvert.Deserialize(File.ReadAllText(launch_script_path));
                     result.Value["Software"]["Valve"]["Steam"]["apps"][CoreConstants.GameId.ToString()]
@@ -393,8 +401,10 @@ internal static class ModInfoUtils
         if (!File.Exists(mod_config_path))
         {
             var possible_mod_config_path = SystemUtils.SearchFileRecursive(pModFolderPath,
-                file_name => file_name == Paths.ModDeclarationFileName,
-                _ => true);
+                                                                           file_name =>
+                                                                               file_name ==
+                                                                               Paths.ModDeclarationFileName,
+                                                                           _ => true);
             if (possible_mod_config_path.Count == 0)
             {
                 if (pLogModJsonNotFound)
@@ -579,7 +589,8 @@ internal static class ModInfoUtils
         mod_compile_timestamps[pModUUID] = DateTime.UtcNow.Ticks;
 
         File.WriteAllText(Paths.ModCompileRecordPath,
-            JsonConvert.SerializeObject(mod_compile_timestamps, mod_compile_timestamps_serializer_settings));
+                          JsonConvert.SerializeObject(mod_compile_timestamps,
+                                                      mod_compile_timestamps_serializer_settings));
     }
 
     public static void clearModCompileTimestamp(string pModUUID)
@@ -587,7 +598,8 @@ internal static class ModInfoUtils
         mod_compile_timestamps[pModUUID] = DateTime.UtcNow.Ticks;
 
         File.WriteAllText(Paths.ModCompileRecordPath,
-            JsonConvert.SerializeObject(mod_compile_timestamps, mod_compile_timestamps_serializer_settings));
+                          JsonConvert.SerializeObject(mod_compile_timestamps,
+                                                      mod_compile_timestamps_serializer_settings));
     }
 
     // ReSharper disable once InconsistentNaming
@@ -641,7 +653,8 @@ internal static class ModInfoUtils
     {
         var dir = new DirectoryInfo(pModFolderPath);
         var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
-            dirname => !dirname.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dirname));
+                                                    dirname => !dirname.StartsWith(".") &&
+                                                               !Paths.IgnoreSearchDirectories.Contains(dirname));
 
         long newest_timestamp = 0;
 
