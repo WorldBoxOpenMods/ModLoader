@@ -14,7 +14,14 @@ namespace ReflectionUtility
         {
             Type type = o.GetType();
             MethodInfo method = type.GetMethod(methodName,
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                                               BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            while (type.BaseType != null && type != type.BaseType && method == null)
+            {
+                type = type.BaseType;
+                method = type.GetMethod(methodName,
+                                        BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            }
+
             if (method == null)
             {
                 throw new MissingMethodException(type.Name, methodName);
@@ -29,7 +36,7 @@ namespace ReflectionUtility
         public static object CallStaticMethod(Type type, string methodName, params object[] args)
         {
             MethodInfo method = type.GetMethod(methodName,
-                BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+                                               BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
             if (method == null)
             {
                 throw new MissingMethodException(type.Name, methodName);
@@ -44,7 +51,8 @@ namespace ReflectionUtility
         public static object GetField(Type type, object instance, string fieldName)
         {
             FieldInfo field = type.GetField(fieldName,
-                BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+                                            BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic |
+                                            BindingFlags.Public);
             if (field == null)
             {
                 throw new MissingFieldException(type.Name, fieldName);
@@ -60,7 +68,8 @@ namespace ReflectionUtility
         {
             var type = originalObject.GetType();
             var field = type.GetField(fieldName,
-                BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+                                      BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic |
+                                      BindingFlags.Public);
             if (field == null) throw new MissingFieldException(type.Name, fieldName);
 
             field.SetValue(originalObject, newValue);
