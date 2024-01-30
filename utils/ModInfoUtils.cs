@@ -255,73 +255,64 @@ internal static class ModInfoUtils
     internal static void DealWithBepInExModLinkRequests()
     {
         if (link_request_mods.Count == 0) return;
-        InformationWindow.ShowWindow(LM.Get("ModLinkRequest"));
-        new Task(() =>
+        InformationWindow.ShowWindow(LM.Get("ModLinkRequest"), InstallBepInExMod);
+    }
+
+    private static void InstallBepInExMod()
+    {
+        if (to_install_bepinex)
         {
-            Task.Delay(15000);
-            if (to_install_bepinex)
+            try
             {
-                try
+                InstallBepInEx();
+            }
+            catch (Exception e)
+            {
+                LogService.LogError(e.Message);
+                LogService.LogError(e.StackTrace);
+                return;
+            }
+
+            to_install_bepinex = false;
+        }
+
+        if (!Directory.Exists(Paths.BepInExPluginsPath)) Directory.CreateDirectory(Paths.BepInExPluginsPath);
+
+        var parameters = new List<string>();
+        switch (Application.platform)
+        {
+            case RuntimePlatform.WindowsPlayer:
+                parameters.Add("/c");
+                while (link_request_mods.Count > 0)
                 {
-                    InstallBepInEx();
+                    ModDeclare mod = link_request_mods.Dequeue();
+                    if (parameters.Count != 1) parameters.Add("&&");
+
+                    parameters.Add("mklink");
+                    parameters.Add("/D");
+                    parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
+                    parameters.Add($"\"{mod.FolderPath}\"");
                 }
-                catch (Exception e)
+
+                SystemUtils.CmdRunAs(parameters.ToArray());
+                break;
+            case RuntimePlatform.LinuxPlayer:
+            case RuntimePlatform.OSXPlayer:
+                parameters.Add("-c");
+                while (link_request_mods.Count > 0)
                 {
-                    LogService.LogErrorConcurrent(e.Message);
-                    LogService.LogErrorConcurrent(e.StackTrace);
-                    return;
+                    ModDeclare mod = link_request_mods.Dequeue();
+                    if (parameters.Count != 1) parameters.Add("&&");
+
+                    parameters.Add("ln");
+                    parameters.Add("-s");
+                    parameters.Add($"\"{mod.FolderPath}\"");
+                    parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
                 }
 
-                to_install_bepinex = false;
-            }
-
-            if (!Directory.Exists(Paths.BepInExPluginsPath))
-            {
-                Directory.CreateDirectory(Paths.BepInExPluginsPath);
-            }
-
-            List<string> parameters = new List<string>();
-            switch (Application.platform)
-            {
-                case RuntimePlatform.WindowsPlayer:
-                    parameters.Add("/c");
-                    while (link_request_mods.Count > 0)
-                    {
-                        var mod = link_request_mods.Dequeue();
-                        if (parameters.Count != 1)
-                        {
-                            parameters.Add("&&");
-                        }
-
-                        parameters.Add("mklink");
-                        parameters.Add("/D");
-                        parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
-                        parameters.Add($"\"{mod.FolderPath}\"");
-                    }
-
-                    SystemUtils.CmdRunAs(parameters.ToArray());
-                    break;
-                case RuntimePlatform.LinuxPlayer:
-                case RuntimePlatform.OSXPlayer:
-                    parameters.Add("-c");
-                    while (link_request_mods.Count > 0)
-                    {
-                        var mod = link_request_mods.Dequeue();
-                        if (parameters.Count != 1)
-                        {
-                            parameters.Add("&&");
-                        }
-
-                        parameters.Add("ln");
-                        parameters.Add("-s");
-                        parameters.Add($"\"{mod.FolderPath}\"");
-                        parameters.Add($"\"{Path.Combine(Paths.BepInExPluginsPath, mod.Name)}\"");
-                    }
-
-                    SystemUtils.BashRun(parameters.ToArray());
-                    break;
-            }
-        }).Start();
+                SystemUtils.BashRun(parameters.ToArray());
+                break;
+        }
     }
 
     private static void InstallBepInEx()
@@ -405,8 +396,8 @@ internal static class ModInfoUtils
     {
         if (!Directory.Exists(Paths.BepInExPluginsPath))
         {
-            LogService.LogWarning($"Failed to load mod {mod.Name} which is a BepInEx mod, but BepInEx not found");
-            LogService.LogInfo($"Add Install BepInEx Task into queue");
+            LogService.LogInfo(
+                $"Find a BepInEx mod {mod.Name} but BepInEx not found, Add Install BepInEx Task into queue");
             to_install_bepinex = true;
         }
 

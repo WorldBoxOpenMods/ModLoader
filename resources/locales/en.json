@@ -7,7 +7,7 @@
   "NeoModLoader Update Complete": "NeoModLoader has been updated to version {0}.\nPlease restart the game to apply the update.",
   "ModUpload Title": "Upload Mod",
   "Information Title": "Information",
-  "ModLinkRequest": "Request for privilege to install BepInEx mods",
+  "ModLinkRequest": "NeoModLoader will request for privilege to install BepInEx mods after you close this window.",
   "ModUploadingProgress Title": "Uploading",
   "ModUploadFinish": "Success",
   "NML_InvalidParam": "Invalid FileID (InvalidParam)",

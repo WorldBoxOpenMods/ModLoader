@@ -1,5 +1,6 @@
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Window;
+using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +11,8 @@ namespace NeoModLoader.ui;
 /// </summary>
 public class InformationWindow : SingleAutoLayoutWindow<InformationWindow>
 {
-    private Text text;
+    private Action on_close;
+    private Text   text;
 
     /// <inheritdoc cref="InformationWindow.Init" />
     protected override void Init()
@@ -29,10 +31,26 @@ public class InformationWindow : SingleAutoLayoutWindow<InformationWindow>
     ///     Show the window with the given text.
     /// </summary>
     /// <param name="info"></param>
-    public static void ShowWindow(string info)
+    public static void ShowWindow(string info, Action on_close = null)
     {
         Instance.text.text = info;
+        Instance.on_close = on_close;
         ScrollWindow.showWindow(WindowId);
+    }
+
+    public override void OnNormalDisable()
+    {
+        try
+        {
+            on_close?.Invoke();
+        }
+        catch (Exception e)
+        {
+            LogService.LogError(e.Message);
+            LogService.LogError(e.StackTrace);
+        }
+
+        on_close = null;
     }
 
     /// <summary>
