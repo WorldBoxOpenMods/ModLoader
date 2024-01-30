@@ -72,6 +72,7 @@ public class WorldBoxMod : MonoBehaviour
             ListenerManager._init();
             WrappedPowersTab._init();
             NCMSCompatibleLayer.PreInit();
+            ModInfoUtils.InitializeModCompileCache();
         }, "Initialize NeoModLoader");
 
         List<ModDependencyNode> mod_nodes = new();
@@ -124,6 +125,7 @@ public class WorldBoxMod : MonoBehaviour
             SmoothLoader.add(() =>
             {
                 ModCompileLoadService.loadMods(mods_to_load);
+                ModInfoUtils.SaveModRecords();
                 NCMSCompatibleLayer.Init();
             }, "Load Mods");
 

@@ -4,7 +4,6 @@ using System.Net;
 using System.Reflection;
 using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
-using MonoMod.Utils;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -22,14 +21,22 @@ internal static class ModInfoUtils
     private static Queue<ModDeclare> link_request_mods = new();
     private static bool              to_install_bepinex;
 
-    private static HashSet<string> mods_disabled = null;
+    private static Dictionary<string, ModCompilationCache> mod_compilation_caches;
 
-    private static readonly Dictionary<string, long> mod_compile_timestamps = new();
-
-    private static readonly JsonSerializerSettings mod_compile_timestamps_serializer_settings = new()
+    public static void InitializeModCompileCache()
     {
-        ContractResolver = new DefaultContractResolver()
-    };
+        if (!File.Exists(Paths.ModCompileRecordPath)) File.WriteAllText(Paths.ModCompileRecordPath, "{}");
+
+        var json = File.ReadAllText(Paths.ModCompileRecordPath);
+        var json_settings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Formatting = Formatting.Indented
+        };
+        mod_compilation_caches =
+            JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
+            new Dictionary<string, ModCompilationCache>();
+    }
 
     public static string TryToUnzipModZip(string pZipFile)
     {
@@ -523,12 +530,7 @@ internal static class ModInfoUtils
 
     public static bool isModDisabled(string pModUID)
     {
-        if (mods_disabled == null)
-        {
-            mods_disabled = new(File.ReadAllLines(Paths.ModsDisabledRecordPath));
-        }
-
-        return mods_disabled.Contains(pModUID);
+        return mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache) && cache.disabled;
     }
 
     /// <summary>
@@ -536,117 +538,126 @@ internal static class ModInfoUtils
     /// </summary>
     /// <param name="pModUID"></param>
     /// <returns>Enable mod and return true; or disable mod and return false</returns>
-    public static bool toggleMod(string pModUID)
+    public static bool toggleMod(string pModUID, bool pSave = true)
     {
-        bool result = mods_disabled.Contains(pModUID);
-        if (result)
+        if (!mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache))
         {
-            mods_disabled.Remove(pModUID);
-        }
-        else
-        {
-            mods_disabled.Add(pModUID);
-        }
-
-        File.WriteAllLines(Paths.ModsDisabledRecordPath, mods_disabled.ToArray());
-        return result;
-    }
-
-    // ReSharper disable once InconsistentNaming
-    public static bool isModNeedRecompile(ModDeclare pModDeclare)
-    {
-        long last_compile_time = getModLastCompileTimestamp(pModDeclare.UID);
-        bool need_recompile = last_compile_time <
-                              Others.confirmed_compile_time + getModNewestUpdateTimestamp(pModDeclare.FolderPath);
-        if (!need_recompile)
-        {
-            foreach (string depen in pModDeclare.Dependencies)
-            {
-                need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
-                if (need_recompile)
-                {
-                    return true;
-                }
-            }
-
-            foreach (string depen in pModDeclare.OptionalDependencies)
-            {
-                need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
-                if (need_recompile)
-                {
-                    return true;
-                }
-            }
+            cache = new ModCompilationCache(pModUID);
+            cache.disabled = true;
+            mod_compilation_caches[pModUID] = cache;
 
             return false;
         }
 
-        return true;
+        var result = cache.disabled;
+        cache.disabled = !cache.disabled;
+        if (pSave)
+            SaveModRecords();
+
+        return result;
     }
 
-    public static void updateModCompileTimestamp(string pModUUID)
+    public static void SaveModRecords()
     {
-        mod_compile_timestamps[pModUUID] = DateTime.UtcNow.Ticks;
-
-        File.WriteAllText(Paths.ModCompileRecordPath,
-                          JsonConvert.SerializeObject(mod_compile_timestamps,
-                                                      mod_compile_timestamps_serializer_settings));
+        var json_settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver(),
+            Formatting = Formatting.Indented
+        };
+        var json = JsonConvert.SerializeObject(mod_compilation_caches, json_settings);
+        File.WriteAllText(Paths.ModCompileRecordPath, json);
     }
 
-    public static void clearModCompileTimestamp(string pModUUID)
+    public static void RecordMod(ModDeclare pModDeclare, List<string> pDependencies, List<string> pOptionalDependencies,
+                                 bool       pDisabled = false, bool pSave = true)
     {
-        mod_compile_timestamps[pModUUID] = DateTime.UtcNow.Ticks;
-
-        File.WriteAllText(Paths.ModCompileRecordPath,
-                          JsonConvert.SerializeObject(mod_compile_timestamps,
-                                                      mod_compile_timestamps_serializer_settings));
-    }
-
-    // ReSharper disable once InconsistentNaming
-    private static long getModLastCompileTimestamp(string pModUUID)
-    {
-        if (mod_compile_timestamps.Count > 0 && !mod_compile_timestamps.ContainsKey(pModUUID))
+        if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache))
         {
-            return 0;
-        }
-
-        if (mod_compile_timestamps.Count == 0)
-        {
-            try
-            {
-                mod_compile_timestamps.AddRange(
-                    JsonConvert.DeserializeObject<Dictionary<string, long>>(
-                        File.ReadAllText(Paths.ModCompileRecordPath),
-                        mod_compile_timestamps_serializer_settings));
-            }
-            catch (Exception)
-            {
-                mod_compile_timestamps.Add(pModUUID, 0);
-            }
-        }
-
-        if (!mod_compile_timestamps.ContainsKey(pModUUID))
-        {
-            mod_compile_timestamps.Add(pModUUID, 0);
+            cache = new ModCompilationCache(pModDeclare, pDependencies, pOptionalDependencies);
         }
         else
         {
-            long last_compile_time = mod_compile_timestamps[pModUUID];
-
-            if (last_compile_time > 0)
-            {
-                foreach (var mod in WorldBoxMod.AllRecognizedMods.Keys)
-                {
-                    if (mod.UID == pModUUID) return last_compile_time;
-                }
-
-                return long.MaxValue;
-            }
-
-            return last_compile_time;
+            cache.dependencies = new List<string>(pDependencies);
+            cache.optional_dependencies = new List<string>(pOptionalDependencies);
         }
 
-        return mod_compile_timestamps[pModUUID];
+        cache.disabled = pDisabled;
+        cache.timestamp = DateTime.UtcNow.Ticks;
+
+        mod_compilation_caches[pModDeclare.UID] = cache;
+        if (pSave)
+            SaveModRecords();
+    }
+
+    // ReSharper disable once InconsistentNaming
+    public static bool isModNeedRecompile(ModDeclare   pModDeclare, List<string> pDependencies,
+                                          List<string> pOptionalDependencies)
+    {
+        if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
+        var curr = new HashSet<string>(pDependencies);
+        var last = new HashSet<string>(cache.dependencies);
+
+        if (!curr.SetEquals(last)) return true;
+        curr = new HashSet<string>(pOptionalDependencies);
+        last = new HashSet<string>(cache.optional_dependencies);
+        if (!curr.SetEquals(last)) return true;
+
+        long last_compile_time = getModLastCompileTimestamp(pModDeclare.UID);
+        bool need_recompile = last_compile_time <
+                              Others.confirmed_compile_time + getModNewestUpdateTimestamp(pModDeclare.FolderPath);
+        if (need_recompile) return true;
+
+        foreach (var depen in pDependencies)
+        {
+            need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
+            if (need_recompile) return true;
+        }
+
+        foreach (var depen in pOptionalDependencies)
+        {
+            need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
+            if (need_recompile) return true;
+        }
+
+        return false;
+    }
+
+    public static void updateModCompileTimestamp(string pModUID, bool pSave = true)
+    {
+        if (!mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache))
+        {
+            cache = new ModCompilationCache(pModUID);
+            cache.disabled = false;
+            cache.timestamp = 0;
+            mod_compilation_caches[pModUID] = cache;
+            return;
+        }
+
+        cache.timestamp = DateTime.UtcNow.Ticks;
+        if (pSave)
+            SaveModRecords();
+    }
+
+    public static void clearModCompileTimestamp(string pModUUID, bool pSave = true)
+    {
+        if (!mod_compilation_caches.TryGetValue(pModUUID, out ModCompilationCache cache))
+        {
+            cache = new ModCompilationCache(pModUUID);
+            cache.disabled = false;
+            cache.timestamp = 0;
+            mod_compilation_caches[pModUUID] = cache;
+            return;
+        }
+
+        cache.timestamp = 0;
+        if (pSave)
+            SaveModRecords();
+    }
+
+    // ReSharper disable once InconsistentNaming
+    private static long getModLastCompileTimestamp(string pModUID)
+    {
+        return mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache) ? cache.timestamp : 0;
     }
 
     private static long getModNewestUpdateTimestamp(string pModFolderPath)
@@ -656,14 +667,10 @@ internal static class ModInfoUtils
                                                     dirname => !dirname.StartsWith(".") &&
                                                                !Paths.IgnoreSearchDirectories.Contains(dirname));
 
-        long newest_timestamp = 0;
-
-        foreach (var filepath in files)
-        {
-            var file_info = new FileInfo(filepath);
-            newest_timestamp = Math.Max(newest_timestamp, file_info.LastWriteTimeUtc.Ticks);
-        }
-
-        return newest_timestamp;
+        return files.Select(filepath => new FileInfo(filepath))
+                    .Select(file_info => file_info.LastWriteTimeUtc.Ticks)
+                    .Prepend(dir.LastWriteTimeUtc.Ticks)
+                    .Prepend(InternalResourcesGetter.GetLastWriteTime())
+                    .Max();
     }
 }

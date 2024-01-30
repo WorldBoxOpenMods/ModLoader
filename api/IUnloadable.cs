@@ -1,7 +1,9 @@
 namespace NeoModLoader.api;
+
 /// <summary>
 /// If your mod main class implements this, the method <see cref="OnUnload"/> will be called when the mod is disabled.
 /// </summary>
+[Obsolete("This interface is deprecated, it is useless")]
 public interface IUnloadable
 {
     /// <summary>

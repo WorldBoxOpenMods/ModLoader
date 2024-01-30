@@ -1,4 +1,5 @@
 using System.Reflection;
+using NeoModLoader.constants;
 using UnityEngine;
 
 namespace NeoModLoader.utils;
@@ -13,11 +14,12 @@ internal static class InternalResourcesGetter
     private static Sprite window_big_close;
     private static Sprite window_vert_name_plate;
     private static string commit = "";
+    private static long   last_write_time;
 
     private static Texture2D LoadManifestTexture(string path_under_resources)
     {
         var s = Assembly.GetExecutingAssembly()
-            .GetManifestResourceStream($"NeoModLoader.resources.{path_under_resources}");
+                        .GetManifestResourceStream($"NeoModLoader.resources.{path_under_resources}");
         byte[] buffer = new byte[s.Length];
         s.Read(buffer, 0, buffer.Length);
 
@@ -30,11 +32,22 @@ internal static class InternalResourcesGetter
     private static byte[] LoadManifestBytes(string path_under_resources)
     {
         var s = Assembly.GetExecutingAssembly()
-            .GetManifestResourceStream($"NeoModLoader.resources.{path_under_resources}");
+                        .GetManifestResourceStream($"NeoModLoader.resources.{path_under_resources}");
         byte[] buffer = new byte[s.Length];
         s.Read(buffer, 0, buffer.Length);
 
         return buffer;
+    }
+
+    public static long GetLastWriteTime()
+    {
+        if (last_write_time == 0)
+        {
+            var f = new FileInfo(Paths.NMLModPath);
+            last_write_time = f.LastWriteTimeUtc.Ticks;
+        }
+
+        return last_write_time;
     }
 
     public static string GetCommit()
@@ -67,7 +80,7 @@ internal static class InternalResourcesGetter
         Texture2D texture = LoadManifestTexture("square_frame_only.png");
 
         icon_frame = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 1,
-            0, SpriteMeshType.Tight, new Vector4(7, 7, 7, 7));
+                                   0, SpriteMeshType.Tight, new Vector4(7, 7, 7, 7));
         return icon_frame;
     }
 
@@ -88,7 +101,7 @@ internal static class InternalResourcesGetter
         Texture2D texture = LoadManifestTexture("reload.png");
 
         icon_reload = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 1,
-            0, SpriteMeshType.Tight, new Vector4(0, 0, 0, 0));
+                                    0, SpriteMeshType.Tight, new Vector4(0, 0, 0, 0));
 
         return icon_reload;
     }
@@ -100,7 +113,7 @@ internal static class InternalResourcesGetter
         var texture = LoadManifestTexture("window_empty_frame.png");
 
         window_empty_frame = Sprite.Create(texture, new Rect(0, 0, 216, 252), new Vector2(0.5f, 0.5f), 1, 1,
-            SpriteMeshType.Tight, new Vector4(12, 12, 12, 12));
+                                           SpriteMeshType.Tight, new Vector4(12, 12, 12, 12));
         window_empty_frame.name = "windowEmptyFrame";
         SpriteTextureLoader.cached_sprites[$"ui/special/{window_empty_frame.name}"] = window_empty_frame;
 
@@ -114,7 +127,7 @@ internal static class InternalResourcesGetter
         var texture = LoadManifestTexture("windowBigCloseSliced.png");
 
         window_big_close = Sprite.Create(texture, new Rect(0, 0, 36, 35), new Vector2(0.5f, 0.5f), 1, 1,
-            SpriteMeshType.Tight, new Vector4(8, 8, 8, 8));
+                                         SpriteMeshType.Tight, new Vector4(8, 8, 8, 8));
         window_big_close.name = "windowBigCloseSliced";
         SpriteTextureLoader.cached_sprites[$"ui/special/{window_big_close.name}"] = window_big_close;
 
@@ -128,7 +141,7 @@ internal static class InternalResourcesGetter
         var texture = LoadManifestTexture("windowVertNamePlate.png");
 
         window_vert_name_plate = Sprite.Create(texture, new Rect(0, 0, 18, 43), new Vector2(0.5f, 0.5f), 1, 1,
-            SpriteMeshType.Tight, new Vector4(2, 2, 2, 2));
+                                               SpriteMeshType.Tight, new Vector4(2, 2, 2, 2));
         window_vert_name_plate.name = "windowVertNamePlate";
         SpriteTextureLoader.cached_sprites[$"ui/special/{window_vert_name_plate.name}"] = window_vert_name_plate;
 

@@ -32,7 +32,11 @@ public static class ModCompileLoadService
                                    string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
                                    bool pDisableOptionalDepen = false)
     {
-        if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl))
+        var available_optional_depens = pDisableOptionalDepen
+            ? new List<string>()
+            : pModDecl.OptionalDependencies.Where(pModInc.ContainsKey).ToList();
+        var available_depens = pModDecl.Dependencies.Where(pModInc.ContainsKey).ToList();
+        if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl, available_depens, available_optional_depens))
         {
             LoadAddInc();
             return true;
@@ -48,37 +52,23 @@ public static class ModCompileLoadService
             list.Add(_publicized_assembly_ref);
         }
 
-        foreach (var depen in pModDecl.Dependencies)
+        foreach (var depen in available_depens)
         {
-            if (!pModInc.ContainsKey(depen))
-            {
-                LogService.LogError($"{pModDecl.UID} miss dependency {depen}");
-                return false;
-            }
-
             list.Add(pModInc[depen]);
-            if (pModInc[depen] == null)
-            {
-                LogService.LogError($"{pModDecl.UID}'s optional ref of {depen} instance is null");
-                return false;
-            }
+
+            if (pModInc[depen] != null) continue;
+            LogService.LogError($"{pModDecl.UID}'s optional ref of {depen} instance is null");
+            return false;
         }
 
-        if (!pDisableOptionalDepen)
+        foreach (var option_depen in available_optional_depens)
         {
-            foreach (var option_depen in pModDecl.OptionalDependencies)
-            {
-                if (pModInc.TryGetValue(option_depen, out var value))
-                {
-                    list.Add(value);
-                    preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
-                    if (value == null)
-                    {
-                        LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
-                        return false;
-                    }
-                }
-            }
+            list.Add(pModInc[option_depen]);
+            preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
+
+            if (pModInc[option_depen] != null) continue;
+            LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
+            return false;
         }
 
         var syntaxTrees = new List<SyntaxTree>();
@@ -216,6 +206,7 @@ public static class ModCompileLoadService
         pdbms.Seek(0, SeekOrigin.Begin);
         pdbms.WriteTo(pdb_fs);
 
+        ModInfoUtils.RecordMod(pModDecl, available_depens, available_optional_depens, false, false);
         return true;
     }
 
@@ -312,10 +303,6 @@ public static class ModCompileLoadService
                 "Compile Failed\n Check Log for details\n All mods compiled before it will be recompiled next time");
             File.WriteAllText(Paths.ModCompileRecordPath, "");
         }
-        else
-        {
-            ModInfoUtils.updateModCompileTimestamp(pModNode.mod_decl.UID);
-        }
 
         return compile_result;
     }
@@ -336,17 +323,19 @@ public static class ModCompileLoadService
             catch (ReflectionTypeLoadException)
             {
                 LogService.LogError(
-                    $"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unorder it");
+                    $"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unsubscribe it");
+
                 string dll_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.dll");
                 string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.pdb");
-                if (File.Exists(dll_path))
+                try
                 {
-                    File.Delete(dll_path);
-                }
+                    if (File.Exists(dll_path)) File.Delete(dll_path);
 
-                if (File.Exists(pdb_path))
+                    if (File.Exists(pdb_path)) File.Delete(pdb_path);
+                }
+                catch (Exception)
                 {
-                    File.Delete(pdb_path);
+                    // ignored
                 }
 
                 ModInfoUtils.clearModCompileTimestamp(mod.UID);
@@ -426,9 +415,11 @@ public static class ModCompileLoadService
 
             WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
             WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
+            return;
         }
 
         pMod.FailReason.AppendLine("No Valid Mod Component Found");
+        ModInfoUtils.clearModCompileTimestamp(pMod.UID);
 
         void auto_localize(object mod_component)
         {
@@ -515,6 +506,8 @@ public static class ModCompileLoadService
             ScrollWindow.get("error_with_reason").clickShow();
             return false;
         }
+
+        ModInfoUtils.SaveModRecords();
 
         return true;
     }
