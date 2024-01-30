@@ -123,37 +123,46 @@ internal static class ModInfoUtils
         return "";
     }
 
+    public static void CheckModsFolder(string pFolderPath, HashSet<string> pFindModsIDs, List<ModDeclare> pModsToFill,
+                                       bool   pLogModJsonNotFound = true)
+    {
+        if (!Directory.Exists(pFolderPath)) return;
+        var zipped_mods = new HashSet<string>(Directory.GetFiles(pFolderPath, "*.zip"))
+                          .Union(Directory.GetFiles(pFolderPath, "*.7z"))
+                          .Union(Directory.GetFiles(pFolderPath, "*.rar"))
+                          .Union(Directory.GetFiles(pFolderPath, "*.tar"))
+                          .Union(Directory.GetFiles(pFolderPath, "*.tar.gz"))
+                          .Union(Directory.GetFiles(pFolderPath, "*.mod"));
+        foreach (var zipped_mod in zipped_mods) TryToUnzipModZip(zipped_mod);
+
+        var mod_folders = Directory.GetDirectories(pFolderPath);
+        foreach (var mod_folder in mod_folders)
+        {
+            ModDeclare mod = recogMod(mod_folder, pLogModJsonNotFound);
+            if (mod != null)
+            {
+                if (pFindModsIDs.Contains(mod.UID))
+                {
+                    LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
+                    continue;
+                }
+
+                pModsToFill.Add(mod);
+                pFindModsIDs.Add(mod.UID);
+            }
+        }
+    }
+
     public static List<ModDeclare> findAndPrepareMods()
     {
         HashSet<string> findModsIDs = new();
         var mods = new List<ModDeclare>();
         if (!NCMSHere())
         {
-            var zipped_mods = new HashSet<string>(Directory.GetFiles(Paths.ModsPath, "*.zip"))
-                              .Union(Directory.GetFiles(Paths.ModsPath, "*.7z"))
-                              .Union(Directory.GetFiles(Paths.ModsPath, "*.rar"))
-                              .Union(Directory.GetFiles(Paths.ModsPath, "*.tar"))
-                              .Union(Directory.GetFiles(Paths.ModsPath, "*.tar.gz"))
-                              .Union(Directory.GetFiles(Paths.ModsPath, "*.mod"));
-            foreach (var zipped_mod in zipped_mods) TryToUnzipModZip(zipped_mod);
-
-            var mod_folders = Directory.GetDirectories(Paths.ModsPath);
-            foreach (var mod_folder in mod_folders)
-            {
-                var mod = recogMod(mod_folder);
-                if (mod != null)
-                {
-                    if (findModsIDs.Contains(mod.UID))
-                    {
-                        LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
-                        continue;
-                    }
-
-                    mods.Add(mod);
-                    findModsIDs.Add(mod.UID);
-                }
-            }
+            CheckModsFolder(Paths.ModsPath, findModsIDs, mods);
         }
+
+        CheckModsFolder(Paths.NativeModsPath, findModsIDs, mods, false);
 
         bool NCMSHere()
         {
