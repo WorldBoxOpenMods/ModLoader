@@ -201,12 +201,6 @@ public class WorldBoxMod : MonoBehaviour
             LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModCompileRecordPath}");
         }
 
-        if (!File.Exists(Paths.ModsDisabledRecordPath))
-        {
-            File.Create(Paths.ModsDisabledRecordPath).Close();
-            LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModsDisabledRecordPath}");
-        }
-
         void extractAssemblies()
         {
             var resources = NeoModLoaderAssembly.GetManifestResourceNames();

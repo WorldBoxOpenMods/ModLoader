@@ -26,7 +26,6 @@ internal static class ModInfoUtils
     public static void InitializeModCompileCache()
     {
         if (!File.Exists(Paths.ModCompileRecordPath)) File.WriteAllText(Paths.ModCompileRecordPath, "{}");
-
         var json = File.ReadAllText(Paths.ModCompileRecordPath);
         var json_settings = new JsonSerializerSettings
         {
@@ -36,6 +35,22 @@ internal static class ModInfoUtils
         mod_compilation_caches =
             JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
             new Dictionary<string, ModCompilationCache>();
+        if (File.Exists(Paths.ModsDisabledRecordPath))
+        {
+            var old_disabled = new List<string>(File.ReadAllLines(Paths.ModsDisabledRecordPath));
+            foreach (var disabled in old_disabled)
+                if (!mod_compilation_caches.ContainsKey(disabled))
+                {
+                    mod_compilation_caches[disabled] = new ModCompilationCache(disabled);
+                    mod_compilation_caches[disabled].disabled = true;
+                }
+                else
+                {
+                    mod_compilation_caches[disabled].disabled = true;
+                }
+
+            File.Delete(Paths.ModsDisabledRecordPath);
+        }
     }
 
     public static string TryToUnzipModZip(string pZipFile)
