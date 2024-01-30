@@ -140,23 +140,6 @@ public class WorldBoxMod : MonoBehaviour
 
                 LM.ApplyLocale();
                 initialized_successfully = true;
-
-                try
-                {
-                    if (!SteamSDK.shouldQuit)
-                    {
-                        NMLAutoUpdateService.CheckWorkshopUpdate();
-                    }
-                    else
-                    {
-                        NMLAutoUpdateService.CheckUpdate();
-                    }
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    ErrorWindow.errorMessage = LM.Get("FailedAutoUpdate");
-                    ScrollWindow.get("error_with_reason").clickShow();
-                }
             }, "NeoModLoader Post Initialize");
             SmoothLoader.add(ExternalModInstallService.CheckExternalModInstall, "Check External Mods to Install");
         }, "Compile Mods And Load resources");
@@ -312,6 +295,20 @@ public class WorldBoxMod : MonoBehaviour
         }
 
         File.WriteAllText(Paths.NMLCommitPath, InternalResourcesGetter.GetCommit());
+        if (File.Exists(Paths.NMLAutoUpdateModulePath))
+        {
+            FileInfo file = new(Paths.NMLAutoUpdateModulePath);
+            if (file.LastWriteTimeUtc.Ticks < InternalResourcesGetter.GetLastWriteTime())
+                try
+                {
+                    file.Delete();
+                }
+                catch (Exception e)
+                {
+                    // ignored
+                }
+        }
+
         if (!File.Exists(Paths.NMLAutoUpdateModulePath))
         {
             using Stream stream = NeoModLoaderAssembly.GetManifestResourceStream(
