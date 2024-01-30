@@ -46,7 +46,8 @@ public class ActorTryToAttackListener : AbstractListener<ActorTryToAttackListene
     {
         List<CodeInstruction> codes = new(instr);
 
-        var insert_index = codes.FindIndex(x => x.opcode == OpCodes.Stloc_S && x.operand == (object)7) - 1;
+        var insert_index =
+            codes.FindIndex(x => x.opcode == OpCodes.Stloc_S && ((LocalBuilder)x.operand).LocalIndex == 7) - 1;
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_0));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldarg_1));
         codes.Insert(insert_index++, new CodeInstruction(OpCodes.Ldloc_S, 6));
