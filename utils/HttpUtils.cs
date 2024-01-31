@@ -34,9 +34,10 @@ public static class HttpUtils
     /// <param name="url"></param>
     /// <param name="params"></param>
     /// <param name="headers"></param>
+    /// <param name="timeout"></param>
     /// <returns></returns>
-    public static string Post(string url, Dictionary<string, string> @params,
-        Dictionary<string, string> headers = null)
+    public static string Post(string                     url,            Dictionary<string, string> @params,
+                              Dictionary<string, string> headers = null, double                     timeout = 30)
     {
         using var client = new HttpClient();
         var content = new FormUrlEncodedContent(@params);
@@ -49,8 +50,19 @@ public static class HttpUtils
             }
         }
 
-        var response = client.PostAsync(url, content).Result;
-        return response.Content.ReadAsStringAsync().Result;
+        client.Timeout = TimeSpan.FromSeconds(timeout);
+        try
+        {
+            HttpResponseMessage response = client.PostAsync(url, content).Result;
+            return response.StatusCode == HttpStatusCode.OK ? response.Content.ReadAsStringAsync().Result : "";
+        }
+        catch (Exception e)
+        {
+            LogService.LogErrorConcurrent(e.Message);
+            LogService.LogErrorConcurrent(e.StackTrace);
+        }
+
+        return "";
     }
 
     /// <summary>
@@ -91,7 +103,7 @@ public static class HttpUtils
             }
             catch (Exception ex)
             {
-                LogService.LogError(ex.Message);
+                LogService.LogErrorConcurrent(ex.Message);
                 return result;
             }
         }
@@ -108,7 +120,7 @@ public static class HttpUtils
             }
             catch (Exception ex)
             {
-                LogService.LogError(ex.Message);
+                LogService.LogErrorConcurrent(ex.Message);
                 return result;
             }
         }
