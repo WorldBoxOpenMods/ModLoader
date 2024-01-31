@@ -629,7 +629,7 @@ internal static class ModInfoUtils
         last = new HashSet<string>(cache.optional_dependencies);
         if (!curr.SetEquals(last)) return true;
 
-        long last_compile_time = getModLastCompileTimestamp(pModDeclare.UID);
+        var last_compile_time = cache.timestamp;
         bool need_recompile = last_compile_time <
                               Others.confirmed_compile_time + getModNewestUpdateTimestamp(pModDeclare.FolderPath);
         if (need_recompile) return true;
@@ -695,8 +695,8 @@ internal static class ModInfoUtils
                                                                !Paths.IgnoreSearchDirectories.Contains(dirname));
 
         return files.Select(filepath => new FileInfo(filepath))
-                    .Select(file_info => file_info.LastWriteTimeUtc.Ticks)
-                    .Prepend(dir.LastWriteTimeUtc.Ticks)
+                    .Select(file_info => Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))
+                    .Prepend(Math.Max(dir.CreationTimeUtc.Ticks, dir.LastWriteTimeUtc.Ticks))
                     .Prepend(InternalResourcesGetter.GetLastWriteTime())
                     .Max();
     }
