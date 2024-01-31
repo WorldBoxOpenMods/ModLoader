@@ -32,9 +32,21 @@ internal static class ModInfoUtils
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Formatting = Formatting.Indented
         };
-        mod_compilation_caches =
-            JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
-            new Dictionary<string, ModCompilationCache>();
+        try
+        {
+            mod_compilation_caches =
+                JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
+                new Dictionary<string, ModCompilationCache>();
+        }
+        catch (Exception)
+        {
+            mod_compilation_caches = new Dictionary<string, ModCompilationCache>();
+        }
+        finally
+        {
+            mod_compilation_caches ??= new Dictionary<string, ModCompilationCache>();
+        }
+
         if (File.Exists(Paths.ModsDisabledRecordPath))
         {
             var old_disabled = new List<string>(File.ReadAllLines(Paths.ModsDisabledRecordPath));
