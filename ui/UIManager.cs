@@ -10,7 +10,7 @@ internal static class UIManager
     {
         InformationWindow.CreateWindow("Information", "Information Title");
         ModListWindow.CreateAndInit("NeoModList");
-        // NewModListWindow.CreateAndInit("NMLMenu");
+        //NewModListWindow.CreateAndInit("NMLMenu");
         WorkshopModListWindow.CreateAndInit("WorkshopMods");
         ModUploadWindow.CreateAndInit("ModUpload");
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
@@ -21,5 +21,12 @@ internal static class UIManager
                                                   InternalResourcesGetter.GetIcon()),
             PowerButtonCreator.GetTab(PowerTabNames.Main),
             new Vector2(403.2f, -18));
+        /*
+        PowerButtonCreator.AddButtonToTab(
+            PowerButtonCreator.CreateWindowButton("NewNML_ModsList", "NMLMenu",
+                                                  InternalResourcesGetter.GetIcon()),
+            PowerButtonCreator.GetTab(PowerTabNames.Main),
+            new Vector2(370.2f, -18));
+            */
     }
 }
