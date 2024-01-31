@@ -1,5 +1,5 @@
 using System.Net;
-using System.Net.Http;
+using AuthenticationException = NeoModLoader.utils.authentication.AuthenticaticationException;
 using NeoModLoader.constants;
 using UnityEngine;
 using Debug = System.Diagnostics.Debug;
@@ -55,8 +55,7 @@ public class DiscordRoleAuthViaUserLoginUtils
         listener.Prefixes.Add("http://localhost:36549/");
         listener.Start();
 
-        Application.OpenURL("https://discord.com/api/oauth2/authorize?client_id=" + client_id +
-                            "&redirect_uri=http%3A%2F%2Flocalhost%3A36549&response_type=code&scope=identify");
+        Application.OpenURL("https://discord.com/api/oauth2/authorize?client_id=" + client_id + "&redirect_uri=http%3A%2F%2Flocalhost%3A36549&response_type=code&scope=identify");
         new Task(() =>
         {
             HttpListener listener_ref = listener;
@@ -85,15 +84,25 @@ public class DiscordRoleAuthViaUserLoginUtils
         {
             throw new Exception("Failed to get context", e);
         }
-
         HttpListenerRequest request = context.Request;
         HttpListenerResponse response = context.Response;
-        const string response_text =
-            "<html><head><title>NeoModLoader</title><style>body {background-color: black; color: white;}</style></head><body>You can close this page!</body></html>";
-        response.OutputStream.Write(response_text.ToCharArray().Select((c => (byte)c)).ToArray(), 0,
-            response_text.Length);
+        
+        string code;
+        string response_text;
+        try
+        {
+            code = request.QueryString["code"];
+            response_text = "<html><head><title>NeoModLoader</title><style>body {background-color: black; color: white;}</style></head><body>Success!<br>You can close this page!</body></html>";
+            response.OutputStream.Write(response_text.ToCharArray().Select((c => (byte)c)).ToArray(), 0, response_text.Length);
+        }
+        catch (Exception)
+        {
+            response_text = "<html><head><title>NeoModLoader</title><style>body {background-color: black; color: white;}</style></head><body>Error!<br>Authentication declined!</body></html>";
+            UnityEngine.Debug.LogWarning("Manual Discord Authentication declined!");
+            response.OutputStream.Write(response_text.ToCharArray().Select((c => (byte)c)).ToArray(), 0, response_text.Length);
+            throw new AuthenticationException("Discord user authentication declined.");
+        }
         response.Close();
-        string code = request.QueryString["code"];
         Debug.WriteLine(code);
         listener.Close();
         HttpResponseMessage res;
