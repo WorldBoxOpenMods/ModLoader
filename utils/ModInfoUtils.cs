@@ -240,7 +240,7 @@ internal static class ModInfoUtils
         SKIP_WORKSHOP:
         foreach (var mod in mods)
         {
-            WorldBoxMod.AllRecognizedMods.Add(mod, ModState.FAILED);
+            WorldBoxMod.AllRecognizedMods[mod] = ModState.FAILED;
         }
 
         return removeDisabledMods(mods);
@@ -647,22 +647,6 @@ internal static class ModInfoUtils
         }
 
         return false;
-    }
-
-    public static void updateModCompileTimestamp(string pModUID, bool pSave = true)
-    {
-        if (!mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache))
-        {
-            cache = new ModCompilationCache(pModUID);
-            cache.disabled = false;
-            cache.timestamp = 0;
-            mod_compilation_caches[pModUID] = cache;
-            return;
-        }
-
-        cache.timestamp = DateTime.UtcNow.Ticks;
-        if (pSave)
-            SaveModRecords();
     }
 
     public static void clearModCompileTimestamp(string pModUUID, bool pSave = true)
