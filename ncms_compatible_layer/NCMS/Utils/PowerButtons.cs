@@ -25,15 +25,18 @@ namespace NCMS.Utils
             LM.AddToCurrentLocale(name,                  title);
             LM.AddToCurrentLocale(name + " Description", description);
             LM.ApplyLocale(false);
-
+            PowerButton asPowerButton;
             switch (type)
             {
                 case ButtonType.Click:
-                    return PowerButtonCreator.CreateSimpleButton(name, call, sprite, parent, position);
+                    asPowerButton = PowerButtonCreator.CreateSimpleButton(name, call, sprite, parent, position);
+                    CustomButtons[name] = asPowerButton;
+                    return asPowerButton;
                 case ButtonType.GodPower:
-                    PowerButton ret = PowerButtonCreator.CreateGodPowerButton(name, sprite, parent, position);
-                    if (call != null) ret.button.onClick.AddListener(call);
-                    return ret;
+                    asPowerButton = PowerButtonCreator.CreateGodPowerButton(name, sprite, parent, position);
+                    if (call != null) asPowerButton.button.onClick.AddListener(call);
+                    CustomButtons[name] = asPowerButton;
+                    return asPowerButton;
                 case ButtonType.Toggle:
                     break;
                 default:
@@ -53,7 +56,7 @@ namespace NCMS.Utils
             obj.transform.localPosition = position;
 
 
-            PowerButton asPowerButton = obj.GetComponent<PowerButton>();
+            asPowerButton = obj.GetComponent<PowerButton>();
             Button asButton = obj.GetComponent<Button>();
 
             asButton.onClick.RemoveAllListeners();
