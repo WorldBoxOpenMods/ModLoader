@@ -382,14 +382,14 @@ public static class TabManager
     /// <returns>The tab created</returns>
     public static PowersTab CreateTab(string name, string pTitleKey, string pDescKey, Sprite pIcon)
     {
-        GameObject tab_entry = Object.Instantiate(ResourcesFinder.FindResource<GameObject>("Button_Other"),
+        GameObject tab_entry = Object.Instantiate(ResourcesFinder.FindResources<GameObject>("Button_Other")[0],
                                                   tab_entry_container);
 
         tab_entry.name = "Button_" + name;
         tab_entry.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
 
         PowersTab tab = Object.Instantiate(
-            ResourcesFinder.FindResource<GameObject>("Tab_Other").GetComponent<PowersTab>(),
+            ResourcesFinder.FindResources<GameObject>("Tab_Other")[0].GetComponent<PowersTab>(),
             tab_container);
 
         tab.name = "Tab_" + name;
