@@ -248,7 +248,8 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             text.text = $"{mod_name}\t{mod_declare.Version}\n{mod_author}\n{mod_desc}";
 
             Sprite sprite = null;
-            if (!string.IsNullOrEmpty(mod_declare.IconPath))
+            if (!string.IsNullOrEmpty(mod_declare.IconPath) &&
+                File.Exists(Path.Combine(mod_declare.FolderPath, mod_declare.IconPath)))
             {
                 sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(mod_declare.FolderPath, mod_declare.IconPath));
             }

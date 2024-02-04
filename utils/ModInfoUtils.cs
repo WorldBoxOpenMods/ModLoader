@@ -32,9 +32,21 @@ internal static class ModInfoUtils
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Formatting = Formatting.Indented
         };
-        mod_compilation_caches =
-            JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
-            new Dictionary<string, ModCompilationCache>();
+        try
+        {
+            mod_compilation_caches =
+                JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
+                new Dictionary<string, ModCompilationCache>();
+        }
+        catch (Exception)
+        {
+            mod_compilation_caches = new Dictionary<string, ModCompilationCache>();
+        }
+        finally
+        {
+            mod_compilation_caches ??= new Dictionary<string, ModCompilationCache>();
+        }
+
         if (File.Exists(Paths.ModsDisabledRecordPath))
         {
             var old_disabled = new List<string>(File.ReadAllLines(Paths.ModsDisabledRecordPath));
@@ -228,7 +240,7 @@ internal static class ModInfoUtils
         SKIP_WORKSHOP:
         foreach (var mod in mods)
         {
-            WorldBoxMod.AllRecognizedMods.Add(mod, ModState.FAILED);
+            WorldBoxMod.AllRecognizedMods[mod] = ModState.FAILED;
         }
 
         return removeDisabledMods(mods);
@@ -617,7 +629,7 @@ internal static class ModInfoUtils
         last = new HashSet<string>(cache.optional_dependencies);
         if (!curr.SetEquals(last)) return true;
 
-        long last_compile_time = getModLastCompileTimestamp(pModDeclare.UID);
+        var last_compile_time = cache.timestamp;
         bool need_recompile = last_compile_time <
                               Others.confirmed_compile_time + getModNewestUpdateTimestamp(pModDeclare.FolderPath);
         if (need_recompile) return true;
@@ -635,22 +647,6 @@ internal static class ModInfoUtils
         }
 
         return false;
-    }
-
-    public static void updateModCompileTimestamp(string pModUID, bool pSave = true)
-    {
-        if (!mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache))
-        {
-            cache = new ModCompilationCache(pModUID);
-            cache.disabled = false;
-            cache.timestamp = 0;
-            mod_compilation_caches[pModUID] = cache;
-            return;
-        }
-
-        cache.timestamp = DateTime.UtcNow.Ticks;
-        if (pSave)
-            SaveModRecords();
     }
 
     public static void clearModCompileTimestamp(string pModUUID, bool pSave = true)
@@ -683,8 +679,8 @@ internal static class ModInfoUtils
                                                                !Paths.IgnoreSearchDirectories.Contains(dirname));
 
         return files.Select(filepath => new FileInfo(filepath))
-                    .Select(file_info => file_info.LastWriteTimeUtc.Ticks)
-                    .Prepend(dir.LastWriteTimeUtc.Ticks)
+                    .Select(file_info => Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))
+                    .Prepend(Math.Max(dir.CreationTimeUtc.Ticks, dir.LastWriteTimeUtc.Ticks))
                     .Prepend(InternalResourcesGetter.GetLastWriteTime())
                     .Max();
     }

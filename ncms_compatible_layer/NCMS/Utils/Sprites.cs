@@ -22,6 +22,6 @@ public class Sprites
         texture2D.filterMode = FilterMode.Point;
         texture2D.LoadImage(File.ReadAllBytes(path));
         return Sprite.Create(texture2D, new Rect(0.0f, 0.0f, texture2D.width, texture2D.height),
-            new Vector2(offsetX, offsetY));
+                             new Vector2(offsetX, offsetY), 1);
     }
 }

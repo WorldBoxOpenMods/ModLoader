@@ -13,7 +13,14 @@ namespace NeoModLoader.utils.authentication;
 /// </summary>
 public static class GithubOrgAuthUtils
 {
-    private const string client_id = Setting.github_auth_client_id;
+    private const  string client_id = Setting.github_auth_client_id;
+    private static string domain    = _alter_domains[0];
+
+    private static readonly string[] _alter_domains =
+    {
+        "github.com",
+        "github.ink"
+    };
 
     /// <summary>
     ///     Get authentication result.
@@ -25,14 +32,14 @@ public static class GithubOrgAuthUtils
 
         if (string.IsNullOrEmpty(token)) return false;
 
-        HttpResponseMessage res = HttpUtils.Get("https://api.github.com/user", new Dictionary<string, string>()
+        HttpResponseMessage res = HttpUtils.Get($"https://api.{domain}/user", new Dictionary<string, string>
         {
             { "Authorization", "Bearer " + token },
             { "User-Agent", "NeoModLoader" }
         });
         UserInfo info = JsonConvert.DeserializeObject<UserInfo>(res.Content.ReadAsStringAsync().Result);
 
-        res = HttpUtils.Get($"https://api.github.com/orgs/{CoreConstants.OrgName}/members/{info.login}",
+        res = HttpUtils.Get($"https://api.{domain}/orgs/{CoreConstants.OrgName}/members/{info.login}",
                             new Dictionary<string, string>()
                             {
                                 { "Authorization", "Bearer " + token },
@@ -50,15 +57,32 @@ public static class GithubOrgAuthUtils
         return false;
     }
 
+
     private static string GetTokenByDeviceFlow()
     {
-        string res = HttpUtils.Post("https://github.com/login/device/code", new Dictionary<string, string>()
-        {
-            { "client_id", client_id }
-        }, new Dictionary<string, string>()
-        {
-            { "Accept", "application/json" }
-        });
+        var res = "";
+        foreach (var alter_domain in _alter_domains)
+            try
+            {
+                res = HttpUtils.Post($"https://{alter_domain}/login/device/code", new Dictionary<string, string>
+                {
+                    { "client_id", client_id }
+                }, new Dictionary<string, string>
+                {
+                    { "Accept", "application/json" }
+                }, 5);
+                if (!string.IsNullOrEmpty(res))
+                {
+                    domain = alter_domain;
+                    break;
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+
+        if (string.IsNullOrEmpty(res)) throw new AuthenticaticationException("Failed to get device code.");
         DeviceFlow flow = JsonConvert.DeserializeObject<DeviceFlow>(res);
         InformationWindow.ShowWindow(string.Format(LM.Get("GithubAuth Tip"), flow.user_code));
         Application.OpenURL(flow.verification_uri);
@@ -68,7 +92,7 @@ public static class GithubOrgAuthUtils
         {
             Thread.Sleep(flow.interval * 1000);
             wait_time += flow.interval * 1000;
-            res = HttpUtils.Post("https://github.com/login/oauth/access_token", new Dictionary<string, string>()
+            res = HttpUtils.Post($"https://{domain}/login/oauth/access_token", new Dictionary<string, string>
             {
                 { "client_id", client_id },
                 { "device_code", flow.device_code },
