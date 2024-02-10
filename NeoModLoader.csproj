@@ -11,17 +11,13 @@
         <RepositoryUrl>https://github.com/WorldBoxOpenMods/ModLoader</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <AssemblyVersion>1.0.8.2</AssemblyVersion>
-        <SignAssembly>true</SignAssembly>
-        <AssemblyOriginatorKeyFile>wbopenmods.snk</AssemblyOriginatorKeyFile>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <DebugType>portable</DebugType>
-      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DebugType>portable</DebugType>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <DebugType>portable</DebugType>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>wbopenmods.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
   <!-- Used for HarmonyPatch, Authentication, Auto-update, Hotfix, Steam workshop-->
