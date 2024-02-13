@@ -73,8 +73,9 @@ namespace NCMS.Utils
             asPowerButton.icon.sprite = sprite;
 
             asPowerButton.type = PowerButtonType.Library;
+
+            toggle_buttons[name] = asPowerButton;
             // DO NOT catch repeat key exception here. There is a NCMS mod that use it.
-            toggle_buttons.Add(name, asPowerButton);
             ToggleValues.Add(name, false);
 
             asButton.onClick.AddListener(() => ToggleButton(name));
