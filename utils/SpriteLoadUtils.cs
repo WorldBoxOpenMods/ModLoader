@@ -21,11 +21,11 @@ class SpriteSheet
 [Serializable]
 class SingleSpriteMetaData
 {
-    public string name;
-    public Rect rect;
+    public string          name;
+    public Rect            rect;
     public SpriteAlignment alignment;
-    public Vector2 pivot;
-    public Vector4 border;
+    public Vector2         pivot;
+    public Vector4         border;
 }
 #pragma warning restore CS0649 // They are assigned by deserializer
 
@@ -37,10 +37,10 @@ class SingleSpriteMetaData
 /// </remarks>
 public static class SpriteLoadUtils
 {
-    private static Dictionary<string, Sprite> singleSpriteCache = new();
-    private static Dictionary<string, NCMSSpritesSettings> dirNCMSSettings = new();
-    private static HashSet<string> ignoreNCMSSettingsSearchPath = new();
-    private static NCMSSpritesSettings.SpecificSetting defaultNCMSSetting = new();
+    private static Dictionary<string, Sprite>              singleSpriteCache            = new();
+    private static Dictionary<string, NCMSSpritesSettings> dirNCMSSettings              = new();
+    private static HashSet<string>                         ignoreNCMSSettingsSearchPath = new();
+    private static NCMSSpritesSettings.SpecificSetting     defaultNCMSSetting           = new();
 
     private static IDeserializer deserializer =
         new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
@@ -113,19 +113,19 @@ public static class SpriteLoadUtils
     {
         string dir = Path.GetDirectoryName(path);
 
-        NCMSSpritesSettings.SpecificSetting getInternalSetting(string path, NCMSSpritesSettings settings)
+        NCMSSpritesSettings.SpecificSetting getInternalSetting(string i_path, NCMSSpritesSettings settings)
         {
             if (settings.Specific == null) return settings.Default;
             foreach (var setting in settings.Specific)
             {
-                if (setting.Path == Path.GetFileName(path))
+                if (setting.Path == Path.GetFileName(i_path))
                 {
                     //LogService.LogInfo($"Specific NCMSSetting {setting.Path} found for {path}");
                     return setting;
                 }
             }
 
-            return dirNCMSSettings[dir].Default;
+            return settings.Default;
         }
 
         while (true)
@@ -189,7 +189,7 @@ public static class SpriteLoadUtils
         {
             var sprite = textureImporter.spriteSheet.sprites[i];
             sprites[i] = Sprite.Create(texture, sprite.rect, sprite.pivot, 1, 0, SpriteMeshType.FullRect,
-                sprite.border);
+                                       sprite.border);
             sprites[i].name = sprite.name;
         }
 
@@ -218,7 +218,7 @@ public static class SpriteLoadUtils
     /// </remarks>
     class NCMSSpritesSettings
     {
-        public SpecificSetting Default;
+        public SpecificSetting       Default;
         public List<SpecificSetting> Specific;
 #pragma warning restore CS0649 // They are assigned by deserializer
 
@@ -232,16 +232,16 @@ public static class SpriteLoadUtils
         /// </remarks>
         public class SpecificSetting
         {
-            public float BorderB = 0.0f;
-            public float BorderL = 0.0f;
-            public float BorderR = 0.0f;
-            public float BorderT = 0.0f;
-            public string Path = "\\";
-            public float PivotX = 0.5f;
-            public float PivotY = 0.0f;
-            public float PixelsPerUnit = 1f;
-            public float RectX = 0.0f;
-            public float RectY = 0.0f;
+            public float  BorderB       = 0.0f;
+            public float  BorderL       = 0.0f;
+            public float  BorderR       = 0.0f;
+            public float  BorderT       = 0.0f;
+            public string Path          = "\\";
+            public float  PivotX        = 0.5f;
+            public float  PivotY        = 0.0f;
+            public float  PixelsPerUnit = 1f;
+            public float  RectX         = 0.0f;
+            public float  RectY         = 0.0f;
 
             public Sprite loadFromPath(string path)
             {
@@ -249,8 +249,8 @@ public static class SpriteLoadUtils
                 texture.filterMode = FilterMode.Point;
                 texture.LoadImage(File.ReadAllBytes(path));
                 Sprite sprite = Sprite.Create(texture, new Rect(RectX, RectY, texture.width, texture.height),
-                    new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
-                    new Vector4(BorderL, BorderB, BorderR, BorderT));
+                                              new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
+                                              new Vector4(BorderL, BorderB, BorderR, BorderT));
                 sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
                 return sprite;
             }
