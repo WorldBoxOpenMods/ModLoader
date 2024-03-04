@@ -242,15 +242,18 @@ public static class SpriteLoadUtils
             public float  PixelsPerUnit = 1f;
             public float  RectX         = 0.0f;
             public float  RectY         = 0.0f;
+            public float  RectW         = -1;
+            public float  RectH         = -1;
 
             public Sprite loadFromPath(string path)
             {
                 Texture2D texture = new(0, 0);
                 texture.filterMode = FilterMode.Point;
                 texture.LoadImage(File.ReadAllBytes(path));
-                Sprite sprite = Sprite.Create(texture, new Rect(RectX, RectY, texture.width, texture.height),
-                                              new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
-                                              new Vector4(BorderL, BorderB, BorderR, BorderT));
+                Sprite sprite = Sprite.Create(texture,
+                    new Rect(RectX, RectY, RectW < 0 ? texture.width : RectW, RectH < 0 ? texture.height : RectH),
+                    new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
+                    new Vector4(BorderL, BorderB, BorderR, BorderT));
                 sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
                 return sprite;
             }
