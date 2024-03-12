@@ -5,9 +5,9 @@ namespace NeoModLoader.General.UI.Prefabs;
 
 public class SwitchButton : APrefab<SwitchButton>
 {
-    private Button _button;
-    private Image _icon;
-    private Text _text;
+    public Button    button     { get; private set; }
+    public Image     icon       { get; private set; }
+    public Text      text       { get; private set; }
     public TipButton tip_button { get; private set; }
 
     private void Awake()
@@ -18,21 +18,21 @@ public class SwitchButton : APrefab<SwitchButton>
     protected override void Init()
     {
         base.Init();
-        _button = GetComponent<Button>();
-        _text = transform.Find("Text").GetComponent<Text>();
-        _icon = transform.Find("Icon").GetComponent<Image>();
+        button = GetComponent<Button>();
+        text = transform.Find("Text").GetComponent<Text>();
+        icon = transform.Find("Icon").GetComponent<Image>();
         tip_button = GetComponent<TipButton>();
     }
 
     public void Setup(bool value, Action value_update)
     {
         if (!Initialized) Init();
-        _icon.sprite = value
+        icon.sprite = value
             ? SpriteTextureLoader.getSprite("ui/icons/iconOn")
             : SpriteTextureLoader.getSprite("ui/icons/iconOff");
-        _text.text = value ? LM.Get("short_on") : LM.Get("short_off");
-        _button.onClick.RemoveAllListeners();
-        _button.onClick.AddListener(() =>
+        text.text = value ? LM.Get("short_on") : LM.Get("short_off");
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() =>
         {
             value_update();
             Setup(!value, value_update);
@@ -42,7 +42,7 @@ public class SwitchButton : APrefab<SwitchButton>
     internal static void _init()
     {
         GameObject switch_button = new GameObject("SwitchButton", typeof(Image), typeof(Button), typeof(TipButton),
-            typeof(HorizontalLayoutGroup));
+                                                  typeof(HorizontalLayoutGroup));
         switch_button.transform.SetParent(WorldBoxMod.Transform);
         switch_button.transform.localScale = Vector3.one;
         switch_button.GetComponent<RectTransform>().sizeDelta = new(50, 18);

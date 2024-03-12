@@ -9,10 +9,10 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class SimpleStatBar : APrefab<SimpleStatBar>
 {
-    private Image background;
-    private Image bar;
-    private Image icon;
-    private StatBar stat_bar;
+    public Image   background { get; private set; }
+    public Image   bar        { get; private set; }
+    public Image   icon       { get; private set; }
+    public StatBar stat_bar   { get; private set; }
 
     private void Awake()
     {
@@ -45,9 +45,10 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
     /// <param name="pFloat"></param>
     /// <param name="pUpdateText"></param>
     /// <param name="pWithoutTween"></param>
-    public virtual void Setup(float value, float max_value, string pEndText, Sprite pIcon, Sprite pBackground,
-        Color pBarColor,
-        Vector2 pSize, bool pReset = true, bool pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
+    public virtual void Setup(float   value, float max_value, string pEndText, Sprite pIcon, Sprite pBackground,
+                              Color   pBarColor,
+                              Vector2 pSize, bool pReset = true, bool pFloat = false, bool pUpdateText = true,
+                              bool    pWithoutTween = false)
     {
         if (!Initialized) Init();
         icon.sprite = pIcon;
@@ -91,7 +92,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
     /// <param name="pUpdateText"></param>
     /// <param name="pWithoutTween"></param>
     public void UpdateBar(float value, float max_value, string pEndText, Color pBarColor = default, bool pReset = true,
-        bool pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
+                          bool  pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
     {
         if (!Initialized) Init();
         if (pBarColor != default)
@@ -105,7 +106,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
     internal static void _init()
     {
         GameObject stat_bar_obj = new("SimpleStatBar", typeof(Button), typeof(TipButton),
-            typeof(Image));
+                                      typeof(Image));
         stat_bar_obj.transform.SetParent(WorldBoxMod.Transform);
         stat_bar_obj.transform.localScale = Vector3.one;
         stat_bar_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 14f);
@@ -123,7 +124,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         mask.transform.SetParent(stat_bar_obj.transform);
         Mask mask_mask = mask.GetComponent<Mask>();
         mask_mask.showMaskGraphic = false;
-        mask.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
+        mask.GetComponent<RectTransform>().pivot = new Vector2(0,     0.5f);
         mask.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0.5f);
         mask.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0.5f);
 

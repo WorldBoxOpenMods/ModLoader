@@ -10,8 +10,8 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class TextInput : APrefab<TextInput>
 {
-    private Image icon;
-    private InputField input;
+    public Image      icon  { get; private set; }
+    public InputField input { get; private set; }
 
     /// <summary>
     ///     The <see cref="Text" /> component
@@ -46,7 +46,7 @@ public class TextInput : APrefab<TextInput>
     /// <param name="pIcon">icon at the right</param>
     /// <param name="pBackground"></param>
     public virtual void Setup(string value, UnityAction<string> value_update, Sprite pIcon = null,
-        Sprite pBackground = null)
+                              Sprite pBackground = null)
     {
         if (!Initialized) Init();
         input.onEndEdit.RemoveAllListeners();
@@ -81,8 +81,8 @@ public class TextInput : APrefab<TextInput>
         if (!Initialized) Init();
         GetComponent<RectTransform>().sizeDelta = size;
         text.GetComponent<RectTransform>().sizeDelta = size - new Vector2(size.y / 2 + 4, 2);
-        icon.GetComponent<RectTransform>().sizeDelta = new Vector2(size.y, size.y) - new Vector2(2, 2);
-        text.transform.localPosition = new Vector3(-size.x / 2, 0);
+        icon.GetComponent<RectTransform>().sizeDelta = new Vector2(size.y,                size.y) - new Vector2(2, 2);
+        text.transform.localPosition = new Vector3(-size.x               / 2, 0);
         icon.transform.localPosition = new Vector3((size.x - size.y / 2) / 2, 0);
     }
 
