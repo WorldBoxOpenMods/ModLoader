@@ -25,7 +25,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// </example>
 public class SliderBar : APrefab<SliderBar>
 {
-    private Slider _slider;
+    public Slider slider { get; private set; }
 
     /// <summary>
     /// The tip button of the slider bar, used to show tooltip
@@ -41,7 +41,7 @@ public class SliderBar : APrefab<SliderBar>
     protected override void Init()
     {
         base.Init();
-        _slider = GetComponent<Slider>();
+        slider = GetComponent<Slider>();
         tip_button = GetComponent<TipButton>();
     }
 
@@ -55,11 +55,11 @@ public class SliderBar : APrefab<SliderBar>
     public void Setup(float value, float min, float max, UnityAction<float> value_update, Vector2 size = default)
     {
         if (!Initialized) Init();
-        _slider.onValueChanged.RemoveAllListeners();
-        _slider.minValue = min;
-        _slider.maxValue = max;
-        _slider.value = value;
-        _slider.onValueChanged.AddListener(value_update);
+        slider.onValueChanged.RemoveAllListeners();
+        slider.minValue = min;
+        slider.maxValue = max;
+        slider.value = value;
+        slider.onValueChanged.AddListener(value_update);
         if (size != default)
         {
             SetSize(size);
@@ -75,7 +75,7 @@ public class SliderBar : APrefab<SliderBar>
         if (!Initialized) Init();
         GetComponent<RectTransform>().sizeDelta = size;
         transform.Find("Background").GetComponent<RectTransform>().sizeDelta = size - new Vector2(0, 10);
-        transform.Find("Fill Area").GetComponent<RectTransform>().sizeDelta = size - new Vector2(0, 10);
+        transform.Find("Fill Area").GetComponent<RectTransform>().sizeDelta = size  - new Vector2(0, 10);
         transform.Find("Fill Area/Fill").GetComponent<RectTransform>().sizeDelta = Vector2.zero;
         transform.Find("Handle Slide Area").GetComponent<RectTransform>().sizeDelta = size - new Vector2(10, 0);
         transform.Find("Handle Slide Area/Handle").GetComponent<RectTransform>().sizeDelta = new Vector2(20, 0);

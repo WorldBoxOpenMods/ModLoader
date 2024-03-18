@@ -13,5 +13,6 @@ assemblies
 resources/commit
 *.csproj
 *.user
+*.snk
 App.config
 constants/Setting.cs

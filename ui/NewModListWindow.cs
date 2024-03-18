@@ -10,18 +10,20 @@ namespace NeoModLoader.ui;
 
 internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 {
-    private DisplayType                        CurrentDisplayType;
-    private ModDeclare                         CurrentSelected;
-    private ObjectPoolGenericMono<ModListItem> ListItemPool;
-    private RectTransform                      ListPart;
-    private List<ModDeclare>                   ListToShow;
-    private SimpleButton                       ModCommunityButton;
+    private readonly Dictionary<ModDeclare, ModInfoPanel> ModInfoPanels = new();
+    private          DisplayType                          CurrentDisplayType;
+    private          ModDeclare                           CurrentSelected;
+    private          ObjectPoolGenericMono<ModListItem>   ListItemPool;
+    private          RectTransform                        ListPart;
+    private          List<ModDeclare>                     ListToShow;
+    private          SimpleButton                         ModCommunityButton;
 
-    private SimpleButton ModConfigureButton;
-    private SimpleButton OpenModFolderButton;
-    private SimpleButton ReloadModButton;
-    private SimpleButton ToggleModButton;
-    private SimpleButton UploadModButton;
+    private SimpleButton  ModConfigureButton;
+    private RectTransform ModInfoPart;
+    private SimpleButton  OpenModFolderButton;
+    private SimpleButton  ReloadModButton;
+    private SimpleButton  ToggleModButton;
+    private SimpleButton  UploadModButton;
 
     protected override void Init()
     {
@@ -86,6 +88,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         mod_info_part.transform.localScale = Vector3.one;
         mod_info_part.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
         mod_info_part.GetComponent<Image>().type = Image.Type.Sliced;
+        ModInfoPart = mod_info_part.GetComponent<RectTransform>();
 
         var mod_control_part = new GameObject("ModControlPart", typeof(Image), typeof(HorizontalLayoutGroup));
         mod_control_part.transform.SetParent(BackgroundTransform);
@@ -226,7 +229,17 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void RefreshInfoPart()
     {
-        throw new NotImplementedException();
+        foreach (ModInfoPanel panel in ModInfoPanels.Values) panel.gameObject.SetActive(false);
+        if (ModInfoPanels.ContainsKey(CurrentSelected))
+        {
+            ModInfoPanels[CurrentSelected].gameObject.SetActive(true);
+        }
+        else
+        {
+            ModInfoPanel panel = Instantiate(ModInfoPanel.Prefab, ModInfoPart);
+            panel.Setup(CurrentSelected);
+            ModInfoPanels.Add(CurrentSelected, panel);
+        }
     }
 
     private void CommunityOfSelectedMod()

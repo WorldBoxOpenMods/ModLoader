@@ -13,8 +13,9 @@ namespace NeoModLoader.General.UI.Window;
 public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTabWindow<T>
 {
     private readonly Dictionary<SimpleButton, AutoVertLayoutGroup> m_tabs = new();
-    private RectTransform m_tab_entries_left;
-    private RectTransform m_tab_entries_right;
+    private          RectTransform                                 m_tab_entries_left;
+    private          RectTransform                                 m_tab_entries_right;
+    protected        string                                        CurrentTab { get; private set; } = "Default";
 
     public static T CreateWindow(string pWindowID, string pWindowTitleKey)
     {
@@ -66,7 +67,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         tab_entries_container_layout.spacing = 208;
 
         GameObject left_container = new("LeftContainer", typeof(RectTransform), typeof(VerticalLayoutGroup),
-            typeof(Mask), typeof(Image));
+                                        typeof(Mask), typeof(Image));
         left_container.transform.SetParent(tab_entries_container.transform);
         left_container.transform.localScale = Vector3.one;
         left_container.GetComponent<Mask>().showMaskGraphic = false;
@@ -98,8 +99,8 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         return auto_layout_window;
     }
 
-    protected AutoVertLayoutGroup CreateTab(string pTabID, Sprite pTabIcon,
-        UnityAction<string> pAdditionTabSwitchAction = null)
+    protected AutoVertLayoutGroup CreateTab(string              pTabID, Sprite pTabIcon,
+                                            UnityAction<string> pAdditionTabSwitchAction = null)
     {
         var tab = Instantiate(Prefab, ContentTransform.parent);
         tab.Setup(default, TextAnchor.UpperCenter, 10, new RectOffset(3, 3, 10, 10));
@@ -112,19 +113,23 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         tab.name = pTabID;
 
         var tab_entry = Instantiate(SimpleButton.Prefab,
-            m_tab_entries_left.childCount > m_tab_entries_right.childCount ? m_tab_entries_right : m_tab_entries_left);
+                                    m_tab_entries_left.childCount > m_tab_entries_right.childCount
+                                        ? m_tab_entries_right
+                                        : m_tab_entries_left);
         tab_entry.Setup(() =>
         {
             foreach (Transform tab in ContentTransform.parent) tab.gameObject.SetActive(false);
             if (tab_entry.Background.color == Color.gray)
             {
                 tab_entry.Background.color = Color.white;
+                CurrentTab = "Default";
                 tab.gameObject.SetActive(false);
                 ContentTransform.gameObject.SetActive(true);
             }
             else
             {
                 tab_entry.Background.color = Color.gray;
+                CurrentTab = pTabID;
                 tab.gameObject.SetActive(true);
                 pAdditionTabSwitchAction?.Invoke(pTabID);
             }
