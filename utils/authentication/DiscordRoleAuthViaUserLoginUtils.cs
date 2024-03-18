@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using AuthenticationException = NeoModLoader.utils.authentication.AuthenticaticationException;
 using NeoModLoader.constants;
 using UnityEngine;
