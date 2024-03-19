@@ -36,7 +36,7 @@ public static class ModCompileLoadService
             ? new List<string>()
             : pModDecl.OptionalDependencies.Where(pModInc.ContainsKey).ToList();
         var available_depens = pModDecl.Dependencies.Where(pModInc.ContainsKey).ToList();
-        if (!pForce && !ModInfoUtils.isModNeedRecompile(pModDecl, available_depens, available_optional_depens))
+        if (!pForce && !ModInfoUtils.doesModNeedRecompile(pModDecl, available_depens, available_optional_depens))
         {
             LoadAddInc();
             return true;

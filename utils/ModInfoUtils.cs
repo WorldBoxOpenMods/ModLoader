@@ -617,7 +617,7 @@ internal static class ModInfoUtils
     }
 
     // ReSharper disable once InconsistentNaming
-    public static bool isModNeedRecompile(ModDeclare   pModDeclare, List<string> pDependencies,
+    public static bool doesModNeedRecompile(ModDeclare   pModDeclare, List<string> pDependencies,
                                           List<string> pOptionalDependencies)
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
