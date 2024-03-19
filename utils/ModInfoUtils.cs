@@ -623,6 +623,7 @@ internal static class ModInfoUtils
                                           List<string> pOptionalDependencies)
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
+        if (!File.Exists(Path.Combine(Paths.CompiledModsPath, pModDeclare.UID))) return true;
         var curr = new HashSet<string>(pDependencies);
         var last = new HashSet<string>(cache.dependencies);
 
