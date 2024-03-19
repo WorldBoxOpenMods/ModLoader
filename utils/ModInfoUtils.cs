@@ -23,6 +23,8 @@ internal static class ModInfoUtils
 
     private static Dictionary<string, ModCompilationCache> mod_compilation_caches;
 
+    private static readonly Dictionary<string, long> mod_last_update_timestamps = new();
+
     public static void InitializeModCompileCache()
     {
         if (!File.Exists(Paths.ModCompileRecordPath)) File.WriteAllText(Paths.ModCompileRecordPath, "{}");
@@ -609,7 +611,7 @@ internal static class ModInfoUtils
         }
 
         cache.disabled = pDisabled;
-        cache.timestamp = DateTime.UtcNow.Ticks;
+        cache.timestamp = getModNewestUpdateTimestamp(pModDeclare.FolderPath);
 
         mod_compilation_caches[pModDeclare.UID] = cache;
         if (pSave)
@@ -621,6 +623,7 @@ internal static class ModInfoUtils
                                           List<string> pOptionalDependencies)
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
+        if (!File.Exists(Path.Combine(Paths.CompiledModsPath, pModDeclare.UID))) return true;
         var curr = new HashSet<string>(pDependencies);
         var last = new HashSet<string>(cache.dependencies);
 
@@ -674,14 +677,17 @@ internal static class ModInfoUtils
     private static long getModNewestUpdateTimestamp(string pModFolderPath)
     {
         var dir = new DirectoryInfo(pModFolderPath);
+        if (mod_last_update_timestamps.ContainsKey(dir.FullName)) return mod_last_update_timestamps[dir.FullName];
         var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
                                                     dirname => !dirname.StartsWith(".") &&
                                                                !Paths.IgnoreSearchDirectories.Contains(dirname));
-
-        return files.Select(filepath => new FileInfo(filepath))
-                    .Select(file_info => Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))
-                    .Prepend(Math.Max(dir.CreationTimeUtc.Ticks, dir.LastWriteTimeUtc.Ticks))
-                    .Prepend(InternalResourcesGetter.GetLastWriteTime())
-                    .Max();
+        var result = files.Select(filepath => new FileInfo(filepath))
+                          .Select(file_info =>
+                                      Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))
+                          .Prepend(Math.Max(dir.CreationTimeUtc.Ticks, dir.LastWriteTimeUtc.Ticks))
+                          .Prepend(InternalResourcesGetter.GetLastWriteTime())
+                          .Max();
+        mod_last_update_timestamps[dir.FullName] = result;
+        return result;
     }
 }
