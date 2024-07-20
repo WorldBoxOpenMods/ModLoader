@@ -2,7 +2,10 @@ namespace NeoModLoader.General.UI.Tab;
 
 public class TabBombs : ReconstructedVanillaTab
 {
-    public override void Init()
+    protected override string[] Groups => new string[] {  };
+
+    protected override void InitTab()
     {
+        tab = new WrappedPowersTab(PowerButtonCreator.GetTab(PowerTabNames.Bombs));
     }
 }

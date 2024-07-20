@@ -7,7 +7,10 @@ public class TabDrawing : ReconstructedVanillaTab
     public const string CLEANER = "cleaner";
     public const string DELETOR = "deletor";
 
-    public override void Init()
+    protected override string[] Groups => new string[] { TILE_BRUSH, MAP_HELPER, CLEANER, DELETOR };
+
+    protected override void InitTab()
     {
+        tab = new WrappedPowersTab(PowerButtonCreator.GetTab(PowerTabNames.Drawing));
     }
 }

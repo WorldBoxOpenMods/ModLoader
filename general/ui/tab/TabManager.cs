@@ -34,6 +34,12 @@ public static class TabManager
 
     private static float   _check_timer    = 0;
     static         Vector3 _last_mouse_pos = Vector3.zero;
+    public static readonly TabMain TabMain = new();
+    public static readonly TabDrawing TabDrawing = new();
+    public static readonly TabKingdoms TabKingdoms = new();
+    public static readonly TabCreatures TabCreatures = new();
+    public static readonly TabNature TabNature = new();
+    public static readonly TabOther TabOther = new();
 
     private static readonly List<string> common_fix_for_tab_button = new()
     {
@@ -50,12 +56,12 @@ public static class TabManager
             tab_names_set.Add(_tab_names[i]);
         }
 
-        new TabMain().Init();
-        new TabDrawing().Init();
-        new TabKingdoms().Init();
-        new TabCreatures().Init();
-        new TabNature().Init();
-        new TabOther().Init();
+        TabMain.Init();
+        TabDrawing.Init();
+        TabKingdoms.Init();
+        TabCreatures.Init();
+        TabNature.Init();
+        TabOther.Init();
     }
 
     private static void _loadPredefinedOrder()

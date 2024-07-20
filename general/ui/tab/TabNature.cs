@@ -8,7 +8,10 @@ public class TabNature : ReconstructedVanillaTab
     public const string RESOURCES = "resources";
     public const string DROP = "drop";
 
-    public override void Init()
+    protected override string[] Groups => new string[] { PHENOMENON, BIOMES, FERTILITY, RESOURCES, DROP };
+
+    protected override void InitTab()
     {
+        tab = new WrappedPowersTab(PowerButtonCreator.GetTab(PowerTabNames.Nature));
     }
 }

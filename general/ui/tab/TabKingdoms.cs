@@ -8,7 +8,10 @@ public class TabKingdoms : ReconstructedVanillaTab
     public const string FORCE_VIEW = "force_view";
     public const string MAPLAYER = "maplayer";
 
-    public override void Init()
+    protected override string[] Groups => new string[] { INSPECT, RELATION, ACTIVITY, FORCE_VIEW, MAPLAYER };
+
+    protected override void InitTab()
     {
+        tab = new WrappedPowersTab(PowerButtonCreator.GetTab(PowerTabNames.Kingdoms));
     }
 }

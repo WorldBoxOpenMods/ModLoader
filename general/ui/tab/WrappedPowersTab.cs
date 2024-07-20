@@ -20,7 +20,10 @@ internal class WrappedPowersTab
     private Dictionary<string, List<WrappedRectTransform>> CustomRectGroups;
     public bool Modifiable;
     public PowersTab Tab;
-
+    internal void RecordLine(GameObject line)
+    {
+        _active_lines.Enqueue(line);
+    }
     public WrappedPowersTab(PowersTab pPowersTab)
     {
         Tab = pPowersTab;

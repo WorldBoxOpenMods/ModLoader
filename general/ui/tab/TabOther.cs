@@ -8,7 +8,10 @@ public class TabOther : ReconstructedVanillaTab
     public const string LIFE_GAME = "life_game";
     public const string SHAPE_PRINTER = "shape_printer";
 
-    public override void Init()
+    protected override string[] Groups => new string[] { INFO, STATUS, EDITOR_RAIN, LIFE_GAME, SHAPE_PRINTER };
+
+    protected override void InitTab()
     {
+        tab = new WrappedPowersTab(PowerButtonCreator.GetTab(PowerTabNames.Other));
     }
 }
