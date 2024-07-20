@@ -26,7 +26,7 @@
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
       <Reference Include="System.Net.Http">
-        <HintPath>resources\assemblies\System.Net.Http.dll</HintPath>
+        <HintPath>assembly-dependencies\System.Net.Http.dll</HintPath>
       </Reference>
       <Reference Include="Mono.Cecil">
         <HintPath>resources\assemblies\Mono.Cecil.dll</HintPath>
@@ -130,8 +130,6 @@
       <EmbeddedResource Include="resources\assemblies\System.Collections.Immutable.dll" />
       <None Remove="resources\assemblies\System.Memory.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Memory.dll" />
-      <None Remove="resources\assemblies\System.Net.Http.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Net.Http.dll" />
       <None Remove="resources\assemblies\System.Numerics.Vectors.dll" />
       <EmbeddedResource Include="resources\assemblies\System.Numerics.Vectors.dll" />
       <None Remove="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
@@ -168,14 +166,14 @@
       <EmbeddedResource Include="resources\reload.png" />
       <None Remove="resources\assemblies\Assembly-CSharp-Publicized" />
       <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized" />
-        <None Remove="resources\window_empty_frame.png"/>
-        <EmbeddedResource Include="resources\window_empty_frame.png"/>
-        <None Remove="resources\windowBigCloseSliced.png"/>
-        <EmbeddedResource Include="resources\windowBigCloseSliced.png"/>
-        <None Remove="resources\windowVertNamePlate.png"/>
-        <EmbeddedResource Include="resources\windowVertNamePlate.png"/>
-        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate"/>
-        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate"/>
+        <None Remove="resources\window_empty_frame.png" />
+        <EmbeddedResource Include="resources\window_empty_frame.png" />
+        <None Remove="resources\windowBigCloseSliced.png" />
+        <EmbeddedResource Include="resources\windowBigCloseSliced.png" />
+        <None Remove="resources\windowVertNamePlate.png" />
+        <EmbeddedResource Include="resources\windowVertNamePlate.png" />
+        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate" />
+        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate" />
     </ItemGroup>
   
     <ItemGroup>
