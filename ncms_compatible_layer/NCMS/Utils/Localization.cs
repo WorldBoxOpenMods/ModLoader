@@ -9,7 +9,7 @@ namespace NCMS.Utils
         public static void Add(string key, string value)
         {
             LM.AddToCurrentLocale(key, value);
-            LM.ApplyLocale(false);
+            //LM.ApplyLocale(false); It is applied actually above.
         }
 
         [Obsolete("Localization.addLocalization is deprecated, please use Localization.Add instead")]
