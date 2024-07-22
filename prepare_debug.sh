@@ -6,7 +6,7 @@ case "$OSTYPE" in
     export BDF=$(pwd)/bin/Debug/net48
     ;; 
   linux*)
-    export GMF=$HOME/Games/steam/worldbox/worldbox_Data/StreamingAssets/Mods
+    export GMF=$HOME/.local/share/Steam/steamapps/common/worldbox/worldbox_Data/StreamingAssets/mods/
     export BDF=$(pwd)/bin/Debug/net48
     ;;
 esac
