@@ -12,13 +12,30 @@ namespace NeoModLoader.api;
 public abstract class AbstractWideWindow<T> : AbstractWindow<T> where T : AbstractWideWindow<T>
 {
     /// <summary>
+    /// Set size of the wide window
+    /// </summary>
+    /// <param name="pSize"></param>
+    public void SetSize(Vector2 pSize)
+    {
+        Instance.BackgroundTransform.GetComponent<RectTransform>().sizeDelta = pSize;
+        Instance.BackgroundTransform.Find("CloseBackgound").localPosition = new Vector3(pSize.x / 2 - 20, pSize.y / 2 + 7);
+        Instance.BackgroundTransform.Find("TitleBackground").GetComponent<RectTransform>().sizeDelta = new Vector2(pSize.x / 2, 30);
+        Instance.BackgroundTransform.Find("TitleBackground").localPosition = new Vector3(0, pSize.y / 2 + 5);
+        Instance.GetComponent<ScrollWindow>().titleText.transform.localPosition = new Vector3(0, pSize.y / 2 + 5);
+        Instance.GetComponent<ScrollWindow>().titleText.GetComponent<RectTransform>().sizeDelta = new Vector2(pSize.x / 2 * 0.92f, 28);
+    }
+    /// <summary>
     ///     以 pWindowId 创建并初始化一个 T 类型的窗口
     /// </summary>
     /// <param name="pWindowId"></param>
     /// <returns></returns>
-    public new static T CreateAndInit(string pWindowId)
+    public static T CreateAndInit(string pWindowId, Vector2 pSize = default)
     {
         WindowId = pWindowId;
+        if (pSize == default)
+        {
+            pSize = new Vector2(600, 280);
+        }
         var scroll_window = WindowCreator.CreateEmptyWindow(pWindowId, pWindowId + " Title");
 
         var window_object = scroll_window.gameObject;
@@ -32,9 +49,9 @@ public abstract class AbstractWideWindow<T> : AbstractWindow<T> where T : Abstra
 
         Instance.BackgroundTransform.GetComponent<Image>().sprite = InternalResourcesGetter.GetWindowEmptyFrame();
         Instance.BackgroundTransform.GetComponent<Image>().type = Image.Type.Sliced;
-        Instance.BackgroundTransform.GetComponent<RectTransform>().sizeDelta = new Vector2(600, 280);
+        //Instance.BackgroundTransform.GetComponent<RectTransform>().sizeDelta = new Vector2(600, 280);
 
-        Instance.BackgroundTransform.Find("CloseBackgound").localPosition = new Vector3(260, 147);
+        //Instance.BackgroundTransform.Find("CloseBackgound").localPosition = new Vector3(260, 147);
 
         var title_bg = new GameObject("TitleBackground", typeof(Image));
         title_bg.transform.SetParent(Instance.BackgroundTransform);
@@ -43,11 +60,11 @@ public abstract class AbstractWideWindow<T> : AbstractWindow<T> where T : Abstra
         title_bg.transform.SetSiblingIndex(1);
         title_bg.GetComponent<Image>().sprite = InternalResourcesGetter.GetWindowBigCloseSliced();
         title_bg.GetComponent<Image>().type = Image.Type.Sliced;
-        title_bg.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 30);
+        //title_bg.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 30);
 
-        scroll_window.titleText.transform.localPosition = new Vector3(0, 145);
-        scroll_window.titleText.GetComponent<RectTransform>().sizeDelta = new Vector2(280, 28);
-
+        //scroll_window.titleText.transform.localPosition = new Vector3(0, 145);
+        //scroll_window.titleText.GetComponent<RectTransform>().sizeDelta = new Vector2(280, 28);
+        Instance.SetSize(pSize);
         Instance.Init();
 
         Instance.Initialized = true;
