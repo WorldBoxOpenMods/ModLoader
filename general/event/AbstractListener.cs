@@ -32,9 +32,8 @@ public abstract class AbstractListener<TListener, THandler> : BaseListener
     public AbstractListener()
     {
         instance = (TListener)this;
-        Type type = GetType();
-        Harmony.CreateAndPatchAll(type, type.FullName);
     }
+    private bool _patched = false;
     /// <summary>
     /// Simple insert code to call HandleAll method
     /// </summary>
@@ -50,6 +49,22 @@ public abstract class AbstractListener<TListener, THandler> : BaseListener
     /// <param name="handler"></param>
     public static void RegisterHandler(THandler handler)
     {
+        if (!instance._patched)
+        {
+            instance._patched = true;
+            Type type = instance.GetType();
+            try
+            {
+                Harmony.CreateAndPatchAll(type, type.FullName);
+            }
+            catch(Exception e)
+            {
+                LogService.LogError($"Failed to patch listener: {type.FullName}, with handler: {handler.GetType().FullName}");
+                LogService.LogError(e.Message);
+                LogService.LogError(e.StackTrace);
+                return;
+            }
+        }
         instance.handlers.Add(handler);
     }
 }
