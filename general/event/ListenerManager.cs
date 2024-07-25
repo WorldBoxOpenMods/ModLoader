@@ -37,7 +37,6 @@ internal static class ListenerManager
             }
             catch (Exception e)
             {
-                Harmony.UnpatchID(type.FullName);
                 LogService.LogError($"Failed to patch listener: {type.FullName}");
                 LogService.LogError(e.Message);
                 LogService.LogError(e.StackTrace);
