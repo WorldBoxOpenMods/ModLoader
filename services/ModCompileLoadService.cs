@@ -32,6 +32,12 @@ public static class ModCompileLoadService
                                    string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
                                    bool pDisableOptionalDepen = false)
     {
+        if (Directory.GetFiles(pModDecl.FolderPath).Any(file => file.EndsWith(".dll")))
+        {
+            pModDecl.SetModType(ModTypeEnum.COMPILED_NEOMOD);
+            return true;
+        }
+        
         var available_optional_depens = pDisableOptionalDepen
             ? new List<string>()
             : pModDecl.OptionalDependencies.Where(pModInc.ContainsKey).ToList();
