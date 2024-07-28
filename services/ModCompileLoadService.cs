@@ -32,6 +32,7 @@ public static class ModCompileLoadService
                                    string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
                                    bool pDisableOptionalDepen = false)
     {
+        
         var available_optional_depens = pDisableOptionalDepen
             ? new List<string>()
             : pModDecl.OptionalDependencies.Where(pModInc.ContainsKey).ToList();
@@ -263,6 +264,12 @@ public static class ModCompileLoadService
     /// <returns></returns>
     public static bool compileMod(ModDependencyNode pModNode, bool pForce = false)
     {
+        if (Directory.GetFiles(pModNode.mod_decl.FolderPath).Any(file => file.EndsWith(".dll")))
+        {
+            LogService.LogInfo($"{pModNode.mod_decl.UID} detected as precompiled, compilation phase will be skipped on it!");
+            pModNode.mod_decl.SetModType(ModTypeEnum.COMPILED_NEOMOD);
+            return true;
+        }
         bool compile_result = false;
 
         string[] add_inc_path;
@@ -349,78 +356,118 @@ public static class ModCompileLoadService
     /// <param name="pMod"></param>
     public static void LoadMod(ModDeclare pMod)
     {
-        Assembly mod_assembly = Assembly.Load(
-            File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath,
-                                           $"{pMod.UID}.dll")),
-            File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
-        );
-        GameObject mod_instance;
-        foreach (var type in mod_assembly.GetTypes())
+        Assembly[] mod_assemblies;
+        switch (pMod.ModType)
         {
-            var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
-            if (!type.IsSubclassOf(typeof(MonoBehaviour))                      ||
-                (type.GetInterface(nameof(IMod)) == null && mod_entry == null) || type.IsAbstract) continue;
 
-
-            mod_instance = new GameObject(pMod.Name)
-            {
-                transform =
+            case ModTypeEnum.NEOMOD:
+                mod_assemblies = new[]
                 {
-                    parent = GameObject.Find("Services/ModLoader").transform
-                }
-            };
-            mod_instance.SetActive(false);
-
-            if (mod_entry != null)
-            {
-                pMod.IsNCMSMod = true;
-                Type ncmsGlobalObjectType = mod_assembly.GetType("Mod");
-                ncmsGlobalObjectType.GetField("Info")
-                                    ?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
-                ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
-            }
-
-            IMod mod_interface = null;
-            try
-            {
-                MonoBehaviour main_component = null;
-                if (type.GetInterface(nameof(IMod)) == null)
+                    Assembly.Load(
+                        File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath,
+                            $"{pMod.UID}.dll")),
+                        File.ReadAllBytes(Path.Combine(Paths.CompiledModsPath, $"{pMod.UID}.pdb"))
+                    )
+                };
+                break;
+            case ModTypeEnum.COMPILED_NEOMOD:
+                string[] dll_files = Directory.GetFiles(pMod.FolderPath, "*.dll");
+                List<string> pdb_files = Directory.GetFiles(pMod.FolderPath, "*.pdb").ToList();
+                mod_assemblies = new Assembly[dll_files.Length];
+                for (int i = 0; i < dll_files.Length; i++)
                 {
-                    mod_interface = mod_instance.AddComponent<AttachedModComponent>();
-                    main_component = (MonoBehaviour)mod_instance.AddComponent(type);
+                    string dll_file_name = Path.GetFileName(dll_files[i]).Replace(".dll", "");
+                    int index = pdb_files.IndexOf(Path.Combine(pMod.FolderPath, $"{dll_file_name}.pdb"));
+                    if (index != -1)
+                    {
+                        mod_assemblies[i] = Assembly.Load(
+                            File.ReadAllBytes(dll_files[i]),
+                            File.ReadAllBytes(pdb_files[index])
+                        );
+                        pdb_files.RemoveAt(index);
+                    }
+                    else
+                    {
+                        mod_assemblies[i] = Assembly.Load(File.ReadAllBytes(dll_files[i]));
+                    }
                 }
-                else
-                {
-                    mod_interface = (IMod)mod_instance.AddComponent(type);
-                    main_component = (MonoBehaviour)mod_interface;
-                }
-
-                auto_localize(main_component);
-
-                mod_interface.OnLoad(pMod, mod_instance);
-                mod_instance.SetActive(true);
-            }
-            catch (Exception e)
-            {
-                LogService.LogError(e.Message);
-                if (e.StackTrace != null) LogService.LogError(e.StackTrace);
-
-                mod_instance.SetActive(false);
-                LogService.LogError(
-                    $"{pMod.Name} has been disabled due to an error. Please check the log for details.");
-
-                continue;
-            }
-
-
-            WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
-            WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
-            return;
+                break;
+            case ModTypeEnum.BEPINEX:
+            case ModTypeEnum.RESOURCE_PACK:
+            default:
+                throw new ArgumentException("Cannot load mod of type " + pMod.ModType + " with NML!");
         }
+        foreach (var mod_assembly in mod_assemblies)
+        {
+            GameObject mod_instance;
+            foreach (var type in mod_assembly.GetTypes())
+            {
+                var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
+                if (!type.IsSubclassOf(typeof(MonoBehaviour))                      ||
+                    (type.GetInterface(nameof(IMod)) == null && mod_entry == null) || type.IsAbstract) continue;
 
-        pMod.FailReason.AppendLine("No Valid Mod Component Found");
-        ModInfoUtils.clearModCompileTimestamp(pMod.UID);
 
+                mod_instance = new GameObject(pMod.Name)
+                {
+                    transform =
+                    {
+                        parent = GameObject.Find("Services/ModLoader").transform
+                    }
+                };
+                mod_instance.SetActive(false);
+
+                if (mod_entry != null)
+                {
+                    pMod.IsNCMSMod = true;
+                    Type ncmsGlobalObjectType = mod_assembly.GetType("Mod");
+                    ncmsGlobalObjectType.GetField("Info")
+                        ?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
+                    ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
+                }
+
+                IMod mod_interface = null;
+                try
+                {
+                    MonoBehaviour main_component = null;
+                    if (type.GetInterface(nameof(IMod)) == null)
+                    {
+                        mod_interface = mod_instance.AddComponent<AttachedModComponent>();
+                        main_component = (MonoBehaviour)mod_instance.AddComponent(type);
+                    }
+                    else
+                    {
+                        mod_interface = (IMod)mod_instance.AddComponent(type);
+                        main_component = (MonoBehaviour)mod_interface;
+                    }
+
+                    auto_localize(main_component);
+
+                    mod_interface.OnLoad(pMod, mod_instance);
+                    mod_instance.SetActive(true);
+                }
+                catch (Exception e)
+                {
+                    LogService.LogError(e.Message);
+                    if (e.StackTrace != null) LogService.LogError(e.StackTrace);
+
+                    mod_instance.SetActive(false);
+                    LogService.LogError(
+                        $"{pMod.Name} has been disabled due to an error. Please check the log for details.");
+
+                    continue;
+                }
+
+
+                WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
+                WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
+                break;
+            }
+            if (WorldBoxMod.AllRecognizedMods[pMod] != ModState.LOADED)
+            {
+                pMod.FailReason.AppendLine("No Valid Mod Component Found");
+                ModInfoUtils.clearModCompileTimestamp(pMod.UID);
+            }
+        }
         void auto_localize(object mod_component)
         {
             if (mod_component is ILocalizable localizable)
