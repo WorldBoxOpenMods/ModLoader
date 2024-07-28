@@ -32,11 +32,6 @@ public static class ModCompileLoadService
                                    string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
                                    bool pDisableOptionalDepen = false)
     {
-        if (Directory.GetFiles(pModDecl.FolderPath).Any(file => file.EndsWith(".dll")))
-        {
-            pModDecl.SetModType(ModTypeEnum.COMPILED_NEOMOD);
-            return true;
-        }
         
         var available_optional_depens = pDisableOptionalDepen
             ? new List<string>()
@@ -269,6 +264,12 @@ public static class ModCompileLoadService
     /// <returns></returns>
     public static bool compileMod(ModDependencyNode pModNode, bool pForce = false)
     {
+        if (Directory.GetFiles(pModNode.mod_decl.FolderPath).Any(file => file.EndsWith(".dll")))
+        {
+            LogService.LogInfo($"{pModNode.mod_decl.UID} detected as precompiled, compilation phase will be skipped on it!");
+            pModNode.mod_decl.SetModType(ModTypeEnum.COMPILED_NEOMOD);
+            return true;
+        }
         bool compile_result = false;
 
         string[] add_inc_path;
