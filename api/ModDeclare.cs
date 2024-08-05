@@ -71,9 +71,9 @@ public class ModDeclare
         IconPath = pIconPath;
         Version = pVersion;
         Description = pDescription;
-        Dependencies = pDependencies ?? new string[0];
-        OptionalDependencies = pOptionalDependencies ?? new string[0];
-        IncompatibleWith = pIncompatibleWith ?? new string[0];
+        Dependencies = pDependencies ?? Array.Empty<string>();
+        OptionalDependencies = pOptionalDependencies ?? Array.Empty<string>();
+        IncompatibleWith = pIncompatibleWith ?? Array.Empty<string>();
         IsWorkshopLoaded = pIsWorkshopLoaded;
 
         UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol($"{Author}.{Name}");
@@ -114,9 +114,9 @@ public class ModDeclare
         ModType = modDeclare.ModType;
         UsePublicizedAssembly = modDeclare.UsePublicizedAssembly;
 
-        Dependencies ??= new string[0];
-        OptionalDependencies ??= new string[0];
-        IncompatibleWith ??= new string[0];
+        Dependencies ??= Array.Empty<string>();
+        OptionalDependencies ??= Array.Empty<string>();
+        IncompatibleWith ??= Array.Empty<string>();
 
         UID = modDeclare.UID;
         if (string.IsNullOrEmpty(UID)) UID = $"{Author}.{Name}";
@@ -221,13 +221,13 @@ public class ModDeclare
     public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NEOMOD;
 
     /// <summary>
-    /// Wheather use publicized assembly.
+    /// Whether to use publicized assembly.
     /// </summary>
     [JsonProperty("UsePublicizedAssembly")]
     public bool UsePublicizedAssembly { get; private set; } = true;
 
     /// <summary>
-    /// Wheather this mod be determined as a NCMS mod.
+    /// Whether this mod has been identified as an NCMS mod.
     /// </summary>
     public bool IsNCMSMod { get; internal set; } = false;
 
