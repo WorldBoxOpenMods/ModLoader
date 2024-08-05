@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using NeoModLoader.utils;
@@ -39,7 +40,7 @@ internal enum ModState
 }
 
 /// <summary>
-/// Declaration of a mod
+/// Declaration of a mod.
 /// </summary>
 [Serializable]
 public class ModDeclare
@@ -260,5 +261,56 @@ public class ModDeclare
     internal void SetIconPath(string iconPath)
     {
         IconPath = iconPath;
+    }
+}
+
+/// <summary>
+/// Extensions for improving ease of use of ModDeclare.
+/// </summary>
+public static class ModDeclareExtensions
+{
+    /// <summary>
+    /// Tries to get the declaration of a mod.
+    /// Note that this method cannot reliably be used for precompiled NML mods, as there's no simple way to link their Assemblies to their ModDeclares.
+    /// </summary>
+    /// <param name="pModAssembly">The Assembly which a ModDeclare should be found for.</param>
+    /// <param name="pModDeclare">The ModDeclare of the Assembly, if one was found.</param>
+    /// <returns>Whether a ModDeclare could be matched to the provided Assembly.</returns>
+    public static bool TryGetDeclaration(this Assembly pModAssembly, out ModDeclare pModDeclare)
+    {
+        foreach (var mod in WorldBoxMod.AllRecognizedMods.Keys)
+        {
+            switch (mod.ModType)
+            {
+                case ModTypeEnum.NEOMOD:
+                    if (mod.UID == pModAssembly.GetName().Name)
+                    {
+                        pModDeclare = mod;
+                        return true;
+                    }
+                    break;
+                case ModTypeEnum.COMPILED_NEOMOD:
+                    // consider rewriting this segment to use Reflection for walking through the Assemblies classes and finding one that implements IMod to get a ModDeclare to match with the Assembly
+                    if (mod.Name == pModAssembly.GetName().Name)
+                    {
+                        pModDeclare = mod;
+                        return true;
+                    }
+                    break;
+                case ModTypeEnum.BEPINEX:
+                    if (mod.Name == pModAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title)
+                    {
+                        pModDeclare = mod;
+                        return true;
+                    }
+                    break;
+                case ModTypeEnum.RESOURCE_PACK:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        pModDeclare = null;
+        return false;
     }
 }
