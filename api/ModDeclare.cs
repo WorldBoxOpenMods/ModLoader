@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
 
@@ -61,8 +62,9 @@ public class ModDeclare
     /// <param name="pDependencies"></param>
     /// <param name="pOptionalDependencies"></param>
     /// <param name="pIncompatibleWith"></param>
+    /// <param name="pIsWorkshopLoaded"></param>
     public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription,
-        string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
+        string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith, bool pIsWorkshopLoaded = false)
     {
         Name = pName;
         Author = pAuthor;
@@ -72,6 +74,7 @@ public class ModDeclare
         Dependencies = pDependencies ?? new string[0];
         OptionalDependencies = pOptionalDependencies ?? new string[0];
         IncompatibleWith = pIncompatibleWith ?? new string[0];
+        IsWorkshopLoaded = pIsWorkshopLoaded;
 
         UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol($"{Author}.{Name}");
 
@@ -128,6 +131,15 @@ public class ModDeclare
 
         FolderPath = Path.GetDirectoryName(pFilePath) ??
                      throw new Exception("Cannot get folder path from input file path");
+        var pathSegments = FolderPath.Split(Path.DirectorySeparatorChar);
+        int currentSearchIndex = pathSegments.IndexOf("workshop");
+        if (currentSearchIndex == -1) return;
+        if (currentSearchIndex + 3 >= pathSegments.Length) return;
+        if (pathSegments[++currentSearchIndex] != "content") return;
+        if (pathSegments[++currentSearchIndex] != "1206560" /* workshop ID of WorldBox */) return;
+        Regex regex = new(@"^\d+$");
+        if (!regex.IsMatch(pathSegments[++currentSearchIndex])) return;
+        IsWorkshopLoaded = true;
     }
 
     /// <summary>
@@ -223,6 +235,11 @@ public class ModDeclare
     /// Reason of failing to compile or load.
     /// </summary>
     public StringBuilder FailReason { get; } = new();
+    
+    /// <summary>
+    /// Whether the files of this mod were downloaded using the Steam workshop.
+    /// </summary>
+    public bool IsWorkshopLoaded { get; internal set; } = false;
 
     internal void SetRepoUrlToWorkshopPage(string id)
     {
