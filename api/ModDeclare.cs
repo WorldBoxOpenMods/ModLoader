@@ -290,10 +290,20 @@ public static class ModDeclareExtensions
                     }
                     break;
                 case ModTypeEnum.COMPILED_NEOMOD:
-                    if (pModAssembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.GetInterfaces().Contains(typeof(IMod))).Any(modClass => modClass.IsInstanceOfType(mod)))
+                    IMod modObj = WorldBoxMod.LoadedMods.FirstOrDefault(m => m.GetDeclaration() == mod);
+                    if (modObj != null)
                     {
-                        pModDeclare = mod;
-                        return true;
+                        if (pModAssembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.GetInterfaces().Contains(typeof(IMod))).Any(modClass => modClass.IsInstanceOfType(modObj)))
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
+                    } else {
+                        if (string.Concat(mod.Name.Where(c => new Regex(@"\S").IsMatch(c.ToString()))) == pModAssembly.GetName().Name)
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
                     }
                     break;
                 case ModTypeEnum.BEPINEX:
