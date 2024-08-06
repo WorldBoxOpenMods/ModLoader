@@ -290,8 +290,7 @@ public static class ModDeclareExtensions
                     }
                     break;
                 case ModTypeEnum.COMPILED_NEOMOD:
-                    // consider rewriting this segment to use Reflection for walking through the Assemblies classes and finding one that implements IMod to get a ModDeclare to match with the Assembly
-                    if (string.Concat(mod.Name.Where(c => new Regex(@"\S").IsMatch(c.ToString()))) == pModAssembly.GetName().Name)
+                    if (pModAssembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.GetInterfaces().Contains(typeof(IMod))).Any(modClass => modClass.IsInstanceOfType(mod)))
                     {
                         pModDeclare = mod;
                         return true;
