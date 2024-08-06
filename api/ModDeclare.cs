@@ -298,7 +298,9 @@ public static class ModDeclareExtensions
                             pModDeclare = mod;
                             return true;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         if (string.Concat(mod.Name.Where(c => new Regex(@"\S").IsMatch(c.ToString()))) == pModAssembly.GetName().Name)
                         {
                             pModDeclare = mod;
