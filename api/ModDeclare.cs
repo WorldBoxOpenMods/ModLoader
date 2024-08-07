@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
 
@@ -38,7 +40,7 @@ internal enum ModState
 }
 
 /// <summary>
-/// Declaration of a mod
+/// Declaration of a mod.
 /// </summary>
 [Serializable]
 public class ModDeclare
@@ -61,17 +63,19 @@ public class ModDeclare
     /// <param name="pDependencies"></param>
     /// <param name="pOptionalDependencies"></param>
     /// <param name="pIncompatibleWith"></param>
+    /// <param name="pIsWorkshopLoaded"></param>
     public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription,
-        string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith)
+        string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith, bool pIsWorkshopLoaded = false)
     {
         Name = pName;
         Author = pAuthor;
         IconPath = pIconPath;
         Version = pVersion;
         Description = pDescription;
-        Dependencies = pDependencies ?? new string[0];
-        OptionalDependencies = pOptionalDependencies ?? new string[0];
-        IncompatibleWith = pIncompatibleWith ?? new string[0];
+        Dependencies = pDependencies ?? Array.Empty<string>();
+        OptionalDependencies = pOptionalDependencies ?? Array.Empty<string>();
+        IncompatibleWith = pIncompatibleWith ?? Array.Empty<string>();
+        IsWorkshopLoaded = pIsWorkshopLoaded;
 
         UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol($"{Author}.{Name}");
 
@@ -111,9 +115,9 @@ public class ModDeclare
         ModType = modDeclare.ModType;
         UsePublicizedAssembly = modDeclare.UsePublicizedAssembly;
 
-        Dependencies ??= new string[0];
-        OptionalDependencies ??= new string[0];
-        IncompatibleWith ??= new string[0];
+        Dependencies ??= Array.Empty<string>();
+        OptionalDependencies ??= Array.Empty<string>();
+        IncompatibleWith ??= Array.Empty<string>();
 
         UID = modDeclare.UID;
         if (string.IsNullOrEmpty(UID)) UID = $"{Author}.{Name}";
@@ -128,6 +132,15 @@ public class ModDeclare
 
         FolderPath = Path.GetDirectoryName(pFilePath) ??
                      throw new Exception("Cannot get folder path from input file path");
+        var pathSegments = FolderPath.Split(Path.DirectorySeparatorChar);
+        int currentSearchIndex = pathSegments.IndexOf("workshop");
+        if (currentSearchIndex == -1) return;
+        if (currentSearchIndex + 3 >= pathSegments.Length) return;
+        if (pathSegments[++currentSearchIndex] != "content") return;
+        if (pathSegments[++currentSearchIndex] != "1206560" /* workshop ID of WorldBox */) return;
+        Regex regex = new(@"^\d+$");
+        if (!regex.IsMatch(pathSegments[++currentSearchIndex])) return;
+        IsWorkshopLoaded = true;
     }
 
     /// <summary>
@@ -209,13 +222,13 @@ public class ModDeclare
     public ModTypeEnum ModType { get; private set; } = ModTypeEnum.NEOMOD;
 
     /// <summary>
-    /// Wheather use publicized assembly.
+    /// Whether to use publicized assembly.
     /// </summary>
     [JsonProperty("UsePublicizedAssembly")]
     public bool UsePublicizedAssembly { get; private set; } = true;
 
     /// <summary>
-    /// Wheather this mod be determined as a NCMS mod.
+    /// Whether this mod has been identified as an NCMS mod.
     /// </summary>
     public bool IsNCMSMod { get; internal set; } = false;
 
@@ -223,6 +236,11 @@ public class ModDeclare
     /// Reason of failing to compile or load.
     /// </summary>
     public StringBuilder FailReason { get; } = new();
+    
+    /// <summary>
+    /// Whether the files of this mod were downloaded using the Steam workshop.
+    /// </summary>
+    public bool IsWorkshopLoaded { get; internal set; } = false;
 
     internal void SetRepoUrlToWorkshopPage(string id)
     {
@@ -243,5 +261,93 @@ public class ModDeclare
     internal void SetIconPath(string iconPath)
     {
         IconPath = iconPath;
+    }
+}
+
+/// <summary>
+/// Extensions for improving ease of use of ModDeclare.
+/// </summary>
+public static class ModDeclareExtensions
+{
+    /// <summary>
+    /// Tries to get the declaration of a mod.
+    /// Note that this method cannot reliably be used for precompiled NML mods, as there's no simple way to link their Assemblies to their ModDeclares.
+    /// </summary>
+    /// <param name="pModAssembly">The Assembly which a ModDeclare should be found for.</param>
+    /// <param name="pModDeclare">The ModDeclare of the Assembly, if one was found.</param>
+    /// <returns>Whether a ModDeclare could be matched to the provided Assembly.</returns>
+    public static bool TryGetDeclaration(this Assembly pModAssembly, out ModDeclare pModDeclare)
+    {
+        foreach (var mod in WorldBoxMod.AllRecognizedMods.Keys)
+        {
+            switch (mod.ModType)
+            {
+                case ModTypeEnum.NEOMOD:
+                    if (mod.UID == pModAssembly.GetName().Name)
+                    {
+                        pModDeclare = mod;
+                        return true;
+                    }
+                    break;
+                case ModTypeEnum.COMPILED_NEOMOD:
+                    IMod modObj = WorldBoxMod.LoadedMods.FirstOrDefault(m => m.GetDeclaration() == mod);
+                    if (modObj != null)
+                    {
+                        if (pModAssembly == modObj.GetType().Assembly)
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
+
+                        if (pModAssembly.Modules.SelectMany(m => m.GetTypes())
+                                        .Where(t => t.GetInterfaces().Contains(typeof(IMod)))
+                                        .Any(modClass => modClass.IsInstanceOfType(modObj)))
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        if (Directory.GetFiles(mod.FolderPath).Any(possible_file =>
+                                                                       Path.GetFullPath(possible_file) ==
+                                                                       Path.GetFullPath(pModAssembly.Location)))
+                            /* It might be organized as following:
+                             * -ModFolder
+                             * |-mod.json
+                             * |-main_assembly.dll
+                             * |-submodule1.dll
+                             * |-submodule2.dll
+                             * ...
+                             * Hope submodule can get mod's declaration successfully
+                             */
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
+
+                        if (string.Concat(mod.Name.Where(c => new Regex(@"\S").IsMatch(c.ToString()))) ==
+                            pModAssembly.GetName().Name)
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
+                    }
+                    break;
+                case ModTypeEnum.BEPINEX:
+                    if (mod.Name == pModAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title)
+                    {
+                        pModDeclare = mod;
+                        return true;
+                    }
+                    break;
+                case ModTypeEnum.RESOURCE_PACK:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        pModDeclare = null;
+        return false;
     }
 }
