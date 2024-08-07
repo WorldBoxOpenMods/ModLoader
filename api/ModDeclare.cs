@@ -293,7 +293,15 @@ public static class ModDeclareExtensions
                     IMod modObj = WorldBoxMod.LoadedMods.FirstOrDefault(m => m.GetDeclaration() == mod);
                     if (modObj != null)
                     {
-                        if (pModAssembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.GetInterfaces().Contains(typeof(IMod))).Any(modClass => modClass.IsInstanceOfType(modObj)))
+                        if (pModAssembly == modObj.GetType().Assembly)
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
+
+                        if (pModAssembly.Modules.SelectMany(m => m.GetTypes())
+                                        .Where(t => t.GetInterfaces().Contains(typeof(IMod)))
+                                        .Any(modClass => modClass.IsInstanceOfType(modObj)))
                         {
                             pModDeclare = mod;
                             return true;
@@ -301,7 +309,25 @@ public static class ModDeclareExtensions
                     }
                     else
                     {
-                        if (string.Concat(mod.Name.Where(c => new Regex(@"\S").IsMatch(c.ToString()))) == pModAssembly.GetName().Name)
+                        if (Directory.GetFiles(mod.FolderPath).Any(possible_file =>
+                                                                       Path.GetFullPath(possible_file) ==
+                                                                       Path.GetFullPath(pModAssembly.Location)))
+                            /* It might be organized as following:
+                             * -ModFolder
+                             * |-mod.json
+                             * |-main_assembly.dll
+                             * |-submodule1.dll
+                             * |-submodule2.dll
+                             * ...
+                             * Hope submodule can get mod's declaration successfully
+                             */
+                        {
+                            pModDeclare = mod;
+                            return true;
+                        }
+
+                        if (string.Concat(mod.Name.Where(c => new Regex(@"\S").IsMatch(c.ToString()))) ==
+                            pModAssembly.GetName().Name)
                         {
                             pModDeclare = mod;
                             return true;
