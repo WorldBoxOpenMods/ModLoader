@@ -63,6 +63,8 @@ public class WorldBoxMod : MonoBehaviour
         Harmony.CreateAndPatchAll(typeof(LM),             Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
 
+        if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
+
         SmoothLoader.add(() =>
         {
             ResourcesPatch.Initialize();
@@ -192,6 +194,8 @@ public class WorldBoxMod : MonoBehaviour
             {
                 if (resource.EndsWith(".dll"))
                 {
+                    if (resource.Contains("Assembly-CSharp-Publicized")) continue;
+                    if (resource.Contains("AutoUpdate")) continue;
                     var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
                     var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name).Replace("-renamed", "");
 
@@ -229,7 +233,7 @@ public class WorldBoxMod : MonoBehaviour
         {
             using var stream =
                 NeoModLoaderAssembly.GetManifestResourceStream(
-                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized");
+                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
             if (File.Exists(Paths.PublicizedAssemblyPath))
             {
                 var modupdate_time = new FileInfo(Paths.NMLModPath).LastWriteTime;
@@ -254,7 +258,7 @@ public class WorldBoxMod : MonoBehaviour
             File.Delete(Paths.PublicizedAssemblyPath);
             using var stream =
                 NeoModLoaderAssembly.GetManifestResourceStream(
-                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized");
+                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
             using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.CreateNew, FileAccess.Write);
             stream.CopyTo(file);
         }
@@ -296,6 +300,8 @@ public class WorldBoxMod : MonoBehaviour
                 try
                 {
                     file.Delete();
+                    LogService.LogInfo($"NeoModLoader.dll is newer than AutoUpdate.dll, " +
+                                       $"re-extract AutoUpdate.dll from NeoModLoader.dll");
                 }
                 catch (Exception e)
                 {
@@ -306,7 +312,7 @@ public class WorldBoxMod : MonoBehaviour
         if (!File.Exists(Paths.NMLAutoUpdateModulePath))
         {
             using Stream stream = NeoModLoaderAssembly.GetManifestResourceStream(
-                "NeoModLoader.resources.assemblies.NeoModLoader.AutoUpdate");
+                "NeoModLoader.resources.assemblies.NeoModLoader.AutoUpdate.dll");
             using var file = new FileStream(Paths.NMLAutoUpdateModulePath, FileMode.CreateNew, FileAccess.Write);
             stream.CopyTo(file);
         }

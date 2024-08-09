@@ -11,7 +11,7 @@ public static class Paths
     /// <summary>
     /// Path to the mod loader file
     /// </summary>
-    public static readonly string NMLModPath = Assembly.GetExecutingAssembly().Location;
+    public static readonly string NMLModPath;
 
     /// <summary>
     /// Path to persistent data
@@ -145,6 +145,18 @@ public static class Paths
 
     internal static readonly string LinuxSteamLocalConfigPath =
         "~/.local/share/Steam/userdata/{0}/config/localconfig.vdf";
+
+    static Paths()
+    {
+        var nml_mod_path = Assembly.GetExecutingAssembly().Location;
+        if (string.IsNullOrEmpty(nml_mod_path))
+        {
+            nml_mod_path = Combine(NativeModsPath, "NeoModLoader.dll");
+            if (!File.Exists(nml_mod_path)) nml_mod_path = Combine(NativeModsPath, "NeoModLoader_memload.dll");
+        }
+
+        NMLModPath = nml_mod_path;
+    }
 
     /// <summary>
     /// Path to game root folder

@@ -165,7 +165,6 @@
       <None Remove="resources\reload.png" />
       <EmbeddedResource Include="resources\reload.png" />
       <None Remove="resources\assemblies\Assembly-CSharp-Publicized" />
-      <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized" />
         <None Remove="resources\window_empty_frame.png" />
         <EmbeddedResource Include="resources\window_empty_frame.png" />
         <None Remove="resources\windowBigCloseSliced.png" />
@@ -173,7 +172,10 @@
         <None Remove="resources\windowVertNamePlate.png" />
         <EmbeddedResource Include="resources\windowVertNamePlate.png" />
         <None Remove="resources\assemblies\NeoModLoader.AutoUpdate" />
-        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate" />
+        <None Remove="resources\assemblies\Assembly-CSharp-Publicized.dll"/>
+        <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized.dll"/>
+        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
+        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
     </ItemGroup>
   
     <ItemGroup>
