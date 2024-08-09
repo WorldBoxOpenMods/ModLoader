@@ -3,6 +3,7 @@ using NeoModLoader.services;
 using UnityEngine;
 
 namespace NeoModLoader.api;
+
 /// <summary>
 /// If you want to create a simple mod, you can inherit this class.
 /// <para>Then NML will find this class in your compiled mod, then load it into ModLoader provided by WorldBox</para>
@@ -16,13 +17,61 @@ namespace NeoModLoader.api;
 /// </summary>
 public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable where T : BasicMod<T>
 {
+    private ModConfig  _config  = null!;
     private ModDeclare _declare = null!;
-    private ModConfig _config = null!;
+    private bool       _isLoaded;
+    private Transform  _prefab_library;
+
     /// <summary>
     /// Instance of your mod.
     /// </summary>
     public static T Instance { get; private set; }
-    private bool _isLoaded = false;
+
+    /// <summary>
+    ///     Shortcut of <see cref="Instance" />
+    /// </summary>
+    public static T I => Instance;
+
+    /// <summary>
+    ///     A transform contains all prefabs of mods created through <see cref="NewPrefab(string)" />.
+    /// </summary>
+    public Transform PrefabLibrary
+    {
+        get
+        {
+            if (_prefab_library == null)
+            {
+                _prefab_library = transform.Find("PrefabLibrary");
+                if (_prefab_library == null)
+                {
+                    _prefab_library = new GameObject("PrefabLibrary").transform;
+                    _prefab_library.SetParent(transform);
+                }
+            }
+
+            return _prefab_library;
+        }
+    }
+
+    /// <summary>
+    ///     Get the config of your mod.
+    /// </summary>
+    /// <returns>Config instance reference</returns>
+    public ModConfig GetConfig()
+    {
+        return _config;
+    }
+
+    /// <summary>
+    ///     If you need to add locale files for your mod, create locale files written by JSON under `Locales` directory in your
+    ///     mod
+    /// </summary>
+    /// <returns>The path to the directory of your locale files</returns>
+    public string GetLocaleFilesDirectory(ModDeclare pModDeclare)
+    {
+        return Path.Combine(pModDeclare.FolderPath, "Locales");
+    }
+
     /// <summary>
     /// Get the gameObject the mod attached to.
     /// </summary>
@@ -30,6 +79,7 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     {
         return gameObject;
     }
+
     /// <summary>
     /// Get the url set in mod.json or url of WorldBoxOpenMods' organization.
     /// </summary>
@@ -54,23 +104,46 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
         _isLoaded = true;
     }
 
+    /// <summary>
+    ///     Get the gameObject the mod attached to.
+    /// </summary>
+    public ModDeclare GetDeclaration()
+    {
+        return _declare;
+    }
+
+    /// <summary>
+    ///     Create a new raw prefab under the mod's prefab library.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static GameObject NewPrefab(string name)
+    {
+        var obj = new GameObject(name);
+        obj.transform.SetParent(Instance.PrefabLibrary);
+        return obj;
+    }
+
     private ModConfig LoadConfig()
     {
         ModConfig persistent_config =
             new ModConfig(Path.Combine(Paths.ModsConfigPath, $"{_declare.UID}.config"), true);
-        
+
         string default_config_path = Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName);
-        if(!File.Exists(default_config_path)) return persistent_config;
-        
-        ModConfig default_config = new ModConfig(Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName), false);
+        if (!File.Exists(default_config_path)) return persistent_config;
+
+        var default_config =
+            new ModConfig(Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName));
         persistent_config.MergeWith(default_config);
 
         return persistent_config;
     }
+
     /// <summary>
     /// You should override this method to load your mod.
     /// </summary>
     protected abstract void OnModLoad();
+
     /// <summary>
     /// Log a message with mod name.
     /// </summary>
@@ -78,6 +151,7 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     {
         LogService.LogInfo($"[{Instance._declare.Name}]: {message}");
     }
+
     /// <summary>
     /// Log a warning message with mod name.
     /// </summary>
@@ -85,34 +159,12 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     {
         LogService.LogWarning($"[{Instance._declare.Name}]: {message}");
     }
+
     /// <summary>
     /// Log an error message with mod name.
     /// </summary>
     public static void LogError(string message)
     {
         LogService.LogError($"[{Instance._declare.Name}]: {message}");
-    }
-    /// <summary>
-    /// Get the gameObject the mod attached to.
-    /// </summary>
-    public ModDeclare GetDeclaration()
-    {
-        return _declare;
-    }
-    /// <summary>
-    /// If you need to add locale files for your mod, create locale files written by JSON under `Locales` directory in your mod 
-    /// </summary>
-    /// <returns>The path to the directory of your locale files</returns>
-    public string GetLocaleFilesDirectory(ModDeclare pModDeclare)
-    {
-        return Path.Combine(pModDeclare.FolderPath, "Locales");
-    }
-    /// <summary>
-    /// Get the config of your mod.
-    /// </summary>
-    /// <returns>Config instance reference</returns>
-    public ModConfig GetConfig()
-    {
-        return _config;
     }
 }
