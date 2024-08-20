@@ -170,7 +170,7 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     public void Init()
     {
         var features = new List<IModFeature>();
-        foreach ((Type featureType, ConstructorInfo instanceConstructor) in _mod.GetType().Assembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.IsSubclassOf(typeof(IModFeature))).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
+        foreach ((Type featureType, ConstructorInfo instanceConstructor) in _mod.GetType().Assembly.Modules.SelectMany(m => m.GetTypes()).Where(t => typeof(IModFeature).IsAssignableFrom(t)).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
         {
             BasicMod<TMod>.LogInfo($"Creating instance of Feature {featureType.FullName}...");
             if (instanceConstructor is null)
