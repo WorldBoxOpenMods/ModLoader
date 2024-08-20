@@ -180,14 +180,12 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     }
     private static FeatureLoadPathNode ParseModFeaturesIntoLoadPath(List<IModFeature> features)
     {
-
         var featureTrees = FeatureTreeNode.CreateFeatureTrees(features.ToArray());
         FeatureLoadPathNode featureLoadPath = FeatureLoadPathNode.CreateFeatureLoadPath(featureTrees);
         return featureLoadPath;
     }
     private List<IModFeature> FindAndInstantiateModFeatures()
     {
-
         var features = new List<IModFeature>();
         foreach ((Type featureType, ConstructorInfo instanceConstructor) in _mod.GetType().Assembly.Modules.SelectMany(m => m.GetTypes()).Where(t => typeof(IModFeature).IsAssignableFrom(t)).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
         {
@@ -198,7 +196,6 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     }
     private void InstantiateModFeature(Type featureType, ConstructorInfo instanceConstructor, List<IModFeature> features)
     {
-
         BasicMod<TMod>.LogInfo($"Creating instance of Feature {featureType.FullName}...");
         if (instanceConstructor is null)
         {
