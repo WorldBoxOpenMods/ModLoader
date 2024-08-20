@@ -169,51 +169,68 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     /// </summary>
     public void Init()
     {
-        var features = new List<IModFeature>();
-        foreach ((Type featureType, ConstructorInfo instanceConstructor) in _mod.GetType().Assembly.Modules.SelectMany(m => m.GetTypes()).Where(t => typeof(IModFeature).IsAssignableFrom(t)).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
-        {
-            BasicMod<TMod>.LogInfo($"Creating instance of Feature {featureType.FullName}...");
-            if (instanceConstructor is null)
-            {
-                BasicMod<TMod>.LogError($"No suitable constructor found for Feature {featureType.FullName}.");
-                continue;
-            }
-            IModFeature instance;
-            try
-            {
-                instance = instanceConstructor.Invoke(new object[] { }) as IModFeature;
-            }
-            catch (Exception e)
-            {
-                BasicMod<TMod>.LogError($"An error occurred while trying to create an instance of Feature {featureType.FullName}:\n{e}");
-                continue;
-            }
-            if (instance is null)
-            {
-                BasicMod<TMod>.LogError($"Failed to create instance of Feature {featureType.FullName} for unknown reasons.");
-                continue;
-            }
-            instance.ModFeatureManager = this;
-            if (instance.RequiredModFeatures.Any(requiredFeature => !requiredFeature.IsSubclassOf(typeof(IModFeature))))
-            {
-                throw new InvalidOperationException($"Feature {featureType.FullName} has a required feature that is not a subclass of IModFeature.");
-            }
-            if (instance.OptionalModFeatures.Any(optionalFeature => !optionalFeature.IsSubclassOf(typeof(IModFeature))))
-            {
-                throw new InvalidOperationException($"Feature {featureType.FullName} has an optional feature that is not a subclass of IModFeature.");
-            }
-            features.Add(instance);
-            BasicMod<TMod>.LogInfo($"Successfully created instance of Feature {featureType.FullName}.");
-        }
-        _foundFeatures.AddRange(features);
-        var featureTrees = FeatureTreeNode.CreateFeatureTrees(features.ToArray());
-        FeatureLoadPathNode featureLoadPath = FeatureLoadPathNode.CreateFeatureLoadPath(featureTrees);
+        var features = FindAndInstantiateModFeatures();
+        FeatureLoadPathNode featureLoadPath = ParseModFeaturesIntoLoadPath(features);
         FeatureLoadPathNode currentLoadPathNode = featureLoadPath;
         while (currentLoadPathNode != null)
         {
             InitFeature(currentLoadPathNode.ModFeature);
             currentLoadPathNode = currentLoadPathNode.DependentFeature;
         }
+    }
+    private static FeatureLoadPathNode ParseModFeaturesIntoLoadPath(List<IModFeature> features)
+    {
+
+        var featureTrees = FeatureTreeNode.CreateFeatureTrees(features.ToArray());
+        FeatureLoadPathNode featureLoadPath = FeatureLoadPathNode.CreateFeatureLoadPath(featureTrees);
+        return featureLoadPath;
+    }
+    private List<IModFeature> FindAndInstantiateModFeatures()
+    {
+
+        var features = new List<IModFeature>();
+        foreach ((Type featureType, ConstructorInfo instanceConstructor) in _mod.GetType().Assembly.Modules.SelectMany(m => m.GetTypes()).Where(t => typeof(IModFeature).IsAssignableFrom(t)).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
+        {
+            InstantiateModFeature(featureType, instanceConstructor, features);
+        }
+        _foundFeatures.AddRange(features);
+        return features;
+    }
+    private void InstantiateModFeature(Type featureType, ConstructorInfo instanceConstructor, List<IModFeature> features)
+    {
+
+        BasicMod<TMod>.LogInfo($"Creating instance of Feature {featureType.FullName}...");
+        if (instanceConstructor is null)
+        {
+            BasicMod<TMod>.LogError($"No suitable constructor found for Feature {featureType.FullName}.");
+            return;
+        }
+        IModFeature instance;
+        try
+        {
+            instance = instanceConstructor.Invoke(new object[] { }) as IModFeature;
+        }
+        catch (Exception e)
+        {
+            BasicMod<TMod>.LogError($"An error occurred while trying to create an instance of Feature {featureType.FullName}:\n{e}");
+            return;
+        }
+        if (instance is null)
+        {
+            BasicMod<TMod>.LogError($"Failed to create instance of Feature {featureType.FullName} for unknown reasons.");
+            return;
+        }
+        instance.ModFeatureManager = this;
+        if (instance.RequiredModFeatures.Any(requiredFeature => !requiredFeature.IsSubclassOf(typeof(IModFeature))))
+        {
+            throw new InvalidOperationException($"Feature {featureType.FullName} has a required feature that is not a subclass of IModFeature.");
+        }
+        if (instance.OptionalModFeatures.Any(optionalFeature => !optionalFeature.IsSubclassOf(typeof(IModFeature))))
+        {
+            throw new InvalidOperationException($"Feature {featureType.FullName} has an optional feature that is not a subclass of IModFeature.");
+        }
+        features.Add(instance);
+        BasicMod<TMod>.LogInfo($"Successfully created instance of Feature {featureType.FullName}.");
     }
 
     private void InitFeature(IModFeature modFeature)
