@@ -21,6 +21,14 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     private ModDeclare _declare = null!;
     private bool       _isLoaded;
     private Transform  _prefab_library;
+    
+    /// <summary>
+    /// A constructor that initializes the <see cref="ModFeatureManager"/>.
+    /// </summary>
+    public BasicMod()
+    {
+        ModFeatureManager = new ModFeatureManager<T>(this);
+    }
 
     /// <summary>
     /// Instance of your mod.
@@ -171,5 +179,5 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     /// <summary>
     /// An instance of the <see cref="IModFeatureManager"/> that is able to dynamically manage feature for this mod if wanted.
     /// </summary>
-    public IModFeatureManager ModFeatureManager { get; } = new ModFeatureManager();
+    public IModFeatureManager ModFeatureManager { get; }
 }

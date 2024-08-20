@@ -6,10 +6,21 @@ namespace NeoModLoader.api;
 /// <summary>
 /// A standard implementation of <see cref="IModFeatureManager"/> that provides all required functionality for dynamically loading mod features.
 /// </summary>
-public class ModFeatureManager : IModFeatureManager
+public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<TMod>
 {
+    private readonly BasicMod<TMod> _mod;
     private readonly List<IModFeature> _foundFeatures = new List<IModFeature>();
     private readonly List<IModFeature> _loadedFeatures = new List<IModFeature>();
+    
+    /// <summary>
+    /// A constructor for the <see cref="ModFeatureManager{TMod}"/>.
+    /// </summary>
+    /// <param name="mod"></param>
+    public ModFeatureManager(BasicMod<TMod> mod)
+    {
+        _mod = mod;
+    }
+    
     /// <inheritdoc cref="IModFeatureManager.IsFeatureLoaded{T}"/>
     public bool IsFeatureLoaded<T>() where T : IModFeature
     {
@@ -155,17 +166,12 @@ public class ModFeatureManager : IModFeatureManager
     }
 
     /// <summary>
-    /// A method to initialize the <see cref="ModFeatureManager"/> and load all found features. This needs to be manually called in the mods init method.
+    /// A method to initialize the <see cref="ModFeatureManager{TMod}"/> and load all found features. This needs to be manually called in the mods init method.
     /// </summary>
     public void Init()
     {
-        Init(Assembly.GetCallingAssembly());
-    }
-
-    private void Init(Assembly searchAssembly)
-    {
         var features = new List<IModFeature>();
-        foreach ((Type featureType, ConstructorInfo instanceConstructor) in searchAssembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.IsSubclassOf(typeof(IModFeature))).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
+        foreach ((Type featureType, ConstructorInfo instanceConstructor) in _mod.GetType().Assembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.IsSubclassOf(typeof(IModFeature))).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
         {
             Debug.Log($"Creating instance of Feature {featureType.FullName}...");
             if (instanceConstructor is null)
