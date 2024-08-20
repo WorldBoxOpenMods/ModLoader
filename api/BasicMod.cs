@@ -15,7 +15,7 @@ namespace NeoModLoader.api;
 /// OnModLoad -> Awake -> OnEnable -> Start -> Update
 /// </remarks>
 /// </summary>
-public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable where T : BasicMod<T>
+public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged where T : BasicMod<T>
 {
     private ModConfig  _config  = null!;
     private ModDeclare _declare = null!;
@@ -167,4 +167,9 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     {
         LogService.LogError($"[{Instance._declare.Name}]: {message}");
     }
+
+    /// <summary>
+    /// An instance of the <see cref="IModFeatureManager"/> that is able to dynamically manage feature for this mod if wanted.
+    /// </summary>
+    public IModFeatureManager ModFeatureManager { get; } = new ModFeatureManager();
 }
