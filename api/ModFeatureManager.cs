@@ -1,6 +1,5 @@
 using System.Reflection;
 using JetBrains.Annotations;
-using UnityEngine;
 namespace NeoModLoader.api;
 
 /// <summary>
@@ -173,10 +172,10 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
         var features = new List<IModFeature>();
         foreach ((Type featureType, ConstructorInfo instanceConstructor) in _mod.GetType().Assembly.Modules.SelectMany(m => m.GetTypes()).Where(t => t.IsSubclassOf(typeof(IModFeature))).Where(ft => !ft.IsAbstract).Where(ft => !ft.IsNestedPrivate).Select(featureType => (featureType, featureType.GetConstructors().FirstOrDefault(constructor => constructor.GetParameters().Length < 1))))
         {
-            Debug.Log($"Creating instance of Feature {featureType.FullName}...");
+            BasicMod<TMod>.LogInfo($"Creating instance of Feature {featureType.FullName}...");
             if (instanceConstructor is null)
             {
-                Debug.LogError($"No suitable constructor found for Feature {featureType.FullName}.");
+                BasicMod<TMod>.LogError($"No suitable constructor found for Feature {featureType.FullName}.");
                 continue;
             }
             IModFeature instance;
@@ -186,12 +185,12 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
             }
             catch (Exception e)
             {
-                Debug.LogError($"An error occurred while trying to create an instance of Feature {featureType.FullName}:\n{e}");
+                BasicMod<TMod>.LogError($"An error occurred while trying to create an instance of Feature {featureType.FullName}:\n{e}");
                 continue;
             }
             if (instance is null)
             {
-                Debug.LogError($"Failed to create instance of Feature {featureType.FullName} for unknown reasons.");
+                BasicMod<TMod>.LogError($"Failed to create instance of Feature {featureType.FullName} for unknown reasons.");
                 continue;
             }
             instance.ModFeatureManager = this;
@@ -204,7 +203,7 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
                 throw new InvalidOperationException($"Feature {featureType.FullName} has an optional feature that is not a subclass of IModFeature.");
             }
             features.Add(instance);
-            Debug.Log($"Successfully created instance of Feature {featureType.FullName}.");
+            BasicMod<TMod>.LogInfo($"Successfully created instance of Feature {featureType.FullName}.");
         }
         _foundFeatures.AddRange(features);
         var featureTrees = FeatureTreeNode.CreateFeatureTrees(features.ToArray());
@@ -219,27 +218,27 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
 
     private void InitFeature(IModFeature modFeature)
     {
-        Debug.Log($"Loading feature {modFeature.GetType().FullName}...");
+        BasicMod<TMod>.LogInfo($"Loading feature {modFeature.GetType().FullName}...");
         try
         {
             var missingRequirement = modFeature.RequiredModFeatures.Where(requiredFeature => !IsFeatureLoaded(requiredFeature)).ToList();
             if (missingRequirement.Count > 0)
             {
-                Debug.LogError($"Loading feature {modFeature.GetType().FullName} failed due missing requirement features:\n{string.Join("\n", missingRequirement.Select(type => type.FullName))}");
+                BasicMod<TMod>.LogError($"Loading feature {modFeature.GetType().FullName} failed due missing requirement features:\n{string.Join("\n", missingRequirement.Select(type => type.FullName))}");
                 return;
             }
             bool successfulInit = modFeature.Init();
             if (!successfulInit)
             {
-                Debug.LogError($"Loading feature {modFeature.GetType().FullName} failed due to a failing condition.");
+                BasicMod<TMod>.LogError($"Loading feature {modFeature.GetType().FullName} failed due to a failing condition.");
                 return;
             }
-            Debug.Log($"Successfully loaded feature {modFeature.GetType().FullName}.");
+            BasicMod<TMod>.LogInfo($"Successfully loaded feature {modFeature.GetType().FullName}.");
             _loadedFeatures.Add(modFeature);
         }
         catch (Exception e)
         {
-            Debug.LogError($"An error occurred while trying to load feature {modFeature.GetType().FullName}:\n{e}");
+            BasicMod<TMod>.LogError($"An error occurred while trying to load feature {modFeature.GetType().FullName}:\n{e}");
         }
     }
 }
