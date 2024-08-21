@@ -15,20 +15,13 @@ namespace NeoModLoader.api;
 /// OnModLoad -> Awake -> OnEnable -> Start -> Update
 /// </remarks>
 /// </summary>
-public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged where T : BasicMod<T>
+public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged
+    where T : BasicMod<T>
 {
     private ModConfig  _config  = null!;
     private ModDeclare _declare = null!;
     private bool       _isLoaded;
     private Transform  _prefab_library;
-    
-    /// <summary>
-    /// A constructor that initializes the <see cref="ModFeatureManager"/>.
-    /// </summary>
-    public BasicMod()
-    {
-        ModFeatureManager = new ModFeatureManager<T>(this);
-    }
 
     /// <summary>
     /// Instance of your mod.
@@ -71,6 +64,12 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     }
 
     /// <summary>
+    ///     An instance of the <see cref="IModFeatureManager" /> that is able to dynamically manage feature for this mod if
+    ///     wanted.
+    /// </summary>
+    public IModFeatureManager ModFeatureManager { get; private set; }
+
+    /// <summary>
     ///     If you need to add locale files for your mod, create locale files written by JSON under `Locales` directory in your
     ///     mod
     /// </summary>
@@ -105,6 +104,7 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
         if (_isLoaded) return;
         _declare = pModDecl;
         Instance = (T)this;
+        ModFeatureManager = new ModFeatureManager<T>(this);
         _config ??= LoadConfig();
         LogInfo("OnLoad");
         OnModLoad();
@@ -175,9 +175,4 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     {
         LogService.LogError($"[{Instance._declare.Name}]: {message}");
     }
-
-    /// <summary>
-    /// An instance of the <see cref="IModFeatureManager"/> that is able to dynamically manage feature for this mod if wanted.
-    /// </summary>
-    public IModFeatureManager ModFeatureManager { get; }
 }
