@@ -69,6 +69,19 @@ public class BaseInstPredictor
 
     private static void AddEqualOpCodes(params OpCode[] pOpCodes)
     {
-        foreach (OpCode code in pOpCodes) equal_opcodes.Add(code, new HashSet<OpCode>(pOpCodes));
+        foreach (OpCode code in pOpCodes)
+        {
+            if (!equal_opcodes.TryGetValue(code, out var set))
+            {
+                set = new HashSet<OpCode>();
+                equal_opcodes[code] = set;
+            }
+
+            set.UnionWith(pOpCodes);
+
+            foreach (OpCode second_iter in pOpCodes)
+                if (equal_opcodes.TryGetValue(second_iter, out var second_set))
+                    set.UnionWith(second_set);
+        }
     }
 }
