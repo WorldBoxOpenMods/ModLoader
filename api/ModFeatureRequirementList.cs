@@ -9,7 +9,14 @@ public class ModFeatureRequirementList : IEnumerable<Type> {
   /// A constructor for creating a <see cref="ModFeatureRequirementList"/> based on one or more required types.
   /// </summary>
   /// <param name="types">The types required for the <see cref="IModFeature"/> this list belongs to.</param>
+  /// <exception cref="ArgumentNullException">Thrown when a required feature type is null.</exception>
+  /// <exception cref="ArgumentException">Thrown when a required feature type is not a valid feature type.</exception>
   public ModFeatureRequirementList(params Type[] types) {
+    foreach (Type type in types)
+    {
+      if (type is null) throw new ArgumentNullException(nameof(types), "A required feature type was null.");
+      if (!typeof(IModFeature).IsAssignableFrom(type)) throw new ArgumentException($"The type {type.Name} is not a valid feature type.");
+    }
     RequiredFeatureList.AddRange(types);
   }
   /// <summary>
@@ -32,7 +39,7 @@ public class ModFeatureRequirementList : IEnumerable<Type> {
   /// </summary>
   /// <param name="list">A <see cref="ModFeatureRequirementList"/></param>
   /// <returns>A list with the requirements of the <see cref="ModFeatureRequirementList"/>.</returns>
-  public static implicit operator List<Type>(ModFeatureRequirementList list) => list.RequiredFeatureList;
+  public static implicit operator List<Type>(ModFeatureRequirementList list) => list.RequiredFeatureList.ToList();
   /// <summary>
   /// A cast for making it convenient to specify requirements with a single type.
   /// </summary>
