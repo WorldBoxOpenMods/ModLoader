@@ -10,7 +10,7 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     private readonly BasicMod<TMod> _mod;
     private readonly List<IModFeature> _foundFeatures = new List<IModFeature>();
     private readonly List<IModFeature> _loadedFeatures = new List<IModFeature>();
-    
+
     /// <summary>
     /// A constructor for the <see cref="ModFeatureManager{TMod}"/>.
     /// </summary>
@@ -19,7 +19,7 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     {
         _mod = mod;
     }
-    
+
     /// <inheritdoc cref="IModFeatureManager.IsFeatureLoaded{T}"/>
     public bool IsFeatureLoaded<T>() where T : IModFeature
     {
