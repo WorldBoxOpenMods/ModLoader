@@ -5,19 +5,14 @@ namespace NeoModLoader.api;
 /// </summary>
 public abstract class ModFeature : IModFeature
 {
-    /// <summary>
-    /// A reference to the <see cref="IModFeatureManager"/> that is managing this <see cref="IModFeature"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public IModFeatureManager ModFeatureManager { get; set; }
 
-    /// <summary>
-    /// A virtual empty list to indicate a lack of required features. Override this property to add required features.
-    /// </summary>
-    public virtual List<Type> RequiredModFeatures { get; } = new List<Type>();
-    /// <summary>
-    /// A virtual empty list to indicate a lack of optional features. Override this property to add optional features or influence the feature load order.
-    /// </summary>
-    public virtual List<Type> OptionalModFeatures { get; } = new List<Type>();
+    /// <inheritdoc/>
+    public virtual ModFeatureRequirementList RequiredModFeatures { get; } = new List<Type>();
+
+    /// <inheritdoc/>
+    public virtual ModFeatureRequirementList OptionalModFeatures { get; } = new List<Type>();
 
     /// <inheritdoc cref="IModFeature.Init"/>
     public abstract bool Init();
