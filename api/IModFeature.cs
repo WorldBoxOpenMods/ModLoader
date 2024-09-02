@@ -23,4 +23,11 @@ public interface IModFeature
     /// </summary>
     /// <returns>Whether the feature has been loaded successfully.</returns>
     bool Init();
+
+    /// <summary>
+    /// Finalizes the initialization of the <see cref="IModFeature"/>. This method should be called after <see cref="Init"/> to perform any remaining setup tasks that might depend on other mods having loaded already.
+    /// This method can safely throw an exception without causing broader issues, as the <see cref="IModFeatureManager"/> is expected to catch and log such behavior.
+    /// </summary>
+    /// <returns>Whether the feature has been successfully post-initialized.</returns>
+    bool PostInit();
 }

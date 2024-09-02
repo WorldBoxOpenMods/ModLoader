@@ -9,6 +9,7 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
 {
     private readonly BasicMod<TMod> _mod;
     private readonly List<IModFeature> _foundFeatures = new List<IModFeature>();
+    private FeatureLoadPathNode _featureLoadPath;
     private readonly List<IModFeature> _loadedFeatures = new List<IModFeature>();
 
     /// <summary>
@@ -167,14 +168,28 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     /// <summary>
     /// A method to initialize the <see cref="ModFeatureManager{TMod}"/> and load all found features. This needs to be manually called in the mods init method.
     /// </summary>
-    public void Init()
+    public void InstantiateFeatures()
     {
         var features = FindAndInstantiateModFeatures();
-        FeatureLoadPathNode featureLoadPath = ParseModFeaturesIntoLoadPath(features);
-        FeatureLoadPathNode currentLoadPathNode = featureLoadPath;
+        _featureLoadPath = ParseModFeaturesIntoLoadPath(features);
+    }
+    /// <inheritdoc cref="IStagedLoad.Init"/>
+    public void Init()
+    {
+        FeatureLoadPathNode currentLoadPathNode = _featureLoadPath;
         while (currentLoadPathNode != null)
         {
             InitFeature(currentLoadPathNode.ModFeature);
+            currentLoadPathNode = currentLoadPathNode.DependentFeature;
+        }
+    }
+    /// <inheritdoc cref="IStagedLoad.PostInit"/>
+    public void PostInit()
+    {
+        FeatureLoadPathNode currentLoadPathNode = _featureLoadPath;
+        while (currentLoadPathNode != null)
+        {
+            SafePerformActionOnFeature(currentLoadPathNode.ModFeature, "Post-Loading", feature => feature.PostInit());
             currentLoadPathNode = currentLoadPathNode.DependentFeature;
         }
     }
@@ -232,27 +247,32 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
 
     private void InitFeature(IModFeature modFeature)
     {
-        BasicMod<TMod>.LogInfo($"Loading feature {modFeature.GetType().FullName}...");
+        SafePerformActionOnFeature(modFeature, "Loading", feature => feature.Init());
+    }
+    
+    private void SafePerformActionOnFeature(IModFeature modFeature, string actionVerb, Func<IModFeature, bool> performAction, bool log = true)
+    {
+        if (log) BasicMod<TMod>.LogInfo($"{actionVerb} feature {modFeature.GetType().FullName}...");
         try
         {
             var missingRequirement = modFeature.RequiredModFeatures.Where(requiredFeature => !IsFeatureLoaded(requiredFeature)).ToList();
             if (missingRequirement.Count > 0)
             {
-                BasicMod<TMod>.LogError($"Loading feature {modFeature.GetType().FullName} failed due missing requirement features:\n{string.Join("\n", missingRequirement.Select(type => type.FullName))}");
+                if (log) BasicMod<TMod>.LogError($"{actionVerb} feature {modFeature.GetType().FullName} failed due missing requirement features:\n{string.Join("\n", missingRequirement.Select(type => type.FullName))}");
                 return;
             }
-            bool successfulInit = modFeature.Init();
-            if (!successfulInit)
+            bool successfulPerformance = performAction(modFeature);
+            if (!successfulPerformance)
             {
-                BasicMod<TMod>.LogError($"Loading feature {modFeature.GetType().FullName} failed due to a failing condition.");
+                if (log) BasicMod<TMod>.LogError($"{actionVerb} feature {modFeature.GetType().FullName} failed due to a failing condition.");
                 return;
             }
-            BasicMod<TMod>.LogInfo($"Successfully loaded feature {modFeature.GetType().FullName}.");
+            if (log) BasicMod<TMod>.LogInfo($"{actionVerb} feature {modFeature.GetType().FullName} succeeded.");
             _loadedFeatures.Add(modFeature);
         }
         catch (Exception e)
         {
-            BasicMod<TMod>.LogError($"An error occurred while trying to load feature {modFeature.GetType().FullName}:\n{e}");
+            if (log) BasicMod<TMod>.LogError($"{actionVerb} feature {modFeature.GetType().FullName} caused an error:\n{e}");
         }
     }
 }
