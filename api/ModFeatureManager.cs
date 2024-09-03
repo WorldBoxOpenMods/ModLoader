@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using JetBrains.Annotations;
 namespace NeoModLoader.api;
@@ -10,7 +11,9 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     private readonly BasicMod<TMod> _mod;
     private readonly List<IModFeature> _foundFeatures = new List<IModFeature>();
     private FeatureLoadPathNode _featureLoadPath;
+    private StackTrace _firstInstantiationStackTrace;
     private readonly List<IModFeature> _loadedFeatures = new List<IModFeature>();
+    private StackTrace _firstLoadStackTrace;
 
     /// <summary>
     /// A constructor for the <see cref="ModFeatureManager{TMod}"/>.
@@ -166,21 +169,39 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     }
 
     /// <summary>
-    /// A method to initialize the <see cref="ModFeatureManager{TMod}"/> and load all found features. This needs to be manually called in the mods init method.
+    /// A method to initialize the <see cref="ModFeatureManager{TMod}"/> and load all found features.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the features have already been initialized.</exception>
     public void InstantiateFeatures()
     {
+        if (_featureLoadPath != null)
+        {
+            throw new InvalidOperationException($"Features have already been instantiated for this ModFeatureManager. Stack trace of first instantiation:\n{_firstInstantiationStackTrace}");
+        }
         var features = FindAndInstantiateModFeatures();
         _featureLoadPath = ParseModFeaturesIntoLoadPath(features);
+        if (_foundFeatures.Count > 0)
+        {
+            _firstInstantiationStackTrace = new StackTrace();
+        }
     }
     /// <inheritdoc cref="IStagedLoad.Init"/>
+    /// <exception cref="InvalidOperationException">Thrown if the features have already been initialized.</exception>
     public void Init()
     {
+        if (_loadedFeatures.Count > 0)
+        {
+            throw new InvalidOperationException($"Features have already been loaded for this ModFeatureManager. Stack trace of first load:\n{_firstLoadStackTrace}");
+        }
         FeatureLoadPathNode currentLoadPathNode = _featureLoadPath;
         while (currentLoadPathNode != null)
         {
             InitFeature(currentLoadPathNode.ModFeature);
             currentLoadPathNode = currentLoadPathNode.DependentFeature;
+        }
+        if (_loadedFeatures.Count > 0)
+        {
+            _firstLoadStackTrace = new StackTrace();
         }
     }
     /// <inheritdoc cref="IStagedLoad.PostInit"/>
@@ -247,7 +268,12 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
 
     private void InitFeature(IModFeature modFeature)
     {
-        SafePerformActionOnFeature(modFeature, "Loading", feature => feature.Init());
+        SafePerformActionOnFeature(modFeature, "Loading", feature =>
+        {
+            bool successfulLoad = feature.Init();
+            if (successfulLoad) _loadedFeatures.Add(modFeature);
+            return successfulLoad;
+        });
     }
     
     private void SafePerformActionOnFeature(IModFeature modFeature, string actionVerb, Func<IModFeature, bool> performAction, bool log = true)
@@ -268,7 +294,6 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
                 return;
             }
             if (log) BasicMod<TMod>.LogInfo($"{actionVerb} feature {modFeature.GetType().FullName} succeeded.");
-            _loadedFeatures.Add(modFeature);
         }
         catch (Exception e)
         {
