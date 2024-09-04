@@ -130,9 +130,24 @@ public class WorldBoxMod : MonoBehaviour
                 ModCompileLoadService.loadMods(mods_to_load);
                 ModInfoUtils.SaveModRecords();
                 NCMSCompatibleLayer.Init();
+
+                foreach (IMod mod in LoadedMods)
+                {
+                    SmoothLoader.add(() =>
+                    {
+                        if (ModCompileLoadService.TryInitMod(mod))
+                        {
+                            SmoothLoader.add(() =>
+                            {
+                                ModCompileLoadService.PostInitMod(mod);
+                            }, "Post-Init Mod " + mod.GetDeclaration().Name);
+                        }
+                    }, "Init Mod " + mod.GetDeclaration().Name);
+                }
             }, "Load Mods");
 
             SmoothLoader.add(ResourcesPatch.PatchSomeResources, "Patch part of Resources into game");
+            
             SmoothLoader.add(() =>
             {
                 ModWorkshopService.Init();

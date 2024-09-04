@@ -502,6 +502,51 @@ public static class ModCompileLoadService
     }
 
     /// <summary>
+    /// Initializes a single mod if the mod implements IStagedLoad
+    /// </summary>
+    /// <param name="mod">The mod to init</param>
+    public static bool TryInitMod(IMod mod)
+    {
+        if (mod is IStagedLoad staged_load_mod)
+        {
+            try
+            {
+                staged_load_mod.Init();
+            }
+            catch (Exception e)
+            {
+                LogService.LogError(e.Message);
+                if (e.StackTrace != null) LogService.LogError(e.StackTrace);
+                mod.GetGameObject().SetActive(false);
+                LogService.LogError($"{mod.GetDeclaration().Name} has been disabled due to an init error. Please check the log for details.");
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// Post initializes a single mod if the mod implements IStagedLoad
+    /// </summary>
+    /// <param name="mod">The mod to post-init</param>
+    public static void PostInitMod(IMod mod)
+    {
+        if (mod is IStagedLoad staged_load_mod)
+        {
+            try
+            {
+                staged_load_mod.PostInit();
+            }
+            catch (Exception e)
+            {
+                LogService.LogError(e.Message);
+                if (e.StackTrace != null) LogService.LogError(e.StackTrace);
+                mod.GetGameObject().SetActive(false);
+                LogService.LogError($"{mod.GetDeclaration().Name} has been disabled due to a post init error. Please check the log for details.");
+            }
+        }
+    }
+    /// <summary>
     /// Check whether a mod loaded with mod's UID
     /// </summary>
     /// <param name="uid"></param>
