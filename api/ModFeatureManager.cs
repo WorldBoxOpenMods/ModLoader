@@ -254,13 +254,15 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
             return;
         }
         instance.ModFeatureManager = this;
-        if (instance.RequiredModFeatures.Any(requiredFeature => !requiredFeature.IsSubclassOf(typeof(IModFeature))))
+        var invalidRequiredFeatures = instance.RequiredModFeatures.Where(requiredFeature => !requiredFeature.IsSubclassOf(typeof(IModFeature))).ToList();
+        if (invalidRequiredFeatures.Any())
         {
-            throw new InvalidOperationException($"Feature {featureType.FullName} has a required feature that is not a subclass of IModFeature.");
+            throw new InvalidOperationException($"Feature {featureType.FullName} has required features that are not a subclass of IModFeature:\n{string.Join("\n", invalidRequiredFeatures.Select(type => type.FullName))}");
         }
-        if (instance.OptionalModFeatures.Any(optionalFeature => !optionalFeature.IsSubclassOf(typeof(IModFeature))))
+        var invalidOptionalFeatures = instance.OptionalModFeatures.Where(optionalFeature => !optionalFeature.IsSubclassOf(typeof(IModFeature))).ToList();
+        if (invalidOptionalFeatures.Any())
         {
-            throw new InvalidOperationException($"Feature {featureType.FullName} has an optional feature that is not a subclass of IModFeature.");
+            throw new InvalidOperationException($"Feature {featureType.FullName} has optional features that are not a subclass of IModFeature:\n{string.Join("\n", invalidOptionalFeatures.Select(type => type.FullName))}");
         }
         features.Add(instance);
         BasicMod<TMod>.LogInfo($"Successfully created instance of Feature {featureType.FullName}.");
