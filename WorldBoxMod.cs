@@ -131,7 +131,7 @@ public class WorldBoxMod : MonoBehaviour
                 ModInfoUtils.SaveModRecords();
                 NCMSCompatibleLayer.Init();
 
-                foreach (IMod mod in LoadedMods)
+                foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
                     SmoothLoader.add(() =>
                     {
