@@ -254,12 +254,12 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
             return;
         }
         instance.ModFeatureManager = this;
-        var invalidRequiredFeatures = instance.RequiredModFeatures.Where(requiredFeature => !requiredFeature.IsSubclassOf(typeof(IModFeature))).ToList();
+        var invalidRequiredFeatures = instance.RequiredModFeatures.Where(requiredFeature => !typeof(IModFeature).IsAssignableFrom(requiredFeature)).ToList();
         if (invalidRequiredFeatures.Any())
         {
             throw new InvalidOperationException($"Feature {featureType.FullName} has required features that are not a subclass of IModFeature:\n{string.Join("\n", invalidRequiredFeatures.Select(type => type.FullName))}");
         }
-        var invalidOptionalFeatures = instance.OptionalModFeatures.Where(optionalFeature => !optionalFeature.IsSubclassOf(typeof(IModFeature))).ToList();
+        var invalidOptionalFeatures = instance.OptionalModFeatures.Where(optionalFeature => !typeof(IModFeature).IsAssignableFrom(optionalFeature)).ToList();
         if (invalidOptionalFeatures.Any())
         {
             throw new InvalidOperationException($"Feature {featureType.FullName} has optional features that are not a subclass of IModFeature:\n{string.Join("\n", invalidOptionalFeatures.Select(type => type.FullName))}");
