@@ -16,6 +16,9 @@ public abstract class ModFeature : IModFeature
 
     /// <inheritdoc cref="IModFeature.Init"/>
     public abstract bool Init();
+    
+    /// <inheritdoc cref="IModFeature.PostInit"/>
+    public virtual bool PostInit() => true;
 
     /// <summary>
     /// A utility method to check if a mod feature is loaded and get it if it is.

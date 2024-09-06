@@ -24,11 +24,11 @@ public class WorldBoxMod : MonoBehaviour
     public static List<IMod> LoadedMods = new();
 
     internal static Dictionary<ModDeclare, ModState> AllRecognizedMods = new();
-    internal static Transform                        Transform;
-    internal static Transform                        InactiveTransform;
-    internal static Assembly                         NeoModLoaderAssembly     = Assembly.GetExecutingAssembly();
-    private         bool                             initialized              = false;
-    private         bool                             initialized_successfully = false;
+    internal static Transform Transform;
+    internal static Transform InactiveTransform;
+    internal static Assembly NeoModLoaderAssembly = Assembly.GetExecutingAssembly();
+    private bool initialized = false;
+    private bool initialized_successfully = false;
 
     private void Start()
     {
@@ -60,7 +60,7 @@ public class WorldBoxMod : MonoBehaviour
         initialized = true;
         ModUploadAuthenticationService.AutoAuth();
         HarmonyUtils._init();
-        Harmony.CreateAndPatchAll(typeof(LM),             Others.harmony_id);
+        Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
 
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
@@ -116,11 +116,11 @@ public class WorldBoxMod : MonoBehaviour
                     if (mods_to_load.Contains(mod.mod_decl))
                     {
                         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                                                                           Paths.ModResourceFolderName));
+                            Paths.ModResourceFolderName));
                         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                                                                           Paths.NCMSAdditionModResourceFolderName));
+                            Paths.NCMSAdditionModResourceFolderName));
                         ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                                                                               Paths.ModAssetBundleFolderName));
+                            Paths.ModAssetBundleFolderName));
                     }
                 }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
@@ -130,9 +130,28 @@ public class WorldBoxMod : MonoBehaviour
                 ModCompileLoadService.loadMods(mods_to_load);
                 ModInfoUtils.SaveModRecords();
                 NCMSCompatibleLayer.Init();
+                var successfulInit = new Dictionary<IMod, bool>();
+                foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
+                {
+                    SmoothLoader.add(() =>
+                    {
+                        successfulInit.Add(mod, ModCompileLoadService.TryInitMod(mod));
+                    }, "Init Mod " + mod.GetDeclaration().Name);
+                }
+                foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
+                {
+                    SmoothLoader.add(() =>
+                    {
+                        if (successfulInit.ContainsKey(mod) && successfulInit[mod])
+                        {
+                            ModCompileLoadService.PostInitMod(mod);
+                        }
+                    }, "Post-Init Mod " + mod.GetDeclaration().Name);
+                }
             }, "Load Mods");
 
             SmoothLoader.add(ResourcesPatch.PatchSomeResources, "Patch part of Resources into game");
+
             SmoothLoader.add(() =>
             {
                 ModWorkshopService.Init();
@@ -157,7 +176,7 @@ public class WorldBoxMod : MonoBehaviour
             if (!resource_path.StartsWith(locale_path)) continue;
 
             LM.LoadLocale(resource_path.Replace(locale_path, "").Replace(".json", ""),
-                          NeoModLoaderAssembly.GetManifestResourceStream(resource_path));
+                NeoModLoaderAssembly.GetManifestResourceStream(resource_path));
         }
     }
 
@@ -272,7 +291,7 @@ public class WorldBoxMod : MonoBehaviour
             }
             catch (BadImageFormatException)
             {
-                LogService.LogError($""                          +
+                LogService.LogError($"" +
                                     $"BadImageFormatException: " +
                                     $"The file {file_full_path} is not a valid assembly.");
             }

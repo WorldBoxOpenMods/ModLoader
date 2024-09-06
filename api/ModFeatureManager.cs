@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using JetBrains.Annotations;
 namespace NeoModLoader.api;
@@ -9,7 +10,10 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
 {
     private readonly BasicMod<TMod> _mod;
     private readonly List<IModFeature> _foundFeatures = new List<IModFeature>();
+    private FeatureLoadPathNode _featureLoadPath;
+    private StackTrace _firstInstantiationStackTrace;
     private readonly List<IModFeature> _loadedFeatures = new List<IModFeature>();
+    private StackTrace _firstLoadStackTrace;
 
     /// <summary>
     /// A constructor for the <see cref="ModFeatureManager{TMod}"/>.
@@ -165,16 +169,48 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
     }
 
     /// <summary>
-    /// A method to initialize the <see cref="ModFeatureManager{TMod}"/> and load all found features. This needs to be manually called in the mods init method.
+    /// A method to initialize the <see cref="ModFeatureManager{TMod}"/> and load all found features.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the features have already been initialized.</exception>
+    public void InstantiateFeatures()
+    {
+        if (_featureLoadPath != null)
+        {
+            throw new InvalidOperationException($"Features have already been instantiated for this ModFeatureManager. Stack trace of first instantiation:\n{_firstInstantiationStackTrace}");
+        }
+        var features = FindAndInstantiateModFeatures();
+        _featureLoadPath = ParseModFeaturesIntoLoadPath(features);
+        if (_foundFeatures.Count > 0)
+        {
+            _firstInstantiationStackTrace = new StackTrace();
+        }
+    }
+    /// <inheritdoc cref="IStagedLoad.Init"/>
+    /// <exception cref="InvalidOperationException">Thrown if the features have already been initialized.</exception>
     public void Init()
     {
-        var features = FindAndInstantiateModFeatures();
-        FeatureLoadPathNode featureLoadPath = ParseModFeaturesIntoLoadPath(features);
-        FeatureLoadPathNode currentLoadPathNode = featureLoadPath;
+        if (_loadedFeatures.Count > 0)
+        {
+            throw new InvalidOperationException($"Features have already been loaded for this ModFeatureManager. Stack trace of first load:\n{_firstLoadStackTrace}");
+        }
+        FeatureLoadPathNode currentLoadPathNode = _featureLoadPath;
         while (currentLoadPathNode != null)
         {
             InitFeature(currentLoadPathNode.ModFeature);
+            currentLoadPathNode = currentLoadPathNode.DependentFeature;
+        }
+        if (_loadedFeatures.Count > 0)
+        {
+            _firstLoadStackTrace = new StackTrace();
+        }
+    }
+    /// <inheritdoc cref="IStagedLoad.PostInit"/>
+    public void PostInit()
+    {
+        FeatureLoadPathNode currentLoadPathNode = _featureLoadPath;
+        while (currentLoadPathNode != null)
+        {
+            SafePerformActionOnFeature(currentLoadPathNode.ModFeature, "Post-Loading", feature => feature.PostInit());
             currentLoadPathNode = currentLoadPathNode.DependentFeature;
         }
     }
@@ -218,13 +254,15 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
             return;
         }
         instance.ModFeatureManager = this;
-        if (instance.RequiredModFeatures.Any(requiredFeature => !requiredFeature.IsSubclassOf(typeof(IModFeature))))
+        var invalidRequiredFeatures = instance.RequiredModFeatures.Where(requiredFeature => !typeof(IModFeature).IsAssignableFrom(requiredFeature)).ToList();
+        if (invalidRequiredFeatures.Any())
         {
-            throw new InvalidOperationException($"Feature {featureType.FullName} has a required feature that is not a subclass of IModFeature.");
+            throw new InvalidOperationException($"Feature {featureType.FullName} has required features that are not a subclass of IModFeature:\n{string.Join("\n", invalidRequiredFeatures.Select(type => type.FullName))}");
         }
-        if (instance.OptionalModFeatures.Any(optionalFeature => !optionalFeature.IsSubclassOf(typeof(IModFeature))))
+        var invalidOptionalFeatures = instance.OptionalModFeatures.Where(optionalFeature => !typeof(IModFeature).IsAssignableFrom(optionalFeature)).ToList();
+        if (invalidOptionalFeatures.Any())
         {
-            throw new InvalidOperationException($"Feature {featureType.FullName} has an optional feature that is not a subclass of IModFeature.");
+            throw new InvalidOperationException($"Feature {featureType.FullName} has optional features that are not a subclass of IModFeature:\n{string.Join("\n", invalidOptionalFeatures.Select(type => type.FullName))}");
         }
         features.Add(instance);
         BasicMod<TMod>.LogInfo($"Successfully created instance of Feature {featureType.FullName}.");
@@ -232,27 +270,36 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
 
     private void InitFeature(IModFeature modFeature)
     {
-        BasicMod<TMod>.LogInfo($"Loading feature {modFeature.GetType().FullName}...");
+        SafePerformActionOnFeature(modFeature, "Loading", feature =>
+        {
+            bool successfulLoad = feature.Init();
+            if (successfulLoad) _loadedFeatures.Add(modFeature);
+            return successfulLoad;
+        });
+    }
+    
+    private void SafePerformActionOnFeature(IModFeature modFeature, string actionVerb, Func<IModFeature, bool> performAction, bool log = true)
+    {
+        if (log) BasicMod<TMod>.LogInfo($"{actionVerb} feature {modFeature.GetType().FullName}...");
         try
         {
             var missingRequirement = modFeature.RequiredModFeatures.Where(requiredFeature => !IsFeatureLoaded(requiredFeature)).ToList();
             if (missingRequirement.Count > 0)
             {
-                BasicMod<TMod>.LogError($"Loading feature {modFeature.GetType().FullName} failed due missing requirement features:\n{string.Join("\n", missingRequirement.Select(type => type.FullName))}");
+                if (log) BasicMod<TMod>.LogError($"{actionVerb} feature {modFeature.GetType().FullName} failed due missing requirement features:\n{string.Join("\n", missingRequirement.Select(type => type.FullName))}");
                 return;
             }
-            bool successfulInit = modFeature.Init();
-            if (!successfulInit)
+            bool successfulPerformance = performAction(modFeature);
+            if (!successfulPerformance)
             {
-                BasicMod<TMod>.LogError($"Loading feature {modFeature.GetType().FullName} failed due to a failing condition.");
+                if (log) BasicMod<TMod>.LogError($"{actionVerb} feature {modFeature.GetType().FullName} failed due to a failing condition.");
                 return;
             }
-            BasicMod<TMod>.LogInfo($"Successfully loaded feature {modFeature.GetType().FullName}.");
-            _loadedFeatures.Add(modFeature);
+            if (log) BasicMod<TMod>.LogInfo($"{actionVerb} feature {modFeature.GetType().FullName} succeeded.");
         }
         catch (Exception e)
         {
-            BasicMod<TMod>.LogError($"An error occurred while trying to load feature {modFeature.GetType().FullName}:\n{e}");
+            if (log) BasicMod<TMod>.LogError($"{actionVerb} feature {modFeature.GetType().FullName} caused an error:\n{e}");
         }
     }
 }

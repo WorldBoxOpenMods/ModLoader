@@ -15,7 +15,7 @@ namespace NeoModLoader.api;
 /// OnModLoad -> Awake -> OnEnable -> Start -> Update
 /// </remarks>
 /// </summary>
-public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged
+public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged, IStagedLoad
     where T : BasicMod<T>
 {
     private ModConfig  _config  = null!;
@@ -108,8 +108,27 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
         _config ??= LoadConfig();
         LogInfo("OnLoad");
         OnModLoad();
+        ModFeatureManager.InstantiateFeatures();
         LogInfo("Loaded");
         _isLoaded = true;
+    }
+
+    /// <inheritdoc />
+    /// <note>
+    /// Calls Init() on the ModFeatureManager by default.
+    /// </note>
+    public virtual void Init()
+    {
+        ModFeatureManager.Init();
+    }
+    
+    /// <inheritdoc />
+    /// <note>
+    /// Calls PostInit() on the ModFeatureManager by default.
+    /// </note>
+    public virtual void PostInit()
+    {
+        ModFeatureManager.PostInit();
     }
 
     /// <summary>

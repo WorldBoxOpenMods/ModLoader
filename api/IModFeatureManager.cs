@@ -3,7 +3,7 @@ namespace NeoModLoader.api;
 /// <summary>
 /// An interface for a feature manager responsible for dynamically loading and managing <see cref="IModFeature"/>s.
 /// </summary>
-public interface IModFeatureManager
+public interface IModFeatureManager : IStagedLoad
 {
     /// <summary>
     /// A method to check if a feature of a specific type is loaded.
@@ -29,5 +29,5 @@ public interface IModFeatureManager
     /// <summary>
     /// A method that initializes the feature manager, and dynamically instantiates and initializes all <see cref="IModFeature"/>s in the correct required load order. It is assumed that this method properly accounts for any/all exceptions that individual features might throw during construction/initialization.
     /// </summary>
-    void Init();
+    void InstantiateFeatures();
 }
