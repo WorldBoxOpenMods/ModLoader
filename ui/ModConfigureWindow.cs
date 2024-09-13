@@ -11,12 +11,12 @@ namespace NeoModLoader.ui;
 /// </summary>
 public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 {
-    private static ModConfigGrid _gridPrefab;
-    private static ModConfigListItem _itemPrefab;
-    private static ObjectPoolGenericMono<ModConfigGrid> _gridPool;
-    private static ObjectPoolGenericMono<ModConfigListItem> _itemPool;
-    private readonly Dictionary<ModConfigItem, object> _modifiedItems = new();
-    private ModConfig _config;
+    private static   ModConfigGrid                            _gridPrefab;
+    private static   ModConfigListItem                        _itemPrefab;
+    private static   ObjectPoolGenericMono<ModConfigGrid>     _gridPool;
+    private static   ObjectPoolGenericMono<ModConfigListItem> _itemPool;
+    private readonly Dictionary<ModConfigItem, object>        _modifiedItems = new();
+    private          ModConfig                                _config;
 
     /// <inheritdoc cref="AbstractWindow{T}.Init" />
     protected override void Init()
@@ -70,6 +70,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         OT.InitializeCommonText(switch_text);
         switch_text.alignment = TextAnchor.MiddleLeft;
         switch_text.resizeTextForBestFit = true;
+        switch_text.resizeTextMinSize = 1;
 
         #endregion
 
@@ -113,6 +114,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         OT.InitializeCommonText(slider_value);
         slider_value.alignment = TextAnchor.MiddleRight;
         slider_value.resizeTextForBestFit = true;
+        slider_value.resizeTextMinSize = 1;
         SliderBar slider_bar = Instantiate(SliderBar.Prefab, slider_area.transform);
         slider_bar.transform.localScale = Vector3.one;
         slider_bar.name = "Slider";
@@ -153,6 +155,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         OT.InitializeCommonText(text_text);
         text_text.alignment = TextAnchor.MiddleLeft;
         text_text.resizeTextForBestFit = true;
+        text_text.resizeTextMinSize = 1;
 
         TextInput text_input = Instantiate(TextInput.Prefab, text_area.transform);
         text_input.transform.localScale = Vector3.one;
@@ -199,7 +202,9 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         Text title = grid_title.GetComponent<Text>();
         title.text = "Mod Config";
         title.font = LocalizedTextManager.currentFont;
-        title.fontSize = 10;
+        title.resizeTextForBestFit = true;
+        title.resizeTextMinSize = 1;
+        title.resizeTextMaxSize = 10;
         title.alignment = TextAnchor.MiddleCenter;
 
 
