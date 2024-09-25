@@ -118,6 +118,7 @@ public static class SpriteLoadUtils
             if (settings.Specific == null) return settings.Default;
             foreach (var setting in settings.Specific)
             {
+                if (setting == null) continue;
                 if (setting.Path == Path.GetFileName(i_path))
                 {
                     //LogService.LogInfo($"Specific NCMSSetting {setting.Path} found for {path}");
@@ -148,6 +149,8 @@ public static class SpriteLoadUtils
                     {
                         settings.Default ??= defaultNCMSSetting;
                         dirNCMSSettings.Add(dir, settings);
+                        if (settings.Specific?.Contains(null) ?? false)
+                            LogService.LogWarning($"Here is something wrong at {settingPath}");
 
                         //LogService.LogInfo(settings.ToString());
 
@@ -240,10 +243,10 @@ public static class SpriteLoadUtils
             public float  PivotX        = 0.5f;
             public float  PivotY        = 0.0f;
             public float  PixelsPerUnit = 1f;
+            public readonly float RectH = -1;
+            public readonly float RectW = -1;
             public float  RectX         = 0.0f;
             public float  RectY         = 0.0f;
-            public float  RectW         = -1;
-            public float  RectH         = -1;
 
             public Sprite loadFromPath(string path)
             {
@@ -251,9 +254,10 @@ public static class SpriteLoadUtils
                 texture.filterMode = FilterMode.Point;
                 texture.LoadImage(File.ReadAllBytes(path));
                 Sprite sprite = Sprite.Create(texture,
-                    new Rect(RectX, RectY, RectW < 0 ? texture.width : RectW, RectH < 0 ? texture.height : RectH),
-                    new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
-                    new Vector4(BorderL, BorderB, BorderR, BorderT));
+                                              new Rect(RectX, RectY, RectW < 0 ? texture.width : RectW,
+                                                       RectH               < 0 ? texture.height : RectH),
+                                              new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
+                                              new Vector4(BorderL, BorderB, BorderR, BorderT));
                 sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
                 return sprite;
             }
