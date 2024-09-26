@@ -235,18 +235,19 @@ public static class SpriteLoadUtils
         /// </remarks>
         public class SpecificSetting
         {
-            public float  BorderB       = 0.0f;
-            public float  BorderL       = 0.0f;
-            public float  BorderR       = 0.0f;
-            public float  BorderT       = 0.0f;
-            public string Path          = "\\";
-            public float  PivotX        = 0.5f;
-            public float  PivotY        = 0.0f;
-            public float  PixelsPerUnit = 1f;
-            public readonly float RectH = -1;
-            public readonly float RectW = -1;
-            public float  RectX         = 0.0f;
-            public float  RectY         = 0.0f;
+            public readonly float  RectH         = -1;
+            public readonly float  RectW         = -1;
+            public readonly string Alias         = "";
+            public readonly float  BorderB       = 0.0f;
+            public readonly float  BorderL       = 0.0f;
+            public readonly float  BorderR       = 0.0f;
+            public readonly float  BorderT       = 0.0f;
+            public readonly string Path          = "\\";
+            public readonly float  PivotX        = 0.5f;
+            public readonly float  PivotY        = 0.0f;
+            public readonly float  PixelsPerUnit = 1f;
+            public readonly float  RectX         = 0.0f;
+            public readonly float  RectY         = 0.0f;
 
             public Sprite loadFromPath(string path)
             {
@@ -258,7 +259,7 @@ public static class SpriteLoadUtils
                                                        RectH               < 0 ? texture.height : RectH),
                                               new Vector2(PivotX, PivotY), PixelsPerUnit, 1, SpriteMeshType.Tight,
                                               new Vector4(BorderL, BorderB, BorderR, BorderT));
-                sprite.name = System.IO.Path.GetFileNameWithoutExtension(path);
+                sprite.name = string.IsNullOrEmpty(Alias) ? System.IO.Path.GetFileNameWithoutExtension(path) : Alias;
                 return sprite;
             }
         }
