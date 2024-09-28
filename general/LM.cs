@@ -59,6 +59,19 @@ public static class LM
     }
 
     /// <summary>
+    ///     Check whether <paramref name="key" /> exists in <paramref name="lang" />
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="lang">default: current language</param>
+    /// <returns></returns>
+    public static bool Has(string key, string lang = "")
+    {
+        return string.IsNullOrEmpty(lang)
+            ? LocalizedTextManager.instance.localizedText.ContainsKey(key)
+            : locales.TryGetValue(lang, out var dict) && dict.ContainsKey(key);
+    }
+
+    /// <summary>
     ///     Load locales from a file(Only support csv file)
     /// </summary>
     /// <param name="pFilePath">Path to csv file</param>
@@ -135,7 +148,7 @@ public static class LM
             if (string.IsNullOrEmpty(lines[i].Trim())) continue;
             if (!lines[i].Contains(',')) continue;
             var line = str2esc.Keys.Aggregate(lines[i], (current, key) => current.Replace(key, str2esc[key]))
-                .Split(',');
+                              .Split(',');
             var key = line[0];
 
             if (string.IsNullOrEmpty(key)) continue;
@@ -260,7 +273,9 @@ public static class LM
         }
 
         foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
-                     .Where(key => !LocalizedTextManager.instance.localizedText.ContainsKey(key)))
+                                                                  .Where(key =>
+                                                                      !LocalizedTextManager.instance.localizedText
+                                                                          .ContainsKey(key)))
             LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         LocalizedTextManager.updateTexts();
@@ -285,7 +300,9 @@ public static class LM
         }
 
         foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
-                     .Where(key => !LocalizedTextManager.instance.localizedText.ContainsKey(key)))
+                                                                  .Where(key =>
+                                                                      !LocalizedTextManager.instance.localizedText
+                                                                          .ContainsKey(key)))
             LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         if (pUpdateTexts) LocalizedTextManager.updateTexts();
