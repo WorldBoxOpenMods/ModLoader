@@ -654,8 +654,22 @@ public static class ModCompileLoadService
                 continue;
             }
 
-            VirtualMod virtualMod = new();
-            virtualMod.OnLoad(mod, null);
+            BepinexMod virtualMod = new();
+            MonoBehaviour virtualModComponent = null;
+            
+            // try to find the GameObject of the mod
+            GameObject bepinexManager = GameObject.Find("BepInEx_Manager");
+            if (bepinexManager != null)
+            {
+                var bepinexComponents = bepinexManager.GetComponents<MonoBehaviour>();
+                foreach (MonoBehaviour component in bepinexComponents.Where(component => (component.GetType().FullName ?? "").Contains(virtualMod.GetDeclaration().Name)))
+                {
+                    virtualModComponent = component;
+                    break;
+                }
+            }
+
+            virtualMod.OnLoad(mod, virtualModComponent);
             WorldBoxMod.LoadedMods.Add(virtualMod);
             WorldBoxMod.AllRecognizedMods[mod] = ModState.LOADED;
         }
