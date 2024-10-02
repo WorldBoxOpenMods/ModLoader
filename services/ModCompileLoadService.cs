@@ -646,6 +646,7 @@ public static class ModCompileLoadService
     {
         List<ModDeclare> bepInExMods = ModInfoUtils.recogBepInExMods();
 
+        GameObject bepinexManager = GameObject.Find("BepInEx_Manager");
         foreach (var mod in bepInExMods)
         {
             if (IsModLoaded(mod.UID))
@@ -654,8 +655,21 @@ public static class ModCompileLoadService
                 continue;
             }
 
-            VirtualMod virtualMod = new();
-            virtualMod.OnLoad(mod, null);
+            BepinexMod virtualMod = new();
+            MonoBehaviour virtualModComponent = null;
+            
+            // try to find the GameObject of the mod
+            if (bepinexManager != null)
+            {
+                var bepinexComponents = bepinexManager.GetComponents<MonoBehaviour>();
+                foreach (MonoBehaviour component in bepinexComponents.Where(component => (component.GetType().FullName ?? "").Contains(mod.Name)))
+                {
+                    virtualModComponent = component;
+                    break;
+                }
+            }
+
+            virtualMod.OnLoad(mod, virtualModComponent);
             WorldBoxMod.LoadedMods.Add(virtualMod);
             WorldBoxMod.AllRecognizedMods[mod] = ModState.LOADED;
         }

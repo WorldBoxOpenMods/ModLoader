@@ -8,7 +8,7 @@ namespace NeoModLoader.api;
 public class VirtualMod : IMod
 {
     private ModDeclare _declare;
-    private GameObject _bindedGameObject;
+    private GameObject _boundGameObject;
     ///<inheritdoc />
     public ModDeclare GetDeclaration()
     {
@@ -17,7 +17,7 @@ public class VirtualMod : IMod
     ///<inheritdoc />
     public GameObject GetGameObject()
     {
-        return _bindedGameObject;
+        return _boundGameObject;
     }
     ///<inheritdoc />
     public string GetUrl()
@@ -27,8 +27,7 @@ public class VirtualMod : IMod
     ///<inheritdoc />
     public void OnLoad(ModDeclare pModDecl, GameObject pGameObject)
     {
-        // TODO: Find pGameObject and set it.
         _declare = pModDecl;
-        _bindedGameObject = pGameObject;
+        _boundGameObject = pGameObject;
     }
 }
