@@ -646,6 +646,7 @@ public static class ModCompileLoadService
     {
         List<ModDeclare> bepInExMods = ModInfoUtils.recogBepInExMods();
 
+        GameObject bepinexManager = GameObject.Find("BepInEx_Manager");
         foreach (var mod in bepInExMods)
         {
             if (IsModLoaded(mod.UID))
@@ -658,7 +659,6 @@ public static class ModCompileLoadService
             MonoBehaviour virtualModComponent = null;
             
             // try to find the GameObject of the mod
-            GameObject bepinexManager = GameObject.Find("BepInEx_Manager");
             if (bepinexManager != null)
             {
                 var bepinexComponents = bepinexManager.GetComponents<MonoBehaviour>();
