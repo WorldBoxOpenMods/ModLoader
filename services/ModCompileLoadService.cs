@@ -662,7 +662,7 @@ public static class ModCompileLoadService
             if (bepinexManager != null)
             {
                 var bepinexComponents = bepinexManager.GetComponents<MonoBehaviour>();
-                foreach (MonoBehaviour component in bepinexComponents.Where(component => (component.GetType().FullName ?? "").Contains(virtualMod.GetDeclaration().Name)))
+                foreach (MonoBehaviour component in bepinexComponents.Where(component => (component.GetType().FullName ?? "").Contains(mod.Name)))
                 {
                     virtualModComponent = component;
                     break;
