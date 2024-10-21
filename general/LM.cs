@@ -80,11 +80,21 @@ public static class LM
     {
         if (pFilePath.ToLower().EndsWith(".csv"))
         {
-            Dictionary<string, Dictionary<string, string>> locale = ParseCSV(File.ReadAllText(pFilePath));
+            Dictionary<string, Dictionary<string, string>> locale = null;
+            try
+            {
+                locale = ParseCSV(File.ReadAllText(pFilePath));
+            }
+            catch (Exception e)
+            {
+                LogService.LogWarning($"Failed to load locale file at {pFilePath} as csv: {e.Message}");
+                return;
+            }
 
             if (locale == null)
             {
-                throw new FormatException($"Failed to load locale file at {pFilePath} as csv");
+                LogService.LogWarning($"Failed to load locale file at {pFilePath} as csv");
+                return;
             }
 
             foreach (var language in locale.Keys)
@@ -110,11 +120,21 @@ public static class LM
     public static void LoadLocales(Stream pStream)
     {
         string text = new StreamReader(pStream).ReadToEnd();
-        Dictionary<string, Dictionary<string, string>> locale = ParseCSV(text);
+        Dictionary<string, Dictionary<string, string>> locale = null;
+        try
+        {
+            locale = ParseCSV(text);
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning($"Failed to load locale text \"{text}\" as csv: {e.Message}");
+            return;
+        }
 
         if (locale == null)
         {
-            throw new FormatException("Failed to load locale file for stream as csv");
+            LogService.LogWarning($"Failed to load locale text \"{text}\" as csv");
+            return;
         }
 
         foreach (var language in locale.Keys)
@@ -148,10 +168,11 @@ public static class LM
             if (string.IsNullOrEmpty(lines[i].Trim())) continue;
             if (!lines[i].Contains(',')) continue;
             var line = str2esc.Keys.Aggregate(lines[i], (current, key) => current.Replace(key, str2esc[key]))
-                              .Split(',');
+                .Split(',');
             var key = line[0];
 
             if (string.IsNullOrEmpty(key)) continue;
+            if (line.Length > languages.Length) throw new Exception($"Line {i} has more ',' than its head.");
 
             for (int j = 1; j < line.Length; j++)
             {
@@ -273,9 +294,9 @@ public static class LM
         }
 
         foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
-                                                                  .Where(key =>
-                                                                      !LocalizedTextManager.instance.localizedText
-                                                                          .ContainsKey(key)))
+                     .Where(key =>
+                         !LocalizedTextManager.instance.localizedText
+                             .ContainsKey(key)))
             LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         LocalizedTextManager.updateTexts();
@@ -300,9 +321,9 @@ public static class LM
         }
 
         foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
-                                                                  .Where(key =>
-                                                                      !LocalizedTextManager.instance.localizedText
-                                                                          .ContainsKey(key)))
+                     .Where(key =>
+                         !LocalizedTextManager.instance.localizedText
+                             .ContainsKey(key)))
             LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         if (pUpdateTexts) LocalizedTextManager.updateTexts();
