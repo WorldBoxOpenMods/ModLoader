@@ -40,6 +40,23 @@ public class ModDependencyNode
     ///     Related mod declaration
     /// </summary>
     public ModDeclare mod_decl { get; }
+
+    /// <summary>
+    ///     Get all additional assembly references that this mod depends on.
+    /// </summary>
+    /// <returns></returns>
+    public List<string> GetAdditionReferences(bool recursive = true)
+    {
+        var references = new List<string>();
+        var assemblies_path = Path.Combine(mod_decl.FolderPath, "Assemblies");
+        if (Directory.Exists(assemblies_path)) references.AddRange(Directory.GetFiles(assemblies_path, "*.dll"));
+
+        if (recursive)
+            foreach (ModDependencyNode dependency in depend_on)
+                references.AddRange(dependency.GetAdditionReferences());
+
+        return references;
+    }
 }
 
 /// <summary>
@@ -359,7 +376,8 @@ internal static class ModDependencyUtils
                 {
                     // ignored
                     LogService
-                        .LogError($"Key {depend_on_node.mod_decl.UID} not found in node_in_degree when checking {curr_node.mod_decl.UID}");
+                        .LogError(
+                            $"Key {depend_on_node.mod_decl.UID} not found in node_in_degree when checking {curr_node.mod_decl.UID}");
                 }
             }
         }

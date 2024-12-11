@@ -273,22 +273,12 @@ public static class ModCompileLoadService
 
         bool compile_result = false;
 
-        string[] add_inc_path;
-        try
-        {
-            add_inc_path = Directory.GetFiles(
-                Path.Combine(pModNode.mod_decl.FolderPath, "Assemblies"), "*.dll");
-        }
-        catch (DirectoryNotFoundException)
-        {
-            add_inc_path = new string[0];
-        }
-
         bool disable_optional_depen = false;
         RECOMPILE:
         compile_result =
-            compileMod(pModNode.mod_decl, _default_ref,
-                add_inc_path,             mod_ref, pForce, disable_optional_depen
+            compileMod(pModNode.mod_decl,                                          _default_ref,
+                pModNode.GetAdditionReferences(!disable_optional_depen).ToArray(), mod_ref, pForce,
+                disable_optional_depen
             );
         if (compile_result)
         {
@@ -423,7 +413,7 @@ public static class ModCompileLoadService
                     pMod.IsNCMSMod = true;
                     Type ncmsGlobalObjectType = mod_assembly.GetType("Mod");
                     ncmsGlobalObjectType.GetField("Info")
-                                        ?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
+                        ?.SetValue(null, new Info(NCMSCompatibleLayer.GenerateNCMSMod(pMod)));
                     ncmsGlobalObjectType.GetField("GameObject")?.SetValue(null, mod_instance);
                 }
 
@@ -657,12 +647,13 @@ public static class ModCompileLoadService
 
             BepinexMod virtualMod = new();
             MonoBehaviour virtualModComponent = null;
-            
+
             // try to find the GameObject of the mod
             if (bepinexManager != null)
             {
                 var bepinexComponents = bepinexManager.GetComponents<MonoBehaviour>();
-                foreach (MonoBehaviour component in bepinexComponents.Where(component => (component.GetType().FullName ?? "").Contains(mod.Name)))
+                foreach (MonoBehaviour component in bepinexComponents.Where(component =>
+                             (component.GetType().FullName ?? "").Contains(mod.Name)))
                 {
                     virtualModComponent = component;
                     break;
