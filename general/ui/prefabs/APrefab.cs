@@ -44,6 +44,21 @@ public abstract class APrefab<T> : MonoBehaviour where T : APrefab<T>
     }
 
     /// <summary>
+    ///     Equal to <see cref="UnityEngine.Object.Instantiate{T}(T,Transform,bool)" /> and set the name of the instance.
+    /// </summary>
+    /// <param name="pParent"></param>
+    /// <param name="pWorldPositionStays"></param>
+    /// <param name="pName"></param>
+    /// <returns></returns>
+    public static T Instantiate(Transform pParent = null, bool pWorldPositionStays = false, string pName = null)
+    {
+        T t = Instantiate(Prefab, pParent, pWorldPositionStays);
+        if (!string.IsNullOrEmpty(pName))
+            t.name = pName;
+        return t;
+    }
+
+    /// <summary>
     ///     Set size of the instance
     /// </summary>
     /// <param name="pSize">The size of the root game object</param>
