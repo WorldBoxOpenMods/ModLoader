@@ -1,3 +1,4 @@
+using System.Text;
 using NeoModLoader.General;
 using NeoModLoader.ui;
 using NeoModLoader.utils.authentication;
@@ -120,14 +121,35 @@ public static class ModUploadAuthenticationService
                     }
                     catch (AuthenticaticationException e)
                     {
-                        LogService.LogInfoConcurrent($"Exception when auth: {e.Message}\n{e.StackTrace}");
+                        var common_e = e as Exception;
+                        var sb = new StringBuilder();
+                        sb.AppendLine("Exception when auth: ");
+                        do
+                        {
+                            sb.AppendLine($"{e.GetType()}: {e.Message}");
+                            sb.AppendLine(e.StackTrace);
+
+                            common_e = common_e.InnerException;
+                        } while (common_e != null);
+
+                        LogService.LogInfoConcurrent(sb.ToString());
                         // TODO: Handle the error in some way
                         ModUploadAuthenticationWindow.SetState(false, e.Message);
                         continue;
                     }
                     catch (Exception e)
                     {
-                        LogService.LogInfoConcurrent($"Exception when auth: {e.Message}\n{e.StackTrace}");
+                        var sb = new StringBuilder();
+                        sb.AppendLine("Exception when auth: ");
+                        do
+                        {
+                            sb.AppendLine($"{e.GetType()}: {e.Message}");
+                            sb.AppendLine(e.StackTrace);
+
+                            e = e.InnerException;
+                        } while (e != null);
+
+                        LogService.LogInfoConcurrent(sb.ToString());
                         ModUploadAuthenticationWindow.SetState(false, e.Message);
                         continue;
                     }

@@ -14,12 +14,11 @@ namespace NeoModLoader.utils.authentication;
 public static class GithubOrgAuthUtils
 {
     private const  string client_id = Setting.github_auth_client_id;
-    private static string domain    = _alter_domains[0];
+    private static string domain = "github.com";
 
     private static readonly string[] _alter_domains =
     {
-        "github.com",
-        "github.ink"
+        "github.com"
     };
 
     /// <summary>
@@ -40,12 +39,12 @@ public static class GithubOrgAuthUtils
         UserInfo info = JsonConvert.DeserializeObject<UserInfo>(res.Content.ReadAsStringAsync().Result);
 
         res = HttpUtils.Get($"https://api.{domain}/orgs/{CoreConstants.OrgName}/members/{info.login}",
-                            new Dictionary<string, string>()
-                            {
-                                { "Authorization", "Bearer " + token },
-                                { "User-Agent", "NeoModLoader" },
-                                { "Accept", "application/vnd.github.v3+json" }
-                            });
+            new Dictionary<string, string>
+            {
+                { "Authorization", "Bearer " + token },
+                { "User-Agent", "NeoModLoader" },
+                { "Accept", "application/vnd.github.v3+json" }
+            });
 
         // https://docs.github.com/zh/rest/orgs/members?apiVersion=2022-11-28#check-organization-membership-for-a-user
         if (res.StatusCode == HttpStatusCode.NoContent)
