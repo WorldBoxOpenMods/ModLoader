@@ -75,15 +75,16 @@ public static class LM
     ///     Load locales from a file(Only support csv file)
     /// </summary>
     /// <param name="pFilePath">Path to csv file</param>
+    /// <param name="pSep">CSV seperation code</param>
     /// <exception cref="FormatException">Invalid csv file</exception>
-    public static void LoadLocales(string pFilePath)
+    public static void LoadLocales(string pFilePath, char pSep = ',')
     {
         if (pFilePath.ToLower().EndsWith(".csv"))
         {
             Dictionary<string, Dictionary<string, string>> locale = null;
             try
             {
-                locale = ParseCSV(File.ReadAllText(pFilePath));
+                locale = ParseCSV(File.ReadAllText(pFilePath), pSep);
             }
             catch (Exception e)
             {
@@ -116,14 +117,15 @@ public static class LM
     ///     Load locales from a text stream(Only support csv text)
     /// </summary>
     /// <param name="pStream">Stream of a csv text</param>
+    /// <param name="pSep">CSV seperation code</param>
     /// <exception cref="FormatException">Invalid csv text</exception>
-    public static void LoadLocales(Stream pStream)
+    public static void LoadLocales(Stream pStream, char pSep = ',')
     {
         string text = new StreamReader(pStream).ReadToEnd();
         Dictionary<string, Dictionary<string, string>> locale = null;
         try
         {
-            locale = ParseCSV(text);
+            locale = ParseCSV(text, pSep);
         }
         catch (Exception e)
         {
@@ -147,16 +149,16 @@ public static class LM
         }
     }
 
-    private static Dictionary<string, Dictionary<string, string>> ParseCSV(string pText)
+    private static Dictionary<string, Dictionary<string, string>> ParseCSV(string pText, char sep)
     {
         pText = pText.Replace("\r\n", "\n");
         var lines = pText.Split('\n');
 
         if (lines.Length < 2) return null;
         if (string.IsNullOrEmpty(lines[0].Trim())) return null;
-        if (!lines[0].Contains(',')) return null;
+        if (!lines[0].Contains(sep)) return null;
 
-        var languages = lines[0].Split(',');
+        var languages = lines[0].Split(sep);
         var locale = new Dictionary<string, Dictionary<string, string>>();
         for (int i = 1; i < languages.Length; i++)
         {
@@ -166,9 +168,9 @@ public static class LM
         for (int i = 1; i < lines.Length; i++)
         {
             if (string.IsNullOrEmpty(lines[i].Trim())) continue;
-            if (!lines[i].Contains(',')) continue;
+            if (!lines[i].Contains(sep)) continue;
             var line = str2esc.Keys.Aggregate(lines[i], (current, key) => current.Replace(key, str2esc[key]))
-                .Split(',');
+                .Split(sep);
             var key = line[0];
 
             if (string.IsNullOrEmpty(key)) continue;
