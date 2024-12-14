@@ -470,6 +470,10 @@ public static class ModCompileLoadService
                 if (Directory.Exists(locales_dir))
                 {
                     var files = Directory.GetFiles(locales_dir, "*", SearchOption.AllDirectories);
+                    var csv_separator = ',';
+                    if (mod_component is ICsvSepCustomized sep_customized)
+                        csv_separator = sep_customized.GetCsvSeparator();
+
                     foreach (var locale_file in files)
                     {
                         try
@@ -480,7 +484,7 @@ public static class ModCompileLoadService
                             }
                             else if (locale_file.EndsWith(".csv"))
                             {
-                                LM.LoadLocales(locale_file);
+                                LM.LoadLocales(locale_file, csv_separator);
                             }
                         }
                         catch (FormatException e)
