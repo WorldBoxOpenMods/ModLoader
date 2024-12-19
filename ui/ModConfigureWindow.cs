@@ -324,6 +324,9 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
                 case ConfigItemType.SLIDER:
                     setup_slider(pItem);
                     break;
+                case ConfigItemType.INT_SLIDER:
+                    setup_int_slider(pItem);
+                    break;
                 case ConfigItemType.TEXT:
                     setup_text(pItem);
                     break;
@@ -391,6 +394,36 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             else
             {
                 Image icon = slider_area.transform.Find("Info/Icon").GetComponent<Image>();
+                icon.gameObject.SetActive(true);
+                icon.sprite = SpriteTextureLoader.getSprite(pItem.IconPath);
+            }
+        }
+
+        private void setup_int_slider(ModConfigItem pItem)
+        {
+            slider_area.SetActive(true);
+            var value = slider_area.transform.Find("Info/Value").GetComponent<Text>();
+            value.text = $"{pItem.IntVal}";
+
+            var slider_bar = slider_area.transform.Find("Slider").GetComponent<SliderBar>();
+            slider_bar.Setup(pItem.IntVal, pItem.MinIntVal, pItem.MaxIntVal, pIntVal =>
+            {
+                if (!Instance._modifiedItems.ContainsKey(pItem)) Instance._modifiedItems.Add(pItem, pItem.GetValue());
+
+                pItem.SetValue(pIntVal, true);
+                value.text = $"{pItem.IntVal}";
+            }, whole_numbers: true);
+            slider_bar.tip_button.textOnClick = pItem.Id;
+            slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
+
+            slider_area.transform.Find("Info/Text").GetComponent<Text>().text = LM.Get(pItem.Id);
+            if (string.IsNullOrEmpty(pItem.IconPath))
+            {
+                slider_area.transform.Find("Info/Icon").gameObject.SetActive(false);
+            }
+            else
+            {
+                var icon = slider_area.transform.Find("Info/Icon").GetComponent<Image>();
                 icon.gameObject.SetActive(true);
                 icon.sprite = SpriteTextureLoader.getSprite(pItem.IconPath);
             }
