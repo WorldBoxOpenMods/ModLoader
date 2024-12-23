@@ -433,6 +433,11 @@ public class ModConfig
                 {
                     AddConfigItem(group_id, item_id, default_group[item_id].Type, default_group[item_id].GetValue(),
                         default_group[item_id].IconPath, default_group[item_id].CallBack);
+                    if (default_group[item_id].Type == ConfigItemType.SLIDER)
+                        group[item_id].SetFloatRange(default_group[item_id].MinFloatVal,
+                            default_group[item_id].MaxFloatVal);
+                    else if (default_group[item_id].Type == ConfigItemType.INT_SLIDER)
+                        group[item_id].SetIntRange(default_group[item_id].MinIntVal, default_group[item_id].MaxIntVal);
                 }
                 else if (group[item_id].Type == ConfigItemType.SLIDER)
                 {
