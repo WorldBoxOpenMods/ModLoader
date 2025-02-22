@@ -10,32 +10,30 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class TextInput : APrefab<TextInput>
 {
-    public Image      icon  { get; private set; }
-    public InputField input { get; private set; }
+    [SerializeField] private Image _icon;
+
+    [SerializeField] private InputField _input;
+
+    [SerializeField] private Text _text;
+
+    [SerializeField] private TipButton _tip_button;
+
+    public Image icon => _icon;
+    public InputField input => _input;
 
     /// <summary>
     ///     The <see cref="Text" /> component
     /// </summary>
-    public Text text { get; private set; }
+    public Text text => _text;
 
     /// <summary>
     ///     The <see cref="TipButton" /> component
     /// </summary>
-    public TipButton tip_button { get; private set; }
+    public TipButton tip_button => _tip_button;
 
     private void Awake()
     {
         if (!Initialized) Init();
-    }
-
-    /// <inheritdoc cref="APrefab{T}.Init" />
-    protected override void Init()
-    {
-        base.Init();
-        text = transform.Find("InputField").GetComponent<Text>();
-        input = transform.Find("InputField").GetComponent<InputField>();
-        icon = transform.Find("Icon").GetComponent<Image>();
-        tip_button = GetComponent<TipButton>();
     }
 
     /// <summary>
@@ -46,7 +44,7 @@ public class TextInput : APrefab<TextInput>
     /// <param name="pIcon">icon at the right</param>
     /// <param name="pBackground"></param>
     public virtual void Setup(string value, UnityAction<string> value_update, Sprite pIcon = null,
-                              Sprite pBackground = null)
+        Sprite pBackground = null)
     {
         if (!Initialized) Init();
         input.onEndEdit.RemoveAllListeners();
@@ -81,8 +79,8 @@ public class TextInput : APrefab<TextInput>
         if (!Initialized) Init();
         GetComponent<RectTransform>().sizeDelta = size;
         text.GetComponent<RectTransform>().sizeDelta = size - new Vector2(size.y / 2 + 4, 2);
-        icon.GetComponent<RectTransform>().sizeDelta = new Vector2(size.y,                size.y) - new Vector2(2, 2);
-        text.transform.localPosition = new Vector3(-size.x               / 2, 0);
+        icon.GetComponent<RectTransform>().sizeDelta = new Vector2(size.y, size.y) - new Vector2(2, 2);
+        text.transform.localPosition = new Vector3(-size.x / 2, 0);
         icon.transform.localPosition = new Vector3((size.x - size.y / 2) / 2, 0);
     }
 
@@ -116,5 +114,9 @@ public class TextInput : APrefab<TextInput>
         icon.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/inputFieldIcon");
 
         Prefab = text_input.AddComponent<TextInput>();
+        Prefab._icon = icon.GetComponent<Image>();
+        Prefab._input = input;
+        Prefab._text = text;
+        Prefab._tip_button = text_input.GetComponent<TipButton>();
     }
 }

@@ -5,23 +5,22 @@ namespace NeoModLoader.General.UI.Prefabs;
 
 public class SwitchButton : APrefab<SwitchButton>
 {
-    public Button    button     { get; private set; }
-    public Image     icon       { get; private set; }
-    public Text      text       { get; private set; }
-    public TipButton tip_button { get; private set; }
+    [SerializeField] private Button _button;
+
+    [SerializeField] private Image _icon;
+
+    [SerializeField] private Text _text;
+
+    [SerializeField] private TipButton _tip_button;
+
+    public Button button => _button;
+    public Image icon => _icon;
+    public Text text => _text;
+    public TipButton tip_button => _tip_button;
 
     private void Awake()
     {
         if (!Initialized) Init();
-    }
-
-    protected override void Init()
-    {
-        base.Init();
-        button = GetComponent<Button>();
-        text = transform.Find("Text").GetComponent<Text>();
-        icon = transform.Find("Icon").GetComponent<Image>();
-        tip_button = GetComponent<TipButton>();
     }
 
     public void Setup(bool value, Action value_update)
@@ -42,7 +41,7 @@ public class SwitchButton : APrefab<SwitchButton>
     internal static void _init()
     {
         GameObject switch_button = new GameObject("SwitchButton", typeof(Image), typeof(Button), typeof(TipButton),
-                                                  typeof(HorizontalLayoutGroup));
+            typeof(HorizontalLayoutGroup));
         switch_button.transform.SetParent(WorldBoxMod.Transform);
         switch_button.transform.localScale = Vector3.one;
         switch_button.GetComponent<RectTransform>().sizeDelta = new(50, 18);
@@ -68,5 +67,9 @@ public class SwitchButton : APrefab<SwitchButton>
         text.alignment = TextAnchor.MiddleCenter;
 
         Prefab = switch_button.AddComponent<SwitchButton>();
+        Prefab._button = switch_button.GetComponent<Button>();
+        Prefab._icon = switch_button_icon.GetComponent<Image>();
+        Prefab._text = switch_button_text.GetComponent<Text>();
+        Prefab._tip_button = switch_button.GetComponent<TipButton>();
     }
 }

@@ -11,48 +11,44 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class SimpleButton : APrefab<SimpleButton>
 {
+    [SerializeField] private Button button;
+
+    [SerializeField] private TipButton tipButton;
+
+    [SerializeField] private Image background;
+
+    [SerializeField] private Image icon;
+
+    [SerializeField] private Text text;
+
     /// <summary>
     ///     The <see cref="Button" /> component
     /// </summary>
-    public Button Button { get; private set; }
+    public Button Button => button;
 
     /// <summary>
     ///     The <see cref="TipButton" /> component
     /// </summary>
-    public TipButton TipButton { get; private set; }
+    public TipButton TipButton => tipButton;
 
     /// <summary>
     ///     The <see cref="Image" /> component of the background
     /// </summary>
-    public Image Background { get; private set; }
+    public Image Background => background;
 
     /// <summary>
     ///     The <see cref="Image" /> component of the button icon
     /// </summary>
-    public Image Icon { get; private set; }
+    public Image Icon => icon;
 
     /// <summary>
     ///     The <see cref="Text" /> component of the button text
     /// </summary>
-    public Text Text { get; private set; }
+    public Text Text => text;
 
     private void Awake()
     {
         if (!Initialized) Init();
-    }
-
-    /// <summary>
-    ///     Initialize the instance after it is created.
-    /// </summary>
-    protected override void Init()
-    {
-        if (Initialized) return;
-        Initialized = true;
-        Button = GetComponent<Button>();
-        Background = GetComponent<Image>();
-        Icon = transform.Find("Icon").GetComponent<Image>();
-        Text = transform.Find("Text").GetComponent<Text>();
-        TipButton = GetComponent<TipButton>();
     }
 
     /// <summary>
@@ -68,7 +64,6 @@ public class SimpleButton : APrefab<SimpleButton>
         string pTipType = null,
         TooltipData pTipData = default)
     {
-        if (!Initialized) Init();
         if (pSize == default)
         {
             pSize = new Vector2(32, 32);
@@ -152,5 +147,10 @@ public class SimpleButton : APrefab<SimpleButton>
         text.SetActive(false);
 
         Prefab = obj.AddComponent<SimpleButton>();
+        Prefab.button = obj.GetComponent<Button>();
+        Prefab.tipButton = obj.GetComponent<TipButton>();
+        Prefab.background = obj.GetComponent<Image>();
+        Prefab.icon = icon.GetComponent<Image>();
+        Prefab.text = text_text;
     }
 }

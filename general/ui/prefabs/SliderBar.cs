@@ -25,24 +25,20 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// </example>
 public class SliderBar : APrefab<SliderBar>
 {
-    public Slider slider { get; private set; }
+    [SerializeField] private Slider _slider;
+
+    [SerializeField] private TipButton _tip_button;
+
+    public Slider slider => _slider;
 
     /// <summary>
     /// The tip button of the slider bar, used to show tooltip
     /// </summary>
-    public TipButton tip_button { get; private set; }
+    public TipButton tip_button => _tip_button;
 
     private void Awake()
     {
         if (!Initialized) Init();
-    }
-
-    /// <inheritdoc cref="APrefab{T}.Init" />
-    protected override void Init()
-    {
-        base.Init();
-        slider = GetComponent<Slider>();
-        tip_button = GetComponent<TipButton>();
     }
 
     /// <summary>
@@ -53,7 +49,7 @@ public class SliderBar : APrefab<SliderBar>
     /// <param name="max">Max</param>
     /// <param name="value_update">Action when slider value updated</param>
     public void Setup(float value, float min, float max, UnityAction<float> value_update, Vector2 size = default,
-                      bool  whole_numbers = false)
+        bool whole_numbers = false)
     {
         if (!Initialized) Init();
         slider.onValueChanged.RemoveAllListeners();
@@ -77,7 +73,7 @@ public class SliderBar : APrefab<SliderBar>
         if (!Initialized) Init();
         GetComponent<RectTransform>().sizeDelta = size;
         transform.Find("Background").GetComponent<RectTransform>().sizeDelta = size - new Vector2(0, 10);
-        transform.Find("Fill Area").GetComponent<RectTransform>().sizeDelta = size  - new Vector2(0, 10);
+        transform.Find("Fill Area").GetComponent<RectTransform>().sizeDelta = size - new Vector2(0, 10);
         transform.Find("Fill Area/Fill").GetComponent<RectTransform>().sizeDelta = Vector2.zero;
         transform.Find("Handle Slide Area").GetComponent<RectTransform>().sizeDelta = size - new Vector2(10, 0);
         transform.Find("Handle Slide Area/Handle").GetComponent<RectTransform>().sizeDelta = new Vector2(20, 0);
@@ -126,5 +122,7 @@ public class SliderBar : APrefab<SliderBar>
         slider.targetGraphic = handle.GetComponent<Image>();
         slider.direction = Slider.Direction.LeftToRight;
         slider.interactable = true;
+        Prefab._slider = slider;
+        Prefab._tip_button = slider_bar.GetComponent<TipButton>();
     }
 }
