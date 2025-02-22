@@ -131,7 +131,17 @@ public static class ResourcesPatch
     private static void LoadWavFile(string path)
     {
         string Name = Path.GetFileNameWithoutExtension(path);
-        WavContainer container = JsonConvert.DeserializeObject<WavContainer>(File.ReadAllText(Path.GetDirectoryName(path) + "/" + Name + ".json"));
+        WavContainer container;
+        if (!File.Exists(Path.GetDirectoryName(path) + "/" + Name + ".json"))
+        {
+            Debug.Log("No data is stored for this wav file, creating data for it..");
+            container = new WavContainer(path, true, 50);
+            File.WriteAllText(Path.GetDirectoryName(path) + "/" + Name + ".json", JsonConvert.SerializeObject(container));
+        }
+        else
+        {
+            container = JsonConvert.DeserializeObject<WavContainer>(File.ReadAllText(Path.GetDirectoryName(path) + "/" + Name + ".json"));
+        }
         AudioWavLibrary.Add(Name, container);
     }
     [HarmonyPrefix]
