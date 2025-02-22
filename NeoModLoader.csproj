@@ -71,6 +71,9 @@
 	  <Reference Include="DOTween">
 		<HintPath>assembly-dependencies\DOTween.dll</HintPath>
 	  </Reference>
+      <Reference Include="FMODUnity">
+          <HintPath>assembly-dependencies\FMODUnity.dll</HintPath>
+      </Reference>
 	  <Reference Include="UnityEngine">
 		<HintPath>assembly-dependencies\UnityEngine.dll</HintPath>
 	  </Reference>
