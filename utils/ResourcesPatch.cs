@@ -1,17 +1,14 @@
 using System.Globalization;
+using FMOD;
+using FMODUnity;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.services;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.U2D;
-using FMOD;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
-using FMODUnity;
-using ReflectionUtility;
-using FMOD.Studio;
-using System.Reflection.Emit;
-using System.Runtime.Remoting.Channels;
-using Newtonsoft.Json;
 
 namespace NeoModLoader.utils;
 
@@ -23,6 +20,7 @@ public struct WavContainer
     public string Path;
     public bool _3D;
     public float Volume;
+
     public WavContainer(string Path, bool _3D, float Volume)
     {
         this.Path = Path;
@@ -30,9 +28,13 @@ public struct WavContainer
         this.Volume = Volume;
     }
 }
+
 public static class ResourcesPatch
 {
     private static ResourceTree tree;
+    public static Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
+    public static FMOD.System fmodSystem;
+    public static ChannelGroup masterChannelGroup;
 
     /// <summary>
     ///     Get all patched resources.
@@ -45,9 +47,6 @@ public static class ResourcesPatch
     {
         return tree.direct_objects;
     }
-    public static Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
-    public static FMOD.System fmodSystem;
-    public static ChannelGroup masterChannelGroup;
 
     /// <summary>
     ///     Patch a resource to the tree at runtime.
@@ -58,18 +57,21 @@ public static class ResourcesPatch
     {
         tree.Add(pPath, pObject);
     }
+
     static void InitializeFMODSystem()
     {
-        if (RuntimeManager.StudioSystem.getCoreSystem(out fmodSystem) != FMOD.RESULT.OK)
+        if (RuntimeManager.StudioSystem.getCoreSystem(out fmodSystem) != RESULT.OK)
         {
             LogService.LogError("Failed to initialize FMOD Core System!");
             return;
         }
-        if (fmodSystem.getMasterChannelGroup(out masterChannelGroup) != FMOD.RESULT.OK)
+
+        if (fmodSystem.getMasterChannelGroup(out masterChannelGroup) != RESULT.OK)
         {
             LogService.LogError("Failed to retrieve master channel group!");
         }
     }
+
     internal static void Initialize()
     {
         InitializeFMODSystem();
@@ -122,37 +124,56 @@ public static class ResourcesPatch
         {
             LoadWavFile(path);
         }
+
         return new Object[]
         {
             LoadTextAsset(path)
         };
     }
+
     //doesnt return anything, simply adds the wav to the wav library that contains all the custom sounds
     private static void LoadWavFile(string path)
     {
         string Name = Path.GetFileNameWithoutExtension(path);
-        WavContainer container = JsonConvert.DeserializeObject<WavContainer>(File.ReadAllText(Path.GetDirectoryName(path) + "/" + Name + ".json"));
+        WavContainer container = default;
+        try
+        {
+            container = JsonConvert.DeserializeObject<WavContainer>(
+                File.ReadAllText(Path.GetDirectoryName(path) + "/" + Name + ".json"));
+        }
+        catch (Exception e)
+        {
+            container = new WavContainer(path, true, 50f);
+        }
+
         AudioWavLibrary.Add(Name, container);
     }
+
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playSound), new Type[] {typeof(string), typeof(float), typeof(float), typeof(bool), typeof(bool) })]
+    [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playSound), typeof(string), typeof(float), typeof(float),
+        typeof(bool), typeof(bool))]
     public static bool LoadCustomSound(string pSoundPath, float pX, float pY, bool pGameViewOnly)
     {
         if (!MusicBox.sounds_on)
         {
             return false;
         }
+
         if (pGameViewOnly && World.world.qualityChanger.lowRes)
         {
             return false;
         }
-        if (!AudioWavLibrary.ContainsKey(pSoundPath)) { return true; }
+
+        if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
+
         WavContainer WAV = AudioWavLibrary[pSoundPath];
-        if(fmodSystem.createSound(WAV.Path, WAV._3D ? MODE._3D : MODE._2D, out FMOD.Sound sound) != RESULT.OK)
+        if (fmodSystem.createSound(WAV.Path, WAV._3D ? MODE._3D : MODE._2D, out var sound) != RESULT.OK)
         {
-            UnityEngine.Debug.Log($"Unable to play sound {pSoundPath}!");
+            Debug.Log($"Unable to play sound {pSoundPath}!");
         }
-        Vector3 listenerPosition = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, Camera.main.orthographicSize);
+
+        var listenerPosition = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y,
+            Camera.main.orthographicSize);
         Vector3 sourcePosition = new(pX, pY, 0);
         fmodSystem.playSound(sound, masterChannelGroup, false, out Channel channel);
         if (WAV._3D)
@@ -161,6 +182,7 @@ public static class ResourcesPatch
             VECTOR pos = new VECTOR() { x = pX, y = pY, z = 0 };
             channel.set3DAttributes(ref pos, ref vel);
         }
+
         float normalizedDistance = Mathf.Clamp01(Vector3.Distance(sourcePosition, listenerPosition) / WAV.Volume);
         channel.setVolume(1f - normalizedDistance);
         return false;
