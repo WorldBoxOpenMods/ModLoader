@@ -18,7 +18,7 @@ namespace NeoModLoader.utils;
 public struct WavContainer
 {
     public string Path;
-    public bool _3D;
+    [JsonProperty("3D")] public bool _3D;
     public float Volume;
 
     public WavContainer(string Path, bool _3D, float Volume)
