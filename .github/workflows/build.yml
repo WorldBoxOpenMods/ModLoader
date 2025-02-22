@@ -25,7 +25,7 @@ jobs:
     - name: Build
       run: dotnet build
     - name: Archive production artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NeoModLoader
         path: |
