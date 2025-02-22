@@ -138,6 +138,7 @@ public static class ResourcesPatch
         {
             container = JsonConvert.DeserializeObject<WavContainer>(File.ReadAllText(Path.GetDirectoryName(path) + "/" + Name + ".json"));
         }
+        container.Path = path;
         AudioWavLibrary.Add(Name, container);
     }
     [HarmonyPrefix]
