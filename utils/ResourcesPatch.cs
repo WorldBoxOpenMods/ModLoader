@@ -7,10 +7,6 @@ using UnityEngine.U2D;
 using FMOD;
 using Object = UnityEngine.Object;
 using FMODUnity;
-using ReflectionUtility;
-using FMOD.Studio;
-using System.Reflection.Emit;
-using System.Runtime.Remoting.Channels;
 using Newtonsoft.Json;
 
 namespace NeoModLoader.utils;
@@ -134,7 +130,7 @@ public static class ResourcesPatch
         WavContainer container;
         if (!File.Exists(Path.GetDirectoryName(path) + "/" + Name + ".json"))
         {
-            Debug.Log("No data is stored for this wav file, creating data for it..");
+            UnityEngine.Debug.Log("No data is stored for this wav file, creating data for it..");
             container = new WavContainer(path, true, 50);
             File.WriteAllText(Path.GetDirectoryName(path) + "/" + Name + ".json", JsonConvert.SerializeObject(container));
         }

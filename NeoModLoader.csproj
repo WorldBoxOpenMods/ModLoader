@@ -25,6 +25,9 @@
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
+      <Reference Include="FMODUnity">
+        <HintPath>assembly-dependencies\FMODUnity.dll</HintPath>
+      </Reference>
       <Reference Include="System.Net.Http">
         <HintPath>assembly-dependencies\System.Net.Http.dll</HintPath>
       </Reference>
@@ -172,10 +175,10 @@
         <None Remove="resources\windowVertNamePlate.png" />
         <EmbeddedResource Include="resources\windowVertNamePlate.png" />
         <None Remove="resources\assemblies\NeoModLoader.AutoUpdate" />
-        <None Remove="resources\assemblies\Assembly-CSharp-Publicized.dll"/>
-        <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized.dll"/>
-        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
-        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
+        <None Remove="resources\assemblies\Assembly-CSharp-Publicized.dll" />
+        <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized.dll" />
+        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate.dll" />
+        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll" />
     </ItemGroup>
   
     <ItemGroup>
