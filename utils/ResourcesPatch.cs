@@ -15,17 +15,24 @@ namespace NeoModLoader.utils;
 /// <summary>
 ///     This class is used to patch resources.
 /// </summary>
+public enum SoundType
+{
+    Music,
+    Sound,
+}
 public struct WavContainer
 {
     public string Path;
     [JsonProperty("3D")] public bool _3D;
     public float Volume;
+    public SoundType Type;
 
-    public WavContainer(string Path, bool _3D, float Volume)
+    public WavContainer(string Path, bool _3D, float Volume, SoundType Type = SoundType.Sound)
     {
         this.Path = Path;
         this._3D = _3D;
         this.Volume = Volume;
+        this.Type = Type;
     }
 }
 
@@ -135,14 +142,14 @@ public static class ResourcesPatch
     private static void LoadWavFile(string path)
     {
         string Name = Path.GetFileNameWithoutExtension(path);
-        WavContainer container = default;
+        WavContainer container;
         try
         {
             container = JsonConvert.DeserializeObject<WavContainer>(
                 File.ReadAllText(Path.GetDirectoryName(path) + "/" + Name + ".json"));
             container.Path = path;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             container = new WavContainer(path, true, 50f);
         }
@@ -166,13 +173,22 @@ public static class ResourcesPatch
         }
 
         if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
-
         WavContainer WAV = AudioWavLibrary[pSoundPath];
+        float Volume = WAV.Volume;
+        if(WAV.Type == SoundType.Music)
+        {
+            Volume *= PlayerConfig.getIntValue("volume_music") / 100f;
+        }
+        else
+        {
+            Volume *= PlayerConfig.getIntValue("volume_sound_effects") / 100f;
+        }
+        Volume *= PlayerConfig.getIntValue("volume_master_sound") / 100f;
         if (fmodSystem.createSound(WAV.Path, WAV._3D ? MODE._3D : MODE._2D, out var sound) != RESULT.OK)
         {
             Debug.Log($"Unable to play sound {pSoundPath}!");
+            return false;
         }
-
         var listenerPosition = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y,
             Camera.main.orthographicSize);
         Vector3 sourcePosition = new(pX, pY, 0);
@@ -184,7 +200,7 @@ public static class ResourcesPatch
             channel.set3DAttributes(ref pos, ref vel);
         }
 
-        float normalizedDistance = Mathf.Clamp01(Vector3.Distance(sourcePosition, listenerPosition) / WAV.Volume);
+        float normalizedDistance = Mathf.Clamp01(Vector3.Distance(sourcePosition, listenerPosition) / Volume);
         channel.setVolume(1f - normalizedDistance);
         return false;
     }
