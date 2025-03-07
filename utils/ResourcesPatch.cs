@@ -39,9 +39,9 @@ struct WavContainer
 public static class ResourcesPatch
 {
     private static ResourceTree tree;
-    static Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
-    public static FMOD.System fmodSystem;
-    public static ChannelGroup masterChannelGroup;
+    static readonly Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
+    static FMOD.System fmodSystem;
+    static ChannelGroup masterChannelGroup;
 
     /// <summary>
     ///     Get all patched resources.
@@ -172,7 +172,7 @@ public static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playSound), typeof(string), typeof(float), typeof(float),
         typeof(bool), typeof(bool))]
-    public static bool LoadCustomSound(string pSoundPath, float pX, float pY, bool pGameViewOnly)
+    static bool LoadCustomSound(string pSoundPath, float pX, float pY, bool pGameViewOnly)
     {
         if (!MusicBox.sounds_on)
         {
