@@ -18,7 +18,7 @@ public enum SoundType
 }
 internal struct WavContainer
 {
-    public string Path;
+    [JsonIgnore]public string Path;
     [JsonProperty("3D")] public bool _3D;
     public float Volume;
     public SoundType Type;
