@@ -62,6 +62,7 @@ public class WorldBoxMod : MonoBehaviour
         HarmonyUtils._init();
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
+        Harmony.CreateAndPatchAll(typeof(CustomAudioManager), Others.harmony_id);
 
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
 

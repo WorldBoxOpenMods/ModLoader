@@ -7,7 +7,6 @@ using NeoModLoader.services;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.U2D;
-using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace NeoModLoader.utils;
@@ -15,33 +14,9 @@ namespace NeoModLoader.utils;
 /// <summary>
 ///     This class is used to patch resources.
 /// </summary>
-public enum SoundType
-{
-    Music,
-    Sound,
-}
-struct WavContainer
-{
-    public string Path;
-    [JsonProperty("3D")] public bool _3D;
-    public float Volume;
-    public SoundType Type;
-
-    public WavContainer(string Path, bool _3D, float Volume, SoundType Type = SoundType.Sound)
-    {
-        this.Path = Path;
-        this._3D = _3D;
-        this.Volume = Volume;
-        this.Type = Type;
-    }
-}
-
 public static class ResourcesPatch
 {
     private static ResourceTree tree;
-    static readonly Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
-    static FMOD.System fmodSystem;
-    static ChannelGroup masterChannelGroup;
 
     /// <summary>
     ///     Get all patched resources.
@@ -64,35 +39,10 @@ public static class ResourcesPatch
     {
         tree.Add(pPath, pObject);
     }
-    /// <summary>
-    ///    Allows the Modder to modify the data of the wav file at runtime
-    /// </summary>
-    public static void ModifyWavData(string ID, float Volume, bool _3D, SoundType Type = SoundType.Sound)
-    {
-        if (!AudioWavLibrary.ContainsKey(ID))
-        {
-            return;
-        }
-        AudioWavLibrary[ID] = new WavContainer(AudioWavLibrary[ID].Path, _3D, Volume, Type);
-    }
-
-    static void InitializeFMODSystem()
-    {
-        if (RuntimeManager.StudioSystem.getCoreSystem(out fmodSystem) != RESULT.OK)
-        {
-            LogService.LogError("Failed to initialize FMOD Core System!");
-            return;
-        }
-
-        if (fmodSystem.getMasterChannelGroup(out masterChannelGroup) != RESULT.OK)
-        {
-            LogService.LogError("Failed to retrieve master channel group!");
-        }
-    }
 
     internal static void Initialize()
     {
-        InitializeFMODSystem();
+        CustomAudioManager.Initialize();
         tree = new ResourceTree();
         SpriteAtlas atlas = Resources.FindObjectsOfTypeAll<SpriteAtlas>()
             .FirstOrDefault(x => x.name == "SpriteAtlasUI");
@@ -166,9 +116,8 @@ public static class ResourcesPatch
             container = new WavContainer(path, true, 50f);
         }
 
-        AudioWavLibrary.Add(Name, container);
+        CustomAudioManager.AudioWavLibrary.Add(Name, container);
     }
-
     [HarmonyPrefix]
     [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playSound), typeof(string), typeof(float), typeof(float),
         typeof(bool), typeof(bool))]
@@ -183,42 +132,9 @@ public static class ResourcesPatch
         {
             return false;
         }
+        if (!CustomAudioManager.AudioWavLibrary.ContainsKey(pSoundPath)) return true;
 
-        if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
-
-        WavContainer WAV = AudioWavLibrary[pSoundPath];
-        float Volume = WAV.Volume;
-        if(WAV.Type == SoundType.Music)
-        {
-            Volume *= PlayerConfig.getIntValue("volume_music") / 100f;
-        }
-        else
-        {
-            Volume *= PlayerConfig.getIntValue("volume_sound_effects") / 100f;
-        }
-        Volume *= PlayerConfig.getIntValue("volume_master_sound") / 100f;
-        if(Volume <= 0)
-        {
-            return false;
-        }
-        if (fmodSystem.createSound(WAV.Path, WAV._3D ? MODE._3D : MODE._2D, out var sound) != RESULT.OK)
-        {
-            Debug.Log($"Unable to play sound {pSoundPath}!");
-            return false;
-        }
-        var listenerPosition = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y,
-            Camera.main.orthographicSize);
-        Vector3 sourcePosition = new(pX, pY, 0);
-        fmodSystem.playSound(sound, masterChannelGroup, false, out Channel channel);
-        if (WAV._3D)
-        {
-            VECTOR vel = new VECTOR() { x = listenerPosition.x - pX, y = listenerPosition.y - pY, z = 0 };
-            VECTOR pos = new VECTOR() { x = pX, y = pY, z = 0 };
-            channel.set3DAttributes(ref pos, ref vel);
-        }
-
-        float normalizedDistance = Mathf.Clamp01(Vector3.Distance(sourcePosition, listenerPosition) / Volume);
-        channel.setVolume(1f - normalizedDistance);
+        CustomAudioManager.LoadCustomSound(pX, pY, pSoundPath);
         return false;
     }
 
