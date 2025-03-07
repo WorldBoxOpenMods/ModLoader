@@ -32,7 +32,7 @@ internal struct WavContainer
         this.LoopCount = LoopCount;
     }
 }
-internal class ChannelContainer
+internal struct ChannelContainer
 {
     public float Volume;
     public SoundType SoundType;
