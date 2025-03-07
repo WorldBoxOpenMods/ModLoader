@@ -20,7 +20,7 @@ public enum SoundType
     Music,
     Sound,
 }
-public struct WavContainer
+struct WavContainer
 {
     public string Path;
     [JsonProperty("3D")] public bool _3D;
@@ -39,7 +39,7 @@ public struct WavContainer
 public static class ResourcesPatch
 {
     private static ResourceTree tree;
-    public static Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
+    static Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
     public static FMOD.System fmodSystem;
     public static ChannelGroup masterChannelGroup;
 
@@ -63,6 +63,17 @@ public static class ResourcesPatch
     public static void PatchResource(string pPath, Object pObject)
     {
         tree.Add(pPath, pObject);
+    }
+    /// <summary>
+    ///    Allows the Modder to modify the data of the wav file at runtime
+    /// </summary>
+    public static void ModifyWavData(string ID, float Volume, bool _3D, SoundType Type = SoundType.Sound)
+    {
+        if (!AudioWavLibrary.ContainsKey(ID))
+        {
+            return;
+        }
+        AudioWavLibrary[ID] = new WavContainer(AudioWavLibrary[ID].Path, _3D, Volume, Type);
     }
 
     static void InitializeFMODSystem()
@@ -137,8 +148,9 @@ public static class ResourcesPatch
             LoadTextAsset(path)
         };
     }
-
-    //doesnt return anything, simply adds the wav to the wav library that contains all the custom sounds
+    /// <summary>
+    /// doesnt return anything, simply adds the wav to the wav library that contains all the custom sounds
+    /// </summary>
     private static void LoadWavFile(string path)
     {
         string Name = Path.GetFileNameWithoutExtension(path);
