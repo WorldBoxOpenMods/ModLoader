@@ -173,6 +173,7 @@ public static class ResourcesPatch
         }
 
         if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
+
         WavContainer WAV = AudioWavLibrary[pSoundPath];
         float Volume = WAV.Volume;
         if(WAV.Type == SoundType.Music)
@@ -184,6 +185,10 @@ public static class ResourcesPatch
             Volume *= PlayerConfig.getIntValue("volume_sound_effects") / 100f;
         }
         Volume *= PlayerConfig.getIntValue("volume_master_sound") / 100f;
+        if(Volume <= 0)
+        {
+            return false;
+        }
         if (fmodSystem.createSound(WAV.Path, WAV._3D ? MODE._3D : MODE._2D, out var sound) != RESULT.OK)
         {
             Debug.Log($"Unable to play sound {pSoundPath}!");
