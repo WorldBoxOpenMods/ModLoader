@@ -195,12 +195,12 @@
     </ItemGroup>
   
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="pwsh -File prepare_debug.ps1" Condition=" '$(OS)' == 'Windows_NT' " />
+	  <Exec Command="pwsh -File prepare_debug.ps1" Condition=" '$(OS)' == 'Windows_NT' " />
       <Exec Command="sh ./prepare_debug.sh" Condition=" '$(OS)' != 'Windows_NT' " />
     </Target>
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-      <Exec Command="pwsh -File before_build.ps1" Condition=" '$(OS)' == 'Windows_NT' " />
       <Exec Command="sh ./before_build.sh" Condition=" '$(OS)' != 'Windows_NT' " />
+	  <Exec Command="pwsh -File before_build.ps1" Condition=" '$(OS)' == 'Windows_NT' " />
     </Target>
   
 </Project>
