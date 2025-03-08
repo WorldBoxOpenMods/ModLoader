@@ -315,12 +315,12 @@ public class ModConfigItem
     {
         return Type switch
         {
-            ConfigItemType.SWITCH     => BoolVal,
-            ConfigItemType.SLIDER     => FloatVal,
+            ConfigItemType.SWITCH => BoolVal,
+            ConfigItemType.SLIDER => FloatVal,
             ConfigItemType.INT_SLIDER => IntVal,
-            ConfigItemType.TEXT       => TextVal,
-            ConfigItemType.SELECT     => IntVal,
-            _                         => throw new ArgumentOutOfRangeException()
+            ConfigItemType.TEXT => TextVal,
+            ConfigItemType.SELECT => IntVal,
+            _ => throw new ArgumentOutOfRangeException()
         };
     }
 }
@@ -338,8 +338,8 @@ public class ModConfigItem
 /// </remarks>
 public class ModConfig
 {
-    private readonly string                                                _path;
-    internal         Dictionary<string, Dictionary<string, ModConfigItem>> _config = new();
+    private readonly string _path;
+    internal Dictionary<string, Dictionary<string, ModConfigItem>> _config = new();
 
     /// <summary>
     ///     Create a new <see cref="ModConfig" /> instance from <paramref name="path" />
@@ -431,13 +431,67 @@ public class ModConfig
                 group[item_id].CallBack = default_group[item_id].CallBack;
                 if (group[item_id].Type != default_group[item_id].Type)
                 {
-                    AddConfigItem(group_id, item_id, default_group[item_id].Type, default_group[item_id].GetValue(),
+                    // Convert old config item to new type(value conversion)
+                    var new_value = default_group[item_id].GetValue();
+                    switch (default_group[item_id].Type)
+                    {
+                        case ConfigItemType.SLIDER:
+                            switch (group[item_id].Type)
+                            {
+                                case ConfigItemType.TEXT:
+                                    if (float.TryParse(new_value.ToString(), out var float_value))
+                                        new_value = float_value;
+                                    break;
+                                case ConfigItemType.SWITCH:
+                                    new_value = (bool)group[item_id].GetValue() ? 1 : 0;
+                                    break;
+                                case ConfigItemType.INT_SLIDER:
+                                    new_value = (int)group[item_id].GetValue();
+                                    break;
+                            }
+
+                            group[item_id].SetFloatRange(default_group[item_id].MinFloatVal,
+                                default_group[item_id].MaxFloatVal);
+                            break;
+                        case ConfigItemType.INT_SLIDER:
+                            switch (group[item_id].Type)
+                            {
+                                case ConfigItemType.TEXT:
+                                    if (int.TryParse(new_value.ToString(), out var int_value)) new_value = int_value;
+                                    break;
+                                case ConfigItemType.SWITCH:
+                                    new_value = (bool)group[item_id].GetValue() ? 1 : 0;
+                                    break;
+                                case ConfigItemType.SLIDER:
+                                    new_value = (float)group[item_id].GetValue();
+                                    break;
+                            }
+
+                            group[item_id].SetIntRange(default_group[item_id].MinIntVal,
+                                default_group[item_id].MaxIntVal);
+                            break;
+                        case ConfigItemType.SWITCH:
+                            switch (group[item_id].Type)
+                            {
+                                case ConfigItemType.TEXT:
+                                    if (bool.TryParse(new_value.ToString(), out var bool_value))
+                                        new_value = bool_value;
+                                    if (int.TryParse(new_value.ToString(), out var int_value))
+                                        new_value = int_value != 0;
+                                    break;
+                                case ConfigItemType.SLIDER:
+                                    new_value = (float)group[item_id].GetValue() != 0;
+                                    break;
+                                case ConfigItemType.INT_SLIDER:
+                                    new_value = (int)group[item_id].GetValue() != 0;
+                                    break;
+                            }
+
+                            break;
+                    }
+
+                    AddConfigItem(group_id, item_id, default_group[item_id].Type, new_value,
                         default_group[item_id].IconPath, default_group[item_id].CallBack);
-                    if (default_group[item_id].Type == ConfigItemType.SLIDER)
-                        group[item_id].SetFloatRange(default_group[item_id].MinFloatVal,
-                            default_group[item_id].MaxFloatVal);
-                    else if (default_group[item_id].Type == ConfigItemType.INT_SLIDER)
-                        group[item_id].SetIntRange(default_group[item_id].MinIntVal, default_group[item_id].MaxIntVal);
                 }
                 else if (group[item_id].Type == ConfigItemType.SLIDER)
                 {
@@ -462,14 +516,14 @@ public class ModConfig
             foreach (var item in default_group.Keys.Where(item => !group.ContainsKey(item)))
                 if (default_group[item].Type == ConfigItemType.SLIDER)
                     AddConfigSliderItemWithRange(group_id, item, (float)default_group[item].GetValue(),
-                        default_group[item].MinFloatVal,   default_group[item].MaxFloatVal,
-                        default_group[item].IconPath,      default_group[item].CallBack);
+                        default_group[item].MinFloatVal, default_group[item].MaxFloatVal,
+                        default_group[item].IconPath, default_group[item].CallBack);
                 else if (default_group[item].Type == ConfigItemType.INT_SLIDER)
                     AddConfigSliderItemWithIntRange(group_id, item, (int)default_group[item].GetValue(),
-                        default_group[item].MinIntVal,        default_group[item].MaxIntVal,
-                        default_group[item].IconPath,         default_group[item].CallBack);
+                        default_group[item].MinIntVal, default_group[item].MaxIntVal,
+                        default_group[item].IconPath, default_group[item].CallBack);
                 else
-                    AddConfigItem(group_id,           item, default_group[item].Type, default_group[item].GetValue(),
+                    AddConfigItem(group_id, item, default_group[item].Type, default_group[item].GetValue(),
                         default_group[item].IconPath, default_group[item].CallBack);
         }
     }
@@ -520,8 +574,8 @@ public class ModConfig
     /// <param name="pIconPath"></param>
     /// <param name="pCallback"></param>
     /// <returns></returns>
-    public ModConfigItem AddConfigItem(string pGroupId,       string pId, ConfigItemType pType, object pDefaultValue,
-                                       string pIconPath = "", string pCallback = "")
+    public ModConfigItem AddConfigItem(string pGroupId, string pId, ConfigItemType pType, object pDefaultValue,
+        string pIconPath = "", string pCallback = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
@@ -561,7 +615,7 @@ public class ModConfig
     /// <param name="pCallback"></param>
     /// <returns></returns>
     public ModConfigItem AddConfigSliderItemWithRange(string pGroupId, string pId, float pDefaultValue, float pMinValue,
-                                                      float pMaxValue, string pIconPath = "", string pCallback = "")
+        float pMaxValue, string pIconPath = "", string pCallback = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
@@ -601,8 +655,8 @@ public class ModConfig
     /// <param name="pIconPath"></param>
     /// <param name="pCallback"></param>
     /// <returns></returns>
-    public ModConfigItem AddConfigSliderItemWithIntRange(string pGroupId,  string pId, int pDefaultValue, int pMinValue,
-                                                         int    pMaxValue, string pIconPath = "", string pCallback = "")
+    public ModConfigItem AddConfigSliderItemWithIntRange(string pGroupId, string pId, int pDefaultValue, int pMinValue,
+        int pMaxValue, string pIconPath = "", string pCallback = "")
     {
         if (!_config.TryGetValue(pGroupId, out var group))
         {
