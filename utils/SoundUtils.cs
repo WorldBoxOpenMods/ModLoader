@@ -3,6 +3,7 @@ using FMODUnity;
 using HarmonyLib;
 using NeoModLoader.services;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace NeoModLoader.utils;
@@ -47,18 +48,14 @@ public class CustomAudioManager
     [HarmonyPatch(typeof(RuntimeManager), "Update")]
     static void Update()
     {
-        using ListPool<int> toremove = new ListPool<int>();
-        foreach (KeyValuePair<int, ChannelContainer> c in channels)
+        for (int i =0; i < channels.Count; i++)
         {
-            ChannelContainer C = c.Value;
+            ChannelContainer C = channels[i];
             if (!UpdateChannel(C))
             {
-                toremove.Add(c.Key);
+                channels.Remove(C);
+                i--;
             }
-        }
-        foreach (int i in toremove)
-        {
-            channels.Remove(i);
         }
     }
     /// <summary>
@@ -100,20 +97,10 @@ public class CustomAudioManager
             LogService.LogError("Failed to retrieve master channel group!");
         }
     }
-    public static ChannelContainer GetChannel(int ID)
-    {
-        if (!channels.ContainsKey(ID))
-        {
-            //structs cant be null
-            return new ChannelContainer();
-        }
-        return channels[ID];
-    }
     internal static void AddChannel(Channel channel, float volume, SoundType soundType)
     {
         ChannelContainer Container = new ChannelContainer(volume, soundType, channel);
-        channels.Add(NextIndex, Container);
-        NextIndex++;
+        channels.Add(Container);
     }
     /// <summary>
     ///    Allows the Modder to modify the data of the wav file at runtime
@@ -142,10 +129,9 @@ public class CustomAudioManager
     {
         foreach (var channel in channels)
         {
-            channel.Value.Channel.stop();
+            channel.Channel.stop();
         }
         channels.Clear();
-        NextIndex = 0;
     }
     public static void SetChannelPosition(Channel channel, float pX, float pY)
     {
@@ -169,7 +155,7 @@ public class CustomAudioManager
         Volume *= PlayerConfig.getIntValue("volume_master_sound") / 100f;
         return Mathf.Clamp01(Volume/100);
     }
-    private static int NextIndex = 0;
     internal static readonly Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
-    static readonly Dictionary<int, ChannelContainer> channels = new Dictionary<int, ChannelContainer>();
+    static readonly List<ChannelContainer> channels = new List<ChannelContainer>();
+    public static ReadOnlyCollection<ChannelContainer> ChannelList { get { return channels.AsReadOnly(); } }
 }
