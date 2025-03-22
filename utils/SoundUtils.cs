@@ -68,8 +68,8 @@ public class CustomAudioManager
     /// Loads a custom sound from the wav library
     /// </summary>
     /// <param name="pSoundPath">the ID of the wav file, aka its file name</param>
+    /// <param name="AttachedTo">The transform to attach the sound to</param>
     /// <returns>The ID of the channel that the sound is playing in, -1 if failed</returns>
-    /// It can recognize jpg, png, jpeg by postfix now
     public static int LoadCustomSound(float pX, float pY, string pSoundPath, Transform AttachedTo = null)
     {
         WavContainer WAV = AudioWavLibrary[pSoundPath];
