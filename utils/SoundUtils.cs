@@ -23,7 +23,7 @@ internal struct WavContainer
     public bool Ramp;
     public WavContainer(string Path, bool _3D, float Volume, int LoopCount = 0, bool Ramp = false, SoundType Type = SoundType.Sound)
     {
-        this.Ramp = false;
+        this.Ramp = Ramp;
         this.Path = Path;
         this._3D = _3D;
         this.Volume = Volume;
