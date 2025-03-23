@@ -104,6 +104,11 @@ public static class ResourcesPatch
     private static void LoadWavFile(string path)
     {
         string Name = Path.GetFileNameWithoutExtension(path);
+        if (CustomAudioManager.AudioWavLibrary.ContainsKey(Name))
+        {
+            LogService.LogError($"The Sound file {Name} has already been loaded!");
+            return;
+        }
         WavContainer container;
         try
         {
