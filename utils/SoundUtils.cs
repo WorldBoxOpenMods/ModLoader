@@ -11,6 +11,7 @@ public enum SoundType
 {
     Music,
     Sound,
+    UI
 }
 internal struct WavContainer
 {
@@ -19,8 +20,10 @@ internal struct WavContainer
     public float Volume;
     public SoundType Type;
     public int LoopCount;
-    public WavContainer(string Path, bool _3D, float Volume, int LoopCount = 0, SoundType Type = SoundType.Sound)
+    public bool Ramp;
+    public WavContainer(string Path, bool _3D, float Volume, int LoopCount = 0, bool Ramp = false, SoundType Type = SoundType.Sound)
     {
+        this.Ramp = Ramp;
         this.Path = Path;
         this._3D = _3D;
         this.Volume = Volume;
@@ -30,24 +33,27 @@ internal struct WavContainer
 }
 public struct ChannelContainer
 {
-    public float Volume = -1;
-    public SoundType SoundType;
     public Channel Channel { get; internal set; }
-    internal ChannelContainer(float volume, SoundType soundType, Channel channel)
+    public Transform AttachedTo;
+    internal ChannelContainer(Channel channel, Transform attachedTo = null)
     {
-        Volume = volume;
-        SoundType = soundType;
         Channel = channel;
+        AttachedTo = attachedTo;
     }
 }
 public class CustomAudioManager
 {
     static FMOD.System fmodSystem;
-    static ChannelGroup masterChannelGroup;
+    static ChannelGroup SFXGroup;
+    static ChannelGroup MusicGroup;
+    static ChannelGroup UIGroup;
     [HarmonyPostfix]
     [HarmonyPatch(typeof(RuntimeManager), "Update")]
     static void Update()
     {
+        SFXGroup.setVolume(GetVolume(SoundType.Sound));
+        MusicGroup.setVolume(GetVolume(SoundType.Music));
+        UIGroup.setVolume(GetVolume(SoundType.UI));
         for (int i =0; i < channels.Count; i++)
         {
             ChannelContainer C = channels[i];
@@ -62,25 +68,26 @@ public class CustomAudioManager
     /// Loads a custom sound from the wav library
     /// </summary>
     /// <param name="pSoundPath">the ID of the wav file, aka its file name</param>
+    /// <param name="AttachedTo">The transform to attach the sound to</param>
     /// <returns>The ID of the channel that the sound is playing in, -1 if failed</returns>
-    /// It can recognize jpg, png, jpeg by postfix now
-    public static int LoadCustomSound(float pX, float pY, string pSoundPath)
+    public static int LoadCustomSound(float pX, float pY, string pSoundPath, Transform AttachedTo = null)
     {
         WavContainer WAV = AudioWavLibrary[pSoundPath];
-        float Volume = GetVolume(WAV.Volume, WAV.Type);
-        if (Volume == 0)
-        {
-            return -1;
-        }
         if (fmodSystem.createSound(WAV.Path, WAV._3D ? MODE.LOOP_NORMAL | MODE._3D : MODE.LOOP_NORMAL, out var sound) != RESULT.OK)
         {
             UnityEngine.Debug.Log($"Unable to play sound {pSoundPath}!");
             return -1;
         }
         sound.setLoopCount(WAV.LoopCount);
-        fmodSystem.playSound(sound, masterChannelGroup, false, out Channel channel);
-        channel.setVolume(Volume);
-        AddChannel(channel, WAV.Volume, WAV.Type);
+        Channel channel = default;
+        switch (WAV.Type) {
+            case SoundType.Music: fmodSystem.playSound(sound, MusicGroup, false, out channel); break;
+            case SoundType.Sound: fmodSystem.playSound(sound, SFXGroup, false, out channel); break;
+            case SoundType.UI: fmodSystem.playSound(sound, UIGroup, false, out channel); break;
+        }
+        channel.setVolumeRamp(WAV.Ramp);
+        channel.setVolume(WAV.Volume/100);
+        AddChannel(channel, AttachedTo);
         SetChannelPosition(channel, pX, pY);
         return channels.Count-1;
     }
@@ -91,27 +98,34 @@ public class CustomAudioManager
             LogService.LogError("Failed to initialize FMOD Core System!");
             return;
         }
-
-        if (fmodSystem.getMasterChannelGroup(out masterChannelGroup) != RESULT.OK)
+        if(fmodSystem.createChannelGroup("SFXGroup", out SFXGroup) != RESULT.OK)
         {
-            LogService.LogError("Failed to retrieve master channel group!");
+            LogService.LogError("Failed to create SFXGroup!");
+        }
+        if(fmodSystem.createChannelGroup("MusicGroup", out MusicGroup) != RESULT.OK)
+        {
+            LogService.LogError("Failed to create MusicGroup!");
+        }
+        if(fmodSystem.createChannelGroup("UIGroup", out UIGroup) != RESULT.OK)
+        {
+            LogService.LogError("Failed to create UIGroup!");
         }
     }
-    internal static void AddChannel(Channel channel, float volume, SoundType soundType)
+    internal static void AddChannel(Channel channel, Transform AttachedTo = null)
     {
-        ChannelContainer Container = new ChannelContainer(volume, soundType, channel);
+        ChannelContainer Container = new ChannelContainer(channel, AttachedTo);
         channels.Add(Container);
     }
     /// <summary>
     ///    Allows the Modder to modify the data of the wav file at runtime
     /// </summary>
-    public static void ModifyWavData(string ID, float Volume, bool _3D, int LoopCount = 0, SoundType Type = SoundType.Sound)
+    public static void ModifyWavData(string ID, float Volume, bool _3D, int LoopCount = 0, bool Ramp = false, SoundType Type = SoundType.Sound)
     {
         if (!AudioWavLibrary.ContainsKey(ID))
         {
             return;
         }
-        AudioWavLibrary[ID] = new WavContainer(AudioWavLibrary[ID].Path, _3D, Volume, LoopCount, Type);
+        AudioWavLibrary[ID] = new WavContainer(AudioWavLibrary[ID].Path, _3D, Volume, LoopCount, Ramp, Type);
     }
     static bool UpdateChannel(ChannelContainer channel)
     {
@@ -120,7 +134,10 @@ public class CustomAudioManager
         {
             return false;
         }
-        channel.Channel.setVolume(GetVolume(channel.Volume, channel.SoundType));
+        if (channel.AttachedTo != null)
+        {
+            SetChannelPosition(channel.Channel, channel.AttachedTo.position.x, channel.AttachedTo.position.y);
+        }
         return true;
     }
     [HarmonyPrefix]
@@ -142,18 +159,23 @@ public class CustomAudioManager
             channel.set3DAttributes(ref pos, ref vel);
         }
     }
-    public static float GetVolume(float Volume, SoundType soundType)
+    public static float GetVolume(SoundType soundType)
     {
+        float Volume = 1;
         if (soundType == SoundType.Music)
         {
             Volume *= PlayerConfig.getIntValue("volume_music") / 100f;
         }
-        else
+        else if(soundType == SoundType.Sound)
         {
             Volume *= PlayerConfig.getIntValue("volume_sound_effects") / 100f;
         }
+        else
+        {
+            Volume *= PlayerConfig.getIntValue("volume_ui") / 100f;
+        }
         Volume *= PlayerConfig.getIntValue("volume_master_sound") / 100f;
-        return Mathf.Clamp01(Volume/100);
+        return Volume;
     }
     internal static readonly Dictionary<string, WavContainer> AudioWavLibrary = new Dictionary<string, WavContainer>();
     static readonly List<ChannelContainer> channels = new List<ChannelContainer>();
