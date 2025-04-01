@@ -11,12 +11,12 @@ namespace NeoModLoader.ui;
 /// </summary>
 public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 {
-    private static   ModConfigGrid                            _gridPrefab;
-    private static   ModConfigListItem                        _itemPrefab;
-    private static   ObjectPoolGenericMono<ModConfigGrid>     _gridPool;
-    private static   ObjectPoolGenericMono<ModConfigListItem> _itemPool;
-    private readonly Dictionary<ModConfigItem, object>        _modifiedItems = new();
-    private          ModConfig                                _config;
+    private static ModConfigGrid _gridPrefab;
+    private static ModConfigListItem _itemPrefab;
+    private static ObjectPoolGenericMono<ModConfigGrid> _gridPool;
+    private static ObjectPoolGenericMono<ModConfigListItem> _itemPool;
+    private readonly Dictionary<ModConfigItem, object> _modifiedItems = new();
+    private ModConfig _config;
 
     /// <inheritdoc cref="AbstractWindow{T}.Init" />
     protected override void Init()
@@ -36,7 +36,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         _createItemPrefab();
 
         _gridPool = new ObjectPoolGenericMono<ModConfigGrid>(_gridPrefab, ContentTransform);
-        _itemPool = new ObjectPoolGenericMono<ModConfigListItem>(_itemPrefab, null);
+        _itemPool = new ObjectPoolGenericMono<ModConfigListItem>(_itemPrefab, BackgroundTransform);
     }
 
     private static void _createItemPrefab()
@@ -431,7 +431,8 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         {
             switch_area.SetActive(true);
             SwitchButton switch_button = switch_area.transform.Find("Button").GetComponent<SwitchButton>();
-            switch_button.GetComponent<Button>().onClick.AddListener(() => {
+            switch_button.GetComponent<Button>().onClick.AddListener(() =>
+            {
                 if (!Instance._modifiedItems.ContainsKey(pItem))
                 {
                     Instance._modifiedItems.Add(pItem, pItem.GetValue());
