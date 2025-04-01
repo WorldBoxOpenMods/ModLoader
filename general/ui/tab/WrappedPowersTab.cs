@@ -20,10 +20,7 @@ internal class WrappedPowersTab
     private Dictionary<string, List<WrappedRectTransform>> CustomRectGroups;
     public bool Modifiable;
     public PowersTab Tab;
-    internal void RecordLine(GameObject line)
-    {
-        _active_lines.Enqueue(line);
-    }
+
     public WrappedPowersTab(PowersTab pPowersTab)
     {
         Tab = pPowersTab;
@@ -37,6 +34,11 @@ internal class WrappedPowersTab
 
         _inactive_lines = new();
         _active_lines = new();
+    }
+
+    internal void RecordLine(GameObject line)
+    {
+        _active_lines.Enqueue(line);
     }
 
     public static void _init()
@@ -197,7 +199,7 @@ internal class WrappedPowersTab
         }
         else
         {
-            line = GameObject.Instantiate(ResourcesFinder.FindResource<GameObject>("LINE"), Tab.transform);
+            line = GameObject.Instantiate(ResourcesFinder.FindResource<GameObject>("_line"), Tab.transform);
             line.GetComponent<Image>().enabled = true;
             line.transform.localScale = new(1, 48.3f, 1);
         }
