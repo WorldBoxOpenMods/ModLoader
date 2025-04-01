@@ -502,11 +502,16 @@ internal static class ModInfoUtils
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
 
-        foreach (var assembly in assemblies)
-        {
-            if (bepinex_plugin_file_locs.Contains(assembly.Location))
+        foreach (var assembly in assemblies) {
+            string assembly_location;
+            try {
+                assembly_location = assembly.Location;
+            } catch (NotSupportedException) {
+                continue;
+            }
+            if (bepinex_plugin_file_locs.Contains(assembly_location))
             {
-                string folder_path = Path.GetDirectoryName(assembly.Location);
+                string folder_path = Path.GetDirectoryName(assembly_location);
                 var mod = recogBepInExMod(folder_path, assembly);
                 if (mod == null)
                 {

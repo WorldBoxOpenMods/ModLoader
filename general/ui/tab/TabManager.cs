@@ -418,7 +418,7 @@ public static class TabManager
         // Add default powerButtons
         foreach (PowerButton power_button in tab.GetComponentsInChildren<PowerButton>())
         {
-            if (!(power_button == null) && !(power_button.rectTransform == null))
+            if (!(power_button == null) && !(power_button.rect_transform == null))
             {
                 tab.powerButtons.Add(power_button);
             }

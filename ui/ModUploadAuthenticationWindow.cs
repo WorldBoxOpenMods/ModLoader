@@ -24,7 +24,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
                     return DiscordAutomaticRoleAuthUtils.Authenticate();
                 }
 
-                if (DiscordTracker.userTries <= 0)
+                if (DiscordTracker._user_tries <= 0)
                 {
                     return false;
                 }

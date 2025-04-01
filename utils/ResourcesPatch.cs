@@ -68,8 +68,8 @@ public static class ResourcesPatch
         Sprite[] items = Resources.LoadAll<Sprite>("actors/races/items");
         foreach (Sprite item in items)
         {
-            if (ActorAnimationLoader.dictItems.ContainsKey(item.name)) continue;
-            ActorAnimationLoader.dictItems[item.name] = item;
+            if (ActorAnimationLoader._dict_items.ContainsKey(item.name)) continue;
+            ActorAnimationLoader._dict_items[item.name] = new List<Sprite> { item };
         }
     }
 
@@ -133,7 +133,7 @@ public static class ResourcesPatch
             return false;
         }
 
-        if (pGameViewOnly && World.world.qualityChanger.lowRes)
+        if (pGameViewOnly && World.world.quality_changer.isLowRes())
         {
             return false;
         }

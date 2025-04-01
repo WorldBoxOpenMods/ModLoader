@@ -185,7 +185,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ListToShow = WorldBoxMod.AllRecognizedMods.Keys.ToList();
         foreach (ModDeclare mod in ListToShow)
         {
-            ModListItem item = ListItemPool.getNext(0);
+            ModListItem item = ListItemPool.getNext();
             ModDeclare local_mod = mod;
             item.Setup(mod, () => { Select(local_mod); });
         }

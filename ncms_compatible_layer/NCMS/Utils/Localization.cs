@@ -37,7 +37,7 @@ namespace NCMS.Utils
         public static string Get(string key)
         {
             // There is a mod uses exception to check if the key exists and do something. So keep it.
-            return LocalizedTextManager.instance.localizedText[key];
+            return LocalizedTextManager.instance._localized_text[key];
         }
 
         [Obsolete("Localization.getLocalization is deprecated, please use Localization.Get instead")]

@@ -41,7 +41,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
     public virtual void Setup(float value, float max_value, string pEndText, Sprite pIcon, Sprite pBackground,
         Color pBarColor,
         Vector2 pSize, bool pReset = true, bool pFloat = false, bool pUpdateText = true,
-        bool pWithoutTween = false)
+        float pSpeed = 0.3f)
     {
         if (!Initialized) Init();
         icon.sprite = pIcon;
@@ -70,7 +70,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         transform.Find("Text").localPosition =
             new Vector3((pSize.x - bar_size.x) / 2 - pSize.x * 0.02f, 0);
 
-        UpdateBar(value, max_value, pEndText, pBarColor, pReset, pFloat, pUpdateText, pWithoutTween);
+        UpdateBar(value, max_value, pEndText, pBarColor, pReset, pFloat, pUpdateText, pSpeed);
     }
 
     /// <summary>
@@ -83,9 +83,9 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
     /// <param name="pReset"></param>
     /// <param name="pFloat"></param>
     /// <param name="pUpdateText"></param>
-    /// <param name="pWithoutTween"></param>
+    /// <param name="pSpeed"></param>
     public void UpdateBar(float value, float max_value, string pEndText, Color pBarColor = default, bool pReset = true,
-        bool pFloat = false, bool pUpdateText = true, bool pWithoutTween = false)
+        bool pFloat = false, bool pUpdateText = true, float pSpeed = 0.3f)
     {
         if (!Initialized) Init();
         if (pBarColor != default)
@@ -93,7 +93,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
             bar.color = pBarColor;
         }
 
-        stat_bar.setBar(value, max_value, pEndText, pReset, pFloat, pUpdateText, pWithoutTween);
+        stat_bar.setBar(value, max_value, pEndText, pReset, pFloat, pUpdateText, pSpeed);
     }
 
     internal static void _init()
@@ -144,7 +144,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         text_text.resizeTextMinSize = 1;
         text_text.alignment = TextAnchor.UpperCenter;
         text_text.color = Color.white;
-        text_text.font = LocalizedTextManager.currentFont;
+        text_text.font = LocalizedTextManager.current_font;
 
         stat_bar_obj.SetActive(false);
         StatBar stat_bar = stat_bar_obj.AddComponent<StatBar>();

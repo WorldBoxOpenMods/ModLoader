@@ -67,7 +67,7 @@ public static class LM
     public static bool Has(string key, string lang = "")
     {
         return string.IsNullOrEmpty(lang)
-            ? LocalizedTextManager.instance.localizedText.ContainsKey(key)
+            ? LocalizedTextManager.instance._localized_text.ContainsKey(key)
             : locales.TryGetValue(lang, out var dict) && dict.ContainsKey(key);
     }
 
@@ -253,7 +253,7 @@ public static class LM
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.Synchronized)]
     public static void AddToCurrentLocale(string key, string value)
     {
-        LocalizedTextManager.instance.localizedText[key] = value;
+        LocalizedTextManager.instance._localized_text[key] = value;
         Add(LocalizedTextManager.instance.language, key, value);
     }
 
@@ -292,14 +292,14 @@ public static class LM
         foreach (var (key, value) in locales[language]
                      .Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
-            LocalizedTextManager.instance.localizedText[key] = value;
+            LocalizedTextManager.instance._localized_text[key] = value;
         }
 
         foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
                      .Where(key =>
-                         !LocalizedTextManager.instance.localizedText
+                         !LocalizedTextManager.instance._localized_text
                              .ContainsKey(key)))
-            LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
+            LocalizedTextManager.instance._localized_text[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         LocalizedTextManager.updateTexts();
     }
@@ -319,14 +319,14 @@ public static class LM
         foreach (var (key, value) in locales[LocalizedTextManager.instance.language]
                      .Select<KeyValuePair<string, string>, (string key, string value)>(pair => (pair.Key, pair.Value)))
         {
-            LocalizedTextManager.instance.localizedText[key] = value;
+            LocalizedTextManager.instance._localized_text[key] = value;
         }
 
         foreach (var key in locales[CoreConstants.DefaultLocaleID].Keys
                      .Where(key =>
-                         !LocalizedTextManager.instance.localizedText
+                         !LocalizedTextManager.instance._localized_text
                              .ContainsKey(key)))
-            LocalizedTextManager.instance.localizedText[key] = locales[CoreConstants.DefaultLocaleID][key];
+            LocalizedTextManager.instance._localized_text[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         if (pUpdateTexts) LocalizedTextManager.updateTexts();
     }

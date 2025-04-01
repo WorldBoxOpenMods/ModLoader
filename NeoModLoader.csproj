@@ -25,6 +25,9 @@
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
+      <Reference Include="RSG">
+        <HintPath>assembly-dependencies\RSG.dll</HintPath>
+      </Reference>
       <Reference Include="System.Net.Http">
         <HintPath>assembly-dependencies\System.Net.Http.dll</HintPath>
       </Reference>
@@ -119,6 +122,32 @@
     <ItemGroup>
       <None Remove="resources\assemblies\0Harmony.dll" />
       <EmbeddedResource Include="resources\assemblies\0Harmony.dll" />
+        <None Remove="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+        <None Remove="resources\assemblies\System.Text.Encoding.CodePages.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.CodePages.dll" />
+        <None Remove="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
+        <None Remove="resources\assemblies\System.Collections.Immutable.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Collections.Immutable.dll" />
+        <None Remove="resources\assemblies\System.Buffers.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Buffers.dll" />
+        <None Remove="resources\assemblies\System.Diagnostics.StackTrace.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Diagnostics.StackTrace.dll" />
+        <None Remove="resources\assemblies\System.Globalization.Extensions.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Globalization.Extensions.dll" />
+        <None Remove="resources\assemblies\System.Numerics.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Numerics.dll" />
+        <None Remove="resources\assemblies\System.Runtime.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Runtime.dll" />
+        <None Remove="resources\assemblies\System.Reflection.Metadata.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata.dll" />
+        <None Remove="resources\assemblies\System.Memory.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Memory.dll" />
+        <None Remove="resources\assemblies\System.Numerics.Vectors.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Numerics.Vectors.dll" />
+        <None Remove="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
       <None Remove="resources\assemblies\Microsoft.CodeAnalysis.dll" />
       <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.dll" />
       <None Remove="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
@@ -129,18 +158,6 @@
       <EmbeddedResource Include="resources\assemblies\MonoMod.RuntimeDetour.dll" />
       <None Remove="resources\assemblies\MonoMod.Utils.dll" />
       <EmbeddedResource Include="resources\assemblies\MonoMod.Utils.dll" />
-      <None Remove="resources\assemblies\System.Collections.Immutable.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Collections.Immutable.dll" />
-      <None Remove="resources\assemblies\System.Memory.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Memory.dll" />
-      <None Remove="resources\assemblies\System.Numerics.Vectors.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Numerics.Vectors.dll" />
-      <None Remove="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
-      <None Remove="resources\assemblies\System.Text.Encoding.CodePages.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.CodePages.dll" />
-      <None Remove="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
       <None Remove="resources\assemblies\YamlDotNet.dll" />
       <EmbeddedResource Include="resources\assemblies\YamlDotNet.dll" />
       <None Remove="resources\assemblies\Facepunch.Steamworks.Posix.dll" />
@@ -161,8 +178,6 @@
       <EmbeddedResource Include="resources\commit" />
       <None Remove="resources\github.png" />
       <EmbeddedResource Include="resources\github.png" />
-      <None Remove="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
-      <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
       <None Remove="resources\assemblies\Gameloop.Vdf.dll" />
       <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
       <None Remove="resources\reload.png" />
@@ -184,6 +199,7 @@
     <ItemGroup>
       <Content Include=".github\ISSUE_TEMPLATE\bug-report-en.yaml" />
       <Content Include=".github\ISSUE_TEMPLATE\bug-report-zh.yaml" />
+      <Content Include="resources\assemblies\Assembly-CSharp-Publicized.dll" />
     </ItemGroup>
   
     <ItemGroup>

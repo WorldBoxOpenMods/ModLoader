@@ -26,7 +26,7 @@ public static class Paths
     /// <summary>
     /// Path to game native Mods folder
     /// </summary>
-    public static readonly string NativeModsPath = Combine(StreamingAssetsPath, "Mods");
+    public static readonly string NativeModsPath = Combine(StreamingAssetsPath, "mods");
 
     /// <summary>
     /// Path to game native Managed folder

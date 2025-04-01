@@ -46,7 +46,7 @@ public class WorldBoxMod : MonoBehaviour
 
     private void Update()
     {
-        if (!Config.gameLoaded) return;
+        if (!Config.game_loaded) return;
         if (initialized_successfully)
         {
             TabManager._checkNewTabs();
@@ -288,20 +288,12 @@ public class WorldBoxMod : MonoBehaviour
             try
             {
                 Assembly.LoadFrom(file_full_path);
-                // LogService.LogInfo($"Load assembly {file_full_path} successfully.");
             }
             catch (BadImageFormatException)
             {
                 LogService.LogError($"" +
                                     $"BadImageFormatException: " +
                                     $"The file {file_full_path} is not a valid assembly.");
-            }
-            catch (FileNotFoundException e)
-            {
-                LogService.LogError($"FileNotFoundException: " +
-                                    $"The file {file_full_path} is not found.");
-                LogService.LogError(e.Message);
-                LogService.LogError(e.StackTrace);
             }
             catch (Exception e)
             {

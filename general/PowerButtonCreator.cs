@@ -28,7 +28,7 @@ public static class PowerButtonCreator
     public static PowerButton CreateWindowButton([NotNull] string pId, [NotNull] string pWindowId,
         Sprite pIcon, [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
     {
-        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("worldlaws");
+        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("world_laws");
 
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
@@ -54,6 +54,7 @@ public static class PowerButtonCreator
 
         obj.name = pId;
         obj.icon.sprite = pIcon;
+        obj.icon.overrideSprite = pIcon;
         obj.open_window_id = pWindowId;
         obj.type = PowerButtonType.Window;
 
@@ -101,6 +102,7 @@ public static class PowerButtonCreator
 
         obj.name = pId;
         obj.icon.sprite = pIcon;
+        obj.icon.overrideSprite = pIcon;
         obj.type = PowerButtonType.Library;
         if (pAction != null) obj.GetComponent<Button>().onClick.AddListener(pAction);
 
@@ -149,6 +151,7 @@ public static class PowerButtonCreator
 
         obj.name = pGodPowerId;
         obj.icon.sprite = pIcon;
+        obj.icon.overrideSprite = pIcon;
         obj.open_window_id = null;
         obj.type = PowerButtonType.Active;
         // More settings for it
@@ -251,6 +254,7 @@ public static class PowerButtonCreator
 
         obj.name = pGodPowerId;
         obj.icon.sprite = pIcon;
+        obj.icon.overrideSprite = pIcon;
         obj.open_window_id = null;
         obj.type = PowerButtonType.Special;
         obj.transform.Find("ToggleIcon").GetComponent<ToggleIcon>().updateIcon(option.boolVal);

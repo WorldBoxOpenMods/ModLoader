@@ -17,13 +17,14 @@ public static class WindowCreator
     /// </summary>
     /// <param name="pWindowID">It should be unique, suggest start with your own mod's UUID</param>
     /// <param name="pWindowTitleKey">It should be unique, suggest start with your own mod's UUID</param>
+    /// <param name="pWindowIcon">Path to window image after "ui/Icons"</param>
     /// <remarks>
     /// Prototype comes from [NCMS](https://denq04.github.io/ncms/)
     /// </remarks>
     /// <returns></returns>
-    public static ScrollWindow CreateEmptyWindow(string pWindowID, string pWindowTitleKey)
+    public static ScrollWindow CreateEmptyWindow(string pWindowID, string pWindowTitleKey, string pWindowIcon = "neomodloader")
     {
-        if (ScrollWindow.allWindows.TryGetValue(pWindowID, out ScrollWindow emptyWindow))
+        if (ScrollWindow._all_windows.TryGetValue(pWindowID, out ScrollWindow emptyWindow))
         {
             return emptyWindow;
         }
@@ -37,9 +38,14 @@ public static class WindowCreator
         titleText.key = pWindowTitleKey;
         LocalizedTextManager.instance.texts.Add(titleText);
 
-        ScrollWindow.allWindows[pWindowID] = window;
+        ScrollWindow._all_windows[pWindowID] = window;
         window.create(true);
 
+        AssetManager.window_library.add(new WindowAsset() {
+            id = pWindowID,
+            icon_path = pWindowIcon,
+        });
+        
         return window;
     }
 }

@@ -144,6 +144,13 @@ public static class LogService
         }
         concurrent_log_queue.Enqueue(result);
     }
+    public static void LogException(Exception exception) {
+        if (Others.unity_player_enabled) {
+            UnityEngine.Debug.LogException(exception);
+        } else {
+            System.Console.WriteLine(exception);
+        }
+    }
     /// <summary>
     /// Log Error message with [NML] prefix
     /// </summary>

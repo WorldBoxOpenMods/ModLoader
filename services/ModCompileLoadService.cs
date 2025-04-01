@@ -318,10 +318,11 @@ public static class ModCompileLoadService
             {
                 LoadMod(mod);
             }
-            catch (ReflectionTypeLoadException)
+            catch (ReflectionTypeLoadException e)
             {
                 LogService.LogError(
                     $"Compiled mod {mod.UID} out of date, if it happens again after restarting game, please update, delete or unsubscribe it");
+                LogService.LogException(e);
 
                 string dll_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.dll");
                 string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{mod.UID}.pdb");

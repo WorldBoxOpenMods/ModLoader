@@ -34,7 +34,7 @@ public class KingdomSetupListener : AbstractListener<KingdomSetupListener, Kingd
         }
     }
     [HarmonyTranspiler]
-    [HarmonyPatch(typeof(KingdomManager), nameof(KingdomManager.setupKingdom))]
+    [HarmonyPatch(typeof(KingdomManager), nameof(KingdomManager.makeNewCivKingdom))]
     private static IEnumerable<CodeInstruction> _setupKingdom_Patch(IEnumerable<CodeInstruction> instr)
     {
         List<CodeInstruction> codes = new(instr);

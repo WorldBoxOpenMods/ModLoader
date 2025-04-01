@@ -105,7 +105,7 @@ public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLa
     public static void Reconstruct(ref T pWindow)
     {
         pWindow.ScrollWindowComponent.clickHide();
-        ScrollWindow.allWindows.Remove(pWindow.WindowID);
+        ScrollWindow._all_windows.Remove(pWindow.WindowID);
 
         string pWindowID = pWindow.WindowID;
         string pWindowTitleKey = pWindow.ScrollWindowComponent.titleText.GetComponent<LocalizedText>().key;

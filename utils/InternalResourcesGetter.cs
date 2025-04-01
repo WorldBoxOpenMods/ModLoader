@@ -70,6 +70,7 @@ internal static class InternalResourcesGetter
         SpriteTextureLoader.addSprite("ui/icons/neomodloader", LoadManifestBytes("logo.png"));
         mod_icon = SpriteTextureLoader.getSprite("ui/icons/neomodloader");
         mod_icon.name = "NeoModLoader";
+        ResourcesPatch.PatchResource("ui/icons/neomodloader", mod_icon);
         return mod_icon;
     }
 
@@ -115,7 +116,7 @@ internal static class InternalResourcesGetter
         window_empty_frame = Sprite.Create(texture, new Rect(0, 0, 216, 252), new Vector2(0.5f, 0.5f), 1, 1,
                                            SpriteMeshType.Tight, new Vector4(12, 12, 12, 12));
         window_empty_frame.name = "windowEmptyFrame";
-        SpriteTextureLoader.cached_sprites[$"ui/special/{window_empty_frame.name}"] = window_empty_frame;
+        SpriteTextureLoader._cached_sprites[$"ui/special/{window_empty_frame.name}"] = window_empty_frame;
 
         return window_empty_frame;
     }
@@ -129,7 +130,7 @@ internal static class InternalResourcesGetter
         window_big_close = Sprite.Create(texture, new Rect(0, 0, 36, 35), new Vector2(0.5f, 0.5f), 1, 1,
                                          SpriteMeshType.Tight, new Vector4(8, 8, 8, 8));
         window_big_close.name = "windowBigCloseSliced";
-        SpriteTextureLoader.cached_sprites[$"ui/special/{window_big_close.name}"] = window_big_close;
+        SpriteTextureLoader._cached_sprites[$"ui/special/{window_big_close.name}"] = window_big_close;
 
         return window_big_close;
     }
@@ -143,7 +144,7 @@ internal static class InternalResourcesGetter
         window_vert_name_plate = Sprite.Create(texture, new Rect(0, 0, 18, 43), new Vector2(0.5f, 0.5f), 1, 1,
                                                SpriteMeshType.Tight, new Vector4(2, 2, 2, 2));
         window_vert_name_plate.name = "windowVertNamePlate";
-        SpriteTextureLoader.cached_sprites[$"ui/special/{window_vert_name_plate.name}"] = window_vert_name_plate;
+        SpriteTextureLoader._cached_sprites[$"ui/special/{window_vert_name_plate.name}"] = window_vert_name_plate;
 
         return window_vert_name_plate;
     }

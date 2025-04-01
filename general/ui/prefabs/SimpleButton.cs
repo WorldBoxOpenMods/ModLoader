@@ -138,7 +138,7 @@ public class SimpleButton : APrefab<SimpleButton>
         text.transform.localPosition = Vector3.zero;
         text.transform.localScale = Vector3.one;
         Text text_text = text.GetComponent<Text>();
-        text_text.font = LocalizedTextManager.currentFont;
+        text_text.font = LocalizedTextManager.current_font;
         text_text.color = Color.white;
         text_text.resizeTextForBestFit = true;
         text_text.resizeTextMinSize = 1;

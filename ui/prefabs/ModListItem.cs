@@ -69,7 +69,7 @@ internal class ModListItem : APrefab<ModListItem>
         var text_text = text.GetComponent<Text>();
         text_text.text = "Mod Name\nMod Author";
         text_text.alignment = TextAnchor.UpperLeft;
-        text_text.font = LocalizedTextManager.currentFont;
+        text_text.font = LocalizedTextManager.current_font;
         text_text.fontSize = 6;
         text_text.supportRichText = true;
 

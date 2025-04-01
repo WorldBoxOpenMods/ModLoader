@@ -10,12 +10,12 @@ namespace NCMS.Utils
 
         internal static void init()
         {
-            AllWindows = ScrollWindow.allWindows;
+            AllWindows = ScrollWindow._all_windows;
         }
 
         public static ScrollWindow GetWindow(string pWindowID)
         {
-            return ScrollWindow.allWindows.TryGetValue(pWindowID, out var window) ? window : null;
+            return ScrollWindow._all_windows.TryGetValue(pWindowID, out var window) ? window : null;
         }
 
         public static ScrollWindow CreateNewWindow(string pWindowID, string pWindowTitle)

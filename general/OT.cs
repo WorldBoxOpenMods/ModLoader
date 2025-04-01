@@ -14,7 +14,7 @@ public static class OT
     /// <param name="text">The text component to initialize</param>
     public static void InitializeCommonText(Text text)
     {
-        text.font = LocalizedTextManager.currentFont;
+        text.font = LocalizedTextManager.current_font;
         text.supportRichText = true;
     }
 

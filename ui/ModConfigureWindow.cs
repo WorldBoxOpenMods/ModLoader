@@ -55,7 +55,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         switch_layout.childAlignment = TextAnchor.MiddleLeft;
         switch_area.transform.SetParent(config_item.transform);
         switch_area.transform.localScale = Vector3.one;
-        SwitchButton switch_button = Instantiate(SwitchButton.Prefab, switch_area.transform);
+        SwitchButton switch_button = switch_area.AddComponent<SwitchButton>();
         switch_button.transform.localScale = Vector3.one;
         switch_button.name = "Button";
         GameObject switch_config_icon = new GameObject("Icon", typeof(Image));
@@ -201,7 +201,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         grid_title.transform.localScale = Vector3.one;
         Text title = grid_title.GetComponent<Text>();
         title.text = "Mod Config";
-        title.font = LocalizedTextManager.currentFont;
+        title.font = LocalizedTextManager.current_font;
         title.resizeTextForBestFit = true;
         title.resizeTextMinSize = 1;
         title.resizeTextMaxSize = 10;
@@ -245,10 +245,9 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
     public override void OnNormalEnable()
     {
         _modifiedItems.Clear();
-        int group_idx = 0;
         foreach (var group in _config._config)
         {
-            ModConfigGrid grid = _gridPool.getNext(group_idx++);
+            ModConfigGrid grid = _gridPool.getNext();
             grid.Setup(group.Key, group.Value);
         }
     }
@@ -290,10 +289,9 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         {
             name = id;
             title.text = LM.Get(id);
-            int item_idx = 0;
             foreach (var item in items)
             {
-                ModConfigListItem list_item = _itemPool.getNext(item_idx++);
+                ModConfigListItem list_item = _itemPool.getNext();
                 Transform item_transform;
                 (item_transform = list_item.transform).SetParent(grid);
                 item_transform.localScale = Vector3.one;
@@ -433,8 +431,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         {
             switch_area.SetActive(true);
             SwitchButton switch_button = switch_area.transform.Find("Button").GetComponent<SwitchButton>();
-            switch_button.Setup(pItem.BoolVal, () =>
-            {
+            switch_button.GetComponent<Button>().onClick.AddListener(() => {
                 if (!Instance._modifiedItems.ContainsKey(pItem))
                 {
                     Instance._modifiedItems.Add(pItem, pItem.GetValue());
@@ -442,8 +439,9 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
                 pItem.SetValue(!pItem.BoolVal, true);
             });
-            switch_button.tip_button.textOnClick = pItem.Id;
-            switch_button.tip_button.text_description_2 = pItem.Id + " Description";
+            switch_button.setEnabled(pItem.BoolVal);
+            switch_button.GetComponent<TipButton>().textOnClick = pItem.Id;
+            switch_button.GetComponent<TipButton>().text_description_2 = pItem.Id + " Description";
 
             switch_area.transform.Find("Text").GetComponent<Text>().text = LM.Get(pItem.Id);
             if (string.IsNullOrEmpty(pItem.IconPath))

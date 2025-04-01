@@ -34,7 +34,7 @@ namespace NCMS.Utils
                     return asPowerButton;
                 case ButtonType.GodPower:
                     asPowerButton = PowerButtonCreator.CreateGodPowerButton(name, sprite, parent, position);
-                    if (call != null) asPowerButton.button.onClick.AddListener(call);
+                    if (call != null) asPowerButton._button.onClick.AddListener(call);
                     CustomButtons[name] = asPowerButton;
                     return asPowerButton;
                 case ButtonType.Toggle:

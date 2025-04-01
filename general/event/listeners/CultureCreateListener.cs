@@ -8,7 +8,7 @@ namespace NeoModLoader.General.Event.Listeners;
 
 public class CultureCreateListener : AbstractListener<CultureCreateListener, CultureCreateHandler>
 {
-    protected static void HandleAll(Culture pCulture, Race pRace, City pCity)
+    protected static void HandleAll(Culture pCulture, Actor pActor, City pCity)
     {
         StringBuilder sb = null;
         foreach (var handler in instance.handlers)
@@ -16,7 +16,7 @@ public class CultureCreateListener : AbstractListener<CultureCreateListener, Cul
             if(!handler.enabled) continue;
             try
             {
-                handler.Handle(pCulture, pRace, pCity);
+                handler.Handle(pCulture, pActor, pCity);
             }
             catch (Exception e)
             {

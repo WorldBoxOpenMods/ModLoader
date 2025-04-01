@@ -176,7 +176,7 @@ internal class WrappedPowersTab
         Tab.powerButtons.Clear();
         foreach (PowerButton power_button in Tab.GetComponentsInChildren<PowerButton>())
         {
-            if (!(power_button == null) && !(power_button.rectTransform == null))
+            if (!(power_button == null) && !(power_button.rect_transform == null))
             {
                 Tab.powerButtons.Add(power_button);
             }

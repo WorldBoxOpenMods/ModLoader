@@ -4,7 +4,7 @@ public class DiscordAutomaticRoleAuthUtils
 {
     public static bool Authenticate()
     {
-        if (Config.gameLoaded)
+        if (Config.game_loaded)
         {
             if (Config.discordId != null)
             {

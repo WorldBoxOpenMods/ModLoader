@@ -134,7 +134,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         text.transform.localScale = Vector3.one;
         text.GetComponent<RectTransform>().sizeDelta = new Vector2(105, 50);
         Text textText = text.GetComponent<Text>();
-        textText.font = LocalizedTextManager.currentFont;
+        textText.font = LocalizedTextManager.current_font;
         textText.fontSize = 6;
         textText.supportRichText = true;
 
@@ -154,7 +154,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         configureIcon.transform.localScale = Vector3.one;
         configureIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
         Image configureIconImage = configureIcon.GetComponent<Image>();
-        configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconOptions");
+        configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconoptions");
 
         GameObject website = new GameObject("Website", typeof(Image), typeof(Button), typeof(TipButton));
         website.transform.SetParent(obj.transform);
@@ -171,7 +171,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         websiteIcon.transform.localScale = Vector3.one;
         websiteIcon.GetComponent<RectTransform>().sizeDelta = single_button_size * 0.875f;
         Image websiteIconImage = websiteIcon.GetComponent<Image>();
-        websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconCommunity");
+        websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/actor_traits/iconcommunity");
 
         GameObject reload = new GameObject("Reload", typeof(Image), typeof(Button), typeof(TipButton));
         reload.transform.SetParent(obj.transform);

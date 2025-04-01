@@ -97,7 +97,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         text.transform.localScale = Vector3.one;
         text.GetComponent<RectTransform>().sizeDelta = new(125, 50);
         Text textText = text.GetComponent<Text>();
-        textText.font = LocalizedTextManager.currentFont;
+        textText.font = LocalizedTextManager.current_font;
         textText.fontSize = 6;
         textText.supportRichText = true;
 

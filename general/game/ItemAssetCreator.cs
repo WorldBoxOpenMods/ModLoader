@@ -32,7 +32,8 @@ public static class ItemAssetCreator
         bool metallic = false,
         int minimum_city_storage_resource_1 = 0,
         int mod_rank = 0,
-        ItemQuality quality = ItemQuality.Normal,
+        
+        Rarity quality = Rarity.R0_Normal,
         string tech_needed = null
     )
     {
@@ -63,7 +64,7 @@ public static class ItemAssetCreator
         int equipment_value = 0,
         int minimum_city_storage_resource_1 = 0,
         int mod_rank = 0,
-        ItemQuality quality = ItemQuality.Normal,
+        Rarity quality = Rarity.R0_Normal,
         string tech_needed = null
     )
     {
@@ -75,7 +76,7 @@ public static class ItemAssetCreator
         asset.minimum_city_storage_resource_1 = minimum_city_storage_resource_1;
         asset.mod_rank = mod_rank;
         asset.quality = quality;
-        asset.tech_needed = tech_needed;
+        //asset.tech_needed = tech_needed; TODO
 
         asset.cost_resource_id_1 = "none";
         asset.cost_resource_id_2 = "none";
@@ -123,7 +124,7 @@ public static class ItemAssetCreator
         string[] pools,
         int rarity = 1,
         int equipment_value = 0,
-        ItemQuality quality = ItemQuality.Normal,
+        Rarity quality = Rarity.R0_Normal,
         BaseStats base_stats = null,
         AttackAction action_attack_target = null,
         WorldAction action_special_effect = null,
@@ -188,8 +189,8 @@ public static class ItemAssetCreator
     /// <returns></returns>
     public static ItemAsset CreateMeleeWeapon(
         string id,
-        BaseStats base_stats = null,
-        List<string> materials = null,
+        BaseStats base_stats = null, 
+        string material = null,
         List<string> item_modifiers = null,
         string name_class = null,
         List<string> name_templates = null,
@@ -204,19 +205,19 @@ public static class ItemAssetCreator
         ItemAsset asset = AssetManager.items.clone(id, "_melee");
         
         asset.base_stats = base_stats ?? asset.base_stats;
-        asset.materials = materials ?? asset.materials;
-        asset.item_modifiers = item_modifiers ?? asset.item_modifiers;
+        asset.material = material ?? asset.material;
+        asset.item_modifier_ids = item_modifiers != null ? item_modifiers.ToArray() : asset.item_modifier_ids;
         asset.name_class = string.IsNullOrEmpty(name_class) ? asset.name_class : name_class;
         asset.name_templates = name_templates ?? asset.name_templates;
-        asset.tech_needed = tech_needed;
+        //asset.tech_needed = tech_needed; TODO
         asset.action_attack_target = action_attack_target;
         asset.action_special_effect = action_special_effect;
         asset.special_effect_interval = special_effect_interval;
         asset.equipment_value = equipment_value;
         asset.path_slash_animation = path_slash_animation;
 
-        asset.attackType = WeaponType.Melee;
-        asset.equipmentType = EquipmentType.Weapon;
+        asset.attack_type = WeaponType.Melee;
+        asset.equipment_type = EquipmentType.Weapon;
         return asset;
     }
     /// <summary>
@@ -240,7 +241,7 @@ public static class ItemAssetCreator
         string id,
         string projectile,
         BaseStats base_stats = null,
-        List<string> materials = null,
+        string material = null,
         List<string> item_modifiers = null,
         string name_class = null,
         List<string> name_templates = null,
@@ -255,11 +256,11 @@ public static class ItemAssetCreator
         ItemAsset asset = AssetManager.items.clone(id, "_range");
         
         asset.base_stats = base_stats ?? asset.base_stats;
-        asset.materials = materials ?? asset.materials;
-        asset.item_modifiers = item_modifiers ?? asset.item_modifiers;
+        asset.material = material ?? asset.material;
+        asset.item_modifier_ids = item_modifiers != null ? item_modifiers.ToArray() : asset.item_modifier_ids;
         asset.name_class = string.IsNullOrEmpty(name_class) ? asset.name_class : name_class;
         asset.name_templates = name_templates ?? asset.name_templates;
-        asset.tech_needed = tech_needed;
+        //asset.tech_needed = tech_needed; TODO
         asset.action_attack_target = action_attack_target;
         asset.action_special_effect = action_special_effect;
         asset.special_effect_interval = special_effect_interval;
@@ -274,8 +275,8 @@ public static class ItemAssetCreator
             warning_builder.AppendLine("\t projectile is null or empty. ");
         }
 
-        asset.attackType = WeaponType.Range;
-        asset.equipmentType = EquipmentType.Weapon;
+        asset.attack_type = WeaponType.Range;
+        asset.equipment_type = EquipmentType.Weapon;
         
         return asset;
     }
@@ -300,7 +301,7 @@ public static class ItemAssetCreator
         string id,
         EquipmentType equipmentType,
         BaseStats base_stats = null,
-        List<string> materials = null,
+        string material = null,
         List<string> item_modifiers = null,
         string name_class = null,
         List<string> name_templates = null,
@@ -323,17 +324,17 @@ public static class ItemAssetCreator
         ItemAsset asset = AssetManager.items.clone(id, template);
         
         asset.base_stats = base_stats ?? asset.base_stats;
-        asset.materials = materials ?? asset.materials;
-        asset.item_modifiers = item_modifiers ?? asset.item_modifiers;
+        asset.material = material ?? asset.material;
+        asset.item_modifier_ids = item_modifiers != null ? item_modifiers.ToArray() : asset.item_modifier_ids;
         asset.name_class = string.IsNullOrEmpty(name_class) ? asset.name_class : name_class;
         asset.name_templates = name_templates ?? asset.name_templates;
-        asset.tech_needed = tech_needed;
+        //asset.tech_needed = tech_needed; TODO
         asset.action_attack_target = action_attack_target;
         asset.action_special_effect = action_special_effect;
         asset.special_effect_interval = special_effect_interval;
         asset.equipment_value = equipment_value;
 
-        asset.equipmentType = equipmentType;
+        asset.equipment_type = equipmentType;
         return asset;
     }
 }

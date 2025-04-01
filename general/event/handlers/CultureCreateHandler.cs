@@ -11,7 +11,7 @@ public abstract class CultureCreateHandler : AbstractHandler<CultureCreateHandle
     /// This method is called when a culture is created. Detailedly, at the end of <see cref="CultureManager.newCulture"/>
     /// </summary>
     /// <param name="pCulture"></param>
-    /// <param name="pRace"></param>
+    /// <param name="pActor"></param>
     /// <param name="pCity"></param>
-    public abstract void Handle(Culture pCulture, Race pRace, City pCity);
+    public abstract void Handle(Culture pCulture, Actor pActor, City pCity);
 }

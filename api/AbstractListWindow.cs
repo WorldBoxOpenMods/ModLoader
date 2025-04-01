@@ -53,7 +53,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
 
         if (!ItemMap.TryGetValue(item, out var item_obj))
         {
-            item_obj = _pool.getNext(0);
+            item_obj = _pool.getNext();
             ItemMap[item] = item_obj;
         }
 
@@ -73,7 +73,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
                 obj.gameObject.SetActive(false);
             }
 
-            _pool._elements_inactive.Push(obj);
+            _pool._elements_inactive.Enqueue(obj);
             ItemMap.Remove(item);
         }
     }
