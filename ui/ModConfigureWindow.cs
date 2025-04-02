@@ -55,7 +55,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         switch_layout.childAlignment = TextAnchor.MiddleLeft;
         switch_area.transform.SetParent(config_item.transform);
         switch_area.transform.localScale = Vector3.one;
-        SwitchButton switch_button = switch_area.AddComponent<SwitchButton>();
+        var switch_button = Instantiate(General.UI.Prefabs.SwitchButton.Prefab, switch_area.transform);
         switch_button.transform.localScale = Vector3.one;
         switch_button.name = "Button";
         GameObject switch_config_icon = new GameObject("Icon", typeof(Image));
@@ -430,8 +430,8 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         private void setup_switch(ModConfigItem pItem)
         {
             switch_area.SetActive(true);
-            SwitchButton switch_button = switch_area.transform.Find("Button").GetComponent<SwitchButton>();
-            switch_button.GetComponent<Button>().onClick.AddListener(() =>
+            var switch_button = switch_area.transform.Find("Button").GetComponent<General.UI.Prefabs.SwitchButton>();
+            switch_button.Setup(pItem.BoolVal, () =>
             {
                 if (!Instance._modifiedItems.ContainsKey(pItem))
                 {
@@ -440,9 +440,8 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
                 pItem.SetValue(!pItem.BoolVal, true);
             });
-            switch_button.setEnabled(pItem.BoolVal);
-            switch_button.GetComponent<TipButton>().textOnClick = pItem.Id;
-            switch_button.GetComponent<TipButton>().text_description_2 = pItem.Id + " Description";
+            switch_button.tip_button.textOnClick = pItem.Id;
+            switch_button.tip_button.text_description_2 = pItem.Id + " Description";
 
             switch_area.transform.Find("Text").GetComponent<Text>().text = LM.Get(pItem.Id);
             if (string.IsNullOrEmpty(pItem.IconPath))
