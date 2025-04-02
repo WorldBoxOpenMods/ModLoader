@@ -35,11 +35,14 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
     /// Prefab of list item
     /// </summary>
     protected static AbstractListWindowItem<TItem> ItemPrefab;
+
     private ObjectPoolGenericMono<AbstractListWindowItem<TItem>> _pool;
+
     /// <summary>
     /// A map of item to its corresponding <see cref="AbstractListWindowItem{TItem}"/>
     /// </summary>
     protected Dictionary<TItem, AbstractListWindowItem<TItem>> ItemMap = new();
+
     /// <summary>
     /// Add an item to the list
     /// </summary>
@@ -60,6 +63,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
         item_obj.transform.localScale = Vector3.one;
         item_obj.Setup(item);
     }
+
     /// <summary>
     /// Remove an item from the list
     /// </summary>
@@ -77,6 +81,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
             ItemMap.Remove(item);
         }
     }
+
     /// <summary>
     /// Clear all items in list
     /// </summary>
@@ -85,6 +90,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
         _pool?.clear();
         ItemMap.Clear();
     }
+
     /// <summary>
     /// Create and initilize a window instance of your subclass window
     /// </summary>
@@ -100,7 +106,12 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
 
         Instance.BackgroundTransform = scroll_window.transform.Find("Background");
         Instance.BackgroundTransform.Find("Scroll View").gameObject.SetActive(true);
-
+        Instance.BackgroundTransform.Find("Scroll View").GetComponent<RectTransform>().sizeDelta =
+            new Vector2(232, 270);
+        Instance.BackgroundTransform.Find("Scroll View").localPosition = new Vector3(0, -6);
+        Instance.BackgroundTransform.Find("Scroll View/Viewport").GetComponent<RectTransform>().sizeDelta =
+            new Vector2(30, 0);
+        Instance.BackgroundTransform.Find("Scroll View/Viewport").localPosition = new Vector3(-131, 135);
         Instance.ContentTransform = Instance.BackgroundTransform.Find("Scroll View/Viewport/Content");
 
 
@@ -124,6 +135,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
 
         return Instance;
     }
+
     /// <summary>
     /// You should override this to make or load your own item prefab.
     /// </summary>
