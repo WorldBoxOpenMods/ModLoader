@@ -11,14 +11,14 @@ namespace NeoModLoader.General.UI.Tab;
 
 public static class TabManager
 {
-    private const int   tab_count_each_line     = 14;
+    private const int tab_count_each_line = 14;
     private const float check_new_tabs_interval = 1;
-    private const float shrink_coef             = 0.79f;
-    private const float default_tab_width       = 43f;
-    private const float default_tab_height      = 18f;
-    private const float default_icon_width      = 33f;
-    private const float default_icon_height     = 11f;
-    private const float default_tab_y           = 49.62f;
+    private const float shrink_coef = 0.79f;
+    private const float default_tab_width = 43f;
+    private const float default_tab_height = 18f;
+    private const float default_icon_width = 33f;
+    private const float default_icon_height = 11f;
+    private const float default_tab_y = 2.0082f;
 
     private static readonly Transform tab_entry_container =
         CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/TabsButtons");
@@ -29,11 +29,11 @@ public static class TabManager
     private static readonly List<Button>
         tab_entries = new(PowerTabController.instance._buttons); // To avoid other mods' modifies
 
-    private static readonly List<string>    tab_names     = new();
+    private static readonly List<string> tab_names = new();
     private static readonly HashSet<string> tab_names_set = new();
 
-    private static float   _check_timer    = 0;
-    static         Vector3 _last_mouse_pos = Vector3.zero;
+    private static float _check_timer;
+    private static Vector3 _last_mouse_pos = Vector3.zero;
     public static readonly TabMain TabMain = new();
     public static readonly TabDrawing TabDrawing = new();
     public static readonly TabKingdoms TabKingdoms = new();
@@ -128,7 +128,7 @@ public static class TabManager
             new CodeInstruction(OpCodes.Ldarg_0),
             new CodeInstruction(OpCodes.Ldarg_1),
             new CodeInstruction(OpCodes.Call,
-                                AccessTools.Method(typeof(TabManager), nameof(_getNext_Overwrite))),
+                AccessTools.Method(typeof(TabManager), nameof(_getNext_Overwrite))),
             new CodeInstruction(OpCodes.Ret)
         };
         return codes;
@@ -260,9 +260,9 @@ public static class TabManager
 
         void swap(bool left)
         {
-            tab_names.Swap(index, index   + (left ? -1 : 1));
+            tab_names.Swap(index, index + (left ? -1 : 1));
             tab_entries.Swap(index, index + (left ? -1 : 1));
-            _updateTabEntryRectAs(tab_entries[index],                   index);
+            _updateTabEntryRectAs(tab_entries[index], index);
             _updateTabEntryRectAs(tab_entries[index + (left ? -1 : 1)], index + (left ? -1 : 1));
             var position = tab_entry_rect.localPosition;
             if (Math.Abs(position.y - current_pos.y) > 0.01f)
@@ -342,10 +342,10 @@ public static class TabManager
         RectTransform tab_rect = tab.gameObject.GetComponent<RectTransform>();
 
         float new_y = default_tab_y + (Mathf.Pow(shrink_coef, pos_y) * default_tab_height - default_tab_height) / 2 +
-                      (1 - Mathf.Pow(shrink_coef,             pos_y)) / (1 - shrink_coef) * default_tab_height;
+                      (1 - Mathf.Pow(shrink_coef, pos_y)) / (1 - shrink_coef) * default_tab_height;
 
         tab_rect.sizeDelta = new Vector2(Mathf.Pow(shrink_coef, pos_y) * default_tab_width,
-                                         Mathf.Pow(shrink_coef, pos_y) * default_tab_height);
+            Mathf.Pow(shrink_coef, pos_y) * default_tab_height);
 
         tab_rect.localPosition = new Vector3(pos_x * default_tab_width, new_y, tab_rect.localPosition.z);
 
@@ -354,7 +354,7 @@ public static class TabManager
             RectTransform icon_rect = tab.transform.Find("Icon").gameObject.GetComponent<RectTransform>();
 
             icon_rect.sizeDelta = new Vector2(Mathf.Pow(shrink_coef, pos_y) * default_icon_width,
-                                              Mathf.Pow(shrink_coef, pos_y) * default_icon_height);
+                Mathf.Pow(shrink_coef, pos_y) * default_icon_height);
         }
         catch (Exception)
         {
@@ -389,8 +389,10 @@ public static class TabManager
     public static PowersTab CreateTab(string name, string pTitleKey, string pDescKey, Sprite pIcon)
     {
         GameObject tab_entry = Object.Instantiate(ResourcesFinder.FindResources<GameObject>("Button_Other")[0],
-                                                  tab_entry_container);
+            tab_entry_container);
 
+        Object.DestroyImmediate(tab_entry.GetComponent<GraphicRaycaster>());
+        Object.DestroyImmediate(tab_entry.GetComponent<Canvas>());
         tab_entry.name = "Button_" + name;
         tab_entry.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
 
