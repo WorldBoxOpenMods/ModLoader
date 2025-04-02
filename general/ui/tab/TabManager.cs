@@ -18,7 +18,7 @@ public static class TabManager
     private const float default_tab_height = 18f;
     private const float default_icon_width = 33f;
     private const float default_icon_height = 11f;
-    private const float default_tab_y = 49.62f;
+    private const float default_tab_y = 2.0082f;
 
     private static readonly Transform tab_entry_container =
         CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/TabsButtons");
