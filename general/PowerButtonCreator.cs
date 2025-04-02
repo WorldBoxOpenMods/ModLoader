@@ -83,7 +83,7 @@ public static class PowerButtonCreator
     public static PowerButton CreateSimpleButton([NotNull] string pId, UnityAction pAction,
         Sprite pIcon, [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
     {
-        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("worldlaws");
+        PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("world_laws");
 
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
