@@ -21,6 +21,14 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
     /// <inheritdoc cref="AbstractWindow{T}.Init" />
     protected override void Init()
     {
+        BackgroundTransform.Find("Scroll View").gameObject.SetActive(true);
+        BackgroundTransform.Find("Scroll View").GetComponent<RectTransform>().sizeDelta =
+            new Vector2(232, 270);
+        BackgroundTransform.Find("Scroll View").localPosition = new Vector3(0, -6);
+        BackgroundTransform.Find("Scroll View/Viewport").GetComponent<RectTransform>().sizeDelta =
+            new Vector2(30, 0);
+        BackgroundTransform.Find("Scroll View/Viewport").localPosition = new Vector3(-131, 135);
+
         VerticalLayoutGroup layout = ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.childControlHeight = true;
         layout.childControlWidth = true;
