@@ -2,6 +2,7 @@ using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.utils;
+
 namespace NeoModLoader.services;
 
 internal static class ModReloadService
@@ -10,7 +11,7 @@ internal static class ModReloadService
     {
         if (!ModReloadUtils.Prepare(pMod, pModDeclare)) return false;
         if (!ModReloadUtils.CompileNew()) return false;
-        if (!ModReloadUtils.PatchHotfixMethods()) return false;
+        if (!ModReloadUtils.PatchHotfixMethodsNT()) return false;
         return true;
     }
 

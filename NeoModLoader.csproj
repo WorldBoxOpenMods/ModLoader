@@ -25,6 +25,9 @@
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
+        <Reference Include="MonoMod.RuntimeDetour">
+            <HintPath>resources\assemblies\MonoMod.RuntimeDetour.dll</HintPath>
+        </Reference>
       <Reference Include="RSG">
         <HintPath>assembly-dependencies\RSG.dll</HintPath>
       </Reference>

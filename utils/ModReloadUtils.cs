@@ -5,15 +5,18 @@ using System.Text;
 using HarmonyLib;
 using HarmonyLib.Tools;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
+using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
 using NeoModLoader.constants;
 using NeoModLoader.services;
 using ExceptionHandler = Mono.Cecil.Cil.ExceptionHandler;
+using Instruction = Mono.Cecil.Cil.Instruction;
 using OpCode = Mono.Cecil.Cil.OpCode;
 using OpCodes = System.Reflection.Emit.OpCodes;
+using VariableReference = Mono.Cecil.Cil.VariableReference;
+
 namespace NeoModLoader.utils;
 
 internal static class ModReloadUtils
@@ -29,6 +32,9 @@ internal static class ModReloadUtils
     private static Dictionary<MethodDefinition, MethodInfo> _regenerated_brand_new_methods = new();
 
     private static Dictionary<Type, MethodInfo> _emit_method_cache = new();
+
+    private static readonly Dictionary<string, MethodInfo> _container = new();
+    private static MethodInfo new_method;
 
     public static bool Prepare(IReloadable pMod, ModDeclare pModDeclare)
     {
@@ -316,16 +322,140 @@ internal static class ModReloadUtils
     private static void HotfixMethod(Harmony pHarmony, MethodDefinition pNewMethod, MethodInfo pOldMethod)
     {
         ReplaceMethod(pOldMethod, regenerate(pNewMethod));
-        //pHarmony.Unpatch(pOldMethod, HarmonyPatchType.Transpiler, pHarmony.Id);
-        //pHarmony.Patch(pOldMethod, transpiler: new HarmonyMethod(AccessTools.Method(typeof(ModReloadUtils), nameof(il_code_replace_transpiler))));
     }
 
+    public static bool PatchHotfixMethodsNT()
+    {
+        using var f_stream = File.OpenRead(_new_compiled_dll_path);
+        var assembly_definition = AssemblyDefinition.ReadAssembly(f_stream);
+        List<MethodDefinition> method_definitions = new();
+        method_definitions.AddRange(assembly_definition.MainModule.Types.SelectMany(type => type.Methods));
+
+        foreach (var nested_type in
+                 assembly_definition.MainModule.Types.SelectMany(type => type.NestedTypes))
+            method_definitions.AddRange(nested_type.Methods);
+
+        var old_assembly = _mod.GetType().Assembly;
+
+        foreach (var new_method in method_definitions)
+        {
+            if (new_method.HasBody is false) continue;
+
+            var hotfixable = false;
+            foreach (var attribute in new_method.CustomAttributes)
+                if (attribute.AttributeType.FullName == typeof(HotfixableAttribute).FullName)
+                {
+                    hotfixable = true;
+                    break;
+                }
+
+            if (hotfixable is false) continue;
+
+            var old_method = old_assembly.GetType(new_method.DeclaringType.FullName).GetMethod(
+                new_method.Name,
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
+                new_method.Parameters.Select(x => x.ParameterType.ResolveReflection()).ToArray(), null);
+            if (old_method == null) continue;
+
+            Replace(old_method, new_method);
+        }
+
+        return true;
+    }
+
+    private static void Replace(MethodInfo oldMethod, MethodDefinition newMethod)
+    {
+        new ILHook(
+            oldMethod,
+            il =>
+            {
+                il.Body.Variables.Clear();
+                il.Body.Instructions.Clear();
+                il.Body.ExceptionHandlers.Clear();
+                il.Body.Variables.AddRange(newMethod.Body.Variables);
+                il.Body.Instructions.AddRange(newMethod.Body.Instructions);
+                il.Body.ExceptionHandlers.AddRange(newMethod.Body.ExceptionHandlers);
+            }
+        ).Apply();
+    }
+
+    private static bool PatchHotfixMethodsNTBack()
+    {
+        var bytes = File.ReadAllBytes(_new_compiled_dll_path);
+        var new_assembly = Assembly.Load(bytes);
+        var old_assembly = _mod.GetType().Assembly;
+        foreach (var method in new_assembly.GetTypes().SelectMany(x => x.GetMethods()))
+        {
+            if (method.GetCustomAttribute<HotfixableAttribute>() == null) continue;
+
+            var old_method = old_assembly.GetType(method.DeclaringType.FullName).GetMethod(
+                method.Name,
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
+                method.GetParameters().Select(x => x.ParameterType).ToArray(), null);
+            if (old_method == null) continue;
+
+            var harmony = new Harmony($"{method.DeclaringType?.FullName}{method.Name}");
+            //harmony.UnpatchSelf();
+            //harmony.Patch(method, transpiler: new HarmonyMethod(typeof(ModReloadUtils), nameof(il_code_tracker)));
+            harmony.UnpatchSelf();
+            new_method = method;
+            _container[harmony.Id] = new_method;
+            harmony.Patch(old_method, transpiler: new HarmonyMethod(typeof(ModReloadUtils), nameof(il_code_replacer)));
+        }
+
+        return true;
+    }
+
+    private static IEnumerable<CodeInstruction> il_code_replacer(IEnumerable<CodeInstruction> codes, ILGenerator il)
+    {
+        var res = new List<CodeInstruction>();
+
+        // 判断原方法是否为实例方法
+        var is_instance_method = !new_method.IsStatic;
+
+        // 加载参数
+        var param_end_index = is_instance_method ? 1 + new_method.GetParameters().Length : 0; // 实例方法: this 是 arg0
+        for (var i = 0; i < param_end_index; i++) res.Add(new CodeInstruction(OpCodes.Ldarg, i));
+
+        // 调用新方法（静态方法用 Call，实例方法用 Callvirt）
+        res.Add(new CodeInstruction(
+            OpCodes.Call,
+            new_method
+        ));
+
+        // 处理返回值
+        res.Add(new CodeInstruction(OpCodes.Ret)); // 确保返回
+
+        LogService.LogInfo("Original codes");
+        foreach (var code in codes)
+            LogService.LogInfo('\t' + code.ToString());
+        LogService.LogInfo("New codes");
+        foreach (var code in res)
+            LogService.LogInfo('\t' + code.ToString());
+        return res;
+    }
+
+    /*
+    private static List<CodeInstruction> codes_tracked;
+    private static IEnumerable<CodeInstruction> il_code_tracker(IEnumerable<CodeInstruction> codes, ILGenerator il_generator)
+    {
+        MethodBuilder builder;
+        builder.
+        il_generator.DeclareLocal()
+        codes_tracked = codes.ToList();
+        return codes_tracked;
+    }
+*/
     private static void ReplaceMethod(MethodInfo pOldMethod, DynamicMethodDefinition pNewMethod)
     {
+        var pNewMethodMethod = pNewMethod.Generate();
+        var harmony = new Harmony(pOldMethod.FullDescription());
+        harmony.UnpatchSelf();
+        harmony.Patch(pOldMethod, new HarmonyMethod(pNewMethodMethod));
+        return;
+
         RuntimeHelpers.PrepareMethod(pOldMethod.MethodHandle);
         IntPtr pBody = pOldMethod.MethodHandle.GetFunctionPointer();
-
-        MethodInfo pNewMethodMethod = pNewMethod.Generate();
         RuntimeHelpers.PrepareMethod(pNewMethodMethod.MethodHandle);
         IntPtr pBorrowed = pNewMethodMethod.MethodHandle.GetFunctionPointer();
 

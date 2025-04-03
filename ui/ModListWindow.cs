@@ -14,10 +14,10 @@ namespace NeoModLoader.ui;
 public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 {
     private ModDeclare clickedMod;
-    private int        clickTimes;
-    private float      lastClickTime;
-    private bool       needRefresh = false;
-    private List<IMod> to_add      = new();
+    private int clickTimes;
+    private float lastClickTime;
+    private bool needRefresh;
+    private readonly List<IMod> to_add = new();
 
     private void Update()
     {
@@ -373,7 +373,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                     return;
                 }
 
-                if (!ModReloadUtils.PatchHotfixMethods())
+                if (!ModReloadUtils.PatchHotfixMethodsNT())
                 {
                     LogService.LogWarning(
                         $"Failed to patch hotfix methods of mod {mod_declare.Name} for reloading.");
