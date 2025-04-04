@@ -40,6 +40,15 @@ public static class WindowCreator
 
         ScrollWindow._all_windows[pWindowID] = window;
         window.create(true);
+        
+        var window_background = window.transform.Find("Background");
+        window_background.Find("Scroll View").gameObject.SetActive(true);
+        window_background.Find("Scroll View").GetComponent<RectTransform>().sizeDelta =
+            new Vector2(232, 270);
+        window_background.Find("Scroll View").localPosition = new Vector3(0, -6);
+        window_background.Find("Scroll View/Viewport").GetComponent<RectTransform>().sizeDelta =
+            new Vector2(30, 0);
+        window_background.Find("Scroll View/Viewport").localPosition = new Vector3(-131, 135);
 
         AssetManager.window_library.add(new WindowAsset() {
             id = pWindowID,
