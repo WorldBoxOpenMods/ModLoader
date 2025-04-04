@@ -25,6 +25,9 @@
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
+        <Reference Include="Mono.Cecil.Pdb">
+            <HintPath>resources\assemblies\Mono.Cecil.Pdb.dll</HintPath>
+        </Reference>
         <Reference Include="MonoMod.RuntimeDetour">
             <HintPath>resources\assemblies\MonoMod.RuntimeDetour.dll</HintPath>
         </Reference>
@@ -197,6 +200,8 @@
         <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized.dll"/>
         <None Remove="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
         <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
+        <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll"/>
+        <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll"/>
     </ItemGroup>
   
     <ItemGroup>

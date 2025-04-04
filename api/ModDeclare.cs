@@ -65,7 +65,8 @@ public class ModDeclare
     /// <param name="pIncompatibleWith"></param>
     /// <param name="pIsWorkshopLoaded"></param>
     public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription,
-        string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith, bool pIsWorkshopLoaded = false)
+        string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith,
+        bool pIsWorkshopLoaded = false)
     {
         Name = pName;
         Author = pAuthor;
@@ -236,7 +237,7 @@ public class ModDeclare
     /// Reason of failing to compile or load.
     /// </summary>
     public StringBuilder FailReason { get; } = new();
-    
+
     /// <summary>
     /// Whether the files of this mod were downloaded using the Steam workshop.
     /// </summary>
@@ -269,6 +270,23 @@ public class ModDeclare
 /// </summary>
 public static class ModDeclareExtensions
 {
+    public static Version ParseVersion(this ModDeclare pModDeclare)
+    {
+        try
+        {
+            var ver = Version.Parse(pModDeclare.Version);
+            var major = Math.Max(0, ver.Major);
+            var minor = Math.Max(0, ver.Minor);
+            var build = Math.Max(0, ver.Build);
+            var revision = Math.Max(0, ver.Revision);
+            return new Version(major, minor, build, revision);
+        }
+        catch (Exception)
+        {
+            return new Version(0, 0, 0, 0);
+        }
+    }
+
     /// <summary>
     /// Tries to get the declaration of a mod.
     /// Note that this method cannot reliably be used for precompiled NML mods, as there's no simple way to link their Assemblies to their ModDeclares.
@@ -288,6 +306,7 @@ public static class ModDeclareExtensions
                         pModDeclare = mod;
                         return true;
                     }
+
                     break;
                 case ModTypeEnum.COMPILED_NEOMOD:
                     IMod modObj = WorldBoxMod.LoadedMods.FirstOrDefault(m => m.GetDeclaration() == mod);
@@ -300,8 +319,8 @@ public static class ModDeclareExtensions
                         }
 
                         if (pModAssembly.Modules.SelectMany(m => m.GetTypes())
-                                        .Where(t => t.GetInterfaces().Contains(typeof(IMod)))
-                                        .Any(modClass => modClass.IsInstanceOfType(modObj)))
+                            .Where(t => t.GetInterfaces().Contains(typeof(IMod)))
+                            .Any(modClass => modClass.IsInstanceOfType(modObj)))
                         {
                             pModDeclare = mod;
                             return true;
@@ -310,8 +329,8 @@ public static class ModDeclareExtensions
                     else
                     {
                         if (Directory.GetFiles(mod.FolderPath).Any(possible_file =>
-                                                                       Path.GetFullPath(possible_file) ==
-                                                                       Path.GetFullPath(pModAssembly.Location)))
+                                Path.GetFullPath(possible_file) ==
+                                Path.GetFullPath(pModAssembly.Location)))
                             /* It might be organized as following:
                              * -ModFolder
                              * |-mod.json
@@ -333,6 +352,7 @@ public static class ModDeclareExtensions
                             return true;
                         }
                     }
+
                     break;
                 case ModTypeEnum.BEPINEX:
                     if (mod.Name == pModAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title)
@@ -340,6 +360,7 @@ public static class ModDeclareExtensions
                         pModDeclare = mod;
                         return true;
                     }
+
                     break;
                 case ModTypeEnum.RESOURCE_PACK:
                     break;
@@ -347,6 +368,7 @@ public static class ModDeclareExtensions
                     throw new ArgumentOutOfRangeException();
             }
         }
+
         pModDeclare = null;
         return false;
     }

@@ -5,6 +5,7 @@ using System.Text;
 using HarmonyLib;
 using HarmonyLib.Tools;
 using Mono.Cecil;
+using Mono.Cecil.Pdb;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using NeoModLoader.api;
@@ -13,6 +14,7 @@ using NeoModLoader.constants;
 using NeoModLoader.services;
 using ExceptionHandler = Mono.Cecil.Cil.ExceptionHandler;
 using Instruction = Mono.Cecil.Cil.Instruction;
+using MemoryStream = System.IO.MemoryStream;
 using OpCode = Mono.Cecil.Cil.OpCode;
 using OpCodes = System.Reflection.Emit.OpCodes;
 using VariableReference = Mono.Cecil.Cil.VariableReference;
@@ -33,8 +35,7 @@ internal static class ModReloadUtils
 
     private static Dictionary<Type, MethodInfo> _emit_method_cache = new();
 
-    private static readonly Dictionary<string, MethodInfo> _container = new();
-    private static MethodInfo new_method;
+    private static readonly Dictionary<MethodInfo, ILHook> _create_hooks = new();
 
     public static bool Prepare(IReloadable pMod, ModDeclare pModDeclare)
     {
@@ -324,10 +325,245 @@ internal static class ModReloadUtils
         ReplaceMethod(pOldMethod, regenerate(pNewMethod));
     }
 
+/* It causes types inconsistency between old and new assembly
     public static bool PatchHotfixMethodsNT()
     {
-        using var f_stream = File.OpenRead(_new_compiled_dll_path);
-        var assembly_definition = AssemblyDefinition.ReadAssembly(f_stream);
+        //RewritePatchAssembly(_new_compiled_dll_path);
+        var bytes = File.ReadAllBytes(_new_compiled_dll_path);
+        var new_assembly = Assembly.Load(bytes);
+        var old_assembly = _mod.GetType().Assembly;
+        Dictionary<string, MethodInfo> detour_methods = new();
+        foreach (var method in new_assembly.GetTypes().SelectMany(x => x.GetMethods()))
+        {
+            if (method.GetCustomAttribute<HotfixableAttribute>() == null) continue;
+            var declaring_type = old_assembly.GetType(method.DeclaringType.FullName);
+            if (declaring_type == null) continue;
+            var old_method = declaring_type.GetMethod(
+                method.Name,
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
+                method.GetParameters().Select(x => x.ParameterType).ToArray(), null);
+            if (old_method == null) continue;
+
+            new Detour(old_method, method);
+            LogService.LogInfo($"Detour {method.DeclaringType.FullName}.{method.Name}");
+            detour_methods.Add($"{method.DeclaringType.FullName}.{method.Name}", old_method);
+        }
+
+        foreach (var type in new_assembly.GetTypes())
+        {
+            if (type.IsGenericType) continue;
+            var old_type = old_assembly.GetType(type.FullName);
+            if (old_type == null) continue;
+            foreach (var field in type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                var old_field = old_type.GetField(field.Name,
+                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                if (old_field == null) continue;
+                bool redirect_result = true;
+                try
+                {
+                    field.SetValue(null, old_field.GetValue(null));
+                }
+                catch (Exception e)
+                {
+                    redirect_result = false;
+                    try
+                    {
+                        var new_obj = Activator.CreateInstance(field.FieldType);
+                        CreateCopyDelegate(old_field.GetType(), field.GetType())(old_field.GetValue(null), new_obj);
+                        field.SetValue(null, new_obj);
+                    }
+                    catch (Exception new_e)
+                    {
+                        LogService.LogException(new_e);
+                    }
+                }
+
+                //LogService.LogInfo(
+                //    $"Redirect static fields({(redirect_result ? "success" : "failed")}): {field.Name} {field.FieldType} {field.DeclaringType.FullName}");
+            }
+        }
+
+        return true;
+    }
+    public static Action<object, object> CreateCopyDelegate(Type sourceType, Type targetType)
+    {
+        var source = Expression.Parameter(typeof(object), "source");
+        var target = Expression.Parameter(typeof(object), "target");
+
+        var sourceCast = Expression.Convert(source, sourceType);
+        var targetCast = Expression.Convert(target, targetType);
+
+        var assignments = new List<Expression>();
+        foreach (var sourceField in sourceType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+        {
+            var targetField = targetType.GetField(sourceField.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (targetField == null) continue;
+
+            var sourceFieldExpr = Expression.Field(sourceCast, sourceField);
+            var targetFieldExpr = Expression.Field(targetCast, targetField);
+            assignments.Add(Expression.Assign(targetFieldExpr, sourceFieldExpr));
+        }
+
+        var body = Expression.Block(assignments);
+        return Expression.Lambda<Action<object, object>>(body, source, target).Compile();
+    }
+    public static void RewritePatchAssembly(
+        string patchDllPath
+    )
+    {
+        var patch_data = File.ReadAllBytes(patchDllPath);
+
+        using var patch_stream = new MemoryStream(patch_data);
+
+        var patchAssembly = AssemblyDefinition.ReadAssembly(patch_stream);
+
+        var patchModule = patchAssembly.MainModule;
+
+        foreach (var type in patchModule.Types.ToList())
+        {
+            RedirectTypeReferences(type, patchModule);
+        }
+
+        patchAssembly.Write(patchDllPath);
+    }
+
+    private static void RedirectTypeReferences(TypeDefinition type, ModuleDefinition patchModule)
+    {
+        // 重定向基类
+        if (type.BaseType != null)
+        {
+            type.BaseType = RedirectReference(type.BaseType, patchModule);
+        }
+
+        // 重定向字段类型
+        foreach (var field in type.Fields)
+        {
+            field.FieldType = RedirectReference(field.FieldType, patchModule);
+        }
+
+        // 重定向方法参数和返回类型
+        foreach (var method in type.Methods)
+        {
+            method.ReturnType = RedirectReference(method.ReturnType, patchModule);
+            foreach (var param in method.Parameters)
+            {
+                param.ParameterType = RedirectReference(param.ParameterType, patchModule);
+            }
+
+            // 重定向方法体中的类型引用
+            if (method.HasBody)
+            {
+                foreach (var instr in method.Body.Instructions.ToList()) // 转换为 List 避免迭代时修改异常
+                {
+                    if (instr.Operand is TypeReference typeRef)
+                    {
+                        instr.Operand = RedirectReference(typeRef, patchModule);
+                    }
+                    else if (instr.Operand is MethodReference methodRef)
+                    {
+                        // 创建新的 MethodReference
+                        var newMethodRef = new MethodReference(
+                            methodRef.Name,
+                            RedirectReference(methodRef.ReturnType, patchModule),
+                            RedirectReference(methodRef.DeclaringType, patchModule)
+                        );
+
+                        // 复制泛型参数和参数类型
+                        foreach (var gp in methodRef.GenericParameters)
+                            newMethodRef.GenericParameters.Add(new GenericParameter(gp.Name, newMethodRef));
+
+                        foreach (var param in methodRef.Parameters)
+                            newMethodRef.Parameters.Add(new ParameterDefinition(
+                                RedirectReference(param.ParameterType, patchModule)
+                            ));
+
+                        // 处理泛型方法实例
+                        if (methodRef is GenericInstanceMethod genericMethod)
+                        {
+                            var newGenericMethod = new GenericInstanceMethod(newMethodRef);
+                            foreach (var arg in genericMethod.GenericArguments)
+                                newGenericMethod.GenericArguments.Add(RedirectReference(arg, patchModule));
+                            instr.Operand = newGenericMethod;
+                        }
+                        else
+                        {
+                            instr.Operand = newMethodRef;
+                        }
+                    }
+                    else if (instr.Operand is FieldReference fieldRef)
+                    {
+                        var newFieldRef = new FieldReference(
+                            fieldRef.Name,
+                            RedirectReference(fieldRef.FieldType, patchModule),
+                            RedirectReference(fieldRef.DeclaringType, patchModule)
+                        );
+                        instr.Operand = newFieldRef;
+                    }
+                }
+            }
+        }
+    }
+
+    private static TypeReference RedirectReference(
+        TypeReference typeRef,
+        ModuleDefinition patchModule
+    )
+    {
+        // 若类型已在原程序集中定义，则重定向引用
+        var originalType = AccessTools.TypeByName(typeRef.FullName);
+
+        if (originalType != null)
+        {
+            var originalTypeRef = patchModule.ImportReference(originalType);
+            //LogService.LogInfo($"Redirecting type reference: {typeRef.FullName} -> {originalTypeRef.FullName}");
+            return originalTypeRef;
+        }
+        else
+        {
+            //LogService.LogWarning($"Cannot redirect complex type reference: {typeRef.FullName}");
+        }
+
+        // 处理泛型类型（如 BasicMod<T>）
+        if (typeRef is GenericInstanceType genericType)
+        {
+            var genericElement = RedirectReference(genericType.ElementType, patchModule);
+            var newGenericType = new GenericInstanceType(genericElement);
+
+            foreach (var arg in genericType.GenericArguments)
+            {
+                newGenericType.GenericArguments.Add(RedirectReference(arg, patchModule));
+            }
+
+            return newGenericType;
+        }
+
+        // 处理数组类型（如 int[]）
+        if (typeRef is ArrayType arrayType)
+        {
+            return new ArrayType(
+                RedirectReference(arrayType.ElementType, patchModule),
+                arrayType.Rank
+            );
+        }
+
+        return typeRef;
+    }
+*/
+    public static bool PatchHotfixMethodsNT()
+    {
+        var assembly_bytes = File.ReadAllBytes(_new_compiled_dll_path);
+        var pdb_bytes = File.ReadAllBytes(_new_compiled_pdb_path);
+        using var f_stream = new MemoryStream(assembly_bytes);
+        using var p_stream = new MemoryStream(pdb_bytes);
+        var assembly_definition = AssemblyDefinition.ReadAssembly(f_stream, new ReaderParameters
+        {
+            ReadSymbols = true,
+            SymbolStream = p_stream,
+            SymbolReaderProvider = new PdbReaderProvider()
+        });
+
+
         List<MethodDefinition> method_definitions = new();
         method_definitions.AddRange(assembly_definition.MainModule.Types.SelectMany(type => type.Methods));
 
@@ -335,7 +571,8 @@ internal static class ModReloadUtils
                  assembly_definition.MainModule.Types.SelectMany(type => type.NestedTypes))
             method_definitions.AddRange(nested_type.Methods);
 
-        var old_assembly = _mod.GetType().Assembly;
+        HashSet<MethodDefinition> methods_to_create = new();
+        List<(MethodInfo, MethodDefinition)> methods_to_replace = new();
 
         foreach (var new_method in method_definitions)
         {
@@ -351,21 +588,97 @@ internal static class ModReloadUtils
 
             if (hotfixable is false) continue;
 
-            var old_method = old_assembly.GetType(new_method.DeclaringType.FullName).GetMethod(
+            var declaring_type = AccessTools.TypeByName(new_method.DeclaringType.FullName);
+            if (declaring_type == null) continue;
+
+            var old_method = declaring_type.GetMethod(
                 new_method.Name,
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
                 new_method.Parameters.Select(x => x.ParameterType.ResolveReflection()).ToArray(), null);
-            if (old_method == null) continue;
+            if (old_method == null)
+                //methods_to_create.Add(new_method);
+                continue;
 
-            Replace(old_method, new_method);
+            methods_to_replace.Add((old_method, new_method));
+        }
+
+        while (methods_to_create.Count > 0)
+        {
+            var methods_created = new HashSet<MethodDefinition>();
+            foreach (var method_definition in methods_to_create)
+            {
+                try
+                {
+                    _regenerated_brand_new_methods[method_definition] = CreateMethod(method_definition);
+                }
+                catch (Exception e)
+                {
+                    LogService.LogError($"Failed to create brand new method {method_definition.FullName}");
+                    LogService.LogError(e.Message);
+                    LogService.LogError(e.StackTrace);
+                    continue;
+                }
+
+                methods_created.Add(method_definition);
+            }
+
+            if (methods_created.Count == 0) break;
+
+            methods_to_create.ExceptWith(methods_created);
+        }
+
+        foreach (var (old_method, new_method) in methods_to_replace)
+        {
+            try
+            {
+                Replace(old_method, new_method);
+            }
+            catch (Exception e)
+            {
+                LogService.LogError($"Failed to hotfix method {new_method.FullName}");
+                LogService.LogError(e.Message);
+                LogService.LogError(e.StackTrace);
+            }
         }
 
         return true;
     }
 
+    private static MethodInfo CreateMethod(MethodDefinition newMethod)
+    {
+        var dynamic_method_definition = new DynamicMethodDefinition(newMethod.Name,
+            newMethod.ReturnType.ResolveReflection(),
+            newMethod.Parameters.Select(x => x.ParameterType.ResolveReflection()).ToArray());
+        if (!newMethod.IsStatic)
+            dynamic_method_definition.Definition.Parameters.Insert(0,
+                new ParameterDefinition(newMethod.DeclaringType));
+
+        var dyn_body = dynamic_method_definition.Definition.Body;
+        var method_body = newMethod.Body;
+        dyn_body.Variables.Clear();
+        dyn_body.Instructions.Clear();
+        dyn_body.ExceptionHandlers.Clear();
+        dyn_body.Variables.AddRange(method_body.Variables);
+        dyn_body.Instructions.AddRange(method_body.Instructions);
+        dyn_body.ExceptionHandlers.AddRange(method_body.ExceptionHandlers);
+
+        return dynamic_method_definition.Generate();
+    }
+
     private static void Replace(MethodInfo oldMethod, MethodDefinition newMethod)
     {
-        new ILHook(
+        if (_create_hooks.ContainsKey(oldMethod)) _create_hooks[oldMethod].Dispose();
+
+        /*
+        var debug_info = newMethod.DebugInformation;
+        if (debug_info != null && debug_info.HasSequencePoints)
+        {
+            foreach (var p in debug_info.GetSequencePointMapping())
+            {
+                LogService.LogInfo($"{p.Key}: {p.Value.StartLine} {p.Value.Document.Url}");
+            }
+        }*/
+        var hook = new ILHook(
             oldMethod,
             il =>
             {
@@ -376,84 +689,15 @@ internal static class ModReloadUtils
                 il.Body.Instructions.AddRange(newMethod.Body.Instructions);
                 il.Body.ExceptionHandlers.AddRange(newMethod.Body.ExceptionHandlers);
             }
-        ).Apply();
+        );
+        hook.Apply();
+
+        _create_hooks[oldMethod] = hook;
     }
 
-    private static bool PatchHotfixMethodsNTBack()
-    {
-        var bytes = File.ReadAllBytes(_new_compiled_dll_path);
-        var new_assembly = Assembly.Load(bytes);
-        var old_assembly = _mod.GetType().Assembly;
-        foreach (var method in new_assembly.GetTypes().SelectMany(x => x.GetMethods()))
-        {
-            if (method.GetCustomAttribute<HotfixableAttribute>() == null) continue;
-
-            var old_method = old_assembly.GetType(method.DeclaringType.FullName).GetMethod(
-                method.Name,
-                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
-                method.GetParameters().Select(x => x.ParameterType).ToArray(), null);
-            if (old_method == null) continue;
-
-            var harmony = new Harmony($"{method.DeclaringType?.FullName}{method.Name}");
-            //harmony.UnpatchSelf();
-            //harmony.Patch(method, transpiler: new HarmonyMethod(typeof(ModReloadUtils), nameof(il_code_tracker)));
-            harmony.UnpatchSelf();
-            new_method = method;
-            _container[harmony.Id] = new_method;
-            harmony.Patch(old_method, transpiler: new HarmonyMethod(typeof(ModReloadUtils), nameof(il_code_replacer)));
-        }
-
-        return true;
-    }
-
-    private static IEnumerable<CodeInstruction> il_code_replacer(IEnumerable<CodeInstruction> codes, ILGenerator il)
-    {
-        var res = new List<CodeInstruction>();
-
-        // 判断原方法是否为实例方法
-        var is_instance_method = !new_method.IsStatic;
-
-        // 加载参数
-        var param_end_index = is_instance_method ? 1 + new_method.GetParameters().Length : 0; // 实例方法: this 是 arg0
-        for (var i = 0; i < param_end_index; i++) res.Add(new CodeInstruction(OpCodes.Ldarg, i));
-
-        // 调用新方法（静态方法用 Call，实例方法用 Callvirt）
-        res.Add(new CodeInstruction(
-            OpCodes.Call,
-            new_method
-        ));
-
-        // 处理返回值
-        res.Add(new CodeInstruction(OpCodes.Ret)); // 确保返回
-
-        LogService.LogInfo("Original codes");
-        foreach (var code in codes)
-            LogService.LogInfo('\t' + code.ToString());
-        LogService.LogInfo("New codes");
-        foreach (var code in res)
-            LogService.LogInfo('\t' + code.ToString());
-        return res;
-    }
-
-    /*
-    private static List<CodeInstruction> codes_tracked;
-    private static IEnumerable<CodeInstruction> il_code_tracker(IEnumerable<CodeInstruction> codes, ILGenerator il_generator)
-    {
-        MethodBuilder builder;
-        builder.
-        il_generator.DeclareLocal()
-        codes_tracked = codes.ToList();
-        return codes_tracked;
-    }
-*/
     private static void ReplaceMethod(MethodInfo pOldMethod, DynamicMethodDefinition pNewMethod)
     {
         var pNewMethodMethod = pNewMethod.Generate();
-        var harmony = new Harmony(pOldMethod.FullDescription());
-        harmony.UnpatchSelf();
-        harmony.Patch(pOldMethod, new HarmonyMethod(pNewMethodMethod));
-        return;
-
         RuntimeHelpers.PrepareMethod(pOldMethod.MethodHandle);
         IntPtr pBody = pOldMethod.MethodHandle.GetFunctionPointer();
         RuntimeHelpers.PrepareMethod(pNewMethodMethod.MethodHandle);

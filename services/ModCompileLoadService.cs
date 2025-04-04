@@ -20,17 +20,17 @@ namespace NeoModLoader.services;
 /// </summary>
 public static class ModCompileLoadService
 {
-    private static          string[]                   _default_ref_path = null!;
-    private static readonly Dictionary<string, string> mod_inc_path      = new();
-    private static readonly HashSet<string>            _loaded_ref       = new();
+    private static string[] _default_ref_path = null!;
+    private static readonly Dictionary<string, string> mod_inc_path = new();
+    private static readonly HashSet<string> _loaded_ref = new();
 
-    private static          MetadataReference[]                   _default_ref             = null!;
-    private static          MetadataReference                     _publicized_assembly_ref = null!;
-    private static readonly Dictionary<string, MetadataReference> mod_ref                  = new();
+    private static MetadataReference[] _default_ref = null!;
+    private static MetadataReference _publicized_assembly_ref = null!;
+    private static readonly Dictionary<string, MetadataReference> mod_ref = new();
 
     private static bool compileMod(ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
-                                   string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
-                                   bool pDisableOptionalDepen = false)
+        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
+        bool pDisableOptionalDepen = false)
     {
         var available_optional_depens = pDisableOptionalDepen
             ? new List<string>()
@@ -162,12 +162,16 @@ public static class ModCompileLoadService
         }
 
 
+        var identity = new AssemblyIdentity(
+            pModDecl.UID, pModDecl.ParseVersion(), null
+        );
+
         var compilation = CSharpCompilation.Create(
             $"{pModDecl.UID}",
             syntaxTrees,
             list,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                allowUnsafe: true)
+                allowUnsafe: true, deterministic: true, assemblyIdentityComparer: AssemblyIdentityComparer.Default)
         );
 
         using MemoryStream dllms = new MemoryStream();
@@ -223,7 +227,7 @@ public static class ModCompileLoadService
         }
 
         var default_ref_path_list = new List<string>();
-        default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath,       "*.dll"));
+        default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath, "*.dll"));
         default_ref_path_list.AddRange(Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"));
         default_ref_path_list.Add(Paths.NMLModPath);
         _default_ref_path = default_ref_path_list.ToArray();
@@ -276,7 +280,7 @@ public static class ModCompileLoadService
         bool disable_optional_depen = false;
         RECOMPILE:
         compile_result =
-            compileMod(pModNode.mod_decl,                                          _default_ref,
+            compileMod(pModNode.mod_decl, _default_ref,
                 pModNode.GetAdditionReferences(!disable_optional_depen).ToArray(), mod_ref, pForce,
                 disable_optional_depen
             );
@@ -362,7 +366,7 @@ public static class ModCompileLoadService
                 };
                 break;
             case ModTypeEnum.COMPILED_NEOMOD:
-                string[] dll_files = Directory.GetFiles(pMod.FolderPath,     "*.dll");
+                var dll_files = Directory.GetFiles(pMod.FolderPath, "*.dll");
                 List<string> pdb_files = Directory.GetFiles(pMod.FolderPath, "*.pdb").ToList();
                 mod_assemblies = new Assembly[dll_files.Length];
                 for (int i = 0; i < dll_files.Length; i++)
@@ -396,7 +400,7 @@ public static class ModCompileLoadService
             foreach (var type in mod_assembly.GetTypes())
             {
                 var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
-                if (!type.IsSubclassOf(typeof(MonoBehaviour))                      ||
+                if (!type.IsSubclassOf(typeof(MonoBehaviour)) ||
                     (type.GetInterface(nameof(IMod)) == null && mod_entry == null) || type.IsAbstract) continue;
 
 
@@ -588,7 +592,7 @@ public static class ModCompileLoadService
         if (node == null)
         {
             ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
-                                       $"Failed to solve mod dependency."          +
+                                       $"Failed to solve mod dependency." +
                                        $"Check Incompatible mods and dependencies, then try again.";
             ScrollWindow.get("error_with_reason").clickShow();
             return false;
@@ -598,7 +602,7 @@ public static class ModCompileLoadService
         if (!success)
         {
             ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
-                                       $"Failed to compile mod."                   +
+                                       $"Failed to compile mod." +
                                        $"Check Incompatible mods and dependencies, then try again.";
             ScrollWindow.get("error_with_reason").clickShow();
             return false;
