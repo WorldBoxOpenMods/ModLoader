@@ -13,16 +13,16 @@ namespace NCMS.Utils
         private static Dictionary<string, PowerButton> toggle_buttons = new Dictionary<string, PowerButton>();
 
         public static Dictionary<string, PowerButton> CustomButtons = new Dictionary<string, PowerButton>();
-        public static Dictionary<string, bool>        ToggleValues  = new();
+        public static Dictionary<string, bool> ToggleValues = new();
 
         /// <remarks>
         ///     From [NCMS](https://denq04.github.io/ncms/)
         /// </remarks>
-        public static PowerButton CreateButton(string    name,          Sprite sprite, string title, string description,
-                                               Vector2   position,      ButtonType type = ButtonType.Click,
-                                               Transform parent = null, UnityAction call = null)
+        public static PowerButton CreateButton(string name, Sprite sprite, string title, string description,
+            Vector2 position, ButtonType type = ButtonType.Click,
+            Transform parent = null, UnityAction call = null)
         {
-            LM.AddToCurrentLocale(name,                  title);
+            LM.AddToCurrentLocale(name, title);
             LM.AddToCurrentLocale(name + " Description", description);
             LM.ApplyLocale(false);
             PowerButton asPowerButton;
@@ -44,7 +44,7 @@ namespace NCMS.Utils
             }
 
             // NCMS implements toggle button with its own way. So we cannot use PowerButtonCreator.CreateToggleButton here.
-            var prefab = ResourcesFinder.FindResource<PowerButton>("kingsAndLeaders").gameObject;
+            var prefab = ResourcesFinder.FindResource<PowerButton>("kings_and_leaders").gameObject;
 
             // To avoid PowerButton's OnEnable() method
             bool found_active = prefab.activeSelf;
@@ -90,8 +90,8 @@ namespace NCMS.Utils
         ///     From [NCMS](https://denq04.github.io/ncms/).
         ///     <para>ATTENTION! button background color is modified to RED</para>
         /// </remarks>
-        public static Button CreateTextButton(string    name,          string      text, Vector2 position, Color color,
-                                              Transform parent = null, UnityAction callback = null)
+        public static Button CreateTextButton(string name, string text, Vector2 position, Color color,
+            Transform parent = null, UnityAction callback = null)
         {
             // Since this will be removed, it's not necessary to move it into APrefab
             GameObject button_obj = new GameObject(name, typeof(Image), typeof(Button));
