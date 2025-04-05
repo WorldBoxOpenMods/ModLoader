@@ -18,7 +18,7 @@ public abstract class AbstractWideWindow<T> : AbstractWindow<T> where T : Abstra
     public void SetSize(Vector2 pSize)
     {
         Instance.BackgroundTransform.GetComponent<RectTransform>().sizeDelta = pSize;
-        Instance.BackgroundTransform.Find("CloseBackground").localPosition =
+        Instance.BackgroundTransform.parent.Find("CloseBackground").localPosition =
             new Vector3(pSize.x / 2 - 20, pSize.y / 2 + 7);
         Instance.BackgroundTransform.Find("TitleBackground").GetComponent<RectTransform>().sizeDelta =
             new Vector2(pSize.x / 2, 30);
