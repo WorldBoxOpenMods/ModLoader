@@ -385,8 +385,10 @@ public static class TabManager
     /// <param name="pTitleKey">The title key of the tooltip when hover on the tab</param>
     /// <param name="pDescKey">The description key of the tooltip when hover on the tab</param>
     /// <param name="pIcon">The icon sprite of the tab</param>
+    /// <param name="pOptionDescKey">The description key of the tooltip (the bottom gray one) when hover one the tab</param>
     /// <returns>The tab created</returns>
-    public static PowersTab CreateTab(string name, string pTitleKey, string pDescKey, Sprite pIcon)
+    public static PowersTab CreateTab(string name, string pTitleKey, string pDescKey, Sprite pIcon,
+        string pOptionDescKey = "hotkey_tip_tab_other")
     {
         GameObject tab_entry = Object.Instantiate(ResourcesFinder.FindResources<GameObject>("Button_Other")[0],
             tab_entry_container);
@@ -409,7 +411,8 @@ public static class TabManager
 
         TipButton tab_entry_tip = tab_entry.GetComponent<TipButton>();
         tab_entry_tip.textOnClick = pTitleKey;
-        tab_entry_tip.text_description_2 = pDescKey;
+        tab_entry_tip.textOnClickDescription = pDescKey;
+        tab_entry_tip.text_description_2 = pOptionDescKey;
         // Clear tab content
         for (int i = 7; i < tab.transform.childCount; i++)
         {
