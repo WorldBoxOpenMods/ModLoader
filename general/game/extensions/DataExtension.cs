@@ -115,36 +115,34 @@ public sealed class BasicCustomData<TDataClass> : ICustomData where TDataClass :
     public TDataClass Data { get; private set; } = new TDataClass();
     
     /// <summary>
-    /// An ID provided by the mod that instantiated this <see cref="BasicCustomData{TDataClass}"/>
-    /// </summary>
-    private string ModId { get; }
-    
-    /// <summary>
     /// The constructor of <see cref="BasicCustomData{TDataClass}"/>
     /// </summary>
-    /// <param name="modID"><see cref="ModId"/></param>
     /// <param name="data"><see cref="Data"/>, not passing an argument simply creates an empty default data entry</param>
-    public BasicCustomData(string modID, TDataClass data = null)
+    public BasicCustomData(TDataClass data)
     {
-        ModId = modID;
         if (data != null)
         {
             Data = data;
         }
     }
     
+    /// <summary>
+    /// The constructor of <see cref="BasicCustomData{TDataClass}"/>
+    /// </summary>
+    public BasicCustomData() : this(null) {}
+    
     /// <inheritdoc/>
     /// <remarks>This basic implementation simply uses the default reflection based JSON object serializer and does not make a proper mod/version distinction, we recommend against trying to use it for advanced use cases.</remarks>
     public SerializedCustomData Serialize()
     {
-        return new SerializedCustomData(ModId, "NO-VERSIONING-SUPPORT", JObject.FromObject(Data));
+        return new SerializedCustomData("UNKNOWN", "NO-VERSIONING-SUPPORT", JObject.FromObject(Data));
     }
     
     /// <inheritdoc/>
     /// <remarks>This basic implementation simply uses the default reflection based JSON object serializer and does not make a proper mod/version distinction, we recommend against trying to use it for advanced use cases.</remarks>
     public void Deserialize(SerializedCustomData data)
     {
-        if (data.ModId != ModId || data.DataVersion != "NO-VERSIONING-SUPPORT")
+        if (data.ModId != "UNKNOWN" || data.DataVersion != "NO-VERSIONING-SUPPORT")
         {
             throw new Exception("Supplied data object is not compatible with the basic custom data serializer, mod ID or version mismatch");
         }
