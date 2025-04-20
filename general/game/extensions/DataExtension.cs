@@ -101,3 +101,53 @@ public interface ICustomData
     /// <param name="data">The custom data by <see cref="ICustomData.Serialize"/> to deserialize</param>
     public void Deserialize(SerializedCustomData data);
 }
+
+/// <summary>
+/// A very basic implementation of <see cref="ICustomData"/> to use with <see cref="DataExtension"/> that does not have support for versioning
+/// </summary>
+/// <typeparam name="TDataClass">A class that contains whatever properties zou would like to be able to store as persistent custom data</typeparam>
+/// <remarks>Due to the complete lack of versioning support, we recommend making a custom implementation of <see cref="ICustomData"/> instead of using this. This class is sealed to make it clear that trying to bodge on advanced functionality onto it is a bad idea.</remarks>
+public sealed class BasicCustomData<TDataClass> : ICustomData where TDataClass : class, new()
+{
+    /// <summary>
+    /// The actual data object that is serialized and deserialized
+    /// </summary>
+    public TDataClass Data { get; private set; } = new TDataClass();
+    
+    /// <summary>
+    /// An ID provided by the mod that instantiated this <see cref="BasicCustomData{TDataClass}"/>
+    /// </summary>
+    private string ModId { get; }
+    
+    /// <summary>
+    /// The constructor of <see cref="BasicCustomData{TDataClass}"/>
+    /// </summary>
+    /// <param name="modID"><see cref="ModId"/></param>
+    /// <param name="data"><see cref="Data"/>, not passing an argument simply creates an empty default data entry</param>
+    public BasicCustomData(string modID, TDataClass data = null)
+    {
+        ModId = modID;
+        if (data != null)
+        {
+            Data = data;
+        }
+    }
+    
+    /// <inheritdoc/>
+    /// <remarks>This basic implementation simply uses the default reflection based JSON object serializer and does not make a proper mod/version distinction, we recommend against trying to use it for advanced use cases.</remarks>
+    public SerializedCustomData Serialize()
+    {
+        return new SerializedCustomData(ModId, "NO-VERSIONING-SUPPORT", JObject.FromObject(Data));
+    }
+    
+    /// <inheritdoc/>
+    /// <remarks>This basic implementation simply uses the default reflection based JSON object serializer and does not make a proper mod/version distinction, we recommend against trying to use it for advanced use cases.</remarks>
+    public void Deserialize(SerializedCustomData data)
+    {
+        if (data.ModId != ModId || data.DataVersion != "NO-VERSIONING-SUPPORT")
+        {
+            throw new Exception("Supplied data object is not compatible with the basic custom data serializer, mod ID or version mismatch");
+        }
+        Data = data.Data.ToObject<TDataClass>();
+    }
+}
