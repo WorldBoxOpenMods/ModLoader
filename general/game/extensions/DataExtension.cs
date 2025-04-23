@@ -1,0 +1,151 @@
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+namespace NeoModLoader.General.Game.extensions;
+
+/// <summary>
+/// Extension helper for using <see cref="BaseSystemData.custom_data_string"/> to persistently store data objects via JSON serialization
+/// </summary>
+public static class DataExtension
+{
+    /// <summary>
+    /// Try to get the custom string data at a specific key as an <see cref="ICustomData"/> object of type TCustomData
+    /// </summary>
+    /// <param name="data">The <see cref="BaseSystemData"/> to access the storage of</param>
+    /// <param name="key">The key the serialized custom data is stored at</param>
+    /// <param name="result">A custom data object, either with the serialized custom data from key deserialized if true is returned or in its default state if false is returned</param>
+    /// <typeparam name="TCustomData">The expected data format at the specified key, has to implement <see cref="ICustomData"/></typeparam>
+    /// <returns>Whether a valid JSON string was stored at the specified key</returns>
+    public static bool TryGet<TCustomData>(this BaseSystemData data, string key, out TCustomData result) where TCustomData : ICustomData, new()
+    {
+        result = new TCustomData();
+        data.get(key, out string json);
+        if (json == null)
+        {
+            return false;
+        }
+        JObject json_obj;
+        try
+        {
+            json_obj = JObject.Parse(json);
+        }
+        catch (JsonReaderException)
+        {
+            return false;
+        }
+        var serialized_data = json_obj.ToObject<SerializedCustomData>();
+        if (serialized_data == null)
+        {
+            return false;
+        }
+        result.Deserialize(serialized_data);
+        return true;
+    }
+
+    /// <summary>
+    /// Set the custom string data at a specific key as the serialized JSON string of an <see cref="ICustomData"/> object of type TCustomData
+    /// </summary>
+    /// <param name="data">The <see cref="BaseSystemData"/> to access the storage of</param>
+    /// <param name="key">The key the serialized custom data should be stored at</param>
+    /// <param name="value">The custom data object that should be serialized and stored at the specified key</param>
+    /// <typeparam name="TCustomData">The expected data format at the specified key, has to implement <see cref="ICustomData"/></typeparam>
+    public static void Set<TCustomData>(this BaseSystemData data, string key, TCustomData value) where TCustomData : ICustomData
+    {
+        data.set(key, JsonConvert.SerializeObject(value.Serialize()));
+    }
+}
+
+/// <summary>
+/// A storage wrapper for representing the serialized data of an <see cref="ICustomData"/> implementation
+/// </summary>
+public class SerializedCustomData
+{
+    /// <summary>
+    /// The constructor of <see cref="SerializedCustomData"/>
+    /// </summary>
+    /// <param name="modId"><see cref="ModId"/></param>
+    /// <param name="dataVersion"><see cref="DataVersion"/></param>
+    /// <param name="data"><see cref="Data"/></param>
+    public SerializedCustomData(string modId, string dataVersion, JObject data)
+    {
+        ModId = modId;
+        DataVersion = dataVersion;
+        Data = data;
+    }
+    /// <summary>
+    /// A mod ID provided by the <see cref="ICustomData"/> implementation on serialization for being able to ensure that the mod serializing the data is also the mod deserializing the data
+    /// </summary>
+    public string ModId;
+    /// <summary>
+    /// A version string provided by the <see cref="ICustomData"/> implementation on serialization for being able to detect after potential data model changes by the mod if a given piece of data is serialized in an old format by the mod or an up to date one
+    /// </summary>
+    public string DataVersion;
+    /// <summary>
+    /// A <see cref="JObject"/> of the actual variable custom data that the <see cref="ICustomData"/> implementation has to serialize/deserialize
+    /// </summary>
+    public JObject Data;
+}
+
+/// <summary>
+/// An interface for representing classes by mods that can serialize/deserialize themselves as persistent custom data for a <see cref="BaseSystemData"/> object
+/// </summary>
+public interface ICustomData
+{
+    /// <summary>
+    /// Method that's supposed to serialize custom data and return it as a <see cref="SerializedCustomData"/> object with a <see cref="SerializedCustomData.ModId"/> and <see cref="SerializedCustomData.DataVersion"/> to allow <see cref="ICustomData.Deserialize"/> to determine whether it can properly deserialize a given piece of data and <see cref="SerializedCustomData.Data"/> as storage of the actual custom data that <see cref="ICustomData.Deserialize"/> can deserialize
+    /// </summary>
+    /// <returns>The <see cref="SerializedCustomData"/> with all fields filled in correctly</returns>
+    public SerializedCustomData Serialize();
+    /// <summary>
+    /// Method that's supposed to deserialize custom data generated by <see cref="ICustomData.Serialize"/> onto itself if it can verify based on <see cref="SerializedCustomData.ModId"/> and <see cref="SerializedCustomData.DataVersion"/> that it is capable of it
+    /// </summary>
+    /// <param name="data">The custom data by <see cref="ICustomData.Serialize"/> to deserialize</param>
+    public void Deserialize(SerializedCustomData data);
+}
+
+/// <summary>
+/// A very basic implementation of <see cref="ICustomData"/> to use with <see cref="DataExtension"/> that does not have support for versioning
+/// </summary>
+/// <typeparam name="TDataClass">A class that contains whatever properties zou would like to be able to store as persistent custom data</typeparam>
+/// <remarks>Due to the complete lack of versioning support, we recommend making a custom implementation of <see cref="ICustomData"/> instead of using this. This class is sealed to make it clear that trying to bodge on advanced functionality onto it is a bad idea.</remarks>
+public sealed class BasicCustomData<TDataClass> : ICustomData where TDataClass : class, new()
+{
+    /// <summary>
+    /// The actual data object that is serialized and deserialized
+    /// </summary>
+    public TDataClass Data { get; private set; } = new TDataClass();
+    
+    /// <summary>
+    /// The constructor of <see cref="BasicCustomData{TDataClass}"/>
+    /// </summary>
+    /// <param name="data"><see cref="Data"/>, not passing an argument simply creates an empty default data entry</param>
+    public BasicCustomData(TDataClass data)
+    {
+        if (data != null)
+        {
+            Data = data;
+        }
+    }
+    
+    /// <summary>
+    /// The constructor of <see cref="BasicCustomData{TDataClass}"/>
+    /// </summary>
+    public BasicCustomData() : this(null) {}
+    
+    /// <inheritdoc/>
+    /// <remarks>This basic implementation simply uses the default reflection based JSON object serializer and does not make a proper mod/version distinction, we recommend against trying to use it for advanced use cases.</remarks>
+    public SerializedCustomData Serialize()
+    {
+        return new SerializedCustomData("UNKNOWN", "NO-VERSIONING-SUPPORT", JObject.FromObject(Data));
+    }
+    
+    /// <inheritdoc/>
+    /// <remarks>This basic implementation simply uses the default reflection based JSON object serializer and does not make a proper mod/version distinction, we recommend against trying to use it for advanced use cases.</remarks>
+    public void Deserialize(SerializedCustomData data)
+    {
+        if (data.ModId != "UNKNOWN" || data.DataVersion != "NO-VERSIONING-SUPPORT")
+        {
+            throw new Exception("Supplied data object is not compatible with the basic custom data serializer, mod ID or version mismatch");
+        }
+        Data = data.Data.ToObject<TDataClass>();
+    }
+}
