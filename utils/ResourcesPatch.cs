@@ -118,7 +118,7 @@ public static class ResourcesPatch
         }
         catch (Exception)
         {
-            container = new WavContainer(path, true, 50f);
+            container = new WavContainer(path, SoundMode.Stereo3D, 50f);
         }
 
         CustomAudioManager.AudioWavLibrary.Add(Name, container);
