@@ -141,7 +141,7 @@ public class CustomAudioManager
         }
         channel.setVolumeRamp(WAV.Ramp);
         channel.setVolume(WAV.Volume/100);
-        AddChannel(channel, AttachedTo, WAV.Mode == SoundMode.Mono3D ? new Vector3(pX, pY, WAV.Volume * 0.5f) : default);
+        AddChannel(channel, AttachedTo, WAV.Mode == SoundMode.Mono3D ? new Vector3(pX, pY, WAV.Volume) : default);
         if (WAV.Mode == SoundMode.Stereo3D) {
             SetChannelPosition(channel, pX, pY);
         }
