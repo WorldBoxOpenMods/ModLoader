@@ -15,7 +15,7 @@
         /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
-            Asset = new CultureTrait();
+            Asset = new CultureTrait() { id = ID };
         }
         /// <summary>
         /// Adds a weapon which this culture produces

@@ -3,10 +3,12 @@
     /// <summary>
     /// A Builder for building augmentation assets
     /// </summary>
-    public class AugmentationAssetBuilder<A, AL> : UnlockableAssetBuilder<A, AL> where A : BaseAugmentationAsset where AL : AssetLibrary<A>
+    public class AugmentationAssetBuilder<A, AL> : UnlockableAssetBuilder<A, AL> where A : BaseAugmentationAsset where AL : BaseLibraryWithUnlockables<A>
     {
         /// <inheritdoc/>
         public AugmentationAssetBuilder(string ID) : base(ID) { }
+        /// <inheritdoc/>
+        public AugmentationAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
 
         /// <summary>
         /// Adds a combat action to this Asset, any actors with this Asset will have this actiom, and if this Asset is for a clan/subspecies/etc, any actors in that group will also have it

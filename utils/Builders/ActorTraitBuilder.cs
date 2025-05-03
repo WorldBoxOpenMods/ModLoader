@@ -20,7 +20,8 @@ namespace NeoModLoader.utils.Builders
         {
             Asset = new ActorTrait
             {
-                id = ID
+                id = ID,
+                group_id = S_TraitGroup.miscellaneous
             };
         }
 

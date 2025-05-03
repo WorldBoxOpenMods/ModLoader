@@ -3,10 +3,12 @@
     /// <summary>
     /// A builder for building unlockable assets
     /// </summary>
-    public class UnlockableAssetBuilder<A, AL> : AssetBuilder<A, AL> where A : BaseUnlockableAsset where AL : AssetLibrary<A>
+    public class UnlockableAssetBuilder<A, AL> : AssetBuilder<A, AL> where A : BaseUnlockableAsset where AL : BaseLibraryWithUnlockables<A>
     {
         /// <inheritdoc/>
         public UnlockableAssetBuilder(string ID) : base(ID) { }
+        /// <inheritdoc/>
+        public UnlockableAssetBuilder(string ID, string From) : base(ID, From) { }
         /// <inheritdoc/>
         protected override void Init()
         {

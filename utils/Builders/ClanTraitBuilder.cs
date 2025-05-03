@@ -21,7 +21,10 @@ namespace NeoModLoader.utils.Builders
         /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
-            Asset = new ClanTrait();
+            Asset = new ClanTrait
+            {
+                id = ID
+            };
         }
         /// <summary>
         /// Stats which are applied to Males in this clan
