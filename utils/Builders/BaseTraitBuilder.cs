@@ -71,7 +71,6 @@ namespace NeoModLoader.utils.Builders
                     Asset.traits_to_remove[i] = tTraitToAdd;
                 }
             }
-
         }
         void LinkWithLibrary()
         {

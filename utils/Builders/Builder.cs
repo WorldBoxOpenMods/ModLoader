@@ -14,9 +14,6 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// Builds Something
         /// </summary>
-        public virtual void Build()
-        {
-
-        }
+        public virtual void Build() { }
     }
 }

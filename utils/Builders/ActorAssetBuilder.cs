@@ -19,6 +19,5 @@ namespace NeoModLoader.utils.Builders
         {
             return AssetManager.actor_library;
         }
-
     }
 }

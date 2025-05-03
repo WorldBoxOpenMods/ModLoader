@@ -18,17 +18,11 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// Used so the child classes can create their asset before the builder inititates
         /// </summary>
-        protected virtual void CreateAsset(string ID)
-        {
-
-        }
+        protected virtual void CreateAsset(string ID) { }
         /// <summary>
         /// Initiates the builder
         /// </summary>
-        protected virtual void Init()
-        {
-
-        }
+        protected virtual void Init() { }
         /// <summary>
         /// A Tool to help you create Assets!
         /// </summary>
