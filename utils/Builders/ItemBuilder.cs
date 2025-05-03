@@ -234,6 +234,5 @@ namespace NeoModLoader.utils.Builders
         /// not used by the game at the moment!
         /// </summary>
         public int Rate { get { return Asset.pool_rate; } set { Asset.pool_rate = value; } }
-
     }
 }
