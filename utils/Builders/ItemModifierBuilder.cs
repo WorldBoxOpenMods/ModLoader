@@ -9,7 +9,7 @@ namespace NeoModLoader.utils.Builders
 {
     public class ItemModifierBuilder : AugmentationAssetBuilder<ItemAsset, ItemModifierLibrary>
     {
-        public ItemModifierBuilder(string ID, int Tier = 0) : base(ID + "Tier") { Asset.mod_rank = Tier; }
+        public ItemModifierBuilder(string ID, int Tier = 0) : base(ID + Tier) { Asset.mod_rank = Tier; Asset.mod_type = ID; }
         void LinkWithLibrary()
         {
             for (int i = 0; i < Asset.rarity; i++)
@@ -28,10 +28,12 @@ namespace NeoModLoader.utils.Builders
                 }
             }
         }
+        /// <inheritdoc/>
         protected override ItemModifierLibrary GetLibrary()
         {
             return AssetManager.items_modifiers;
         }
+        /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
             Asset = new ItemAsset()
@@ -47,7 +49,7 @@ namespace NeoModLoader.utils.Builders
             LinkWithLibrary();
             if (Localize)
             {
-                LM.AddToCurrentLocale(Asset.getLocaleID(), NameID);
+                LM.AddToCurrentLocale(Asset.getLocaleID(), NameID ?? Asset.getLocaleID());
             }
             base.Build();
         }

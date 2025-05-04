@@ -67,7 +67,7 @@ namespace NeoModLoader.utils.Builders
         {
             if(Description != null)
             {
-                Localize(NameID, Description);
+                Localize(Asset.getLocaleID(), Description);
             }
             AddWeaponsSprite();
             LinkWithLibrary();

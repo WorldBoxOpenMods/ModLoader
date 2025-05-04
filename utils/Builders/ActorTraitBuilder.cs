@@ -13,18 +13,21 @@ namespace NeoModLoader.utils.Builders
     {
         internal static ConcurrentDictionary<string, GetAdditionalBaseStatsMethod> AdditionalBaseStatMethods = new();
 
-        /// <inheritdoc/>
-        public ActorTraitBuilder(string ID) : base(ID) { }
+        public ActorTraitBuilder(string ID, string Name, string PathIcon, string Group = S_TraitGroup.miscellaneous, string Description1 = null) : base(ID)
+        {
+            SetNameID(Name);
+            this.PathIcon = PathIcon;
+            this.Group = Group;
+            SetDescription1ID(Description1);
+        }
         /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
             Asset = new ActorTrait
             {
-                id = ID,
-                group_id = S_TraitGroup.miscellaneous
+                id = ID
             };
         }
-
         void LinkWithLibrary()
         {
             if (Asset.combat)
