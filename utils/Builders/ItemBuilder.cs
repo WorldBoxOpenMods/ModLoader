@@ -19,8 +19,7 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// creates a weapon, and if projectileifranged is not null, a ranged weapon with projectileifranged being the ID of the projectile
         /// </summary>
-        public ItemBuilder(string WeaponID, string ProjectileIfRanged = null) : base(WeaponID, "$weapon") {
-            Asset.pool = "melee";
+        public ItemBuilder(string WeaponID, string ProjectileIfRanged = null) : base(WeaponID, "$melee") {
             if (ProjectileIfRanged != null)
             {
                 ConvertIntoRangedWeapon(ProjectileIfRanged);

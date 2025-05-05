@@ -11,6 +11,8 @@ namespace NeoModLoader.utils.Builders
         /// <inheritdoc/>
         public BaseTraitBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
+        public BaseTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+        /// <inheritdoc/>
         protected override void Init()
         {
             base.Init();

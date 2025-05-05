@@ -12,7 +12,7 @@ namespace NeoModLoader.utils.Builders
     public sealed class ActorTraitBuilder : BaseTraitBuilder<ActorTrait, ActorTraitLibrary>
     {
         internal static ConcurrentDictionary<string, GetAdditionalBaseStatsMethod> AdditionalBaseStatMethods = new();
-
+        /// <inheritdoc/>
         public ActorTraitBuilder(string ID, string Name, string PathIcon, string Group = S_TraitGroup.miscellaneous, string Description1 = null) : base(ID)
         {
             SetNameID(Name);
@@ -20,6 +20,8 @@ namespace NeoModLoader.utils.Builders
             this.Group = Group;
             SetDescription1ID(Description1);
         }
+        /// <inheritdoc/>
+        public ActorTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
         /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
