@@ -20,7 +20,7 @@
             Asset.addWeaponSpecial(ID);
         }
         /// <summary>
-        /// Adds a subtype of a weapon which the culture produces
+        /// Adds a subtype of a weapon which the culture produces, such as axe, spear
         /// </summary>
         public void AddWeaponSubType(string ID)
         {

@@ -1,10 +1,5 @@
 ﻿using HarmonyLib;
 using NeoModLoader.General;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace NeoModLoader.utils.Builders
@@ -181,9 +176,23 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public bool Animated { get { return Asset.animated; } set { Asset.animated = value; } }
         /// <summary>
-        /// The ID of a group of items (subtype) this item is apart of, different cultures have different prefered sub types, cultures only create items apart of their prefered subtypes
+        /// The ID of a group of items (subtype) this item is apart of, different cultures have different prefered sub types, cultures only create weapons apart of their prefered subtypes
         /// </summary>
-        public string SubType { get { return Asset.equipment_subtype; } set { Asset.equipment_subtype = value; } }
+        public string WeaponSubType { get { return Asset.equipment_subtype; } set { Asset.equipment_subtype = value; } }
+        /// <summary>
+        /// Adds this items subtype to a culture traits list, MUST be a weapon
+        /// </summary>
+        public void AddTypeToCultureTrait(string CultureTraitID)
+        {
+            AssetManager.culture_traits.get(CultureTraitID).addWeaponSubtype(WeaponSubType);
+        }
+        /// <summary>
+        /// Adds this item to the cultures preferred weapons, it must be a weapon
+        /// </summary>
+        public void AddToCultureTrait(string CultureTraitID)
+        {
+            AssetManager.culture_traits.get(CultureTraitID).addWeaponSpecial(WeaponSubType);
+        }
         /// <summary>
         /// the amount of coins a city has to spend to craft this item
         /// </summary>

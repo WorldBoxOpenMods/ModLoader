@@ -9,11 +9,11 @@ namespace NeoModLoader.utils.Builders
     /// <summary>
     /// The Base Class For All Builders
     /// </summary>
-    public class Builder
+    public abstract class Builder
     {
         /// <summary>
         /// Builds Something
         /// </summary>
-        public virtual void Build() { }
+        public abstract void Build();
     }
 }
