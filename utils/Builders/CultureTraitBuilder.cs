@@ -8,11 +8,6 @@
         /// <inheritdoc/>
         public CultureTraitBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
-        protected override CultureTraitLibrary GetLibrary()
-        {
-            return AssetManager.culture_traits;
-        }
-        /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
             Asset = new CultureTrait() { id = ID };

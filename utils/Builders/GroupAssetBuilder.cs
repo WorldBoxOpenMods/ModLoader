@@ -9,16 +9,16 @@ using UnityEngine;
 namespace NeoModLoader.utils.Builders
 {
     /// <summary>
-    /// A Builder to create category assets
+    /// A Builder to create group/category assets
     /// </summary>
-    public class CategoryAssetBuilder<A, AL> : AssetBuilder<A, AL> where A : BaseCategoryAsset where AL : AssetLibrary<A>
+    public class GroupAssetBuilder<A> : AssetBuilder<A, AssetLibrary<A>> where A : BaseCategoryAsset, new()
     {
         /// <inheritdoc/>
-        public CategoryAssetBuilder(string ID) : base(ID) { }
+        public GroupAssetBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
-        public CategoryAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+        public GroupAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
         /// <summary>
-        /// Builds The Category Asset
+        /// Builds The Group Asset
         /// </summary>
         public void Build(bool AutoLocalize)
         {
@@ -27,6 +27,14 @@ namespace NeoModLoader.utils.Builders
                 Localize();
             }
             base.Build();
+        }
+        /// <inheritdoc/>
+        protected override void CreateAsset(string ID)
+        {
+            Asset = new A
+            {
+                id = ID
+            };
         }
         /// <summary>
         /// Localizes the name

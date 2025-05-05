@@ -29,11 +29,6 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <inheritdoc/>
-        protected override ItemModifierLibrary GetLibrary()
-        {
-            return AssetManager.items_modifiers;
-        }
-        /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
             Asset = new ItemAsset()

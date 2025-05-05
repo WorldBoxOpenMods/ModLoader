@@ -63,11 +63,6 @@ namespace NeoModLoader.utils.Builders
             Asset.only_active_on_era_flag = Asset.era_active_moon || Asset.era_active_night;
             base.Build(LinkWithOtherTraits, AutoLocalize);
         }
-        /// <inheritdoc/>
-        protected override ActorTraitLibrary GetLibrary()
-        {
-            return AssetManager.traits;
-        }
 
         /// <summary>
         /// (Optional) creates a method which gives custom stats to a actor who has this trait

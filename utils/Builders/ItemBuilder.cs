@@ -14,8 +14,17 @@ namespace NeoModLoader.utils.Builders
     /// </summary>
     public class ItemBuilder : AugmentationAssetBuilder<ItemAsset, ItemLibrary>
     {
+        static string GetEquipmentType(EquipmentType pType) => pType switch
+            {
+                EquipmentType.Weapon => "$melee",
+                EquipmentType.Helmet => "$helmet",
+                EquipmentType.Armor => "$armor",
+                EquipmentType.Boots => "$boots",
+                EquipmentType.Ring => "$ring",
+                EquipmentType.Amulet => "$amulet"
+            };
         /// <inheritdoc/>
-        public ItemBuilder(string ID, EquipmentType Type) : base(ID, "$"+AssetManager.items.getEquipmentType(Type)) { }
+        public ItemBuilder(string ID, EquipmentType Type) : base(ID, GetEquipmentType(Type)) { }
         /// <summary>
         /// creates a weapon, and if projectileifranged is not null, a ranged weapon with projectileifranged being the ID of the projectile
         /// </summary>
@@ -52,11 +61,6 @@ namespace NeoModLoader.utils.Builders
             Asset.projectile = ProjectileID;
             Asset.base_stats["projectiles"] = 1f;
             Asset.base_stats["damage_range"] = 0.6f;
-        }
-        /// <inheritdoc/>
-        protected override ItemLibrary GetLibrary()
-        {
-            return AssetManager.items;
         }
         /// <summary>
         /// Builds the Item, if description is not null it will automatically localize

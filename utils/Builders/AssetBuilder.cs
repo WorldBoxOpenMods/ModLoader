@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using NeoModLoader.api;
+using UnityEngine;
 
 namespace NeoModLoader.utils.Builders
 {
@@ -43,11 +44,8 @@ namespace NeoModLoader.utils.Builders
             Asset.id = ID;
             Init();
         }
-        /// <summary>
-        /// Must return the AssetLibrary this builder uses
-        /// </summary>
-        protected virtual AL GetLibrary() {
-            return null;
+        AL GetLibrary() {
+            return (AL)AssetManager._instance._list.OfType<AssetLibrary<A>>().FirstOrDefault() ?? throw new FeatureLoadException($"No library found for {typeof(A).Name}!");
         }
         /// <summary>
         /// Builds The Asset

@@ -14,11 +14,6 @@ namespace NeoModLoader.utils.Builders
         /// <inheritdoc/>
         public ClanTraitBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
-        protected override ClanTraitLibrary GetLibrary()
-        {
-            return AssetManager.clan_traits;
-        }
-        /// <inheritdoc/>
         protected override void CreateAsset(string ID)
         {
             Asset = new ClanTrait

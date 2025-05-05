@@ -14,10 +14,5 @@ namespace NeoModLoader.utils.Builders
     {
         /// <inheritdoc/>
         public ActorAssetBuilder(string ID) : base(ID) { }
-        /// <inheritdoc/>
-        protected override ActorAssetLibrary GetLibrary()
-        {
-            return AssetManager.actor_library;
-        }
     }
 }
