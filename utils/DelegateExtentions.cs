@@ -44,8 +44,7 @@ namespace NeoModLoader.utils
             for (int i =0; i < Delegates.Length; i++)
             {
                 string[] MethodInfos = Delegates[i].Split('+');
-                Debug.Log(MethodInfos[0]);
-                Debug.Log(MethodInfos[1]);
+                
                 var m = GetTypeDeepSearch(MethodInfos[0]).GetMethod(MethodInfos[1], Info);
                 action[i] = m.CreateDelegate(Type);
             }
