@@ -1,18 +1,26 @@
-﻿namespace NeoModLoader.utils.Builders
+﻿using Newtonsoft.Json;
+
+namespace NeoModLoader.utils.Builders
 {
     /// <summary>
     /// A builder for building unlockable assets
     /// </summary>
-    public class UnlockableAssetBuilder<A, AL> : AssetBuilder<A, AL> where A : BaseUnlockableAsset where AL : BaseLibraryWithUnlockables<A>
+    public class UnlockableAssetBuilder<A, AL> : AssetBuilder<A, AL> where A : BaseUnlockableAsset, new() where AL : BaseLibraryWithUnlockables<A>
     {
         /// <inheritdoc/>
         public UnlockableAssetBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
-        public UnlockableAssetBuilder(string ID, string From) : base(ID, From) { }
+        public UnlockableAssetBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
         /// <inheritdoc/>
-        protected override void Init()
+        public UnlockableAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+
+        /// <inheritdoc/>
+        protected override void Init(bool Cloned)
         {
-            BaseStats = new BaseStats();
+            if (!Cloned)
+            {
+                BaseStats = new BaseStats();
+            }
         }
 
         /// <summary>
@@ -36,13 +44,10 @@
                 pAchievement.unlock_assets.Add(Asset);
             }
         }
-        /// <summary>
-        /// Builds a Unlockable Asset
-        /// </summary>
-        public override void Build()
+        /// <inheritdoc/>
+        public override void LinkAssets()
         {
             LinkWithAchievment();
-            base.Build();
         }
         /// <summary>
         /// Makes the asset unlocked if this achievment has been unlocked

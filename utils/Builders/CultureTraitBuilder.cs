@@ -1,17 +1,19 @@
-﻿namespace NeoModLoader.utils.Builders
+﻿using Newtonsoft.Json;
+
+namespace NeoModLoader.utils.Builders
 {
     /// <summary>
-    /// A Builder to build culture traits!!
+    /// A Builder to build culture traits
     /// </summary>
     public class CultureTraitBuilder : BaseTraitBuilder<CultureTrait, CultureTraitLibrary>
     {
         /// <inheritdoc/>
         public CultureTraitBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
-        protected override void CreateAsset(string ID)
-        {
-            Asset = new CultureTrait() { id = ID };
-        }
+        public CultureTraitBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
+        /// <inheritdoc/>
+        public CultureTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+
         /// <summary>
         /// Adds a weapon which this culture produces
         /// </summary>

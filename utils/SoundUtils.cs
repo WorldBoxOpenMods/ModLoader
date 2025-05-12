@@ -74,6 +74,9 @@ public struct ChannelContainer
     /// <summary>
     /// to be used for Mono3D
     /// </summary>
+    /// <remarks>
+    /// X and Y represent position, Z represents volume
+    /// </remarks>
     public Vector3 PosAndVolume = default;
     /// <summary>
     /// The Transform or gameobject which this Sound is attached two. sounds whose mode is BASIC must not use this
@@ -111,6 +114,23 @@ public class CustomAudioManager
                 i--;
             }
         }
+    }
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playSound), typeof(string), typeof(float), typeof(float),
+    typeof(bool), typeof(bool))]
+    static bool LoadCustomSound(string pSoundPath, float pX, float pY, bool pGameViewOnly)
+    {
+        if (!MusicBox.sounds_on)
+        {
+            return false;
+        }
+        if (pGameViewOnly && World.world.quality_changer.isLowRes())
+        {
+            return false;
+        }
+        if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
+        LoadCustomSound(pX, pY, pSoundPath);
+        return false;
     }
     /// <summary>
     /// Loads a custom sound from the wav library

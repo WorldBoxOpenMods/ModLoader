@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NeoModLoader.utils.Builders
 {
@@ -14,6 +9,10 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// Builds Something
         /// </summary>
-        public abstract void Build();
+        public virtual void Build(bool LinkWithOtherAssets) { if(LinkWithOtherAssets) { LinkAssets(); } }
+        /// <summary>
+        /// links this builder with other assets
+        /// </summary>
+        public abstract void LinkAssets();
     }
 }

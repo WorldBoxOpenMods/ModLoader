@@ -1,14 +1,18 @@
 ﻿using NeoModLoader.General;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace NeoModLoader.utils.Builders
 {
+    /// <summary>
+    /// A Builder which creates item modifiers!
+    /// </summary>
     public class ItemModifierBuilder : AugmentationAssetBuilder<ItemAsset, ItemModifierLibrary>
     {
+        /// <inheritdoc/>
+        public ItemModifierBuilder(string Path, bool LoadImmediately) :base(Path, LoadImmediately) { }
+        /// <summary>
+        /// A Modifier Builder
+        /// </summary>
         public ItemModifierBuilder(string ID, int Tier = 0) : base(ID + Tier) { Asset.mod_rank = Tier; Asset.mod_type = ID; }
         void LinkWithLibrary()
         {
@@ -28,25 +32,17 @@ namespace NeoModLoader.utils.Builders
                 }
             }
         }
-        /// <inheritdoc/>
-        protected override void CreateAsset(string ID)
-        {
-            Asset = new ItemAsset()
-            {
-                id = ID
-            };
-        }
         /// <summary>
         /// Builds the modifier
         /// </summary>
-        public void Build(bool Localize = true)
+        public void Build(bool Localize = true, bool LinkWithOtherAssets = false)
         {
             LinkWithLibrary();
             if (Localize)
             {
                 LM.AddToCurrentLocale(Asset.getLocaleID(), NameID ?? Asset.getLocaleID());
             }
-            base.Build();
+            base.Build(LinkWithOtherAssets);
         }
         /// <summary>
         /// The Displayed Rarity of the Asset

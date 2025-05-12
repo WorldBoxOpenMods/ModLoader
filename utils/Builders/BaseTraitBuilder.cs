@@ -1,21 +1,25 @@
 ﻿using HarmonyLib;
 using NeoModLoader.General;
+using Newtonsoft.Json;
 
 namespace NeoModLoader.utils.Builders
 {
     /// <summary>
     /// The Base Builder for Trait builders
     /// </summary>
-    public class BaseTraitBuilder<A, AL> : AugmentationAssetBuilder<A, AL> where A : BaseTrait<A> where AL : BaseTraitLibrary<A>
+    public class BaseTraitBuilder<A, AL> : AugmentationAssetBuilder<A, AL> where A : BaseTrait<A>, new() where AL : BaseTraitLibrary<A>
     {
         /// <inheritdoc/>
         public BaseTraitBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
-        public BaseTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+        public BaseTraitBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
         /// <inheritdoc/>
-        protected override void Init()
+        public BaseTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+
+        /// <inheritdoc/>
+        protected override void Init(bool Cloned)
         {
-            base.Init();
+            base.Init(Cloned);
             SetDescription1ID(null);
             SetDescription2ID(null);
             SetNameID(null);
@@ -74,7 +78,17 @@ namespace NeoModLoader.utils.Builders
                 }
             }
         }
-        void LinkWithLibrary()
+        /// <summary>
+        /// if the path is null, tries to do it automatically
+        /// </summary>
+        public void CheckIcon()
+        {
+            if (string.IsNullOrEmpty(Asset.path_icon))
+            {
+                Asset.path_icon = Library.icon_path + Asset.getLocaleID();
+            }
+        }
+        void LinkWithBaseLibrary()
         {
             if (Asset.spawn_random_trait_allowed)
             {
@@ -82,29 +96,93 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <summary>
-        /// when a creature is spawned, this sets the chance they get the trait, this is not out of 100
+        /// automatically sets the rarity depending on its qualities
+        /// </summary>
+        public void SetRarityAutomatically()
+        {
+            if (Asset.unlocked_with_achievement)
+            {
+                Asset.rarity = Rarity.R3_Legendary;
+            }
+            else
+            {
+                bool tHasDecisions = Asset.decision_ids != null;
+                bool tHasSpells = Asset.spells_ids != null;
+                bool tHasCombatActions = Asset.combat_actions_ids != null;
+                bool tHasTag = Asset.base_stats.hasTags();
+                bool tHasPlot = !string.IsNullOrEmpty(Asset.plot_id);
+                int tCount = 0;
+                if (Asset.action_death != null || Asset.action_special_effect != null || Asset.action_get_hit != null || Asset.action_birth != null || Asset.action_attack_target != null || Asset.action_on_add != null || Asset.action_on_remove != null || Asset.action_on_load != null)
+                {
+                    tCount++;
+                }
+                if (tHasDecisions)
+                {
+                    tCount++;
+                }
+                if (tHasSpells)
+                {
+                    tCount++;
+                }
+                if (tHasCombatActions)
+                {
+                    tCount++;
+                }
+                if (tHasTag)
+                {
+                    tCount++;
+                }
+                if (tHasPlot)
+                {
+                    tCount++;
+                }
+                if (tCount > 0)
+                {
+                    if (tCount == 1)
+                    {
+                        Asset.rarity = Rarity.R1_Rare;
+                    }
+                    else
+                    {
+                        Asset.rarity = Rarity.R2_Epic;
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// when a creature/group is spawned, this sets the chance they get the trait, this is not out of 100
         /// </summary>
         public void SetChanceToGetOnCreation(int Chance)
         {
             Asset.spawn_random_rate = Chance;
             Asset.spawn_random_trait_allowed = Chance > 0;
         }
-        /// <summary>
-        /// Builds the Trait, if autolocalize is on it will use the ID'S as the translated text, if you have opposite traits/traits to remove which you build after you build this, link it with the other traits after you build them!
-        /// </summary>
-        public virtual void Build(bool LinkWithOtherTraits = true, bool AutoLocalize = true)
+        /// <inheritdoc/>
+        public override void LinkAssets()
         {
-            if (LinkWithOtherTraits)
-            {
-                LinkWithTraits();
-            }
+            LinkWithTraits();
+            LinkWithActors();
+            base.LinkAssets();
+        }
+        /// <summary>
+        /// Builds the Trait, if autolocalize is on it will use the ID'S as the translated text
+        /// </summary>
+        /// <remarks>
+        /// if you have opposite traits/traits to remove which you build after you build this, link it with the other traits after you build them!
+        /// </remarks>
+        public virtual void Build(bool SetRarityAutomatically = false, bool AutoLocalize = true, bool LinkWithOtherAssets = false)
+        {
             if (AutoLocalize)
             {
                 Localize(Asset.special_locale_id, Asset.special_locale_description, Asset.special_locale_description_2);
             }
-            LinkWithLibrary();
-            LinkWithActors();
-            base.Build();
+            if (SetRarityAutomatically)
+            {
+                this.SetRarityAutomatically();
+            }
+            CheckIcon();
+            LinkWithBaseLibrary();
+            base.Build(LinkWithOtherAssets);
         }
         /// <summary>
         /// Sets the ID of the Localized Description, this does not fully localize the asset, you must either call Localize() or have a localization folder

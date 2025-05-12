@@ -1,15 +1,18 @@
-﻿namespace NeoModLoader.utils.Builders
+﻿using Newtonsoft.Json;
+
+namespace NeoModLoader.utils.Builders
 {
     /// <summary>
     /// A Builder for building augmentation assets
     /// </summary>
-    public class AugmentationAssetBuilder<A, AL> : UnlockableAssetBuilder<A, AL> where A : BaseAugmentationAsset where AL : BaseLibraryWithUnlockables<A>
+    public class AugmentationAssetBuilder<A, AL> : UnlockableAssetBuilder<A, AL> where A : BaseAugmentationAsset, new() where AL : BaseLibraryWithUnlockables<A>
     {
+        /// <inheritdoc/>
+        public AugmentationAssetBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
         /// <inheritdoc/>
         public AugmentationAssetBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
         public AugmentationAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
-
         /// <summary>
         /// Adds a combat action to this Asset, any actors with this Asset will have this actiom, and if this Asset is for a clan/subspecies/etc, any actors in that group will also have it
         /// </summary>
@@ -30,15 +33,13 @@
                 }
             }
         }
-        /// <summary>
-        /// Builds A Augmentation Asset
-        /// </summary>
-        public override void Build()
+        /// <inheritdoc/>
+        public override void LinkAssets()
         {
             LinkDecisions();
             Asset.linkCombatActions();
             Asset.linkSpells();
-            base.Build();
+            base.LinkAssets();
         }
         /// <summary>
         /// Adds a Decision (Neuron) to the Object with this Asset, if the object is a group like clan or subspecies, all actors in the group get this decision
@@ -48,7 +49,6 @@
         /// <summary>
         /// Adds a spell to the Asset, which an actor can use
         /// </summary>
-        /// <param name="ID"></param>
         public void AddSpell(string ID) { Asset.addSpell(ID);}
         /// <summary>
         /// Adds a attack action for a actor with this asset, or a actor apart of a group with this trait

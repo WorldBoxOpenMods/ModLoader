@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace NeoModLoader.utils.Builders
 {
@@ -21,15 +22,9 @@ namespace NeoModLoader.utils.Builders
             SetDescription1ID(Description1);
         }
         /// <inheritdoc/>
-        public ActorTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+        public ActorTraitBuilder(string ID, bool LoadImmediately) : base(ID, LoadImmediately) { }
         /// <inheritdoc/>
-        protected override void CreateAsset(string ID)
-        {
-            Asset = new ActorTrait
-            {
-                id = ID
-            };
-        }
+        public ActorTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
         void LinkWithLibrary()
         {
             if (Asset.combat)
@@ -56,12 +51,12 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <inheritdoc/>
-        public override void Build(bool LinkWithOtherTraits = true, bool AutoLocalize = true)
+        public override void Build(bool SetRarityAutomatically = false, bool LinkWithOtherAssets = false, bool AutoLocalize = true)
         {
             LinkWithLibrary();
             Library.checkDefault(Asset);
             Asset.only_active_on_era_flag = Asset.era_active_moon || Asset.era_active_night;
-            base.Build(LinkWithOtherTraits, AutoLocalize);
+            base.Build(SetRarityAutomatically, LinkWithOtherAssets, AutoLocalize);
         }
 
         /// <summary>

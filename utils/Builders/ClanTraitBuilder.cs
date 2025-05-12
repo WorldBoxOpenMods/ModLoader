@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace NeoModLoader.utils.Builders
 {
@@ -14,13 +10,10 @@ namespace NeoModLoader.utils.Builders
         /// <inheritdoc/>
         public ClanTraitBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
-        protected override void CreateAsset(string ID)
-        {
-            Asset = new ClanTrait
-            {
-                id = ID
-            };
-        }
+        public ClanTraitBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
+        /// <inheritdoc/>
+        public ClanTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+
         /// <summary>
         /// Stats which are applied to Males in this clan
         /// </summary>

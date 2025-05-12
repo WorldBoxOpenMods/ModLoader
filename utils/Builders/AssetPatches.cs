@@ -48,7 +48,6 @@ namespace NeoModLoader.utils
         }
         [HarmonyPatch(typeof(TooltipLibrary), "showTrait")]
         [HarmonyTranspiler]
-
         static IEnumerable<CodeInstruction> ShowCustomStats(IEnumerable<CodeInstruction> instructions)
         {
             CodeMatcher Matcher = new CodeMatcher(instructions);

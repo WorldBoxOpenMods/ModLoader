@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using NeoModLoader.General;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace NeoModLoader.utils.Builders
@@ -10,14 +11,17 @@ namespace NeoModLoader.utils.Builders
     public class ItemBuilder : AugmentationAssetBuilder<ItemAsset, ItemLibrary>
     {
         static string GetEquipmentType(EquipmentType pType) => pType switch
-            {
-                EquipmentType.Weapon => "$melee",
-                EquipmentType.Helmet => "$helmet",
-                EquipmentType.Armor => "$armor",
-                EquipmentType.Boots => "$boots",
-                EquipmentType.Ring => "$ring",
-                EquipmentType.Amulet => "$amulet"
-            };
+        {
+            EquipmentType.Weapon => "$melee",
+            EquipmentType.Helmet => "$helmet",
+            EquipmentType.Armor => "$armor",
+            EquipmentType.Boots => "$boots",
+            EquipmentType.Ring => "$ring",
+            EquipmentType.Amulet => "$amulet",
+            _ => "$equipment"
+        };
+        /// <inheritdoc/>
+        public ItemBuilder(string Path, bool LoadImmediately) : base(Path, LoadImmediately) { }
         /// <inheritdoc/>
         public ItemBuilder(string ID, EquipmentType Type) : base(ID, GetEquipmentType(Type)) { }
         /// <summary>
@@ -30,15 +34,18 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <inheritdoc/>
-        protected override void Init()
+        protected override void Init(bool Cloned)
         {
-            base.Init();
-            Asset.setCost(0);
+            base.Init(Cloned);
+            if (!Cloned)
+            {
+                Asset.setCost(0);
+            }
         }
         /// <inheritdoc/>
-        protected override void CreateAsset(string ID)
+        protected override ItemAsset CreateAsset(string ID)
         {
-            Asset = new ItemAsset
+            return new ItemAsset
             {
                 id = ID,
                 group_id = "sword",
@@ -57,25 +64,8 @@ namespace NeoModLoader.utils.Builders
             Asset.base_stats["projectiles"] = 1f;
             Asset.base_stats["damage_range"] = 0.6f;
         }
-        /// <summary>
-        /// Builds the Item, if description is not null it will automatically localize
-        /// </summary>
-        /// <param name="Description">The Description of the item, if null, localization will have to take place from a localize json file</param>
-        public void Build(string Description = null, bool UnlockedByDefault = true)
-        {
-            if(Description != null)
-            {
-                Localize(Asset.getLocaleID(), Description);
-            }
-            AddWeaponsSprite();
-            LinkWithLibrary();
-            if (UnlockedByDefault)
-            {
-                UnlockByDefault();
-            }
-            base.Build();
-        }
-        void LinkWithLibrary()
+        /// <inheritdoc/>
+        public override void LinkAssets()
         {
             if (Asset.item_modifier_ids != null)
             {
@@ -94,6 +84,30 @@ namespace NeoModLoader.utils.Builders
                     }
                 }
             }
+            base.LinkAssets();
+        }
+        /// <summary>
+        /// Builds the Item, if description is not null it will automatically localize
+        /// </summary>
+        /// <param name="Description">The Description of the item, if null, localization will have to take place from a localize json file</param>
+        /// <param name="UnlockedByDefault">is unlocked by default</param>
+        /// <param name="LinkWithOtherAssets">links with other assets</param>
+        public void Build(string Description = null, bool UnlockedByDefault = true, bool LinkWithOtherAssets = false)
+        {
+            if(Description != null)
+            {
+                Localize(Asset.getLocaleID(), Description);
+            }
+            AddWeaponsSprite();
+            LinkWithLibrary();
+            if (UnlockedByDefault)
+            {
+                UnlockByDefault();
+            }
+            base.Build(LinkWithOtherAssets);
+        }
+        void LinkWithLibrary()
+        {
             if (!Library.equipment_by_subtypes.ContainsKey(Asset.equipment_subtype))
             {
                 Library.equipment_by_subtypes.Add(Asset.equipment_subtype, new List<ItemAsset>());

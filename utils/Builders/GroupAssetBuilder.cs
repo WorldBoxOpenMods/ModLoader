@@ -1,9 +1,5 @@
 ﻿using NeoModLoader.General;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace NeoModLoader.utils.Builders
@@ -16,25 +12,20 @@ namespace NeoModLoader.utils.Builders
         /// <inheritdoc/>
         public GroupAssetBuilder(string ID) : base(ID) { }
         /// <inheritdoc/>
+        public GroupAssetBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
+        /// <inheritdoc/>
         public GroupAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
+
         /// <summary>
         /// Builds The Group Asset
         /// </summary>
-        public void Build(bool AutoLocalize)
+        public override void Build(bool AutoLocalize)
         {
             if (AutoLocalize)
             {
                 Localize();
             }
-            base.Build();
-        }
-        /// <inheritdoc/>
-        protected override void CreateAsset(string ID)
-        {
-            Asset = new A
-            {
-                id = ID
-            };
+            base.Build(false);
         }
         /// <summary>
         /// Localizes the name
@@ -53,9 +44,9 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public string ColorHexCode { get { return Asset.color; } set { Asset.color = value; } }
         /// <summary>
-        /// Sets the color using a Color32
+        /// Sets the color using a Color
         /// </summary>
-        public void SetColor(Color32 color)
+        public void SetColor(Color color)
         {
             ColorHexCode = Toolbox.colorToHex(color);
         }
