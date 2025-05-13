@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Security.Cryptography;
 using UnityEngine;
 
 namespace NeoModLoader.utils
@@ -37,7 +38,7 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be "Randy+randomInt,Unity.Mathematics.Random+NextInt"
         /// </remarks>
-        public static Delegate ToDelegate(this string String, Type Type, Type[] Info)
+        public static Delegate ToDelegate(this string String, Type Type, Type[] Parameters)
         {
             string[] Delegates = String.Split(',');
             Delegate[] action = new Delegate[Delegates.Length];
@@ -45,7 +46,7 @@ namespace NeoModLoader.utils
             {
                 string[] MethodInfos = Delegates[i].Split('+');
                 
-                var m = GetTypeDeepSearch(MethodInfos[0]).GetMethod(MethodInfos[1], Info);
+                var m = GetTypeDeepSearch(MethodInfos[0]).GetMethod(MethodInfos[1], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, Parameters, null);
                 action[i] = m.CreateDelegate(Type);
             }
             return Delegate.Combine(action);
