@@ -35,7 +35,7 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be "Randy+randomInt,Unity.Mathematics.Random+NextInt"
         /// </remarks>
-        public static Delegate ToDelegate(this string String, Type DelegateType, Type[] Parameters)
+        public static Delegate ConvertToDelegate(this string String, Type DelegateType, Type[] Parameters)
         {
             string[] Delegates = String.Split(',');
             Delegate[] action = new Delegate[Delegates.Length];

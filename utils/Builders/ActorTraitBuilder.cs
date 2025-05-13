@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using NeoModLoader.utils.SerializedAssets;
+using Newtonsoft.Json;
 using System.Collections.Concurrent;
 
 namespace NeoModLoader.utils.Builders
@@ -20,6 +21,12 @@ namespace NeoModLoader.utils.Builders
             this.PathIcon = PathIcon;
             this.Group = Group;
             SetDescription1ID(Description1);
+        }
+        /// <inheritdoc/>
+        protected override void LoadFromPath()
+        {
+            SerializedActorTrait assetSerialized = JsonConvert.DeserializeObject<SerializedActorTrait>(File.ReadAllText(FilePathToBuild));
+            Asset = SerializedActorTrait.ToAsset(assetSerialized);
         }
         /// <inheritdoc/>
         public ActorTraitBuilder(string ID, bool LoadImmediately) : base(ID, LoadImmediately) { }

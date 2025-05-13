@@ -1,4 +1,5 @@
 ﻿using NeoModLoader.services;
+using NeoModLoader.utils.SerializedAssets;
 using Newtonsoft.Json;
 using UnityEngine;
 namespace NeoModLoader.utils.Builders
@@ -41,6 +42,9 @@ namespace NeoModLoader.utils.Builders
             Asset = CreateAsset(ID);
             Init(false);
         }
+        /// <summary>
+        /// called after asset is loaded from a file
+        /// </summary>
         protected virtual void PostFileLoad() { }
         internal string FilePathToBuild = null;
         /// <summary>
@@ -83,7 +87,6 @@ namespace NeoModLoader.utils.Builders
         {
             if (FilePathToBuild != null)
             {
-                Debug.Log(FilePathToBuild);
                 try
                 {
                     LoadFromPath();
