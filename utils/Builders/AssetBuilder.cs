@@ -41,6 +41,7 @@ namespace NeoModLoader.utils.Builders
             Asset = CreateAsset(ID);
             Init(false);
         }
+        protected virtual void PostFileLoad() { }
         internal string FilePathToBuild = null;
         /// <summary>
         /// Deserializes a Asset loaded from a file path
@@ -83,14 +84,15 @@ namespace NeoModLoader.utils.Builders
             if (FilePathToBuild != null)
             {
                 Debug.Log(FilePathToBuild);
-              //  try
+                try
                 {
                     LoadFromPath();
+                    PostFileLoad();
                 }
-               /* catch
+                catch
                 {
                     LogService.LogError($"the asset {Path.GetFileName(FilePathToBuild)} is outdated or corrupted!, make sure to serialize it on the latest version and use default serialization settings");
-                }*/
+                }
             }
             Library.add(Asset);
             base.Build(LinkWithOtherAssets);

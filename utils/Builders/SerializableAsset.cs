@@ -35,7 +35,7 @@ namespace NeoModLoader.utils.Builders
             foreach (FieldInfo field in typeof(A).GetFields()) { 
                 object Value = field.GetValue(Asset);
                 if(Value is Delegate){
-                    asset.Delegates.Add(field.Name, new Tuple<string,Type, Type[]>(DelegateExtentions.ToString(Value as Delegate), Value.GetType(), (Value as Delegate).Method.GetParameters().ToTypes()));
+                    asset.Delegates.Add(field.Name, new Tuple<string,Type, Type[]>(DelegateExtentions.ConvertToString(Value as Delegate), Value.GetType(), (Value as Delegate).Method.GetParameters().ToTypes()));
                 }
                 else
                 {

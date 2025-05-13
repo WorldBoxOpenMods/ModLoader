@@ -1,7 +1,4 @@
 ﻿using System.Reflection;
-using System.Security.Cryptography;
-using UnityEngine;
-
 namespace NeoModLoader.utils
 {
     /// <summary>
@@ -38,7 +35,7 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be "Randy+randomInt,Unity.Mathematics.Random+NextInt"
         /// </remarks>
-        public static Delegate ToDelegate(this string String, Type Type, Type[] Parameters)
+        public static Delegate ToDelegate(this string String, Type DelegateType, Type[] Parameters)
         {
             string[] Delegates = String.Split(',');
             Delegate[] action = new Delegate[Delegates.Length];
@@ -47,7 +44,7 @@ namespace NeoModLoader.utils
                 string[] MethodInfos = Delegates[i].Split('+');
                 
                 var m = GetTypeDeepSearch(MethodInfos[0]).GetMethod(MethodInfos[1], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, Parameters, null);
-                action[i] = m.CreateDelegate(Type);
+                action[i] = m.CreateDelegate(DelegateType);
             }
             return Delegate.Combine(action);
         }
@@ -57,7 +54,7 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be delegate Randy.randomInt and Unity.Mathematics.Random.NextInt would become "Randy+randomInt,Unity.Mathematics.Random+NextInt"
         /// </remarks>
-        public static string ToString(this Delegate pDelegate)
+        public static string ConvertToString(this Delegate pDelegate)
         {
             if (pDelegate == null)
             {

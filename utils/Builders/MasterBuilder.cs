@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace NeoModLoader.utils.Builders
+﻿namespace NeoModLoader.utils.Builders
 {
     /// <summary>
     /// A manager for your builders, meant so you can link all of your assets together
@@ -32,7 +30,6 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public void BuildAll()
         {
-            Debug.Log(Builders.Count);
             foreach (var builder in Builders)
             {
                 builder.Build(false);

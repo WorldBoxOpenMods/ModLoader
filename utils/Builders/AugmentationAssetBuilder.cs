@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace NeoModLoader.utils.Builders
+﻿namespace NeoModLoader.utils.Builders
 {
     /// <summary>
     /// A Builder for building augmentation assets
@@ -51,13 +49,9 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public void AddSpell(string ID) { Asset.addSpell(ID);}
         /// <summary>
-        /// Adds a attack action for a actor with this asset, or a actor apart of a group with this trait
+        /// an action performed on something hit by this object or an object apart of a group with this trait
         /// </summary>
-        /// <param name="Action"></param>
-        public void AddAttackAction(AttackAction Action)
-        {
-            Asset.action_attack_target += Action;
-        }
+        public AttackAction AttackAction { get { return Asset.action_attack_target; } set { Asset.action_attack_target = value; } }
         /// <summary>
         /// The Action Performed on something, when this asset is added to it!
         /// </summary>

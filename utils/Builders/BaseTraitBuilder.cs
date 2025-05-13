@@ -39,6 +39,11 @@ namespace NeoModLoader.utils.Builders
         {
             Asset.traits_to_remove_ids.AddItem(ID);
         }
+        /// <inheritdoc/>
+        protected override void PostFileLoad()
+        {
+            Localize(Asset.special_locale_id, Asset.special_locale_description, Asset.special_locale_description_2);
+        }
 
         void LinkWithActors()
         {

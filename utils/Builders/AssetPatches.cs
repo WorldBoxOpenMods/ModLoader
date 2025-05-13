@@ -36,7 +36,7 @@ namespace NeoModLoader.utils
         }
         static BaseStats[] GetCustomStats(ActorTrait trait)
         {
-            if(SelectedUnit.unit == null)
+            if(SelectedUnit.unit == null || !SelectedUnit.unit.hasTrait(trait))
             {
                 return Array.Empty<BaseStats>();
             }
