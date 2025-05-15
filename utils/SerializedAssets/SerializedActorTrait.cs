@@ -14,11 +14,14 @@ namespace NeoModLoader.utils.SerializedAssets
         /// <summary>
         /// Converts the actor trait asset to a serializable version
         /// </summary>
-        public static SerializedActorTrait FromAsset(ActorTrait Asset, GetAdditionalBaseStatsMethod Method)
+        public static SerializedActorTrait FromAsset(ActorTrait Asset, GetAdditionalBaseStatsMethod Method = null)
         {
             SerializedActorTrait asset = new SerializedActorTrait();
             Serialize(Asset, asset);
-            asset.AdditionalBaseStatsMethod = Method.ConvertToString();
+            if (Method != null)
+            {
+                asset.AdditionalBaseStatsMethod = Method.ConvertToString();
+            }
             return asset;
         }
         static readonly Type[] Parameters = new Type[1] {typeof(Actor) };

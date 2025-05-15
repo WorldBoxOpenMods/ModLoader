@@ -23,7 +23,7 @@ namespace NeoModLoader.utils.Builders
             SetDescription1ID(Description1);
         }
         /// <inheritdoc/>
-        protected override void LoadFromPath()
+        protected override void LoadFromPath(string FilePathToBuild)
         {
             SerializedActorTrait assetSerialized = JsonConvert.DeserializeObject<SerializedActorTrait>(File.ReadAllText(FilePathToBuild));
             Asset = SerializedActorTrait.ToAsset(assetSerialized);

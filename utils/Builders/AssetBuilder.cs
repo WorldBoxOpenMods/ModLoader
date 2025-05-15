@@ -28,10 +28,22 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// Loads the asset from FilePathToBuild
         /// </summary>
-        protected virtual void LoadFromPath()
+        protected virtual void LoadFromPath(string FilePathToBuild)
         {
             SerializableAsset<A> assetSerialized = JsonConvert.DeserializeObject<SerializableAsset<A>>(File.ReadAllText(FilePathToBuild));
             Asset = SerializableAsset<A>.ToAsset(assetSerialized);
+        }
+        void LoadAssetFromPath(string FilePathToBuild)
+        {
+            try
+            {
+                LoadFromPath(FilePathToBuild);
+                PostFileLoad();
+            }
+            catch
+            {
+                LogService.LogError($"the asset {Path.GetFileName(FilePathToBuild)} is outdated or corrupted!, make sure to serialize it on the latest version and use default serialization settings");
+            }
         }
         /// <summary>
         /// Creates a builder with a new asset with Id ID, other variables are default
@@ -58,7 +70,7 @@ namespace NeoModLoader.utils.Builders
         {
             if (LoadImmediately)
             {
-                Asset = JsonConvert.DeserializeObject<A>(File.ReadAllText(FilePath));
+                LoadAssetFromPath(FilePath);
             }
             else
             {
@@ -86,15 +98,7 @@ namespace NeoModLoader.utils.Builders
         {
             if (FilePathToBuild != null)
             {
-                try
-                {
-                    LoadFromPath();
-                    PostFileLoad();
-                }
-                catch
-                {
-                    LogService.LogError($"the asset {Path.GetFileName(FilePathToBuild)} is outdated or corrupted!, make sure to serialize it on the latest version and use default serialization settings");
-                }
+               LoadAssetFromPath(FilePathToBuild);
             }
             Library.add(Asset);
             base.Build(LinkWithOtherAssets);
