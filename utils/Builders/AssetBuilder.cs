@@ -1,7 +1,6 @@
 ﻿using NeoModLoader.services;
 using NeoModLoader.utils.SerializedAssets;
 using Newtonsoft.Json;
-using UnityEngine;
 namespace NeoModLoader.utils.Builders
 {
     /// <summary>
@@ -9,6 +8,7 @@ namespace NeoModLoader.utils.Builders
     /// </summary>
     public class AssetBuilder<A, AL> : Builder where A : Asset, new() where AL : AssetLibrary<A>
     {
+        private AssetBuilder() { Library = GetLibrary(); }
         /// <summary>
         /// The Asset being built
         /// </summary>
@@ -26,7 +26,7 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         protected virtual void Init(bool Cloned) { }
         /// <summary>
-        /// Loads the asset from a file path
+        /// Loads the asset from FilePathToBuild
         /// </summary>
         protected virtual void LoadFromPath()
         {
@@ -36,9 +36,8 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// Creates a builder with a new asset with Id ID, other variables are default
         /// </summary>
-        public AssetBuilder(string ID)
+        public AssetBuilder(string ID) : this()
         {
-            Library = GetLibrary();
             Asset = CreateAsset(ID);
             Init(false);
         }
@@ -48,14 +47,15 @@ namespace NeoModLoader.utils.Builders
         protected virtual void PostFileLoad() { }
         internal string FilePathToBuild = null;
         /// <summary>
-        /// Deserializes a Asset loaded from a file path
+        /// Deserializes a Asset loaded from a file path 
         /// </summary>
         /// <remarks>
-        /// if LoadImmediatly is false, make sure to build this!
+        /// if LoadImmediatly is false, the asset will be loaded when built
         /// </remarks>
-        public AssetBuilder(string FilePath, bool LoadImmediately)
+        /// <param name="FilePath">this path starts from the operating system root</param>
+        /// <param name="LoadImmediately">the reason for this is when NML automatically loads file assets, it loads the assets before the mod is compiled, and so it then has to deserialize the assets after the mod is compiled because the assets could have delegates which point to the mod, and deserialization will produce an error if the delegates point to nothing</param>
+        public AssetBuilder(string FilePath, bool LoadImmediately) : this()
         {
-            Library = GetLibrary();
             if (LoadImmediately)
             {
                 Asset = JsonConvert.DeserializeObject<A>(File.ReadAllText(FilePath));
@@ -69,9 +69,8 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// Creates a builder, and the asset being built is copied off a asset with ID CopyFrom
         /// </summary>
-        public AssetBuilder(string ID, string CopyFrom)
+        public AssetBuilder(string ID, string CopyFrom) : this()
         {
-            Library = GetLibrary();
             Library.clone(out A Asset, Library.get(CopyFrom));
             Asset.id = ID;
             this.Asset = Asset;
