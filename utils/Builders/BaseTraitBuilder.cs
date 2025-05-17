@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using NeoModLoader.General;
-using Newtonsoft.Json;
 
 namespace NeoModLoader.utils.Builders
 {
@@ -33,6 +32,13 @@ namespace NeoModLoader.utils.Builders
             Asset.addOpposite(ID);
         }
         /// <summary>
+        /// adds a tag to the assets base stats meta
+        /// </summary>
+        public void AddMetaTag(string Tag)
+        {
+            Asset.base_stats_meta.addTag(Tag);
+        }
+        /// <summary>
         /// Adds a trait which this trait automatically removes when it is added to a object
         /// </summary>
         public void AddTraitToRemove(string ID)
@@ -40,9 +46,23 @@ namespace NeoModLoader.utils.Builders
             Asset.traits_to_remove_ids.AddItem(ID);
         }
         /// <inheritdoc/>
-        protected override void PostFileLoad()
+        public override void Build(bool LinkWithOtherAssets)
         {
-            Localize(Asset.special_locale_id, Asset.special_locale_description, Asset.special_locale_description_2);
+            Build(false, true, LinkWithOtherAssets);
+        }
+        /// <summary>
+        /// all other traits in the library will be added to the opposites list if the ShouldOppose function returns true
+        /// </summary>
+        /// <param name="ShouldOppose">a function which has a trait as input and outputs true if added to opposites list</param>
+        public void OpposeAllOtherTraits(Func<A, bool> ShouldOppose)
+        {
+            foreach(A asset in Library.list)
+            {
+                if (asset.id != Asset.id && ShouldOppose(asset))
+                {
+                    Asset.addOpposite(asset.id);
+                }
+            }
         }
 
         void LinkWithActors()
@@ -77,8 +97,8 @@ namespace NeoModLoader.utils.Builders
                 Asset.traits_to_remove = new A[tCount];
                 for (int i = 0; i < tCount; i++)
                 {
-                    string tID2 = Asset.traits_to_remove_ids[i];
-                    A tTraitToAdd = Library.get(tID2);
+                    string ID = Asset.traits_to_remove_ids[i];
+                    A tTraitToAdd = Library.get(ID);
                     Asset.traits_to_remove[i] = tTraitToAdd;
                 }
             }
@@ -177,6 +197,7 @@ namespace NeoModLoader.utils.Builders
         /// </remarks>
         public virtual void Build(bool SetRarityAutomatically = false, bool AutoLocalize = true, bool LinkWithOtherAssets = false)
         {
+            base.Build(LinkWithOtherAssets);
             if (AutoLocalize)
             {
                 Localize(Asset.special_locale_id, Asset.special_locale_description, Asset.special_locale_description_2);
@@ -187,7 +208,6 @@ namespace NeoModLoader.utils.Builders
             }
             CheckIcon();
             LinkWithBaseLibrary();
-            base.Build(LinkWithOtherAssets);
         }
         /// <summary>
         /// Sets the ID of the Localized Description, this does not fully localize the asset, you must either call Localize() or have a localization folder
@@ -254,6 +274,9 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// The Displayed Rarity of the Trait
         /// </summary>
+        /// <remarks>
+        /// also, sometimes this controls how common it is like in subspecies traits
+        /// </remarks>
         public Rarity Rarity { get { return Asset.rarity; } set { Asset.rarity = value; } }
         /// <summary>
         /// just like base stats, but mainly used to add Tags, not stats
@@ -287,9 +310,5 @@ namespace NeoModLoader.utils.Builders
         /// this stores an ID of a plot asset, used for religions, if a religion trait has a plotID, the plot can be done by the religion with the trait
         /// </summary>
         public string PlotID { get { return Asset.plot_id; } set { Asset.plot_id = value; } }
-        /// <summary>
-        /// Used for phenotypes in subspecies, if true the icon will not use the path icon, instead it will use a phenotype color attached to the subspecies trait
-        /// </summary>
-        public bool UsesSpecialIconLogic { get { return Asset.special_icon_logic; } set {  Asset.special_icon_logic = value;} }
     }
 }

@@ -3,7 +3,7 @@
     /// <summary>
     /// A Builder to create clan traits
     /// </summary>
-    public class ClanTraitBuilder : BaseTraitBuilder<ClanTrait, ClanTraitLibrary>
+    public sealed class ClanTraitBuilder : BaseTraitBuilder<ClanTrait, ClanTraitLibrary>
     {
         /// <inheritdoc/>
         public ClanTraitBuilder(string ID) : base(ID) { }

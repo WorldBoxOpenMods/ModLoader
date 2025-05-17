@@ -6,7 +6,7 @@ namespace NeoModLoader.utils.Builders
     /// <summary>
     /// A Builder to create group/category assets
     /// </summary>
-    public class GroupAssetBuilder<A> : AssetBuilder<A, AssetLibrary<A>> where A : BaseCategoryAsset, new()
+    public sealed class GroupAssetBuilder<A> : AssetBuilder<A, AssetLibrary<A>> where A : BaseCategoryAsset, new()
     {
         /// <inheritdoc/>
         public GroupAssetBuilder(string ID) : base(ID) { }

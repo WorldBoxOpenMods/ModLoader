@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using NeoModLoader.General;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace NeoModLoader.utils.Builders
@@ -8,7 +7,7 @@ namespace NeoModLoader.utils.Builders
     /// <summary>
     ///  A Builder to build items
     /// </summary>
-    public class ItemBuilder : AugmentationAssetBuilder<ItemAsset, ItemLibrary>
+    public sealed class ItemBuilder : AugmentationAssetBuilder<ItemAsset, ItemLibrary>
     {
         static string GetEquipmentType(EquipmentType pType) => pType switch
         {

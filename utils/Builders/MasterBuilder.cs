@@ -15,7 +15,7 @@
             return Builder;
         }
         /// <summary>
-        /// Adds a builder
+        /// Adds's builders
         /// </summary>
         public void AddBuilders(IEnumerable<Builder> Builders)
         {

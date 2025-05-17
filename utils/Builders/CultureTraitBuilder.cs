@@ -5,7 +5,7 @@ namespace NeoModLoader.utils.Builders
     /// <summary>
     /// A Builder to build culture traits
     /// </summary>
-    public class CultureTraitBuilder : BaseTraitBuilder<CultureTrait, CultureTraitLibrary>
+    public sealed class CultureTraitBuilder : BaseTraitBuilder<CultureTrait, CultureTraitLibrary>
     {
         /// <inheritdoc/>
         public CultureTraitBuilder(string ID) : base(ID) { }

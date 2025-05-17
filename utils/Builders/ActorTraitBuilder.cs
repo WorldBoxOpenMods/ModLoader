@@ -58,12 +58,12 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <inheritdoc/>
-        public override void Build(bool SetRarityAutomatically = false, bool LinkWithOtherAssets = false, bool AutoLocalize = true)
+        public override void Build(bool SetRarityAutomatically = false, bool AutoLocalize = true, bool LinkWithOtherAssets = false)
         {
+            base.Build(SetRarityAutomatically, AutoLocalize, LinkWithOtherAssets);
             LinkWithLibrary();
             Library.checkDefault(Asset);
             Asset.only_active_on_era_flag = Asset.era_active_moon || Asset.era_active_night;
-            base.Build(SetRarityAutomatically, LinkWithOtherAssets, AutoLocalize);
         }
 
         /// <summary>

@@ -38,7 +38,6 @@ namespace NeoModLoader.utils.Builders
             try
             {
                 LoadFromPath(FilePathToBuild);
-                PostFileLoad();
             }
             catch
             {
@@ -53,10 +52,6 @@ namespace NeoModLoader.utils.Builders
             Asset = CreateAsset(ID);
             Init(false);
         }
-        /// <summary>
-        /// called after asset is loaded from a file
-        /// </summary>
-        protected virtual void PostFileLoad() { }
         internal string FilePathToBuild = null;
         /// <summary>
         /// Deserializes a Asset loaded from a file path 
@@ -83,10 +78,18 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public AssetBuilder(string ID, string CopyFrom) : this()
         {
-            Library.clone(out A Asset, Library.get(CopyFrom));
-            Asset.id = ID;
-            this.Asset = Asset;
-            Init(true);
+            bool Cloned = CopyFrom != null;
+            if (Cloned)
+            {
+                Library.clone(out A Asset, Library.get(CopyFrom));
+                Asset.id = ID;
+                this.Asset = Asset;
+            }
+            else
+            {
+                Asset = CreateAsset(ID);
+            }
+            Init(Cloned);
         }
         AL GetLibrary() {
             return AssetManager._instance._list.OfType<AL>().FirstOrDefault() ?? throw new NotImplementedException($"No library found for {typeof(A).Name}!");

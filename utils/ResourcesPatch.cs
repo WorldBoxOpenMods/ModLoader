@@ -98,6 +98,7 @@ public static class ResourcesPatch
     {
         //"actorasset" => new ActorAssetBuilder(Path, false),
         ".actortraitasset" => new ActorTraitBuilder(Path, false),
+        ".subspeciestraitasset" => new SubspeciesTraitBuilder(Path, false),
         ".itemasset" => new ItemBuilder(Path, false),
         ".itemmodifierasset" => new ItemModifierBuilder(Path, false),
         ".clantraitasset" => new ClanTraitBuilder(Path, false),

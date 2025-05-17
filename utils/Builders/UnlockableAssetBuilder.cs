@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace NeoModLoader.utils.Builders
+﻿namespace NeoModLoader.utils.Builders
 {
     /// <summary>
     /// A builder for building unlockable assets

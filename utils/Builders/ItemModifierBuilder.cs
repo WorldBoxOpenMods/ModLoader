@@ -6,10 +6,10 @@ namespace NeoModLoader.utils.Builders
     /// <summary>
     /// A Builder which creates item modifiers!
     /// </summary>
-    public class ItemModifierBuilder : AugmentationAssetBuilder<ItemAsset, ItemModifierLibrary>
+    public sealed class ItemModifierBuilder : AugmentationAssetBuilder<ItemAsset, ItemModifierLibrary>
     {
         /// <inheritdoc/>
-        public ItemModifierBuilder(string Path, bool LoadImmediately) :base(Path, LoadImmediately) { }
+        public ItemModifierBuilder(string FilePath, bool LoadImmediately) :base(FilePath, LoadImmediately) { }
         /// <summary>
         /// A Modifier Builder
         /// </summary>
@@ -40,7 +40,7 @@ namespace NeoModLoader.utils.Builders
             LinkWithLibrary();
             if (Localize)
             {
-                LM.AddToCurrentLocale(Asset.getLocaleID(), NameID ?? Asset.getLocaleID());
+                LM.AddToCurrentLocale(Asset.getLocaleID(), Asset.getLocaleID());
             }
             base.Build(LinkWithOtherAssets);
         }

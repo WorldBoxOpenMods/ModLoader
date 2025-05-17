@@ -24,7 +24,6 @@ namespace NeoModLoader.utils.SerializedAssets
             }
             return asset;
         }
-        static readonly Type[] Parameters = new Type[1] {typeof(Actor) };
         /// <summary>
         /// Converts the serializable version to a actor trait asset
         /// </summary>
@@ -34,7 +33,7 @@ namespace NeoModLoader.utils.SerializedAssets
             Deserialize(Asset, asset);
             if (Asset.AdditionalBaseStatsMethod != null)
             {
-                ActorTraitBuilder.AdditionalBaseStatMethods.TryAdd(asset.id, (GetAdditionalBaseStatsMethod)Asset.AdditionalBaseStatsMethod.ConvertToDelegate(typeof(GetAdditionalBaseStatsMethod), Parameters));
+                ActorTraitBuilder.AdditionalBaseStatMethods.TryAdd(asset.id, (GetAdditionalBaseStatsMethod)Asset.AdditionalBaseStatsMethod.ConvertToDelegate(typeof(GetAdditionalBaseStatsMethod)));
             }
             return asset;
         }
