@@ -1,10 +1,8 @@
-﻿
-using FMOD;
+﻿using FMOD;
 using FMODUnity;
 using HarmonyLib;
 using NeoModLoader.services;
 using Newtonsoft.Json;
-using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace NeoModLoader.utils;
@@ -88,6 +86,13 @@ public struct ChannelContainer
         this.PosAndVolume = PosAndVolume;
         AttachedTo = attachedTo;
     }
+    /// <summary>
+    /// returns true if the channel has stopped playing or something wrong happened
+    /// </summary>
+    public readonly bool Finushed
+    {
+        get { return Channel.isPlaying(out bool IsPlaying) != RESULT.OK || !IsPlaying; }
+    }
 }
 /// <summary>
 /// A Manager for managing your custom sounds!
@@ -105,12 +110,12 @@ public class CustomAudioManager
         SFXGroup.setVolume(GetVolume(SoundType.Sound));
         MusicGroup.setVolume(GetVolume(SoundType.Music));
         UIGroup.setVolume(GetVolume(SoundType.UI));
-        for (int i =0; i < channels.Count; i++)
+        for (int i =0; i < Channels.Count; i++)
         {
-            ChannelContainer C = channels[i];
+            ChannelContainer C = Channels[i];
             if (!UpdateChannel(C))
             {
-                channels.Remove(C);
+                Channels.Remove(C);
                 i--;
             }
         }
@@ -118,7 +123,8 @@ public class CustomAudioManager
     [HarmonyPrefix]
     [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playSound), typeof(string), typeof(float), typeof(float),
     typeof(bool), typeof(bool))]
-    static bool LoadCustomSound(string pSoundPath, float pX, float pY, bool pGameViewOnly)
+    [HarmonyPriority(Priority.Last)]
+    static bool PlaySoundPatch(string pSoundPath, float pX, float pY, bool pGameViewOnly)
     {
         if (!MusicBox.sounds_on)
         {
@@ -129,8 +135,38 @@ public class CustomAudioManager
             return false;
         }
         if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
-        LoadCustomSound(pX, pY, pSoundPath);
+        LoadCustomSound(pSoundPath, pX, pY);
         return false;
+    }
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playDrawingSound))]
+    [HarmonyPriority(Priority.Last)]
+    static bool PlayDrawingSoundPatch(string pSoundPath, float pX, float pY)
+    {
+        if (!MusicBox.sounds_on)
+        {
+            return false;
+        }
+        if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
+        LoadDrawingSound(pSoundPath, pX, pY);
+        return false;
+    }
+    /// <summary>
+    /// plays a sound at a location unless another sound with the same path is playing, then the other sound is set to that position 
+    /// </summary>
+    public static ChannelContainer LoadDrawingSound(string pSoundPath, float pX, float pY)
+    {
+        if(DrawingSounds.TryGetValue(pSoundPath, out ChannelContainer container) && !container.Finushed)
+        {
+            SetChannelPosition(container, pX, pY);
+        }
+        else
+        {
+            DrawingSounds.Remove(pSoundPath);
+            container = LoadCustomSound(pSoundPath, pX, pY);
+            DrawingSounds.Add(pSoundPath, container);
+        }
+        return container;
     }
     /// <summary>
     /// Loads a custom sound from the wav library
@@ -139,8 +175,8 @@ public class CustomAudioManager
     /// <param name="pY">the Y position</param>
     /// <param name="pSoundPath">the ID of the wav file, aka its file name</param>
     /// <param name="AttachedTo">The transform to attach the sound to</param>
-    /// <returns>The ID of the channel that the sound is playing in, -1 if failed</returns>
-    public static int LoadCustomSound(float pX, float pY, string pSoundPath, Transform AttachedTo = null)
+    /// <returns>The ID of the channel that the sound is playing in, default if failed</returns>
+    public static ChannelContainer LoadCustomSound(string pSoundPath, float pX, float pY, Transform AttachedTo = null)
     {
         WavContainer WAV = AudioWavLibrary[pSoundPath];
         if(WAV.Mode == SoundMode.Basic)
@@ -150,7 +186,7 @@ public class CustomAudioManager
         if (fmodSystem.createSound(WAV.Path, WAV.Mode == SoundMode.Stereo3D ? MODE.LOOP_NORMAL | MODE._3D : MODE.LOOP_NORMAL, out var sound) != RESULT.OK)
         {
             LogService.LogError($"Unable to play sound {pSoundPath}!");
-            return -1;
+            return default;
         }
         sound.setLoopCount(WAV.LoopCount);
         Channel channel = default;
@@ -165,7 +201,7 @@ public class CustomAudioManager
         if (WAV.Mode == SoundMode.Stereo3D) {
             SetChannelPosition(channel, pX, pY);
         }
-        return channels.Count-1;
+        return Channels[Channels.Count-1];
     }
     internal static void Initialize()
     {
@@ -189,7 +225,7 @@ public class CustomAudioManager
     }
     internal static void AddChannel(Channel channel, Transform AttachedTo = null, Vector3 PosAndVolume = default)
     {
-        channels.Add(new(channel, AttachedTo, PosAndVolume));
+        Channels.Add(new(channel, AttachedTo, PosAndVolume));
     }
     /// <summary>
     ///    Allows the Modder to modify the data of the wav file at runtime
@@ -204,25 +240,15 @@ public class CustomAudioManager
     }
     static bool UpdateChannel(ChannelContainer channel)
     {
-        channel.Channel.isPlaying(out bool isPlaying);
-        if (!isPlaying)
+        if (channel.Finushed)
         {
             return false;
         }
-        bool IsMono = channel.PosAndVolume != default;
         if (channel.AttachedTo != null)
         {
-            if (!IsMono)
-            {
-                SetChannelPosition(channel.Channel, channel.AttachedTo.position.x, channel.AttachedTo.position.y);
-            }
-            else
-            {
-                channel.PosAndVolume.x  = channel.AttachedTo.position.x;
-                channel.PosAndVolume.y = channel.AttachedTo.position.y;
-            }
+            SetChannelPosition(channel, channel.AttachedTo.position.x, channel.AttachedTo.position.y);
         }
-        if(IsMono)
+        if(channel.PosAndVolume != default)
         {
             UpdateMonoVolume(channel);
         }
@@ -241,11 +267,26 @@ public class CustomAudioManager
     [HarmonyPatch(typeof(MapBox), nameof(MapBox.clearWorld))]
     public static void ClearAllCustomSounds()
     {
-        foreach (var channel in channels)
+        foreach (var channel in Channels)
         {
             channel.Channel.stop();
         }
-        channels.Clear();
+        Channels.Clear();
+    }
+    /// <summary>
+    /// Sets the position of a channel, channel must be 3D
+    /// </summary>
+    public static void SetChannelPosition(ChannelContainer channel, float pX, float pY)
+    {
+        if (channel.PosAndVolume == default)
+        {
+            SetChannelPosition(channel.Channel, pX, pY);
+        }
+        else
+        {
+            channel.PosAndVolume.x = pX;
+            channel.PosAndVolume.y = pY;
+        }
     }
     /// <summary>
     /// Sets the position of a channel, channel must be Stereo-3D
@@ -278,9 +319,6 @@ public class CustomAudioManager
         return Volume;
     }
     internal static readonly Dictionary<string, WavContainer> AudioWavLibrary = new();
-    static readonly List<ChannelContainer> channels = new();
-    /// <summary>
-    /// A list of channel containers storing the audio channels, you can access this to modify their settings
-    /// </summary>
-    public static ReadOnlyCollection<ChannelContainer> ChannelList { get { return channels.AsReadOnly(); } }
+    static readonly List<ChannelContainer> Channels = new();
+    static readonly Dictionary<string, ChannelContainer> DrawingSounds = new();
 }
