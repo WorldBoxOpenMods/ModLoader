@@ -13,7 +13,7 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// A Modifier Builder
         /// </summary>
-        public ItemModifierBuilder(string ID, int Tier = 0) : base(ID + Tier) { Asset.mod_rank = Tier; Asset.mod_type = ID; }
+        public ItemModifierBuilder(string ID, int Tier = 1) : base(ID + Tier, ID+1) { Asset.mod_rank = Tier; Asset.mod_type = ID; }
         void LinkWithLibrary()
         {
             for (int i = 0; i < Asset.rarity; i++)
