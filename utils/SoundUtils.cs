@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace NeoModLoader.utils;
 /// <summary>
-/// The Type used for which sound group this sound goes into, UI, Music, and sound which control its volume
+/// The Type used for which sound group this sound goes into, UI, Music, and SFX which control its volume
 /// </summary>
 public enum SoundType
 {
@@ -16,7 +16,7 @@ public enum SoundType
     /// </summary>
     Music,
     /// <summary>
-    /// Apart of the Sound Group
+    /// Apart of the Sound Group (SFX)
     /// </summary>
     Sound,
     /// <summary>
@@ -128,11 +128,11 @@ public class CustomAudioManager
     {
         if (!MusicBox.sounds_on)
         {
-            return false;
+            return true;
         }
         if (pGameViewOnly && World.world.quality_changer.isLowRes())
         {
-            return false;
+            return true;
         }
         if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
         LoadCustomSound(pSoundPath, pX, pY);
@@ -145,7 +145,7 @@ public class CustomAudioManager
     {
         if (!MusicBox.sounds_on)
         {
-            return false;
+            return true;
         }
         if (!AudioWavLibrary.ContainsKey(pSoundPath)) return true;
         LoadDrawingSound(pSoundPath, pX, pY);
@@ -173,19 +173,19 @@ public class CustomAudioManager
     /// </summary>
     /// <param name="pX">the X position</param>
     /// <param name="pY">the Y position</param>
-    /// <param name="pSoundPath">the ID of the wav file, aka its file name</param>
+    /// <param name="WAVName">the ID of the wav file, aka its file name</param>
     /// <param name="AttachedTo">The transform to attach the sound to</param>
     /// <returns>The ID of the channel that the sound is playing in, default if failed</returns>
-    public static ChannelContainer LoadCustomSound(string pSoundPath, float pX, float pY, Transform AttachedTo = null)
+    public static ChannelContainer LoadCustomSound(string WAVName, float pX, float pY, Transform AttachedTo = null)
     {
-        WavContainer WAV = AudioWavLibrary[pSoundPath];
+        WavContainer WAV = AudioWavLibrary[WAVName];
         if(WAV.Mode == SoundMode.Basic)
         {
             AttachedTo = null;
         }
         if (fmodSystem.createSound(WAV.Path, WAV.Mode == SoundMode.Stereo3D ? MODE.LOOP_NORMAL | MODE._3D : MODE.LOOP_NORMAL, out var sound) != RESULT.OK)
         {
-            LogService.LogError($"Unable to play sound {pSoundPath}!");
+            LogService.LogError($"Unable to play sound {WAVName}!");
             return default;
         }
         sound.setLoopCount(WAV.LoopCount);
