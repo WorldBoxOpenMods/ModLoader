@@ -23,24 +23,6 @@
         SkinMutation
     }
     /// <summary>
-    /// animation type used for subspeciestraitbuilder.setanimation
-    /// </summary>
-    public enum AnimationType
-    {
-        /// <summary>
-        /// animation played when actors are idle
-        /// </summary>
-        Idle,
-        /// <summary>
-        /// animation played when actors are swimming
-        /// </summary>
-        Swim,
-        /// <summary>
-        /// animation played when actors are walking
-        /// </summary>
-        Walk
-    }
-    /// <summary>
     /// a builder which creates subspecies traits
     /// </summary>
     public sealed class SubspeciesTraitBuilder : BaseTraitBuilder<SubspeciesTrait, SubspeciesTraitLibrary>
@@ -85,11 +67,11 @@
                 Asset.phenotype_skin = true;
                 Asset.id_phenotype = ID;
                 Asset.group_id = "phenotypes";
-                SetNameID("subspecies_trait_phenotype");
-                SetDescription1ID("subspecies_trait_phenotype_info");
+                NameID = "subspecies_trait_phenotype";
+                Description1ID = ("subspecies_trait_phenotype_info");
                 Asset.spawn_random_trait_allowed = false;
             }
-            else if(Type == SubSpeciesTrait.Egg)
+            else if (Type == SubSpeciesTrait.Egg)
             {
                 Asset.id_egg = Asset.id;
                 Asset.sprite_path = "eggs/" + Asset.id_egg;
@@ -126,7 +108,7 @@
         /// <inheritdoc/>
         public override void LinkAssets()
         {
-            if(Asset.id_phenotype != null)
+            if (Asset.id_phenotype != null)
             {
                 PhenotypeAsset Phenotype = AssetManager.phenotype_library.get(Asset.id_phenotype);
                 Phenotype.subspecies_trait_id = Asset.id;
@@ -134,17 +116,18 @@
             }
             if (Asset.is_mutation_skin)
             {
-                OpposeAllOtherTraits((SubspeciesTrait trait) => trait.is_mutation_skin);
+                OpposeAllOtherTraits = new[] { (SubspeciesTrait trait) => trait.is_mutation_skin };
             }
             if (Asset.phenotype_skin)
             {
-                OpposeAllOtherTraits((SubspeciesTrait trait) => trait.phenotype_skin);
+                OpposeAllOtherTraits = new[] { (SubspeciesTrait trait) => trait.phenotype_skin };
             }
             if (Asset.phenotype_egg)
             {
-                OpposeAllOtherTraits((SubspeciesTrait trait) => trait.phenotype_egg);
+                OpposeAllOtherTraits = new[] { (SubspeciesTrait trait) => trait.phenotype_egg };
             }
             base.LinkAssets();
+            
         }
         /// <inheritdoc/>
         public SubspeciesTraitBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
@@ -155,19 +138,26 @@
         /// </summary>
         public bool UsesSpecialIconLogic { get { return Asset.special_icon_logic; } set { Asset.special_icon_logic = value; } }
         /// <summary>
-        /// sets the file names used for actorsin this subspecies's animations, use ActorAnimationSequences as it already has lists of these for you
+        /// the file names used for actors in this subspecies's swim animations, along with its speed (default 10)
         /// </summary>
         /// <remarks>
-        /// an example would be trait.SetAnimation(AnimationType.Walk, new string[] { "walk_0", "walk_4" }, 2);
+        /// use ActorAnimationSequences as it already has lists of these for you
         /// </remarks>
-        public void SetAnimation(AnimationType type, string[] strings, float Speed)
-        {
-            switch (type) {
-                case AnimationType.Swim: Asset.animation_swim = strings; Asset.animation_swim_speed = Speed; break;
-                case AnimationType.Walk: Asset.animation_walk = strings; Asset.animation_walk_speed = Speed; break;
-                case AnimationType.Idle: Asset.animation_idle = strings; Asset.animation_idle_speed = Speed; break;
-            }
-        }
+        public ValueTuple<string[], float> SwimAnimation { get { return new(Asset.animation_swim, Asset.animation_swim_speed); } set { Asset.animation_swim = value.Item1; Asset.animation_swim_speed = value.Item2; } }
+        /// <summary>
+        /// the file names used for actors in this subspecies's walk animations, along with its speed (default 10)
+        /// </summary>
+        /// <remarks>
+        /// use ActorAnimationSequences as it already has lists of these for you
+        /// </remarks>
+        public ValueTuple<string[], float> WalkAnimation { get { return new(Asset.animation_walk, Asset.animation_walk_speed); } set { Asset.animation_walk = value.Item1; Asset.animation_walk_speed = value.Item2; } }
+        /// <summary>
+        /// the file names used for actors in this subspecies's idle animations, along with its speed (default 10)
+        /// </summary>
+        /// <remarks>
+        /// use ActorAnimationSequences as it already has lists of these for you
+        /// </remarks>
+        public ValueTuple<string[], float> IdleAnimation { get { return new(Asset.animation_idle, Asset.animation_idle_speed); } set { Asset.animation_idle = value.Item1; Asset.animation_idle_speed = value.Item2; } }
         /// <summary>
         /// if true, when subspecies's mutate, they can get this triat, the less its rarity the higher the chance
         /// </summary>

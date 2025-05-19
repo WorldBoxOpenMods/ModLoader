@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using FMOD;
+using HarmonyLib;
 using NeoModLoader.General;
 
 namespace NeoModLoader.utils.Builders
@@ -16,34 +17,59 @@ namespace NeoModLoader.utils.Builders
         public BaseTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
 
         /// <inheritdoc/>
-        protected override void Init(bool Cloned)
+        protected override void Init()
         {
-            base.Init(Cloned);
-            SetDescription1ID(null);
-            SetDescription2ID(null);
-            SetNameID(null);
+            Description1ID = null;
+            Description2ID = null;
+            NameID = (null);
         }
         /// <summary>
-        /// Adds a opposite trait to the asset's list of opposite traits, if a object has one of these traits it cannot add this trait
+        /// the traits in the asset's list of opposite traits, if a object has one of these traits it cannot add this trait
         /// </summary>
-        /// <param name="ID"></param>
-        public void AddOpposite(string ID)
+        public IEnumerable<string> OppositeTraits
         {
-            Asset.addOpposite(ID);
+            set
+            {
+                foreach (string trait in value)
+                {
+                    Asset.addOpposite(trait);
+                }
+            }
+            get
+            {
+                return Asset.opposite_list;
+            }
         }
         /// <summary>
-        /// adds a tag to the assets base stats meta
+        /// the tags in assets base stats meta
         /// </summary>
-        public void AddMetaTag(string Tag)
+        public IEnumerable<string> MetaTags
         {
-            Asset.base_stats_meta.addTag(Tag);
+            get
+            {
+                return Asset.base_stats_meta._tags;
+            }
+            set
+            {
+                foreach (string tag in value)
+                {
+                    Asset.base_stats_meta.addTag(tag);
+                }
+            }
         }
         /// <summary>
-        /// Adds a trait which this trait automatically removes when it is added to a object
+        /// sets traits which this trait automatically removes when it is added to a object
         /// </summary>
-        public void AddTraitToRemove(string ID)
+        public IEnumerable<string> TraitsToRemove
         {
-            Asset.traits_to_remove_ids.AddItem(ID);
+            set
+            {
+                Asset.traits_to_remove_ids = TraitsToRemove.ToArray();
+            }
+            get
+            {
+                return Asset.traits_to_remove_ids;
+            }
         }
         /// <inheritdoc/>
         public override void Build(bool LinkWithOtherAssets)
@@ -53,18 +79,19 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// all other traits in the library will be added to the opposites list if the ShouldOppose function returns true
         /// </summary>
-        /// <param name="ShouldOppose">a function which has a trait as input and outputs true if added to opposites list</param>
-        public void OpposeAllOtherTraits(Func<A, bool> ShouldOppose)
-        {
-            foreach(A asset in Library.list)
-            {
-                if (asset.id != Asset.id && ShouldOppose(asset))
+        /// <param name="value">a function which has a trait as input and outputs true if added to opposites list</param>
+        public IEnumerable<Func<A, bool>> OpposeAllOtherTraits { set {
+                foreach(Func<A, bool> func in value)
                 {
-                    Asset.addOpposite(asset.id);
+                    foreach (A asset in Library.list)
+                    {
+                        if (asset.id != Asset.id && func(asset))
+                        {
+                            Asset.addOpposite(asset.id);
+                        }
+                    }
                 }
-            }
-        }
-
+            } }
         void LinkWithActors()
         {
             foreach (ActorAsset tActorAsset in AssetManager.actor_library.list)
@@ -77,10 +104,7 @@ namespace NeoModLoader.utils.Builders
                 }
             }
         }
-        /// <summary>
-        /// links this trait with its opposite traits and traits to remove
-        /// </summary>
-        public void LinkWithTraits()
+        void LinkWithTraits()
         {
             if (Asset.opposite_list != null && Asset.opposite_list.Count > 0)
             {
@@ -103,10 +127,7 @@ namespace NeoModLoader.utils.Builders
                 }
             }
         }
-        /// <summary>
-        /// if the path is null, tries to do it automatically
-        /// </summary>
-        public void CheckIcon()
+        void CheckIcon()
         {
             if (string.IsNullOrEmpty(Asset.path_icon))
             {
@@ -120,10 +141,7 @@ namespace NeoModLoader.utils.Builders
                 Library._pot_allowed_to_be_given_randomly.AddTimes(Asset.spawn_random_rate, Asset);
             }
         }
-        /// <summary>
-        /// automatically sets the rarity depending on its qualities
-        /// </summary>
-        public void SetRarityAutomatically()
+        void SetRarityAutomatically()
         {
             if (Asset.unlocked_with_achievement)
             {
@@ -175,12 +193,16 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <summary>
-        /// when a creature/group is spawned, this sets the chance they get the trait, this is not out of 100
+        /// when a creature/group is spawned, this is the chance they get the trait, this is not out of 100
         /// </summary>
-        public void SetChanceToGetOnCreation(int Chance)
-        {
-            Asset.spawn_random_rate = Chance;
-            Asset.spawn_random_trait_allowed = Chance > 0;
+        public int ChanceToGetOnCreation { set {
+                Asset.spawn_random_rate = value;
+                Asset.spawn_random_trait_allowed = value > 0;
+            }
+            get
+            {
+                return Asset.spawn_random_rate;
+            }
         }
         /// <inheritdoc/>
         public override void LinkAssets()
@@ -210,33 +232,45 @@ namespace NeoModLoader.utils.Builders
             LinkWithBaseLibrary();
         }
         /// <summary>
-        /// Sets the ID of the Localized Description, this does not fully localize the asset, you must either call Localize() or have a localization folder
+        /// the ID of the Localized Description, setting this does not fully localize the asset, you must either call Localize() or have a localization folder
         /// </summary>
-        public void SetDescription1ID(string Description)
-        {
-            Asset.special_locale_description = Description;
-            if(Description == null)
+        public string Description1ID { set
             {
-                Asset.has_description_1 = false;
+                Asset.special_locale_description = value;
+                if (value == null)
+                {
+                    Asset.has_description_1 = false;
+                }
+                else
+                {
+                    Asset.has_description_1 = true;
+                }
             }
-            else
+            get
             {
-                Asset.has_description_1 = true;
+                return Asset.special_locale_description;
             }
         }
         /// <summary>
-        /// Sets the ID of the Localized 2nd Description, this does not fully localize the asset, you must either call Localize() or have a localization folder
+        /// the ID of the Localized 2nd Description, setting this does not fully localize the asset, you must either call Localize() or have a localization folder
         /// </summary>
-        public void SetDescription2ID(string Description)
+        public string Description2ID
         {
-            Asset.special_locale_description_2 = Description;
-            if (Description == null)
+            set
             {
-                Asset.has_description_2 = false;
+                Asset.special_locale_description_2 = value;
+                if (value == null)
+                {
+                    Asset.has_description_2 = false;
+                }
+                else
+                {
+                    Asset.has_description_2 = true;
+                }
             }
-            else
+            get
             {
-                Asset.has_description_2 = true;
+                return Asset.special_locale_description_2;
             }
         }
         /// <summary>
@@ -257,18 +291,25 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <summary>
-        /// Sets the ID of the Localized Name, this does not fully localize the asset, you must either call Localize() or have a localization folder
+        /// the ID of the Localized Name, setting this does not fully localize the asset, you must either call Localize() or have a localization folder
         /// </summary>
-        public void SetNameID(string Name)
+        public string NameID
         {
-            Asset.special_locale_id = Name;
-            if (Name == null)
+            set
             {
-                Asset.has_localized_id = false;
+                Asset.special_locale_id = value;
+                if (value == null)
+                {
+                    Asset.has_localized_id = false;
+                }
+                else
+                {
+                    Asset.has_localized_id = true;
+                }
             }
-            else
+            get
             {
-                Asset.has_localized_id = true;
+                return Asset.special_locale_id;
             }
         }
         /// <summary>

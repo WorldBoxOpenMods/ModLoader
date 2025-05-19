@@ -21,7 +21,7 @@
             set { Asset.base_stats_male = value; }
         }
         /// <summary>
-        /// Stats which are applied to FeMales in this clan
+        /// Stats which are applied to Females in this clan
         /// </summary>
         public BaseStats BaseStatsFemale
         {

@@ -6,29 +6,15 @@
     public class UnlockableAssetBuilder<A, AL> : AssetBuilder<A, AL> where A : BaseUnlockableAsset, new() where AL : BaseLibraryWithUnlockables<A>
     {
         /// <inheritdoc/>
-        public UnlockableAssetBuilder(string ID) : base(ID) { }
+        public UnlockableAssetBuilder(string ID) : base(ID) { BaseStats = new BaseStats(); }
         /// <inheritdoc/>
         public UnlockableAssetBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
         /// <inheritdoc/>
         public UnlockableAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
-
-        /// <inheritdoc/>
-        protected override void Init(bool Cloned)
-        {
-            if (!Cloned)
-            {
-                BaseStats = new BaseStats();
-            }
-        }
-
         /// <summary>
         /// if true, this asset should be discovered by the player to be used
         /// </summary>
-        public void SetUnlockableSettings(bool ShouldBeDiscoveredByPlayer)
-        {
-            UnlockByDefault();
-            Asset.needs_to_be_explored = ShouldBeDiscoveredByPlayer;
-        }
+        public bool NeedsToBeExplored { set { Asset.needs_to_be_explored = value; } get { return Asset.needs_to_be_explored; } }
         void LinkWithAchievment()
         {
             if (Asset.unlocked_with_achievement)
@@ -48,13 +34,10 @@
             LinkWithAchievment();
         }
         /// <summary>
-        /// Makes the asset unlocked if this achievment has been unlocked
+        /// the asset unlocked if this achievment has been unlocked
         /// </summary>
-        public void SetUnlockableSettings(string AchievmentToUnlockThis)
-        {
-            UnlockByDefault();
-            Asset.unlocked_with_achievement = true;
-            Asset.achievement_id = AchievmentToUnlockThis;
+        public string AchievmentToUnlockThis { set { Asset.unlocked_with_achievement = value != null; Asset.achievement_id = value; }
+            get { return Asset.achievement_id; }
         }
         /// <summary>
         /// makes the asset available by default
@@ -64,6 +47,22 @@
             Asset.unlocked_with_achievement = false;
             Asset.achievement_id = null;
             Asset.needs_to_be_explored = false;
+        }
+        /// <summary>
+        /// the stats of this asset
+        /// </summary>
+        /// <remarks>
+        /// an example would be Stats = new(){ {"health", 2}, {"armor", 2} };
+        /// </remarks>
+        public Dictionary<string, float> Stats
+        {
+            set
+            {
+                foreach (KeyValuePair<string, float> valueTuple in value)
+                {
+                    BaseStats[valueTuple.Key] = valueTuple.Value;
+                }
+            }
         }
         /// <summary>
         /// The Stats that are applied to the thing that has this asset, like a actor or a Clan

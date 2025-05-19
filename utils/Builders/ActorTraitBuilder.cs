@@ -15,12 +15,9 @@ namespace NeoModLoader.utils.Builders
     {
         internal static ConcurrentDictionary<string, GetAdditionalBaseStatsMethod> AdditionalBaseStatMethods = new();
         /// <inheritdoc/>
-        public ActorTraitBuilder(string ID, string Name, string PathIcon, string Group = S_TraitGroup.miscellaneous, string Description1 = null) : base(ID)
+        public ActorTraitBuilder(string ID) : base(ID)
         {
-            SetNameID(Name);
-            this.PathIcon = PathIcon;
-            this.Group = Group;
-            SetDescription1ID(Description1);
+            Group = S_TraitGroup.miscellaneous;
         }
         /// <inheritdoc/>
         protected override void LoadFromPath(string FilePathToBuild)
@@ -65,16 +62,15 @@ namespace NeoModLoader.utils.Builders
             Library.checkDefault(Asset);
             Asset.only_active_on_era_flag = Asset.era_active_moon || Asset.era_active_night;
         }
-
         /// <summary>
         /// (Optional) creates a method which gives custom stats to a actor who has this trait
         /// </summary>
-        /// <param name="method">The Method</param>
-        public void SetAdditionalBaseStatsMethod(GetAdditionalBaseStatsMethod method)
-        {
-            if(!AdditionalBaseStatMethods.TryAdd(Asset.id, method))
+        public GetAdditionalBaseStatsMethod AdditionalBaseStatsMethod { set
             {
-                AdditionalBaseStatMethods[Asset.id] = method;
+                if (!AdditionalBaseStatMethods.TryAdd(Asset.id, value))
+                {
+                    AdditionalBaseStatMethods[Asset.id] = value;
+                }
             }
         }
         /// <summary>

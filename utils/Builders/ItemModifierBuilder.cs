@@ -1,5 +1,4 @@
 ﻿using NeoModLoader.General;
-using Newtonsoft.Json;
 
 namespace NeoModLoader.utils.Builders
 {
@@ -53,17 +52,27 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public bool CanModifiersBeGiven { get { return Asset.mod_can_be_given; } set { Asset.mod_can_be_given = value; } }
         /// <summary>
-        /// Adds this modifier to a pool of items (like armor, accessory, etc), any item pools with this added can have it added to an item created
+        /// the pools of items (like armor, accessory, etc) this mod is in, any item pools with this added can have it added to an item created
         /// </summary>
-        public void AddModToItemPool(string PoolID)
+        public IEnumerable<string> ItemPools
         {
-            if (Asset.pool.Length > 0)
+            set
             {
-                Asset.pool += "," + PoolID;
+                foreach (string PoolID in value)
+                {
+                    if (Asset.pool.Length > 0)
+                    {
+                        Asset.pool += "," + PoolID;
+                    }
+                    else
+                    {
+                        Asset.pool = PoolID;
+                    }
+                }
             }
-            else
+            get
             {
-                Asset.pool = PoolID;
+                return Asset.pool.Split(',');
             }
         }
         /// <summary>

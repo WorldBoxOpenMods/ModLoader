@@ -24,7 +24,7 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// Initiates the builder
         /// </summary>
-        protected virtual void Init(bool Cloned) { }
+        protected virtual void Init() { }
         /// <summary>
         /// Loads the asset from FilePathToBuild
         /// </summary>
@@ -50,7 +50,7 @@ namespace NeoModLoader.utils.Builders
         public AssetBuilder(string ID) : this()
         {
             Asset = CreateAsset(ID);
-            Init(false);
+            Init();
         }
         internal string FilePathToBuild = null;
         /// <summary>
@@ -89,7 +89,7 @@ namespace NeoModLoader.utils.Builders
             {
                 Asset = CreateAsset(ID);
             }
-            Init(Cloned);
+            Init();
         }
         AL GetLibrary() {
             return AssetManager._instance._list.OfType<AL>().FirstOrDefault() ?? throw new NotImplementedException($"No library found for {typeof(A).Name}!");

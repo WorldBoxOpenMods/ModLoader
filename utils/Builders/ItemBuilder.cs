@@ -1,5 +1,6 @@
-﻿using HarmonyLib;
-using NeoModLoader.General;
+﻿using NeoModLoader.General;
+using NeoModLoader.utils.SerializedAssets;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace NeoModLoader.utils.Builders
@@ -33,24 +34,25 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <inheritdoc/>
-        protected override void Init(bool Cloned)
+        protected override void LoadFromPath(string FilePathToBuild)
         {
-            base.Init(Cloned);
-            if (!Cloned)
-            {
-                Asset.setCost(0);
-            }
+            SerializedItemAsset assetSerialized = JsonConvert.DeserializeObject<SerializedItemAsset>(File.ReadAllText(FilePathToBuild));
+            Asset = SerializedItemAsset.ToAsset(assetSerialized);
+            CultureTraitsThisWeaponIsIn = assetSerialized.CultureTraitsThisItemIsIn;
+            CultureTraitsThisWeaponsTypeIsIn = assetSerialized.CultureTraitsThisItemsTypeIsIn;
         }
         /// <inheritdoc/>
         protected override ItemAsset CreateAsset(string ID)
         {
-            return new ItemAsset
+            ItemAsset asset =  new()
             {
                 id = ID,
                 group_id = "sword",
                 pool = "equipment",
                 name_templates = new List<string>() { "armor_name"}
             };
+            asset.setCost(0);
+            return asset;
         }
         /// <summary>
         /// converts the Asset into a ranged weapon, its type must be Weapon to do this
@@ -66,6 +68,14 @@ namespace NeoModLoader.utils.Builders
         /// <inheritdoc/>
         public override void LinkAssets()
         {
+            foreach(string CultureTraitID in CultureTraitsThisWeaponIsIn)
+            {
+                AssetManager.culture_traits.get(CultureTraitID).addWeaponSpecial(Asset.id);
+            }
+            foreach (string CultureTraitID in CultureTraitsThisWeaponsTypeIsIn)
+            {
+                AssetManager.culture_traits.get(CultureTraitID).addWeaponSubtype(WeaponSubType);
+            }
             if (Asset.item_modifier_ids != null)
             {
                 Asset.item_modifiers = new ItemAsset[Asset.item_modifier_ids.Length];
@@ -147,14 +157,14 @@ namespace NeoModLoader.utils.Builders
             }
         }
         /// <summary>
-        /// Adds a name template to this items list of templates, a random template is chosen when the game uses them
+        /// the name templates of this item, a random template is chosen when the game uses them
         /// </summary>
-        public void AddNameTemplate(string TemplateID)
+        public IEnumerable<string> NameTemplates
         {
-            Asset.name_templates ??= new List<string>();
-            Asset.name_templates.Add(TemplateID);
+            get { return Asset.name_templates; }
+            set { Asset.name_templates = value.ToList(); }
         }
-         void AddWeaponsSprite()
+        void AddWeaponsSprite()
         {
             var dictItems = ActorAnimationLoader._dict_items;
             var sprite = Resources.Load<Sprite>("weapons/" + Asset.id);
@@ -193,19 +203,19 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public string WeaponSubType { get { return Asset.equipment_subtype; } set { Asset.equipment_subtype = value; } }
         /// <summary>
-        /// Adds this items subtype to a culture traits list, MUST be a weapon
+        /// culture traits who have this items subtype added, MUST be a weapon
         /// </summary>
-        public void AddTypeToCultureTrait(string CultureTraitID)
-        {
-            AssetManager.culture_traits.get(CultureTraitID).addWeaponSubtype(WeaponSubType);
-        }
+        /// <remarks>
+        /// the builder must link its assets so the cultures actually add it
+        /// </remarks>
+        public IEnumerable<string> CultureTraitsThisWeaponsTypeIsIn;
         /// <summary>
-        /// Adds this item to the cultures preferred weapons, it must be a weapon
+        /// the cultures who have this item in their preferred weapons, it must be a weapon
         /// </summary>
-        public void AddToCultureTrait(string CultureTraitID)
-        {
-            AssetManager.culture_traits.get(CultureTraitID).addWeaponSpecial(WeaponSubType);
-        }
+        /// <remarks>
+        /// the builder must link its assets so the cultures actually add it
+        /// </remarks>
+        public IEnumerable<string> CultureTraitsThisWeaponIsIn;
         /// <summary>
         /// the amount of coins a city has to spend to craft this item
         /// </summary>
@@ -217,20 +227,11 @@ namespace NeoModLoader.utils.Builders
         /// <summary>
         /// The ID of the first material and its amount a city needs to craft this item, and also the Minimum amount required
         /// </summary>
-        public void SetResource1(string ID, int Num, int Minimum = 0)
-        {
-            Asset.cost_resource_1 = Num;
-            Asset.minimum_city_storage_resource_1 = Minimum;
-            Asset.cost_resource_id_1 = ID;
-        }
+        public ValueTuple<string, int, int> Resource1 { get { return new(Asset.cost_resource_id_1, Asset.cost_resource_1, Asset.minimum_city_storage_resource_1); } set { Asset.cost_resource_1 = value.Item2; Asset.minimum_city_storage_resource_1 = value.Item3; Asset.cost_resource_id_1 = value.Item1; } }
         /// <summary>
         /// The ID of the secound material and its amount a city needs to craft this item
         /// </summary>
-        public void SetResource2(string ID, int Num)
-        {
-            Asset.cost_resource_2 = Num;
-            Asset.cost_resource_id_2 = ID;
-        }
+        public ValueTuple<string, int> Resource2 { get { return new(Asset.cost_resource_id_2, Asset.cost_resource_2); } set { Asset.cost_resource_id_2 = value.Item1; Asset.cost_resource_2 = value.Item2; } }
         /// <summary>
         /// the durability of the item, by default its 100
         /// </summary>
@@ -240,13 +241,9 @@ namespace NeoModLoader.utils.Builders
         /// </summary>
         public bool CanBeCraftedByCities { get { return Asset.is_pool_weapon; } set { Asset.is_pool_weapon = value; } }
         /// <summary>
-        /// Adds a modifier to this item's list, when it is created all of them are applied
+        /// the modifiers in this item's list, when it is created all of them are applied
         /// </summary>
-        /// <param name="ModifierID"></param>
-        public void AddItemModifier(string ModifierID)
-        {
-            Asset.item_modifier_ids.AddItem(ModifierID);
-        }
+        public IEnumerable<string> ItemModifiers { get { return Asset.item_modifier_ids; } set { Asset.item_modifier_ids = value.ToArray(); } }
         /// <summary>
         /// the material of the item, doesnt change any properties, just for displaying
         /// </summary>

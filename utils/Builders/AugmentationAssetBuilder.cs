@@ -12,11 +12,19 @@
         /// <inheritdoc/>
         public AugmentationAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
         /// <summary>
-        /// Adds a combat action to this Asset, any actors with this Asset will have this actiom, and if this Asset is for a clan/subspecies/etc, any actors in that group will also have it
+        /// the combat actions in this Asset, any actors with this Asset will have this actiom, and if this Asset is for a clan/subspecies/etc, any actors in that group will also have it
         /// </summary>
-        public void AddCombatAction(string ID)
-        {
-            Asset.addCombatAction(ID);
+        public IEnumerable<string> CombatActions { get
+            {
+                return Asset.combat_actions_ids;
+            }
+            set
+            {
+                foreach(string action in value)
+                {
+                    Asset.addCombatAction(action);
+                }
+            }
         }
         void LinkDecisions()
         {
@@ -40,14 +48,25 @@
             base.LinkAssets();
         }
         /// <summary>
-        /// Adds a Decision (Neuron) to the Object with this Asset, if the object is a group like clan or subspecies, all actors in the group get this decision
+        /// the Decisions (Neurons) in the Object with this Asset, if the object is a group like clan or subspecies, all actors in the group get this decision
         /// </summary>
-        public void AddDecision(string ID) { Asset.addDecision(ID);}
-
+        public IEnumerable<string> Decisions { get { return Asset.decision_ids; } set
+            {
+                foreach (string action in value)
+                {
+                    Asset.addDecision(action);
+                }
+            } }
         /// <summary>
-        /// Adds a spell to the Asset, which an actor can use
+        /// the spells in the Asset, which an actor can use
         /// </summary>
-        public void AddSpell(string ID) { Asset.addSpell(ID);}
+        public IEnumerable<string> Spells { get { return Asset.spells_ids; } set
+            {
+                foreach(string action in value)
+                {
+                    Asset.addSpell(action); 
+                }
+            } }
         /// <summary>
         /// an action performed on something hit by this object or an object apart of a group with this trait
         /// </summary>

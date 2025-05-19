@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace NeoModLoader.utils.Builders
+﻿namespace NeoModLoader.utils.Builders
 {
     /// <summary>
     /// A Builder to build culture traits
@@ -13,27 +11,33 @@ namespace NeoModLoader.utils.Builders
         public CultureTraitBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
         /// <inheritdoc/>
         public CultureTraitBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
-
         /// <summary>
-        /// Adds a weapon which this culture produces
+        /// the weapons which this culture produces
         /// </summary>
-        public void AddWeaponForCulture(string ID)
-        {
-            Asset.addWeaponSpecial(ID);
-        }
+        public IEnumerable<string> Weapons { get { return Asset.related_weapons_ids; } set { foreach (string weapon in value) { Asset.addWeaponSpecial(weapon); } } }
         /// <summary>
-        /// Adds a subtype of a weapon which the culture produces, such as axe, spear
+        /// the weapon sub types which this culture produces
         /// </summary>
-        public void AddWeaponSubType(string ID)
-        {
-            Asset.addWeaponSubtype(ID);
-        }
+        public IEnumerable<string> WeaponSubTypes { get { return Asset.related_weapon_subtype_ids; } set { foreach (string weapon in value) { Asset.addWeaponSubtype(weapon); } } }
         /// <summary>
         /// used for a cultures building layout plan, the zone checker determines weather buildings can be placed in the target zone or not
         /// </summary>
-        public void SetTownLayoutPlan(PassableZoneChecker pZoneCheckerDelegate)
+        public PassableZoneChecker TownLayoutPlan
         {
-            Asset.setTownLayoutPlan(pZoneCheckerDelegate);
+            get { return Asset.passable_zone_checker; }
+            set
+            {
+                Asset.setTownLayoutPlan(value);
+            }
+        }
+        /// <inheritdoc/>
+        public override void LinkAssets()
+        {
+            if (Asset.town_layout_plan)
+            {
+                OpposeAllOtherTraits = new[] { (CultureTrait trait) => trait.town_layout_plan };
+            }
+            base.LinkAssets();
         }
     }
 }
