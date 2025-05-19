@@ -1,6 +1,4 @@
 using System.Globalization;
-using FMOD;
-using FMODUnity;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.services;
@@ -371,12 +369,12 @@ public static class ResourcesPatch
             if (lower_path.EndsWith(".meta") || lower_path.EndsWith("sprites.json")) return;
             if (lower_path.EndsWith(".wav"))
             {
-                LoadWavFile(path);
+                LoadWavFile(absPath);
                 return;
             }
             if (lower_path.EndsWith("asset"))
             {
-                Builder = LoadAsset(absPath, Path.GetExtension(absPath.ToLower()));
+                Builder = LoadAsset(absPath, Path.GetExtension(lower_path));
                 return;
             }
             string parent_path = Path.GetDirectoryName(lower_path);
