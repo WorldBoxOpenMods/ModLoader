@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using UnityEngine;
 namespace NeoModLoader.utils
 {
     /// <summary>
@@ -7,6 +8,19 @@ namespace NeoModLoader.utils
     public static class DelegateExtentions
     {
         /// <summary>
+        /// gets all of the parameters from a delegate type
+        /// </summary>
+        public static Type[] GetDelegateParameters(this Type delegateType)
+        {
+            MethodInfo method = delegateType.GetMethod("Invoke");
+            ParameterInfo[] info = method.GetParameters();
+            Type[] types = new Type[info.Length];
+            for (int i = 0; i < info.Length; i++) {
+                types[i] = info[i].ParameterType;
+            }
+            return types;
+        }
+        /// <summary>
         /// converts a string which is a list of objects split by '+' with each object being a class:methodname, combined to a single delegate
         /// </summary>
         /// <remarks>
@@ -14,15 +28,16 @@ namespace NeoModLoader.utils
         /// </remarks>
         public static Delegate ConvertToDelegate(this string String, Type DelegateType)
         {
-            string[] Delegates = String.Split('+');
-            Delegate[] delegates = new Delegate[Delegates.Length];
-            for (int i =0; i < Delegates.Length; i++)
+            string[] DelegateIDS = String.Split('+');
+            Delegate[] Delegates = new Delegate[DelegateIDS.Length];
+            Type[] parameters = DelegateType.GetDelegateParameters();
+            for (int i =0; i < DelegateIDS.Length; i++)
             {
-                string[] MethodInfos = Delegates[i].Split(':');
-                var m = Type.GetType(MethodInfos[0]).GetMethod(MethodInfos[1], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-                delegates[i] = m.CreateDelegate(DelegateType);
+                string[] MethodInfos = DelegateIDS[i].Split(':');
+                var m = Type.GetType(MethodInfos[0]).GetMethod(MethodInfos[1], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, parameters, null);
+                Delegates[i] = m.CreateDelegate(DelegateType);
             }
-            return Delegate.Combine(delegates);
+            return Delegate.Combine(Delegates);
         }
         /// <summary>
         /// converts a delegate to a string which is a list of objects split by '+' with each object being a class:methodname
