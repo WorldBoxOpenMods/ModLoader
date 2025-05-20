@@ -14,16 +14,11 @@ namespace NeoModLoader.utils.Builders
         public GroupAssetBuilder(string FilePath, bool LoadImmediately) : base(FilePath, LoadImmediately) { }
         /// <inheritdoc/>
         public GroupAssetBuilder(string ID, string CopyFrom) : base(ID, CopyFrom) { }
-        /// <summary>
-        /// builds it, if autolocalize is true it will localize
-        /// </summary>
-        public new void Build(bool AutoLocalize = true)
+        /// <inheritdoc/>
+        public override void Build(bool LinkWithOtherAssets)
         {
-            if (AutoLocalize)
-            {
-                Localize();
-            }
-            base.Build(AutoLocalize);
+            Localize();
+            Build(LinkWithOtherAssets);
         }
         /// <summary>
         /// Localizes the name

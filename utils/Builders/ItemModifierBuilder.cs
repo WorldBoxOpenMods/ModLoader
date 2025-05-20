@@ -31,6 +31,11 @@ namespace NeoModLoader.utils.Builders
                 }
             }
         }
+        /// <inheritdoc/>
+        public override void Build(bool LinkWithOtherAssets)
+        {
+           Build(true, LinkWithOtherAssets);
+        }
         /// <summary>
         /// Builds the modifier
         /// </summary>

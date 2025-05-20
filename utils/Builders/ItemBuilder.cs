@@ -95,6 +95,11 @@ namespace NeoModLoader.utils.Builders
             }
             base.LinkAssets();
         }
+        /// <inheritdoc/>
+        public override void Build(bool LinkWithOtherAssets)
+        {
+            Build(null, true, LinkWithOtherAssets);
+        }
         /// <summary>
         /// Builds the Item, if description is not null it will automatically localize
         /// </summary>
