@@ -6,9 +6,6 @@ namespace NeoModLoader.utils.SerializedAssets
     /// <summary>
     /// Because delegates like worldaction cannot be serialized, this is used so you can serialize them
     /// </summary>
-    /// <remarks>
-    /// if an asset has a delegate who's method has the same name as another method in its class, an error will be produced!
-    /// </remarks>
     [Serializable]
     public class SerializableAsset<A> where A : Asset, new()
     {
