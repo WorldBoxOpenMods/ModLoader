@@ -21,20 +21,28 @@ namespace NeoModLoader.utils
             return types;
         }
         /// <summary>
-        /// converts a string which is a list of objects split by '+' with each object being a class:methodname, combined to a single delegate
+        /// converts a string to a single delegate
         /// </summary>
         /// <remarks>
         /// An Example would be "Randy:randomInt+Unity.Mathematics.Random:NextInt"
         /// </remarks>
-        public static Delegate ConvertToDelegate(this string String, Type DelegateType)
+        /// <param name="String">a list of objects split by '+' with each object being a class:methodname</param>
+        /// <param name="DelegateType">if null, the AsString function must have includetype set to true</param>
+        public static Delegate AsDelegate(this string String, Type DelegateType = null)
         {
+            if(DelegateType == null)
+            {
+                string[] TypeAndDelegate = String.Split('&');
+                DelegateType = Type.GetType(TypeAndDelegate[0]);
+                String = TypeAndDelegate[1];
+            }
             string[] DelegateIDS = String.Split('+');
             Delegate[] Delegates = new Delegate[DelegateIDS.Length];
-            Type[] parameters = DelegateType.GetDelegateParameters();
+            Type[] Parameters = DelegateType.GetDelegateParameters();
             for (int i =0; i < DelegateIDS.Length; i++)
             {
-                string[] MethodInfos = DelegateIDS[i].Split(':');
-                var m = Type.GetType(MethodInfos[0]).GetMethod(MethodInfos[1], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, parameters, null);
+                string[] MethodPath = DelegateIDS[i].Split(':');
+                var m = Type.GetType(MethodPath[0]).GetMethod(MethodPath[1], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, Parameters, null);
                 Delegates[i] = m.CreateDelegate(DelegateType);
             }
             return Delegate.Combine(Delegates);
@@ -45,7 +53,7 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be delegate Randy.randomInt and Unity.Mathematics.Random.NextInt would become "Randy:randomInt+Unity.Mathematics.Random:NextInt"
         /// </remarks>
-        public static string ConvertToString(this Delegate pDelegate)
+        public static string AsString(this Delegate pDelegate, bool IncludeType = false)
         {
             if (pDelegate == null)
             {
@@ -60,6 +68,10 @@ namespace NeoModLoader.utils
                 tStringToPrint.Add($"{tObject.Method.DeclaringType.AssemblyQualifiedName}:{tObject.Method.Name}");
             }
             text = string.Join("+", tStringToPrint.ToArray());
+            if (IncludeType)
+            {
+                text = string.Join("&", pDelegate.GetType(), text);
+            }
             return text;
         }
     }

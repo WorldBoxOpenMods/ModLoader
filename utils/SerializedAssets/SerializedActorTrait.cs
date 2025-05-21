@@ -20,7 +20,7 @@ namespace NeoModLoader.utils.SerializedAssets
             Serialize(Asset, asset);
             if (Method != null)
             {
-                asset.AdditionalBaseStatsMethod = Method.ConvertToString();
+                asset.AdditionalBaseStatsMethod = Method.AsString(false);
             }
             return asset;
         }
@@ -33,7 +33,7 @@ namespace NeoModLoader.utils.SerializedAssets
             Deserialize(Asset, asset);
             if (Asset.AdditionalBaseStatsMethod != null)
             {
-                ActorTraitBuilder.AdditionalBaseStatMethods.TryAdd(asset.id, (GetAdditionalBaseStatsMethod)Asset.AdditionalBaseStatsMethod.ConvertToDelegate(typeof(GetAdditionalBaseStatsMethod)));
+                ActorTraitBuilder.AdditionalBaseStatMethods.TryAdd(asset.id, (GetAdditionalBaseStatsMethod)Asset.AdditionalBaseStatsMethod.AsDelegate(typeof(GetAdditionalBaseStatsMethod)));
             }
             return asset;
         }

@@ -33,7 +33,7 @@ namespace NeoModLoader.utils.SerializedAssets
                 object Value = field.GetValue(Asset);
                 if (Value is Delegate value)
                 {
-                    asset.Delegates.Add(field.Name, value.ConvertToString());
+                    asset.Delegates.Add(field.Name, value.AsString(false));
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace NeoModLoader.utils.SerializedAssets
                 {
                     if (Asset.Delegates.TryGetValue(field.Name, out string Delegate))
                     {
-                        field.SetValue(asset, Delegate.ConvertToDelegate(field.FieldType));
+                        field.SetValue(asset, Delegate.AsDelegate(field.FieldType));
                     }
                 }
                 else if (Asset.Variables.TryGetValue(field.Name, out object Value))
