@@ -70,7 +70,7 @@ namespace NeoModLoader.utils
             text = string.Join("+", tStringToPrint.ToArray());
             if (IncludeType)
             {
-                text = string.Join("&", pDelegate.GetType(), text);
+                text = string.Join("&", pDelegate.GetType().AssemblyQualifiedName, text);
             }
             return text;
         }
