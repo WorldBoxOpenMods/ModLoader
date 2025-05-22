@@ -52,19 +52,19 @@ namespace NeoModLoader.utils.SerializedAssets
         /// </summary>
         public static void Deserialize(SerializableAsset<A> Asset, A asset)
         {
-            static object GetRealValueOfObject(object Value, string Name)
+            static object GetRealValueOfObject(object Value, Type Type)
             {
-                if (Value is long)
+                if (Type == typeof(int))
                 {
                     return Convert.ToInt32(Value);
                 }
-                else if (Value is double)
+                else if (Type == typeof(float))
                 {
                     return Convert.ToSingle(Value);
                 }
-                else if (Value is JObject JObject && (Name == "base_stats" || Name == "base_stats_meta"))
+                else if (Value is JObject JObject)
                 {
-                    return JObject.ToObject<BaseStats>();
+                    return JObject.ToObject(Type);
                 }
                 return Value;
             }
@@ -79,7 +79,7 @@ namespace NeoModLoader.utils.SerializedAssets
                 }
                 else if (Asset.Variables.TryGetValue(field.Name, out object Value))
                 {
-                    field.SetValue(asset, GetRealValueOfObject(Value, field.Name));
+                    field.SetValue(asset, GetRealValueOfObject(Value, field.FieldType));
                 }
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using UnityEngine;
 namespace NeoModLoader.utils
 {
     /// <summary>
@@ -28,6 +27,7 @@ namespace NeoModLoader.utils
         /// </remarks>
         /// <param name="String">a list of objects split by '+' with each object being a class:methodname</param>
         /// <param name="DelegateType">if null, the AsString function must have includetype set to true</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public static Delegate AsDelegate(this string String, Type DelegateType = null)
         {
             if(DelegateType == null)
@@ -53,12 +53,9 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be delegate Randy.randomInt and Unity.Mathematics.Random.NextInt would become "Randy:randomInt+Unity.Mathematics.Random:NextInt"
         /// </remarks>
+        /// <exception cref="ArgumentNullException"></exception>
         public static string AsString(this Delegate pDelegate, bool IncludeType = false)
         {
-            if (pDelegate == null)
-            {
-                return "";
-            }
             string text;
             List<string> tStringToPrint = new();
             Delegate[] invocationList = pDelegate.GetInvocationList();
