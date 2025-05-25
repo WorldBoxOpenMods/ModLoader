@@ -33,7 +33,7 @@ namespace NeoModLoader.utils.SerializedAssets
             Deserialize(Asset, asset);
             if (Asset.AdditionalBaseStatsMethod != null)
             {
-                ActorTraitBuilder.AdditionalBaseStatMethods.TryAdd(asset.id, (GetAdditionalBaseStatsMethod)Asset.AdditionalBaseStatsMethod.AsDelegate(typeof(GetAdditionalBaseStatsMethod)));
+                ActorTraitBuilder.AdditionalBaseStatMethods.TryAdd(asset.id, Asset.AdditionalBaseStatsMethod.AsDelegate<GetAdditionalBaseStatsMethod>());
             }
             return asset;
         }

@@ -26,14 +26,27 @@ namespace NeoModLoader.utils
         /// An Example would be "Randy:randomInt+Unity.Mathematics.Random:NextInt"
         /// </remarks>
         /// <param name="String">a list of objects split by '+' with each object being a class:methodname</param>
+        /// <typeparam name="D">the delegate type, like worldaction</typeparam>
+        /// <exception cref="NullReferenceException">if String is null</exception>
+        public static D AsDelegate<D>(this string String) where D : Delegate
+        {
+            return (D)String.AsDelegate(typeof(D));
+        }
+        /// <summary>
+        /// converts a string to a single delegate
+        /// </summary>
+        /// <remarks>
+        /// An Example would be "Randy:randomInt+Unity.Mathematics.Random:NextInt"
+        /// </remarks>
+        /// <param name="String">a list of objects split by '+' with each object being a class:methodname</param>
         /// <param name="DelegateType">if null, the AsString function must have includetype set to true</param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="NullReferenceException">if String is null or delegatetype is null and the string doesnt include the type</exception>
         public static Delegate AsDelegate(this string String, Type DelegateType = null)
         {
-            if(DelegateType == null)
+            if(String.Contains("&"))
             {
                 string[] TypeAndDelegate = String.Split('&');
-                DelegateType = Type.GetType(TypeAndDelegate[0]);
+                DelegateType ??= Type.GetType(TypeAndDelegate[0]);
                 String = TypeAndDelegate[1];
             }
             string[] DelegateIDS = String.Split('+');
@@ -53,7 +66,7 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be delegate Randy.randomInt and Unity.Mathematics.Random.NextInt would become "Randy:randomInt+Unity.Mathematics.Random:NextInt"
         /// </remarks>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="NullReferenceException">if Delegate is null</exception>
         public static string AsString(this Delegate pDelegate, bool IncludeType = false)
         {
             string text;
