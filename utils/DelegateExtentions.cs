@@ -61,7 +61,7 @@ namespace NeoModLoader.utils
             return Delegate.Combine(Delegates);
         }
         /// <summary>
-        /// converts a delegate to a string which is a list of objects split by '+' with each object being a class:methodname
+        /// converts a delegate to a string which is a list of method paths split by '+' with each method path being a class:methodname
         /// </summary>
         /// <remarks>
         /// An Example would be delegate Randy.randomInt and Unity.Mathematics.Random.NextInt would become "Randy:randomInt+Unity.Mathematics.Random:NextInt"
@@ -69,20 +69,19 @@ namespace NeoModLoader.utils
         /// <exception cref="NullReferenceException">if Delegate is null</exception>
         public static string AsString(this Delegate pDelegate, bool IncludeType = false)
         {
-            string text;
-            List<string> tStringToPrint = new();
-            Delegate[] invocationList = pDelegate.GetInvocationList();
-            for (int i = 0; i < invocationList.Length; i++)
+            Delegate[] Delegates = pDelegate.GetInvocationList();
+            string[] MethodPaths = new string[Delegates.Length];
+            for (int i = 0; i < Delegates.Length; i++)
             {
-                Delegate tObject = invocationList[i];
-                tStringToPrint.Add($"{tObject.Method.DeclaringType.AssemblyQualifiedName}:{tObject.Method.Name}");
+                MethodInfo Method = Delegates[i].Method;
+                MethodPaths[i] = $"{Method.DeclaringType.AssemblyQualifiedName}:{Method.Name}";
             }
-            text = string.Join("+", tStringToPrint.ToArray());
+            string String = string.Join("+", MethodPaths);
             if (IncludeType)
             {
-                text = string.Join("&", pDelegate.GetType().AssemblyQualifiedName, text);
+                String = string.Join("&", pDelegate.GetType().AssemblyQualifiedName, String);
             }
-            return text;
+            return String;
         }
     }
 }
