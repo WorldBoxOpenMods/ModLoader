@@ -27,7 +27,7 @@ namespace NeoModLoader.utils
         /// </remarks>
         /// <param name="String">a list of objects split by '+' with each object being a class:methodname</param>
         /// <typeparam name="D">the delegate type, like worldaction</typeparam>
-        /// <exception cref="NullReferenceException">if String is null</exception>
+        /// <exception cref="ArgumentNullException">if String is null</exception>
         public static D AsDelegate<D>(this string String) where D : Delegate
         {
             return (D)String.AsDelegate(typeof(D));
