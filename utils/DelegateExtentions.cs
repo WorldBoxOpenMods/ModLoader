@@ -40,10 +40,11 @@ namespace NeoModLoader.utils
         /// </remarks>
         /// <param name="String">a list of objects split by '+' with each object being a class:methodname</param>
         /// <param name="DelegateType">if null, the AsString function must have includetype set to true</param>
-        /// <exception cref="NullReferenceException">if String is null or delegatetype is null and the string doesnt include the type</exception>
+        /// <exception cref="ArgumentNullException">if String is null</exception>
+        /// <exception cref="ArgumentException">if the delegatetype is null and the string doesnt include the type</exception>
         public static Delegate AsDelegate(this string String, Type DelegateType = null)
         {
-            if(String.Contains("&"))
+            if(String?.Contains("&") ?? throw new ArgumentNullException("The String is null!"))
             {
                 string[] TypeAndDelegate = String.Split('&');
                 DelegateType ??= Type.GetType(TypeAndDelegate[0]);
@@ -51,7 +52,7 @@ namespace NeoModLoader.utils
             }
             string[] DelegateIDS = String.Split('+');
             Delegate[] Delegates = new Delegate[DelegateIDS.Length];
-            Type[] Parameters = DelegateType.GetDelegateParameters();
+            Type[] Parameters = DelegateType?.GetDelegateParameters() ?? throw new ArgumentException("The String Does Not Contain the delegate type!");
             for (int i =0; i < DelegateIDS.Length; i++)
             {
                 string[] MethodPath = DelegateIDS[i].Split(':');
@@ -66,10 +67,10 @@ namespace NeoModLoader.utils
         /// <remarks>
         /// An Example would be delegate Randy.randomInt and Unity.Mathematics.Random.NextInt would become "Randy:randomInt+Unity.Mathematics.Random:NextInt"
         /// </remarks>
-        /// <exception cref="NullReferenceException">if Delegate is null</exception>
+        /// <exception cref="ArgumentNullException">if Delegate is null</exception>
         public static string AsString(this Delegate pDelegate, bool IncludeType = false)
         {
-            Delegate[] Delegates = pDelegate.GetInvocationList();
+            Delegate[] Delegates = pDelegate?.GetInvocationList() ?? throw new ArgumentNullException("The Delegate is null!");
             string[] MethodPaths = new string[Delegates.Length];
             for (int i = 0; i < Delegates.Length; i++)
             {

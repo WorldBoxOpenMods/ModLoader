@@ -1,4 +1,3 @@
-
 namespace NeoModLoader.utils.Builders
 {
     /// <summary>
