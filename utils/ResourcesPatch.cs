@@ -1,9 +1,8 @@
 using System.Globalization;
-using FMOD;
-using FMODUnity;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.services;
+using NeoModLoader.utils.Builders;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -88,16 +87,33 @@ public static class ResourcesPatch
     {
         if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
             return SpriteLoadUtils.LoadSprites(path);
-        if (pLowerPath.EndsWith(".wav"))
-        {
-            LoadWavFile(path);
-        }
-
         return new Object[]
         {
             LoadTextAsset(path)
         };
     }
+    static Builder LoadAsset(string Path, string Extention) => Extention switch
+    {
+        //"actorasset" => new ActorAssetBuilder(Path, false),
+        ".actortraitasset" => new ActorTraitBuilder(Path, false),
+        ".subspeciestraitasset" => new SubspeciesTraitBuilder(Path, false),
+        ".itemasset" => new ItemBuilder(Path, false),
+        ".itemmodifierasset" => new ItemModifierBuilder(Path, false),
+        ".clantraitasset" => new ClanTraitBuilder(Path, false),
+        ".culturetraitasset" => new CultureTraitBuilder(Path, false),
+        ".actortraitgroupasset" => new GroupAssetBuilder<ActorTraitGroupAsset>(Path, false),
+        ".achievementgroupasset" => new GroupAssetBuilder<AchievementGroupAsset>(Path, false),
+        ".clantraitgroupasset" => new GroupAssetBuilder<ClanTraitGroupAsset>(Path, false),
+        ".culturetraitgroupasset" => new GroupAssetBuilder<CultureTraitGroupAsset>(Path, false),
+        ".itemgroupasset" => new GroupAssetBuilder<ItemGroupAsset>(Path, false),
+        ".kingdomtraitgroupasset" => new GroupAssetBuilder<KingdomTraitGroupAsset>(Path, false),
+        ".languagetraitgroupasset" => new GroupAssetBuilder<LanguageTraitGroupAsset>(Path, false),
+        ".plotcategoryasset" => new GroupAssetBuilder<PlotCategoryAsset>(Path, false),
+        ".religiontraitgroupasset" => new GroupAssetBuilder<ReligionTraitGroupAsset>(Path, false),
+        ".subspeciestraitgroupasset" => new GroupAssetBuilder<SubspeciesTraitGroupAsset>(Path, false),
+        ".worldlawgroupasset" => new GroupAssetBuilder<WorldLawGroupAsset>(Path, false),
+        _ => throw new NotSupportedException($"the asset {Extention} has not been supported yet!"),
+    };
     /// <summary>
     /// doesnt return anything, simply adds the wav to the wav library that contains all the custom sounds
     /// </summary>
@@ -118,29 +134,9 @@ public static class ResourcesPatch
         }
         catch (Exception)
         {
-            container = new WavContainer(path, true, 50f);
+            container = new WavContainer(path, SoundMode.Stereo3D, 50f);
         }
-
         CustomAudioManager.AudioWavLibrary.Add(Name, container);
-    }
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(MusicBox), nameof(MusicBox.playSound), typeof(string), typeof(float), typeof(float),
-        typeof(bool), typeof(bool))]
-    static bool LoadCustomSound(string pSoundPath, float pX, float pY, bool pGameViewOnly)
-    {
-        if (!MusicBox.sounds_on)
-        {
-            return false;
-        }
-
-        if (pGameViewOnly && World.world.quality_changer.isLowRes())
-        {
-            return false;
-        }
-        if (!CustomAudioManager.AudioWavLibrary.ContainsKey(pSoundPath)) return true;
-
-        CustomAudioManager.LoadCustomSound(pX, pY, pSoundPath);
-        return false;
     }
 
     private static TextAsset LoadTextAsset(string path)
@@ -150,15 +146,20 @@ public static class ResourcesPatch
         return textAsset;
     }
 
-    internal static void LoadResourceFromFolder(string pFolder)
+    internal static void LoadResourceFromFolder(string pFolder, out List<Builder> Builders)
     {
+        Builders = null;
         if (!Directory.Exists(pFolder)) return;
-
         var files = SystemUtils.SearchFileRecursive(pFolder, filename => !filename.StartsWith("."),
             dirname => !dirname.StartsWith("."));
         foreach (var file in files)
         {
-            tree.AddFromFile(file.Replace(pFolder, "").Replace('\\', '/').Substring(1), file);
+            tree.AddFromFile(file.Replace(pFolder, "").Replace('\\', '/').Substring(1), file, out Builder builder);
+            if(builder != null)
+            {
+                Builders ??= new List<Builder>();
+                Builders.Add(builder);
+            }
         }
     }
 
@@ -360,11 +361,22 @@ public static class ResourcesPatch
         /// </summary>
         /// <param name="path">Path to resource in tree</param>
         /// <param name="absPath">Path to resource in actual filesystem</param>
-        public void AddFromFile(string path, string absPath)
+        /// <param name="Builder">if your folder contains asset files (.actorasset, .itemasset) pass a master builder to load these assets, then make it buildall</param>
+        public void AddFromFile(string path, string absPath, out Builder Builder)
         {
+            Builder = null;
             string lower_path = path.ToLower();
             if (lower_path.EndsWith(".meta") || lower_path.EndsWith("sprites.json")) return;
-
+            if (lower_path.EndsWith(".wav"))
+            {
+                LoadWavFile(absPath);
+                return;
+            }
+            if (lower_path.EndsWith("asset"))
+            {
+                Builder = LoadAsset(absPath, Path.GetExtension(lower_path));
+                return;
+            }
             string parent_path = Path.GetDirectoryName(lower_path);
             Object[] objs;
             try

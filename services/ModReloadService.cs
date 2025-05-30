@@ -2,6 +2,7 @@ using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.utils;
+using NeoModLoader.utils.Builders;
 
 namespace NeoModLoader.services;
 
@@ -17,11 +18,14 @@ internal static class ModReloadService
 
     public static bool ReloadResources(IMod pMod)
     {
+        MasterBuilder Builder = new();
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath,
-            Paths.ModResourceFolderName));
+            Paths.ModResourceFolderName), out List<Builder> builders);
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath,
-            Paths.NCMSAdditionModResourceFolderName));
-
+            Paths.NCMSAdditionModResourceFolderName), out List<Builder> builders2);
+        Builder.AddBuilders(builders);
+        Builder.AddBuilders(builders2);
+        Builder.BuildAll();
         return false;
     }
 
