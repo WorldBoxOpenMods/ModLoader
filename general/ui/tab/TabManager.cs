@@ -404,6 +404,16 @@ public static class TabManager
 
         tab.name = name;
 
+        var asset = new PowerTabAsset
+        {
+            id = name,
+            locale_key = pTitleKey,
+            tab_type_main = true,
+            get_power_tab = () => tab
+        };
+        AssetManager.power_tab_library.add(asset);
+        tab._asset = asset;
+
         Button tab_entry_button = tab_entry.GetComponent<Button>();
         tab_entry_button.onClick = new Button.ButtonClickedEvent();
         tab_entry_button.onClick.AddListener(() => tab.showTab(tab_entry_button));
