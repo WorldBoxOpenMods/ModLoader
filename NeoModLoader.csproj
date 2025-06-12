@@ -72,7 +72,10 @@
         <HintPath>assembly-dependencies\Assembly-CSharp-Publicized.dll</HintPath>
       </Reference>
       <Reference Include="Assembly-CSharp-firstpass">
-        <HintPath>assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
+          <HintPath>assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
+      </Reference>
+      <Reference Include="strings">
+          <HintPath>assembly-dependencies\strings.dll</HintPath>
       </Reference>
       <Reference Include="Newtonsoft.Json">
         <HintPath>assembly-dependencies\Newtonsoft.Json.dll</HintPath>

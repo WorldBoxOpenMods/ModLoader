@@ -152,7 +152,6 @@ public class WorldBoxMod : MonoBehaviour
                     }, "Post-Init Mod " + mod.GetDeclaration().Name);
                 }
             }, "Load Mods");
-            SmoothLoader.add(ResourcesPatch.PatchSomeResources, "Patch part of Resources into game");
 
             SmoothLoader.add(() =>
             {

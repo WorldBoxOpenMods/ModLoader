@@ -419,19 +419,19 @@ public static class TabManager
             GameObject.Destroy(tab.transform.GetChild(i).gameObject);
         }
 
-        tab.powerButtons.Clear();
+        tab._power_buttons.Clear();
         // Add default powerButtons
         foreach (PowerButton power_button in tab.GetComponentsInChildren<PowerButton>())
         {
             if (!(power_button == null) && !(power_button.rect_transform == null))
             {
-                tab.powerButtons.Add(power_button);
+                tab._power_buttons.Add(power_button);
             }
         }
 
-        foreach (PowerButton power_button in tab.powerButtons)
+        foreach (PowerButton power_button in tab._power_buttons)
         {
-            power_button.findNeighbours(tab.powerButtons);
+            power_button.findNeighbours(tab._power_buttons);
         }
 
         _addDragEventTo(tab_entry_button, tab.name);

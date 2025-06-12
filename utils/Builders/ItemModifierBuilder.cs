@@ -5,7 +5,7 @@ namespace NeoModLoader.utils.Builders
     /// <summary>
     /// A Builder which creates item modifiers!
     /// </summary>
-    public sealed class ItemModifierBuilder : AugmentationAssetBuilder<ItemAsset, ItemModifierLibrary>
+    /*public sealed class ItemModifierBuilder : AugmentationAssetBuilder<ItemAsset, ItemModifierLibrary> // same issue as item assets @melvin @melvin @melvin :3
     {
         /// <inheritdoc/>
         public ItemModifierBuilder(string FilePath, bool LoadImmediately) :base(FilePath, LoadImmediately) { }
@@ -88,5 +88,5 @@ namespace NeoModLoader.utils.Builders
         /// The ID of the Name, doesnt have to be set
         /// </summary>
         public string NameID { get { return Asset.translation_key; } set { Asset.translation_key = value; } }
-    }
+    }*/
 }

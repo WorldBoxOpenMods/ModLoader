@@ -1,6 +1,7 @@
 ﻿using NeoModLoader.utils.SerializedAssets;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using strings;
 
 namespace NeoModLoader.utils.Builders
 {

@@ -20,7 +20,7 @@ internal static class UIManager
             PowerButtonCreator.CreateWindowButton("NML_ModsList", "NeoModList",
                                                   InternalResourcesGetter.GetIcon()),
             PowerButtonCreator.GetTab(PowerTabNames.Main),
-            new Vector2(403.2f, -18));
+          22);
         /*
         PowerButtonCreator.AddButtonToTab(
             PowerButtonCreator.CreateWindowButton("NewNML_ModsList", "NMLMenu",

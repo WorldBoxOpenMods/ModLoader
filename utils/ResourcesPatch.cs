@@ -62,16 +62,6 @@ public static class ResourcesPatch
         }
     }
 
-    internal static void PatchSomeResources()
-    {
-        Sprite[] items = Resources.LoadAll<Sprite>("actors/races/items");
-        foreach (Sprite item in items)
-        {
-            if (ActorAnimationLoader._dict_items.ContainsKey(item.name)) continue;
-            ActorAnimationLoader._dict_items[item.name] = new List<Sprite> { item };
-        }
-    }
-
     /// <summary>
     /// Load a resource file from path, and named by pLowerPath.
     /// </summary>
@@ -97,8 +87,8 @@ public static class ResourcesPatch
         //"actorasset" => new ActorAssetBuilder(Path, false),
         ".actortraitasset" => new ActorTraitBuilder(Path, false),
         ".subspeciestraitasset" => new SubspeciesTraitBuilder(Path, false),
-        ".itemasset" => new ItemBuilder(Path, false),
-        ".itemmodifierasset" => new ItemModifierBuilder(Path, false),
+        //".itemasset" => new ItemBuilder(Path, false), // had to comment out because whatever generics system melvin set up for this broke and I don't have time to look into it
+        //".itemmodifierasset" => new ItemModifierBuilder(Path, false), // same issue as above
         ".clantraitasset" => new ClanTraitBuilder(Path, false),
         ".culturetraitasset" => new CultureTraitBuilder(Path, false),
         ".actortraitgroupasset" => new GroupAssetBuilder<ActorTraitGroupAsset>(Path, false),

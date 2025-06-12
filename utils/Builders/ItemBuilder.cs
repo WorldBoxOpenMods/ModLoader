@@ -8,7 +8,7 @@ namespace NeoModLoader.utils.Builders
     /// <summary>
     ///  A Builder to build items
     /// </summary>
-    public sealed class ItemBuilder : AugmentationAssetBuilder<ItemAsset, ItemLibrary>
+    /*public sealed class ItemBuilder : AugmentationAssetBuilder<ItemAsset, ItemLibrary> // congrats melvin, your ItemBuilder broke on a fundamental level within 1 singular update of existing somehow, I am under severe time pressure rn and cannot be bothered to look into the cause so have fun whenever you see this Ig
     {
         static string GetEquipmentType(EquipmentType pType) => pType switch
         {
@@ -261,5 +261,5 @@ namespace NeoModLoader.utils.Builders
         /// not used by the game at the moment!
         /// </summary>
         public int Rate { get { return Asset.pool_rate; } set { Asset.pool_rate = value; } }
-    }
+    }*/
 }

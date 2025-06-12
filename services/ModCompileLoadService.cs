@@ -637,7 +637,6 @@ public static class ModCompileLoadService
         Builder.AddBuilders(builders);
         Builder.AddBuilders(builders2);
         Builder.BuildAll();
-        ResourcesPatch.PatchSomeResources();
         return true;
     }
 

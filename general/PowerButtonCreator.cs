@@ -287,12 +287,22 @@ public static class PowerButtonCreator
     /// <summary>
     /// Add a button to a tab
     /// </summary>
-    public static void AddButtonToTab(PowerButton button, PowersTab tab, Vector2 position)
+    [Obsolete("Specifying a position vector has become useless in 0.50.5, tab order is now determined by sibling index.")]
+    public static void AddButtonToTab(PowerButton button, PowersTab tab, Vector2 position, int? siblingIndex = null)
+    {
+        // WorldBox has seemingly switched to a new tab system that overwrites localPosition and orders by sibling order
+        AddButtonToTab(button, tab, siblingIndex);
+    }
+
+    /// <summary>
+    /// Add a button to a tab
+    /// </summary>
+    public static void AddButtonToTab(PowerButton button, PowersTab tab, int? siblingIndex = null)
     {
         Transform transform;
         (transform = button.transform).SetParent(tab.transform);
-        transform.localPosition = position;
         transform.localScale = Vector3.one;
-        tab.powerButtons.Add(button);
+        if (siblingIndex.HasValue) transform.SetSiblingIndex(siblingIndex.Value);
+        tab._power_buttons.Add(button);
     }
 }

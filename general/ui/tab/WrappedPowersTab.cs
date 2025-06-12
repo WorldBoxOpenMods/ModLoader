@@ -175,18 +175,18 @@ internal class WrappedPowersTab
             }
         }
 
-        Tab.powerButtons.Clear();
+        Tab._power_buttons.Clear();
         foreach (PowerButton power_button in Tab.GetComponentsInChildren<PowerButton>())
         {
             if (!(power_button == null) && !(power_button.rect_transform == null))
             {
-                Tab.powerButtons.Add(power_button);
+                Tab._power_buttons.Add(power_button);
             }
         }
 
-        foreach (PowerButton power_button in Tab.powerButtons)
+        foreach (PowerButton power_button in Tab._power_buttons)
         {
-            power_button.findNeighbours(Tab.powerButtons);
+            power_button.findNeighbours(Tab._power_buttons);
         }
     }
 
