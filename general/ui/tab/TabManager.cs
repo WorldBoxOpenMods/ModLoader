@@ -399,10 +399,10 @@ public static class TabManager
         tab_entry.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
 
         PowersTab tab = Object.Instantiate(
-            ResourcesFinder.FindResources<GameObject>("Tab_Other")[0].GetComponent<PowersTab>(),
+            ResourcesFinder.FindResources<GameObject>("other")[0].GetComponent<PowersTab>(),
             tab_container);
 
-        tab.name = "Tab_" + name;
+        tab.name = name;
 
         Button tab_entry_button = tab_entry.GetComponent<Button>();
         tab_entry_button.onClick = new Button.ButtonClickedEvent();
