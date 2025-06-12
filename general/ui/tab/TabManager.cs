@@ -399,7 +399,7 @@ public static class TabManager
         tab_entry.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
 
         PowersTab tab = Object.Instantiate(
-            ResourcesFinder.FindResources<GameObject>("other")[0].GetComponent<PowersTab>(),
+            ResourcesFinder.FindResources<GameObject>(PowerTabNames.Creatures)[0].GetComponent<PowersTab>(),
             tab_container);
 
         tab.name = name;
@@ -424,9 +424,9 @@ public static class TabManager
         tab_entry_tip.textOnClickDescription = pDescKey;
         tab_entry_tip.text_description_2 = pOptionDescKey;
         // Clear tab content
-        for (int i = 7; i < tab.transform.childCount; i++)
+        for (int i = 6; i < tab.transform.childCount; i++)
         {
-            GameObject.Destroy(tab.transform.GetChild(i).gameObject);
+            Object.Destroy(tab.transform.GetChild(i).gameObject);
         }
 
         tab._power_buttons.Clear();
