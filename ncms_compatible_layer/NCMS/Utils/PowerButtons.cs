@@ -44,7 +44,7 @@ namespace NCMS.Utils
             }
 
             // NCMS implements toggle button with its own way. So we cannot use PowerButtonCreator.CreateToggleButton here.
-            var prefab = ResourcesFinder.FindResource<PowerButton>("kings_and_leaders").gameObject;
+            var prefab = ResourcesFinder.FindResource<PowerButton>("map_kings_leaders").gameObject;
 
             // To avoid PowerButton's OnEnable() method
             bool found_active = prefab.activeSelf;

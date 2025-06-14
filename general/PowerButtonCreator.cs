@@ -235,7 +235,7 @@ public static class PowerButtonCreator
             });
         }
 
-        var prefab = ResourcesFinder.FindResource<PowerButton>("kings_and_leaders");
+        var prefab = ResourcesFinder.FindResource<PowerButton>("map_kings_leaders");
 
         bool found_active = prefab.gameObject.activeSelf;
         if (found_active)
