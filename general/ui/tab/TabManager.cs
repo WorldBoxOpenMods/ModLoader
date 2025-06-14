@@ -399,7 +399,7 @@ public static class TabManager
         tab_entry.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
 
         PowersTab tab = Object.Instantiate(
-            ResourcesFinder.FindResources<GameObject>(PowerTabNames.Creatures)[0].GetComponent<PowersTab>(),
+            ResourcesFinder.FindResources<GameObject>(PowerTabNames.Creatures).Select(tgo => tgo.GetComponent<PowersTab>()).First(t => t != null),
             tab_container);
 
         tab.name = name;
