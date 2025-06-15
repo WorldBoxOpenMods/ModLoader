@@ -1,3 +1,4 @@
+using System.Collections;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -13,11 +14,11 @@ namespace NeoModLoader.ui;
 /// </summary>
 public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 {
+    private readonly List<IMod> to_add = new();
     private ModDeclare clickedMod;
     private int clickTimes;
     private float lastClickTime;
     private bool needRefresh;
-    private readonly List<IMod> to_add = new();
 
     private void Update()
     {
@@ -215,10 +216,19 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     /// </summary>
     public class ModListItem : AbstractListWindowItem<IMod>
     {
+        private IMod _mod;
+
+        private IEnumerator WaitOpenWindow()
+        {
+            yield return new WaitForSeconds(3f);
+            if (Instance.clickTimes == 8) ModUploadWindow.ShowWindow(_mod);
+        }
+
         /// <inheritdoc cref="AbstractListWindowItem{TItem}.Setup" />
         /// <param name="mod">The mod to display</param>
         public override void Setup(IMod mod)
         {
+            _mod = mod;
             ModDeclare mod_declare = mod.GetDeclaration();
             ModState mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
 
@@ -295,6 +305,8 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                     Instance.clickTimes++;
                     if (Instance.clickTimes == 8)
                     {
+                        StartCoroutine(nameof(WaitOpenWindow));
+                        /*
                         new Task(() =>
                         {
                             Thread.Sleep(3000);
@@ -302,7 +314,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                             {
                                 ModUploadWindow.ShowWindow(mod);
                             }
-                        }).Start();
+                        }).Start();*/
                     }
                 });
             }
