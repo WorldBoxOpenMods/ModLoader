@@ -35,5 +35,10 @@
   "mod_load_failed_description": "模组加载失败, 请检查模组是否完整或损坏\n点击禁用\n下面是错误信息",
   "toggle_mod_title": "启用/禁用模组",
   "mod_enabled_description": "当前状态\n<color=green>已启用</color>",
-  "mod_disabled_description": "当前状态\n<color=gray>已禁用</color>"
+  "mod_disabled_description": "当前状态\n<color=gray>已禁用</color>",
+  "mod_state_enabled": "当前<color=green>已启用</color>",
+  "mod_state_disabled": "当前<color=gray>已禁用</color>",
+  "mod_state_failed": "当前<color=red>加载失败</color>",
+  "mod_next_state_enabled": "下次将启用",
+  "mod_next_state_disabled": "下次将禁用"
 }

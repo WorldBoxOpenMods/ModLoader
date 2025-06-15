@@ -35,5 +35,10 @@
   "mod_load_failed_description": "Failed to load mod\nClick to disable it\nPlease check the mod is valid",
   "toggle_mod_title": "Toggle Mod",
   "mod_enabled_description": "Current State\n<color=green>Enabled</color>",
-  "mod_disabled_description": "Current State\n<color=gray>Disabled</color>"
+  "mod_disabled_description": "Current State\n<color=gray>Disabled</color>",
+  "mod_state_enabled": "Current <color=green>Enabled</color>",
+  "mod_state_disabled": "Current <color=gray>Disabled</color>",
+  "mod_state_failed": "Current <color=red>Failed</color>",
+  "mod_next_state_enabled": "will load",
+  "mod_next_state_disabled": "won't load"
 }
