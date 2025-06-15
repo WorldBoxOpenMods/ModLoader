@@ -32,7 +32,7 @@
   "ModReload Title": "Reload Mod\n<color=red>DO NOT USE IT IF YOU ARE NOT DEVELOPER</color>",
   "NeoModLoader Report": "Click to report bug or suggest new feature",
   "mod_load_failed_title": "Failed to load mod",
-  "mod_load_failed_description": "Failed to load mod\nPlease check the mod is valid",
+  "mod_load_failed_description": "Failed to load mod\nClick to disable it\nPlease check the mod is valid",
   "toggle_mod_title": "Toggle Mod",
   "mod_enabled_description": "Current State\n<color=green>Enabled</color>",
   "mod_disabled_description": "Current State\n<color=gray>Disabled</color>"

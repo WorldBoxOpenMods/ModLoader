@@ -41,7 +41,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     {
         GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image), typeof(Button), typeof(TipButton));
         workshopButton.transform.SetParent(BackgroundTransform);
-        workshopButton.transform.localPosition = new(125, 0);
+        workshopButton.transform.localPosition = new Vector3(140, 0);
         workshopButton.transform.localScale = Vector3.one;
         workshopButton.GetComponent<RectTransform>().sizeDelta = new(20, 20);
         Image workshopButtonImage = workshopButton.GetComponent<Image>();
@@ -325,6 +325,12 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 icon_tip_button.textOnClickDescription = "ModLoadFailed Description";
                 icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
                 icon.color = Color.red;
+
+                icon.GetComponent<Button>().onClick.AddListener(() =>
+                {
+                    var curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
+                    icon.color = curr_state ? Color.red : Color.yellow;
+                });
             }
             else
             {
