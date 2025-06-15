@@ -1,4 +1,4 @@
-﻿<h1 align="center">
+<h1 align="center">
   <img src="https://raw.githubusercontent.com/WorldBoxOpenMods/ModLoader/master/resources/logo.png" alt="logo" width="200">
   <br/>
   NeoModLoader
@@ -25,9 +25,17 @@ for short. Detailed introduction look [Gitbook](https://worldboxopenmods.gitbook
     How to install
 </h3>
 
-### One-click install(Windows only)
+### Automatic install
 
-https://drive.google.com/file/d/1le-loCzEc2m5sxtSalz7RD6tJqtHRUZZ/view?usp=sharing The installer only works for Windows.
+The installer is available for both Linux and Windows.
+Click the links below to download:
+* [Linux Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-linux)
+* [Windows Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-win.exe)
+
+
+
+
+
 
 ### Manual install
 
