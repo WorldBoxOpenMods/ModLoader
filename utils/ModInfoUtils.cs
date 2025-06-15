@@ -19,7 +19,7 @@ namespace NeoModLoader.utils;
 internal static class ModInfoUtils
 {
     private static Queue<ModDeclare> link_request_mods = new();
-    private static bool              to_install_bepinex;
+    private static bool to_install_bepinex;
 
     private static Dictionary<string, ModCompilationCache> mod_compilation_caches;
 
@@ -70,7 +70,7 @@ internal static class ModInfoUtils
     public static string TryToUnzipModZip(string pZipFile)
     {
         var extract_path = Path.Combine(Application.temporaryCachePath,
-                                        Path.GetFileNameWithoutExtension(pZipFile));
+            Path.GetFileNameWithoutExtension(pZipFile));
         if (Directory.Exists(extract_path)) Directory.Delete(extract_path, true);
 
         try
@@ -88,8 +88,8 @@ internal static class ModInfoUtils
         }
 
         var mod_json_files = SystemUtils.SearchFileRecursive(extract_path,
-                                                             filename => filename == Paths.ModDeclarationFileName,
-                                                             dirname => true);
+            filename => filename == Paths.ModDeclarationFileName,
+            dirname => true);
         if (mod_json_files.Count == 0)
         {
             Directory.Delete(extract_path, true);
@@ -112,13 +112,13 @@ internal static class ModInfoUtils
         try
         {
             SystemUtils.CopyDirectory(Path.GetDirectoryName(mod_json_files[0]),
-                                      Path.Combine(Paths.ModsPath, target_folder_name));
+                Path.Combine(Paths.ModsPath, target_folder_name));
             return Path.Combine(Paths.ModsPath, target_folder_name);
         }
         catch (UnauthorizedAccessException)
         {
             ZipFile.ExtractToDirectory(pZipFile,
-                                       Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(pZipFile)));
+                Path.Combine(Paths.ModsPath, Path.GetFileNameWithoutExtension(pZipFile)));
         }
         finally
         {
@@ -138,15 +138,15 @@ internal static class ModInfoUtils
     }
 
     public static void CheckModsFolder(string pFolderPath, HashSet<string> pFindModsIDs, List<ModDeclare> pModsToFill,
-                                       bool   pLogModJsonNotFound = true)
+        bool pLogModJsonNotFound = true)
     {
         if (!Directory.Exists(pFolderPath)) return;
         var zipped_mods = new HashSet<string>(Directory.GetFiles(pFolderPath, "*.zip"))
-                          .Union(Directory.GetFiles(pFolderPath, "*.7z"))
-                          .Union(Directory.GetFiles(pFolderPath, "*.rar"))
-                          .Union(Directory.GetFiles(pFolderPath, "*.tar"))
-                          .Union(Directory.GetFiles(pFolderPath, "*.tar.gz"))
-                          .Union(Directory.GetFiles(pFolderPath, "*.mod"));
+            .Union(Directory.GetFiles(pFolderPath, "*.7z"))
+            .Union(Directory.GetFiles(pFolderPath, "*.rar"))
+            .Union(Directory.GetFiles(pFolderPath, "*.tar"))
+            .Union(Directory.GetFiles(pFolderPath, "*.tar.gz"))
+            .Union(Directory.GetFiles(pFolderPath, "*.mod"));
         foreach (var zipped_mod in zipped_mods) TryToUnzipModZip(zipped_mod);
 
         var mod_folders = Directory.GetDirectories(pFolderPath);
@@ -180,6 +180,7 @@ internal static class ModInfoUtils
 
         bool NCMSHere()
         {
+            return false;
             return Directory.GetFiles(Paths.NativeModsPath, "NCMS*.dll").Length > 0;
         }
 
@@ -385,7 +386,7 @@ internal static class ModInfoUtils
                 if (Application.platform == RuntimePlatform.LinuxPlayer)
                 {
                     string launch_script_path = string.Format(Paths.LinuxSteamLocalConfigPath,
-                                                              SteamClient.SteamId.AccountId.ToString());
+                        SteamClient.SteamId.AccountId.ToString());
 
                     var result = VdfConvert.Deserialize(File.ReadAllText(launch_script_path));
                     result.Value["Software"]["Valve"]["Steam"]["apps"][CoreConstants.GameId.ToString()]
@@ -437,10 +438,10 @@ internal static class ModInfoUtils
         if (!File.Exists(mod_config_path))
         {
             var possible_mod_config_path = SystemUtils.SearchFileRecursive(pModFolderPath,
-                                                                           file_name =>
-                                                                               file_name ==
-                                                                               Paths.ModDeclarationFileName,
-                                                                           _ => true);
+                file_name =>
+                    file_name ==
+                    Paths.ModDeclarationFileName,
+                _ => true);
             if (possible_mod_config_path.Count == 0)
             {
                 if (pLogModJsonNotFound)
@@ -502,13 +503,18 @@ internal static class ModInfoUtils
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
 
-        foreach (var assembly in assemblies) {
+        foreach (var assembly in assemblies)
+        {
             string assembly_location;
-            try {
+            try
+            {
                 assembly_location = assembly.Location;
-            } catch (NotSupportedException) {
+            }
+            catch (NotSupportedException)
+            {
                 continue;
             }
+
             if (bepinex_plugin_file_locs.Contains(assembly_location))
             {
                 string folder_path = Path.GetDirectoryName(assembly_location);
@@ -603,7 +609,7 @@ internal static class ModInfoUtils
     }
 
     public static void RecordMod(ModDeclare pModDeclare, List<string> pDependencies, List<string> pOptionalDependencies,
-                                 bool       pDisabled = false, bool pSave = true)
+        bool pDisabled = false, bool pSave = true)
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache))
         {
@@ -624,8 +630,8 @@ internal static class ModInfoUtils
     }
 
     // ReSharper disable once InconsistentNaming
-    public static bool doesModNeedRecompile(ModDeclare   pModDeclare, List<string> pDependencies,
-                                          List<string> pOptionalDependencies)
+    public static bool doesModNeedRecompile(ModDeclare pModDeclare, List<string> pDependencies,
+        List<string> pOptionalDependencies)
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
         if (!File.Exists(Path.Combine(Paths.CompiledModsPath, pModDeclare.UID))) return true;
@@ -684,14 +690,14 @@ internal static class ModInfoUtils
         var dir = new DirectoryInfo(pModFolderPath);
         if (mod_last_update_timestamps.ContainsKey(dir.FullName)) return mod_last_update_timestamps[dir.FullName];
         var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
-                                                    dirname => !dirname.StartsWith(".") &&
-                                                               !Paths.IgnoreSearchDirectories.Contains(dirname));
+            dirname => !dirname.StartsWith(".") &&
+                       !Paths.IgnoreSearchDirectories.Contains(dirname));
         var result = files.Select(filepath => new FileInfo(filepath))
-                          .Select(file_info =>
-                                      Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))
-                          .Prepend(Math.Max(dir.CreationTimeUtc.Ticks, dir.LastWriteTimeUtc.Ticks))
-                          .Prepend(InternalResourcesGetter.GetLastWriteTime())
-                          .Max();
+            .Select(file_info =>
+                Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))
+            .Prepend(Math.Max(dir.CreationTimeUtc.Ticks, dir.LastWriteTimeUtc.Ticks))
+            .Prepend(InternalResourcesGetter.GetLastWriteTime())
+            .Max();
         mod_last_update_timestamps[dir.FullName] = result;
         return result;
     }
