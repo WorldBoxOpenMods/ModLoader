@@ -1,6 +1,6 @@
 {
-  "NML_ModsList": "Mods",
-  "NML_ModsList Description": "Here are your mods.\nYou can enable, disable or configure your mods.",
+  "nml_mods_list": "Mods",
+  "nml_mods_list_description": "Here are your mods.\nYou can enable, disable or configure your mods.",
   "NeoModList Title": "Mods",
   "WorkshopMods Title": "Workshop Subscribed Mods",
   "NeoModLoader Update Title": "NeoModLoader Update",
@@ -14,10 +14,10 @@
   "NML_FileNotFound": "Invalid FileID (FileNotFound)",
   "FailedAutoUpdate": "Failed to update NeoModLoader\nPlease restart as Administrator\n If failed again\n Please update manually\n See How to install NeoModLoader manually",
   "ModUploadAuthentication Title": "Upload Authentication",
-  "NML_AUTHENTICATION": "Select a way to authenticate",
-  "NML_AUTHENTICATED": "Authenticated",
-  "NML_AUTHENTICATION_WAITING": "Waiting for authentication...(At most 60s)",
-  "NML_AUTHENTICATION_FAILED": "Authentication failed, please try again.",
+  "nml_authentication": "Select a way to authenticate",
+  "nml_authenticated": "Authenticated",
+  "nml_authentication_waiting": "Waiting for authentication...(At most 60s)",
+  "nml_authentication_failed": "Authentication failed, please try again.",
   "DiscordAuth Title": "Discord Authentication",
   "DiscordAuth Description": "Redirect to Discord to authenticate your account\nRequires you having Modder role in Worldbox Discord channel\n",
   "GithubAuth Title": "Github Authentication",
@@ -31,9 +31,9 @@
   "OpenFolder Title": "Open Mod Folder",
   "ModReload Title": "Reload Mod\n<color=red>DO NOT USE IT IF YOU ARE NOT DEVELOPER</color>",
   "NeoModLoader Report": "Click to report bug or suggest new feature",
-  "ModLoadFailed Title": "Failed to load mod",
-  "ModLoadFailed Description": "Failed to load mod\nPlease check the mod is valid",
-  "ToggleMod Title": "Toggle Mod",
-  "ModEnabled Description": "Current State\n<color=green>Enabled</color>",
-  "ModDisabled Description": "Current State\n<color=gray>Disabled</color>"
+  "mod_load_failed_title": "Failed to load mod",
+  "mod_load_failed_description": "Failed to load mod\nPlease check the mod is valid",
+  "toggle_mod_title": "Toggle Mod",
+  "mod_enabled_description": "Current State\n<color=green>Enabled</color>",
+  "mod_disabled_description": "Current State\n<color=gray>Disabled</color>"
 }

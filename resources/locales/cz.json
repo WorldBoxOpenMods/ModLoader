@@ -1,6 +1,6 @@
 {
-  "NML_ModsList": "模组列表",
-  "NML_ModsList Description": "这里是你的模组列表。\n你可以在这里启用,禁用和配置模组。",
+  "nml_mods_list": "模组列表",
+  "nml_mods_list_description": "这里是你的模组列表。\n你可以在这里启用,禁用和配置模组。",
   "NeoModList Title": "模组列表",
   "WorkshopMods Title": "创意工坊模组列表",
   "NeoModLoader Update Title": "NeoModLoader 更新",
@@ -14,10 +14,10 @@
   "NML_FileNotFound": "无效ID(FileNotFound)",
   "FailedAutoUpdate": "自动更新失败\n 尝试以管理员权限启动\n 若仍无法更新\n 请手动更新NeoModLoader\n 方法见首次安装方法",
   "ModUploadAuthentication Title": "模组上传验证",
-  "NML_AUTHENTICATION": "选择验证方式或跳过验证",
-  "NML_AUTHENTICATED": "验证成功",
-  "NML_AUTHENTICATION_WAITING": "正在验证，耐心等待......(至多60s)",
-  "NML_AUTHENTICATION_FAILED": "验证失败, 重试其他方式或跳过验证",
+  "nml_authentication": "选择验证方式或跳过验证",
+  "nml_authenticated": "验证成功",
+  "nml_authentication_waiting": "正在验证，耐心等待......(至多60s)",
+  "nml_authentication_failed": "验证失败, 重试其他方式或跳过验证",
   "DiscordAuth Title": "Discord验证",
   "DiscordAuth Description": "跳转到Discord验证你的身份组\n要求WorldBox Discord群组的Modder role",
   "GithubAuth Title": "Github验证",
@@ -34,9 +34,9 @@
   "UploadMod Title": "上传模组",
   "ModReload Title": "重载模组\n<color=red>非开发者慎用</color>",
   "NeoModLoader Report": "点击反馈Bug或建议",
-  "ModLoadFailed Title": "模组加载失败",
-  "ModLoadFailed Description": "模组加载失败, 请检查模组是否完整或损坏\n下面是错误信息",
-  "ToggleMod Title": "启用/禁用模组",
-  "ModEnabled Description": "当前状态\n<color=green>已启用</color>",
-  "ModDisabled Description": "当前状态\n<color=gray>已禁用</color>"
+  "mod_load_failed_title": "模组加载失败",
+  "mod_load_failed_description": "模组加载失败, 请检查模组是否完整或损坏\n下面是错误信息",
+  "toggle_mod_title": "启用/禁用模组",
+  "mod_enabled_description": "当前状态\n<color=green>已启用</color>",
+  "mod_disabled_description": "当前状态\n<color=gray>已禁用</color>"
 }
