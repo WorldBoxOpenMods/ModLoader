@@ -35,7 +35,7 @@
   "ModReload Title": "重载模组\n<color=red>非开发者慎用</color>",
   "NeoModLoader Report": "点击反馈Bug或建议",
   "mod_load_failed_title": "模组加载失败",
-  "mod_load_failed_description": "模组加载失败, 请检查模组是否完整或损坏\n点击禁用\n下面是错误信息",
+  "mod_load_failed_description": "模组加载失败, 请检查模组是否完好且适配当前版本\n点击禁用\n下面是错误信息",
   "toggle_mod_title": "启用/禁用模组",
   "mod_enabled_description": "当前状态\n<color=green>已启用</color>",
   "mod_disabled_description": "当前状态\n<color=gray>已禁用</color>",
