@@ -14,7 +14,7 @@ namespace NeoModLoader.ui;
 /// </summary>
 public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 {
-    private readonly List<IMod> to_add = new();
+    private readonly Queue<IMod> to_add = new();
     private ModDeclare clickedMod;
     private int clickTimes;
     private float lastClickTime;
@@ -27,8 +27,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         {
             if (to_add.Any())
             {
-                AddItemToList(to_add[to_add.Count - 1]);
-                to_add.RemoveAt(to_add.Count - 1);
+                AddItemToList(to_add.Dequeue());
                 return;
             }
 
@@ -85,7 +84,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         ClearList();
         foreach (var loaded_mod in WorldBoxMod.LoadedMods)
         {
-            to_add.Add(loaded_mod);
+            to_add.Enqueue(loaded_mod);
         }
 
         foreach (var mod in WorldBoxMod.AllRecognizedMods.Keys)
@@ -93,7 +92,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             if (WorldBoxMod.AllRecognizedMods[mod] == ModState.LOADED) continue;
             var virtual_mod = new VirtualMod();
             virtual_mod.OnLoad(mod, null);
-            to_add.Add(virtual_mod);
+            to_add.Enqueue(virtual_mod);
         }
     }
 
