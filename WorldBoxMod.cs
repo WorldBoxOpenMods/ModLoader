@@ -108,6 +108,7 @@ public class WorldBoxMod : MonoBehaviour
                     }
                 }, "Compile Mod " + mod.mod_decl.Name);
             }
+
             MasterBuilder Builder = new();
             foreach (var mod in mod_nodes)
             {
@@ -120,7 +121,7 @@ public class WorldBoxMod : MonoBehaviour
                         Builder.AddBuilders(builders);
                         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
                             Paths.NCMSAdditionModResourceFolderName), out List<Builder> builders2);
-                       Builder.AddBuilders(builders2);
+                        Builder.AddBuilders(builders2);
                         ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(mod.mod_decl.FolderPath,
                             Paths.ModAssetBundleFolderName));
                     }
@@ -136,11 +137,10 @@ public class WorldBoxMod : MonoBehaviour
                 var successfulInit = new Dictionary<IMod, bool>();
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
-                    SmoothLoader.add(() =>
-                    {
-                        successfulInit.Add(mod, ModCompileLoadService.TryInitMod(mod));
-                    }, "Init Mod " + mod.GetDeclaration().Name);
+                    SmoothLoader.add(() => { successfulInit.Add(mod, ModCompileLoadService.TryInitMod(mod)); },
+                        "Init Mod " + mod.GetDeclaration().Name);
                 }
+
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
                     SmoothLoader.add(() =>
@@ -306,28 +306,5 @@ public class WorldBoxMod : MonoBehaviour
         }
 
         File.WriteAllText(Paths.NMLCommitPath, InternalResourcesGetter.GetCommit());
-        if (File.Exists(Paths.NMLAutoUpdateModulePath))
-        {
-            FileInfo file = new(Paths.NMLAutoUpdateModulePath);
-            if (file.LastWriteTimeUtc.Ticks < InternalResourcesGetter.GetLastWriteTime())
-                try
-                {
-                    file.Delete();
-                    LogService.LogInfo($"NeoModLoader.dll is newer than AutoUpdate.dll, " +
-                                       $"re-extract AutoUpdate.dll from NeoModLoader.dll");
-                }
-                catch (Exception e)
-                {
-                    // ignored
-                }
-        }
-
-        if (!File.Exists(Paths.NMLAutoUpdateModulePath))
-        {
-            using Stream stream = NeoModLoaderAssembly.GetManifestResourceStream(
-                "NeoModLoader.resources.assemblies.NeoModLoader.AutoUpdate.dll");
-            using var file = new FileStream(Paths.NMLAutoUpdateModulePath, FileMode.CreateNew, FileAccess.Write);
-            stream.CopyTo(file);
-        }
     }
 }
