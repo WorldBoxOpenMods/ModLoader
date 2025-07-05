@@ -36,7 +36,7 @@ Click the links below to download:
 ### Downgrade Tool
 
 If you're trying to play mods that aren't compatible with the latest version of Worldbox, you can use **Worldbox Rewind** to downgrade to an older version:
-* [Download Worldbox Rewind](https://github.com/gmBlahaj/Worldbox-Rewind)
+* [Download Worldbox Rewind](https://gmblahaj.xyz/pages/rewind)
 
 
 </br>
