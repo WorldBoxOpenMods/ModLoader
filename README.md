@@ -20,22 +20,26 @@ for short. Detailed introduction look [Gitbook](https://worldboxopenmods.gitbook
 
 <h2 align="center"> Overview </h2>
 
-
 <h3 align="center">
     How to install
 </h3>
 
 ### Automatic install
 
-The installer is available for both Linux and Windows.
+The installer is available for both Linux and Windows.  
 Click the links below to download:
 * [Linux Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-linux)
 * [Windows Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-win.exe)
 
+</br>
+
+### Downgrade Tool
+
+If you're trying to play mods that aren't compatible with the latest version of Worldbox, you can use **Worldbox Rewind** to downgrade to an older version:
+* [Download Worldbox Rewind](https://gmblahaj.xyz/pages/rewind)
 
 
-
-
+</br>
 
 ### Manual install
 
