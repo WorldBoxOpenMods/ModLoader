@@ -48,7 +48,7 @@ public static class TabManager
 
     internal static void _init()
     {
-        Harmony.CreateAndPatchAll(typeof(TabManager), Others.harmony_id);
+        HarmonyLib.Harmony.CreateAndPatchAll(typeof(TabManager), Others.harmony_id);
         var _tab_names = PowerTabNames.GetNames();
         for (int i = 1; i < _tab_names.Count; i++)
         {

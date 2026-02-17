@@ -25,6 +25,9 @@
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
       </Reference>
+      <Reference Include="MelonLoader">
+        <HintPath>assembly-dependencies\MelonLoader.dll</HintPath>
+      </Reference>
         <Reference Include="Mono.Cecil.Pdb">
             <HintPath>resources\assemblies\Mono.Cecil.Pdb.dll</HintPath>
         </Reference>

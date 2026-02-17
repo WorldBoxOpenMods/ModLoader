@@ -185,7 +185,7 @@ internal static class ModInfoUtils
         }
 
         string[] workshop_mod_folders;
-        if (Others.is_editor)
+        if (Others.is_editor || Others.IsAndroid)
         {
             goto SKIP_WORKSHOP;
         }

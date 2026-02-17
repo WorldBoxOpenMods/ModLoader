@@ -46,7 +46,7 @@ internal static class AssetExtensionInternal<TAsset, TLibrary>
 
         if (_assetlibrary_patched) return;
         _assetlibrary_patched = true;
-        new Harmony($"{CoreConstants.ModName}.ForEach").Patch(
+        new HarmonyLib.Harmony($"{CoreConstants.ModName}.ForEach").Patch(
             AccessTools.Method(typeof(AssetLibrary<TAsset>), nameof(AssetLibrary<TAsset>.add)),
             postfix: new HarmonyMethod(
                 AccessTools.FirstMethod(typeof(AssetExtensionInternal<TAsset, TLibrary>),

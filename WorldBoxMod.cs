@@ -31,7 +31,7 @@ public class WorldBoxMod : MonoBehaviour
     private bool initialized_successfully = false;
 
     private static void UnityExplorerFix() {
-        Harmony harmony = new Harmony(Others.harmony_id);
+        HarmonyLib.Harmony harmony = new HarmonyLib.Harmony(Others.harmony_id);
         MethodInfo original = AccessTools.Method(typeof(Assembly), nameof(Assembly.LoadFrom), new[] { typeof(string) });
         MethodInfo standin = AccessTools.Method(typeof(WorldBoxMod), nameof(LoadFrom));
         ReversePatcher reversePatcher = harmony.CreateReversePatcher(original, new HarmonyMethod(standin));
@@ -40,7 +40,6 @@ public class WorldBoxMod : MonoBehaviour
     }
 
     private static Assembly LoadFrom(string path) => Assembly.LoadFrom(path);
-
     private void Start()
     {
         Others.unity_player_enabled = true;
@@ -59,7 +58,7 @@ public class WorldBoxMod : MonoBehaviour
         fileSystemInitialize();
         LogService.LogInfo($"NeoModLoader Version: {InternalResourcesGetter.GetCommit()}");
     }
-
+    
     private void Update()
     {
         if (!Config.game_loaded) return;
@@ -76,9 +75,9 @@ public class WorldBoxMod : MonoBehaviour
         initialized = true;
         ModUploadAuthenticationService.AutoAuth();
         HarmonyUtils._init();
-        Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
-        Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        Harmony.CreateAndPatchAll(typeof(CustomAudioManager), Others.harmony_id);
+        HarmonyLib.Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
+        HarmonyLib.Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
+        HarmonyLib.Harmony.CreateAndPatchAll(typeof(CustomAudioManager), Others.harmony_id);
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
 
         SmoothLoader.add(() =>

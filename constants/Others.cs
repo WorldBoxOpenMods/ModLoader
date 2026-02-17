@@ -29,4 +29,11 @@ public static class Others
             return false;
         }
     }
+    /// <summary>
+    /// returns if the game is currently on android.
+    /// </summary>
+    public static bool IsAndroid
+    {
+        get => Application.platform == RuntimePlatform.Android;
+    }
 }

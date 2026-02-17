@@ -55,7 +55,7 @@ public abstract class AbstractListener<TListener, THandler> : BaseListener
             Type type = instance.GetType();
             try
             {
-                Harmony.CreateAndPatchAll(type, type.FullName);
+                HarmonyLib.Harmony.CreateAndPatchAll(type, type.FullName);
             }
             catch(Exception e)
             {

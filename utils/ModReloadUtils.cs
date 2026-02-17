@@ -108,7 +108,7 @@ internal static class ModReloadUtils
 
         Assembly old_assembly = _mod.GetType().Assembly;
 
-        Harmony harmony = new Harmony(_mod_declare.UID);
+        HarmonyLib.Harmony harmony = new HarmonyLib.Harmony(_mod_declare.UID);
 
         if (_op_code_map.Count == 0)
         {
@@ -320,7 +320,7 @@ internal static class ModReloadUtils
         _op_code_map.Add(Mono.Cecil.Cil.OpCodes.Tail, OpCodes.Tailcall);
     }
 
-    private static void HotfixMethod(Harmony pHarmony, MethodDefinition pNewMethod, MethodInfo pOldMethod)
+    private static void HotfixMethod(HarmonyLib.Harmony pHarmony, MethodDefinition pNewMethod, MethodInfo pOldMethod)
     {
         ReplaceMethod(pOldMethod, regenerate(pNewMethod));
     }
