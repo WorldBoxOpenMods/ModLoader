@@ -64,97 +64,18 @@ public static class TabManager
         TabOther.Init();
     }
 
-    private static void _loadPredefinedOrder()
+    [HarmonyPrefix, HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getNext))]
+    private static bool _getNext_Patch(string pActiveTab, ref Button __result)
     {
-        if (!File.Exists(Paths.TabOrderRecordPath))
-        {
-            return;
-        }
-
-        List<string> predefined_order =
-            JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(Paths.TabOrderRecordPath));
-        if (predefined_order == null)
-        {
-            return;
-        }
-
-        List<int> indexs = new(); // Current indexs of predefined_order in tab_names
-        foreach (var tab_name in predefined_order)
-        {
-            int index = tab_names.IndexOf(tab_name);
-            if (index < 0)
-            {
-                continue;
-            }
-
-            indexs.Add(index);
-        }
-
-        List<int> sorted_indexs = new(indexs); // Target indexs of predefined_order in tab_names
-        sorted_indexs.Sort();
-
-        for (int i = 0; i < sorted_indexs.Count; i++)
-        {
-            int current_index = indexs[i];
-            int target_index = sorted_indexs[i];
-
-            if (current_index == target_index) continue;
-
-            tab_names.Swap(current_index, target_index);
-            tab_entries.Swap(current_index, target_index);
-
-            for (int j = i + 1; j < sorted_indexs.Count; j++)
-            {
-                if (indexs[j] == target_index)
-                {
-                    indexs[j] = current_index;
-                    break;
-                }
-            }
-        }
+        tab_entries.Sort((Button a, Button b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+        __result = tab_entries[(tab_names.IndexOf(pActiveTab) + 1) % tab_entries.Count];
+        return false;
     }
 
-    private static void _savePredefinedOrder()
+    [HarmonyPrefix, HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getPrev))]
+    private static bool _getPrev_Patch(string pActiveTab, ref Button __result)
     {
-        File.WriteAllText(Paths.TabOrderRecordPath, JsonConvert.SerializeObject(tab_names));
-    }
-
-    [HarmonyTranspiler]
-    [HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getNext))]
-    private static IEnumerable<CodeInstruction> _getNext_Patch(IEnumerable<CodeInstruction> instr)
-    {
-        List<CodeInstruction> codes = new()
-        {
-            new CodeInstruction(OpCodes.Ldarg_0),
-            new CodeInstruction(OpCodes.Ldarg_1),
-            new CodeInstruction(OpCodes.Call,
-                AccessTools.Method(typeof(TabManager), nameof(_getNext_Overwrite))),
-            new CodeInstruction(OpCodes.Ret)
-        };
-        return codes;
-    }
-
-    [HarmonyTranspiler]
-    [HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getPrev))]
-    private static IEnumerable<CodeInstruction> _getPrev_Patch(IEnumerable<CodeInstruction> instr)
-    {
-        List<CodeInstruction> codes = new()
-        {
-            new CodeInstruction(OpCodes.Ldarg_0),
-            new CodeInstruction(OpCodes.Ldarg_1),
-            new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(TabManager), nameof(_getPrev_Overwrite))),
-            new CodeInstruction(OpCodes.Ret)
-        };
-        return codes;
-    }
-
-    private static Button _getNext_Overwrite(this PowerTabController instance, string pActiveTab)
-    {
-        return tab_entries[(tab_names.IndexOf(pActiveTab) + 1) % tab_entries.Count];
-    }
-
-    private static Button _getPrev_Overwrite(this PowerTabController instance, string pActiveTab)
-    {
+        tab_entries.Sort((Button a, Button b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
         int index = tab_names.IndexOf(pActiveTab);
         if (index < 0)
         {
@@ -166,7 +87,8 @@ public static class TabManager
             index = tab_entries.Count;
         }
 
-        return tab_entries[index - 1];
+        __result = tab_entries[index - 1];
+        return false;
     }
 
     internal static void _checkNewTabs()
@@ -201,7 +123,6 @@ public static class TabManager
             {
                 if (GetTabMainPart(tab_entry.name) != assumed_entry_button_main_part) continue;
                 need_update = true;
-                _addDragEventTo(tab_entry, tab_name);
                 _addTabEntry(tab_entry.gameObject, tab_name);
                 break;
             }
@@ -212,119 +133,8 @@ public static class TabManager
             _updateTabLayout();
         }
     }
-
-    private static void _addDragEventTo(Button tab_entry, string pTabName)
-    {
-        EventTrigger trigger = tab_entry.GetComponent<EventTrigger>();
-        if (trigger == null)
-        {
-            trigger = tab_entry.gameObject.AddComponent<EventTrigger>();
-        }
-
-        EventTrigger.Entry entry = new EventTrigger.Entry();
-        entry.eventID = EventTriggerType.EndDrag;
-        entry.callback.AddListener((data) => { _setToValidPosition(tab_entry, pTabName); });
-        trigger.triggers.Add(entry);
-
-        entry = new EventTrigger.Entry();
-        entry.eventID = EventTriggerType.Drag;
-        entry.callback.AddListener((data) => { _onDragTabEntry(tab_entry, pTabName); });
-        trigger.triggers.Add(entry);
-    }
-
-    private static void _setToValidPosition(Button pTabEntry, string pTabName)
-    {
-        _last_mouse_pos = Vector3.zero;
-        _savePredefinedOrder();
-        _updateTabLayout();
-    }
-
-    private static void _onDragTabEntry(Button pTabEntry, string pTabName)
-    {
-        RectTransform tab_entry_rect = pTabEntry.GetComponent<RectTransform>();
-        Vector3 mouse_pos = Input.mousePosition;
-        Vector3 mouse_pos_local = tab_entry_rect.parent.InverseTransformPoint(mouse_pos);
-
-        if (_last_mouse_pos == Vector3.zero)
-        {
-            _last_mouse_pos = mouse_pos_local;
-            return;
-        }
-
-        Vector3 delta = (mouse_pos_local - _last_mouse_pos);
-
-        Vector3 current_pos = tab_entry_rect.localPosition;
-
-        int index = tab_names.IndexOf(pTabName);
-
-
-        void swap(bool left)
-        {
-            tab_names.Swap(index, index + (left ? -1 : 1));
-            tab_entries.Swap(index, index + (left ? -1 : 1));
-            _updateTabEntryRectAs(tab_entries[index], index);
-            _updateTabEntryRectAs(tab_entries[index + (left ? -1 : 1)], index + (left ? -1 : 1));
-            var position = tab_entry_rect.localPosition;
-            if (Math.Abs(position.y - current_pos.y) > 0.01f)
-            {
-                delta.x = 0;
-                current_pos = position;
-            }
-        }
-
-        if (index == 0)
-        {
-            if (delta.x > 0)
-            {
-                var right_pos = tab_entries[1].transform.localPosition;
-                // Move to right
-                if (current_pos.x > right_pos.x)
-                {
-                    swap(false);
-                }
-            }
-        }
-        else if (index == tab_names.Count - 1)
-        {
-            if (delta.x < 0)
-            {
-                var right_pos = tab_entries[index - 1].transform.localPosition;
-                // Move to left
-                if (current_pos.x < right_pos.x)
-                {
-                    swap(true);
-                }
-            }
-        }
-        else
-        {
-            if (delta.x < 0)
-            {
-                var right_pos = tab_entries[index - 1].transform.localPosition;
-                // Move to right
-                if (current_pos.x < right_pos.x)
-                {
-                    swap(true);
-                }
-            }
-            else
-            {
-                var right_pos = tab_entries[index + 1].transform.localPosition;
-                // Move to left
-                if (current_pos.x > right_pos.x)
-                {
-                    swap(false);
-                }
-            }
-        }
-
-        _last_mouse_pos = mouse_pos_local;
-        tab_entry_rect.localPosition = new Vector3(current_pos.x + delta.x, current_pos.y, current_pos.z);
-    }
-
     private static void _updateTabLayout()
     {
-        _loadPredefinedOrder();
         int cur_active_count = 0;
         foreach (var tab in tab_entries)
         {
@@ -444,7 +254,6 @@ public static class TabManager
             power_button.findNeighbours(tab._power_buttons);
         }
 
-        _addDragEventTo(tab_entry_button, tab.name);
         _addTabEntry(tab_entry, tab.name);
         _updateTabLayout();
 
