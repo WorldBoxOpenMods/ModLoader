@@ -6,6 +6,7 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
+[Obsolete("Use patch instead")]
 public class CultureCreateListener : AbstractListener<CultureCreateListener, CultureCreateHandler>
 {
     protected static void HandleAll(Culture pCulture, Actor pActor, City pCity)

@@ -25,21 +25,21 @@ internal static class ListenerManager
                     type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null);
                 if (constructor == null)
                 {
-                    LogService.LogWarning($"Cannot find constructor of {type.FullName}");
+                    //LogService.LogWarning($"Cannot find constructor of {type.FullName}");
                     continue;
                 }
                 if (constructor.Invoke(null) is not BaseListener listener)
                 {
-                    LogService.LogWarning($"Failed to construct listener instance of {type.FullName}");
+                    //LogService.LogWarning($"Failed to construct listener instance of {type.FullName}");
                     continue;
                 }
                 _listeners.Add(listener);
             }
             catch (Exception e)
             {
-                LogService.LogError($"Failed to patch listener: {type.FullName}");
-                LogService.LogError(e.Message);
-                LogService.LogError(e.StackTrace);
+                //LogService.LogError($"Failed to patch listener: {type.FullName}");
+                //LogService.LogError(e.Message);
+                //LogService.LogError(e.StackTrace);
             }
         }
     }

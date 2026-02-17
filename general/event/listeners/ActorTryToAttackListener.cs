@@ -6,6 +6,7 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
+[Obsolete("Use patch instead")]
 public class ActorTryToAttackListener : AbstractListener<ActorTryToAttackListener, ActorTryToAttackHandler>
 {
     /// <summary>

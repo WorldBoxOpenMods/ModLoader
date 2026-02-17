@@ -10,6 +10,7 @@ namespace NeoModLoader.General.Event.Listeners;
 ///     This class is used to listen to <see cref="City.newCityEvent" /> event. And call all
 ///     <see cref="CityCreateHandler.Handle" /> when the event is triggered.
 /// </summary>
+[Obsolete("Use patch instead")]
 public class CityCreateListener : AbstractListener<CityCreateListener, CityCreateHandler>
 {
     /// <summary>

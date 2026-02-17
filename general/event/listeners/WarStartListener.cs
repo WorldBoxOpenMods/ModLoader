@@ -6,6 +6,7 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
+[Obsolete("Use patch instead")]
 public class WarStartListener : AbstractListener<WarStartListener, WarStartHandler>
 {
     protected static void HandleAll(War pWar, Kingdom pAttacker, Kingdom pDefender, WarTypeAsset pWarType)
