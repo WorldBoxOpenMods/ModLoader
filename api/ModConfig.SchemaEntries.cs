@@ -104,12 +104,11 @@ public partial class ModConfig
     private sealed class SelectSchemaEntry : ConfigSchemaEntry
     {
         public int DefaultValue;
-        public string[] Options = Array.Empty<string>();
-        public string OptionsRaw = "";
+        public int OptionCount;
         public override ConfigItemType Type => ConfigItemType.SELECT;
         public override ConfigStateEntry CreateDefaultState()
         {
-            int selected = ClampSelectIndex(DefaultValue, Options);
+            int selected = ClampSelectIndex(DefaultValue, OptionCount);
             return new SelectStateEntry { Value = selected };
         }
 
@@ -118,13 +117,14 @@ public partial class ModConfig
             if (pState is not SelectStateEntry typed) return CreateDefaultState();
             return new SelectStateEntry
             {
-                Value = ClampSelectIndex(typed.Value, Options)
+                Value = ClampSelectIndex(typed.Value, OptionCount)
             };
         }
 
         public override void ApplyMeta(ModConfigItem pItem)
         {
-            pItem.TextVal = OptionsRaw;
+            pItem.MinIntVal = 0;
+            pItem.MaxIntVal = Math.Max(0, OptionCount);
         }
     }
 }
