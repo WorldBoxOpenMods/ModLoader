@@ -94,7 +94,7 @@ public class SimpleButton : APrefab<SimpleButton>
         {
             this.TipButton.enabled = true;
             this.TipButton.type = pTipType;
-            if (string.IsNullOrEmpty(pTipData.tip_name))
+            if (string.IsNullOrEmpty(pTipData?.tip_name))
             {
                 TipButton.hoverAction = TipButton.showTooltipDefault;
             }
