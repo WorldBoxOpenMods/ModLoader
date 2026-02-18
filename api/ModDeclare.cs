@@ -1,8 +1,10 @@
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using NeoModLoader.General;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace NeoModLoader.api;
 
@@ -263,6 +265,33 @@ public class ModDeclare
     internal void SetIconPath(string iconPath)
     {
         IconPath = iconPath;
+    }
+    public Sprite GetIcon()
+    {
+        if (!string.IsNullOrEmpty(IconPath))
+            return SpriteLoadUtils.LoadSingleSprite(Path.Combine(FolderPath, IconPath));
+        return InternalResourcesGetter.GetIcon();
+    }
+    public string GetDisplayName()
+    {
+        var display_name = Name;
+        var multilang_mod_name_key = $"{Name}_{LocalizedTextManager.instance.language}";
+        if (LocalizedTextManager.stringExists(multilang_mod_name_key)) display_name = LM.Get(multilang_mod_name_key);
+        return display_name;
+    }
+    public string GetDisplayAuthor()
+    {
+        var display_author = Author;
+        var multilang_mod_author_key = $"{Author}_{LocalizedTextManager.instance.language}";
+        if (LocalizedTextManager.stringExists(multilang_mod_author_key)) display_author = LM.Get(multilang_mod_author_key);
+        return display_author;
+    }
+    public string GetDisplayDesc()
+    {
+        var display_desc = Description;
+        var multilang_mod_desc_key = $"{Description}_{LocalizedTextManager.instance.language}";
+        if (LocalizedTextManager.stringExists(multilang_mod_desc_key)) display_desc = LM.Get(multilang_mod_desc_key);
+        return display_desc;
     }
 }
 
