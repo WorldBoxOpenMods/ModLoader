@@ -157,11 +157,15 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
             new ModConfig(Path.Combine(Paths.ModsConfigPath, $"{_declare.UID}.config"), true);
 
         string default_config_path = Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName);
-        if (!File.Exists(default_config_path)) return persistent_config;
+        if (!File.Exists(default_config_path))
+        {
+            return persistent_config;
+        }
 
         var default_config =
             new ModConfig(Path.Combine(_declare.FolderPath, Paths.ModDefaultConfigFileName));
         persistent_config.MergeWith(default_config);
+        persistent_config.ApplyCallbacks();
 
         return persistent_config;
     }
