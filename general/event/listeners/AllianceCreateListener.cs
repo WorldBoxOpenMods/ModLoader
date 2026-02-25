@@ -10,6 +10,7 @@ namespace NeoModLoader.General.Event.Listeners;
 ///     This class is used to listen to <see cref="AllianceManager.newAlliance" /> event. And call all
 ///     <see cref="AllianceCreateHandler.Handle" /> when the event is triggered.
 /// </summary>
+[Obsolete("Use patch instead")]
 public class AllianceCreateListener : AbstractListener<AllianceCreateListener, AllianceCreateHandler>
 {
     /// <summary>

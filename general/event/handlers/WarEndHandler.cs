@@ -2,6 +2,7 @@ namespace NeoModLoader.General.Event.Handlers;
 /// <summary>
 /// This class is used to handle war end event.
 /// </summary>
+[Obsolete("Use patch instead")]
 public abstract class WarEndHandler : AbstractHandler<WarEndHandler>
 {
     /// <summary>

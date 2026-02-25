@@ -6,6 +6,7 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
+[Obsolete("Use patch instead")]
 public class KingdomSetupListener : AbstractListener<KingdomSetupListener, KingdomSetupHandler>
 {
     protected static void HandleAll(Kingdom pKingdom, bool pCiv)

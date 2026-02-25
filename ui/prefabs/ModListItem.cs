@@ -3,6 +3,7 @@ using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui.prefabs;
@@ -11,33 +12,38 @@ internal class ModListItem : APrefab<ModListItem>
 {
     private Image icon;
     private Text  text;
+    private Button button;
 
     protected override void Init()
     {
         if (Initialized) return;
         base.Init();
         icon = transform.Find("ModIcon").GetComponent<Image>();
-        text = transform.Find("SimpleInfo").GetComponent<Text>();
+        text = transform.Find("ModName").GetComponent<Text>();
+        button = transform.Find("ModIcon").GetComponent<Button>();
     }
 
     public void Setup(ModDeclare pDeclare, Action pAction)
     {
         Init();
 
-        if (!string.IsNullOrEmpty(pDeclare.IconPath))
-            icon.sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(pDeclare.FolderPath, pDeclare.IconPath));
-
-        if (icon.sprite == null) icon.sprite = InternalResourcesGetter.GetIcon();
-
+        icon.sprite = pDeclare.GetIcon();
         name = pDeclare.Name;
 
-        var mod_name = pDeclare.Name;
-        var mod_author = pDeclare.Author;
-        var multilang_mod_name_key = $"{mod_name}_{LocalizedTextManager.instance.language}";
-        var multilang_mod_author_key = $"{mod_author}_{LocalizedTextManager.instance.language}";
-        if (LocalizedTextManager.stringExists(multilang_mod_name_key)) mod_name = LM.Get(multilang_mod_name_key);
-        if (LocalizedTextManager.stringExists(multilang_mod_author_key)) mod_author = LM.Get(multilang_mod_author_key);
-        text.text = $"{mod_name}\n{mod_author}";
+        var mod_name = pDeclare.GetDisplayName();
+        var mod_author = pDeclare.GetDisplayAuthor();
+        mod_name = mod_name.Length > 10 ? mod_name.Substring(0, 10) : mod_name;
+        mod_author = mod_author.Length > 20 ? mod_author.Substring(0, 20) : mod_author;
+        var mod_state = WorldBoxMod.AllRecognizedMods[pDeclare] switch
+        {
+            ModState.LOADED => "mod_state_enabled",
+            ModState.DISABLED => "mod_state_disabled",
+            ModState.FAILED => "mod_state_failed",
+            _ => "mod_state_failed"
+        };
+        text.text = $"{mod_name}\n{mod_author}\n{LM.Get(mod_state)}";
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() => {pAction?.Invoke();});
     }
 
     private static void _init()
@@ -47,7 +53,7 @@ internal class ModListItem : APrefab<ModListItem>
         obj.GetComponent<Image>().type = Image.Type.Sliced;
         obj.GetComponent<RectTransform>().sizeDelta = new Vector2(88, 40);
 
-        var mod_icon = new GameObject("ModIcon", typeof(Image));
+        var mod_icon = new GameObject("ModIcon", typeof(Image), typeof(Button));
         mod_icon.transform.SetParent(obj.transform);
         mod_icon.transform.localPosition = new Vector3(-24.5f, 0, 0);
         mod_icon.transform.localScale = Vector3.one;
@@ -67,7 +73,7 @@ internal class ModListItem : APrefab<ModListItem>
         text.transform.localScale = Vector3.one;
         text.GetComponent<RectTransform>().sizeDelta = new Vector2(48, 34);
         var text_text = text.GetComponent<Text>();
-        text_text.text = "Mod Name\nMod Author";
+        text_text.text = "Mod Name\nMod Author\nLoaded";
         text_text.alignment = TextAnchor.UpperLeft;
         text_text.font = LocalizedTextManager.current_font;
         text_text.fontSize = 6;

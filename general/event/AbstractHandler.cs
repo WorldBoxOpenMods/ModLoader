@@ -3,6 +3,7 @@ namespace NeoModLoader.General.Event;
 /// Abstract handler for event
 /// </summary>
 /// <typeparam name="THandler"></typeparam>
+[Obsolete("Use patch instead")]
 public abstract class AbstractHandler<THandler> where THandler : AbstractHandler<THandler>
 {
     /// <summary>

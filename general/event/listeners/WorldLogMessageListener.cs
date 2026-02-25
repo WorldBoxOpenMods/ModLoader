@@ -11,6 +11,7 @@ namespace NeoModLoader.General.Event.Listeners;
 /// <summary>
 /// This listener is made for adding your own log message.
 /// </summary>
+[Obsolete("Use patch instead")]
 public class WorldLogMessageListener : AbstractListener<WorldLogMessageListener, WorldLogMessageHandler>
 {
     /// <summary>

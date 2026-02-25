@@ -3,6 +3,7 @@ namespace NeoModLoader.General.Event.Handlers;
 /// <summary>
 /// This class is used to handle city create event.
 /// </summary>
+[Obsolete("Use patch instead")]
 public abstract class CityCreateHandler : AbstractHandler<CityCreateHandler>
 {
     /// <summary>

@@ -1,6 +1,7 @@
 using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -114,19 +115,27 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         OT.InitializeCommonText(slider_text);
         slider_text.alignment = TextAnchor.MiddleLeft;
         slider_text.resizeTextForBestFit = true;
-        GameObject slider_config_value = new GameObject("Value", typeof(Text));
-        slider_config_value.transform.SetParent(slider_info.transform);
-        slider_config_value.transform.localScale = Vector3.one;
-        slider_config_value.GetComponent<RectTransform>().sizeDelta = new(32, 16);
-        Text slider_value = slider_config_value.GetComponent<Text>();
-        OT.InitializeCommonText(slider_value);
-        slider_value.alignment = TextAnchor.MiddleRight;
-        slider_value.resizeTextForBestFit = true;
-        slider_value.resizeTextMinSize = 1;
-        SliderBar slider_bar = Instantiate(SliderBar.Prefab, slider_area.transform);
+
+        GameObject slider_control = new GameObject("Control", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        slider_control.transform.SetParent(slider_area.transform);
+        slider_control.transform.localScale = Vector3.one;
+        slider_control.GetComponent<RectTransform>().sizeDelta = new(0, 20);
+        HorizontalLayoutGroup slider_control_layout = slider_control.GetComponent<HorizontalLayoutGroup>();
+        slider_control_layout.childControlWidth = false;
+        slider_control_layout.childControlHeight = false;
+        slider_control_layout.childForceExpandWidth = false;
+        slider_control_layout.childAlignment = TextAnchor.MiddleLeft;
+        slider_control_layout.spacing = 4;
+
+        TextInput slider_value_input = Instantiate(TextInput.Prefab, slider_control.transform);
+        slider_value_input.transform.localScale = Vector3.one;
+        slider_value_input.name = "Input";
+        slider_value_input.SetSize(new Vector2(52f, 20f));
+
+        SliderBar slider_bar = Instantiate(SliderBar.Prefab, slider_control.transform);
         slider_bar.transform.localScale = Vector3.one;
         slider_bar.name = "Slider";
-        slider_bar.SetSize(new Vector2(170f, 20));
+        slider_bar.SetSize(new Vector2(114f, 20f));
 
         #endregion
 
@@ -174,9 +183,57 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
         #region SELECT
 
-        GameObject select_area = new GameObject("SelectArea", typeof(RectTransform));
+        GameObject select_area = new GameObject("SelectArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
         select_area.transform.SetParent(config_item.transform);
         select_area.transform.localScale = Vector3.one;
+        VerticalLayoutGroup select_layout = select_area.GetComponent<VerticalLayoutGroup>();
+        select_layout.childControlWidth = true;
+        select_layout.childControlHeight = false;
+        select_layout.childForceExpandWidth = false;
+        select_layout.childAlignment = TextAnchor.UpperCenter;
+        select_layout.spacing = 4;
+
+        GameObject select_info = new GameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        select_info.transform.SetParent(select_area.transform);
+        select_info.transform.localScale = Vector3.one;
+        select_info.GetComponent<RectTransform>().sizeDelta = new(0, 18);
+        HorizontalLayoutGroup select_info_layout = select_info.GetComponent<HorizontalLayoutGroup>();
+        select_info_layout.childControlWidth = false;
+        select_info_layout.childControlHeight = false;
+        select_info_layout.childForceExpandWidth = false;
+        select_info_layout.childAlignment = TextAnchor.MiddleLeft;
+        select_info_layout.spacing = 8;
+
+        GameObject select_config_icon = new GameObject("Icon", typeof(Image));
+        select_config_icon.transform.SetParent(select_info.transform);
+        select_config_icon.transform.localScale = Vector3.one;
+        select_config_icon.GetComponent<RectTransform>().sizeDelta = new(16, 16);
+
+        GameObject select_config_text = new GameObject("Text", typeof(Text));
+        select_config_text.transform.SetParent(select_info.transform);
+        select_config_text.transform.localScale = Vector3.one;
+        select_config_text.GetComponent<RectTransform>().sizeDelta = new(140, 16);
+        Text select_text = select_config_text.GetComponent<Text>();
+        OT.InitializeCommonText(select_text);
+        select_text.alignment = TextAnchor.MiddleLeft;
+        select_text.resizeTextForBestFit = true;
+        select_text.resizeTextMinSize = 1;
+
+        GameObject options_grid = new GameObject("Options", typeof(RectTransform), typeof(GridLayoutGroup),
+            typeof(ContentSizeFitter));
+        options_grid.transform.SetParent(select_area.transform);
+        options_grid.transform.localScale = Vector3.one;
+        options_grid.GetComponent<RectTransform>().sizeDelta = new(170, 0);
+        GridLayoutGroup options_grid_layout = options_grid.GetComponent<GridLayoutGroup>();
+        options_grid_layout.cellSize = new Vector2(54, 20);
+        options_grid_layout.spacing = new Vector2(4, 4);
+        options_grid_layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        options_grid_layout.constraintCount = 3;
+        options_grid_layout.startAxis = GridLayoutGroup.Axis.Horizontal;
+        options_grid_layout.childAlignment = TextAnchor.UpperLeft;
+        ContentSizeFitter options_fitter = options_grid.GetComponent<ContentSizeFitter>();
+        options_fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        options_fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         #endregion
 
@@ -337,6 +394,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
                     setup_text(pItem);
                     break;
                 case ConfigItemType.SELECT:
+                    setup_select(pItem);
                     break;
             }
         }
@@ -375,22 +433,30 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         private void setup_slider(ModConfigItem pItem)
         {
             slider_area.SetActive(true);
-            Text value = slider_area.transform.Find("Info/Value").GetComponent<Text>();
-            value.text = $"{pItem.FloatVal:F2}";
-
-            SliderBar slider_bar = slider_area.transform.Find("Slider").GetComponent<SliderBar>();
+            TextInput value_input = slider_area.transform.Find("Control/Input").GetComponent<TextInput>();
+            SliderBar slider_bar = slider_area.transform.Find("Control/Slider").GetComponent<SliderBar>();
             slider_bar.Setup(pItem.FloatVal, pItem.MinFloatVal, pItem.MaxFloatVal, pFloatVal =>
             {
-                if (!Instance._modifiedItems.ContainsKey(pItem))
-                {
-                    Instance._modifiedItems.Add(pItem, pItem.GetValue());
-                }
-
+                mark_modified(pItem);
                 pItem.SetValue(pFloatVal, true);
-                value.text = $"{pItem.FloatVal:F2}";
+                value_input.input.text = pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture);
             });
             slider_bar.tip_button.textOnClick = pItem.Id;
             slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
+
+            value_input.Setup(pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture), pTextVal =>
+            {
+                if (!TryParseFloat(pTextVal, out float parsed))
+                {
+                    value_input.input.text = pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture);
+                    return;
+                }
+
+                mark_modified(pItem);
+                pItem.SetValue(parsed, true);
+                slider_bar.slider.value = pItem.FloatVal;
+                value_input.input.text = pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture);
+            });
 
             slider_area.transform.Find("Info/Text").GetComponent<Text>().text = LM.Get(pItem.Id);
             if (string.IsNullOrEmpty(pItem.IconPath))
@@ -408,19 +474,30 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         private void setup_int_slider(ModConfigItem pItem)
         {
             slider_area.SetActive(true);
-            var value = slider_area.transform.Find("Info/Value").GetComponent<Text>();
-            value.text = $"{pItem.IntVal}";
-
-            var slider_bar = slider_area.transform.Find("Slider").GetComponent<SliderBar>();
+            TextInput value_input = slider_area.transform.Find("Control/Input").GetComponent<TextInput>();
+            SliderBar slider_bar = slider_area.transform.Find("Control/Slider").GetComponent<SliderBar>();
             slider_bar.Setup(pItem.IntVal, pItem.MinIntVal, pItem.MaxIntVal, pIntVal =>
             {
-                if (!Instance._modifiedItems.ContainsKey(pItem)) Instance._modifiedItems.Add(pItem, pItem.GetValue());
-
+                mark_modified(pItem);
                 pItem.SetValue(pIntVal, true);
-                value.text = $"{pItem.IntVal}";
+                value_input.input.text = pItem.IntVal.ToString(CultureInfo.InvariantCulture);
             }, whole_numbers: true);
             slider_bar.tip_button.textOnClick = pItem.Id;
             slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
+
+            value_input.Setup(pItem.IntVal.ToString(CultureInfo.InvariantCulture), pTextVal =>
+            {
+                if (!TryParseInt(pTextVal, out int parsed))
+                {
+                    value_input.input.text = pItem.IntVal.ToString(CultureInfo.InvariantCulture);
+                    return;
+                }
+
+                mark_modified(pItem);
+                pItem.SetValue(parsed, true);
+                slider_bar.slider.value = pItem.IntVal;
+                value_input.input.text = pItem.IntVal.ToString(CultureInfo.InvariantCulture);
+            });
 
             slider_area.transform.Find("Info/Text").GetComponent<Text>().text = LM.Get(pItem.Id);
             if (string.IsNullOrEmpty(pItem.IconPath))
@@ -435,17 +512,134 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             }
         }
 
+        private void setup_select(ModConfigItem pItem)
+        {
+            select_area.SetActive(true);
+            select_area.transform.Find("Info/Text").GetComponent<Text>().text = LM.Get(pItem.Id);
+            if (string.IsNullOrEmpty(pItem.IconPath))
+            {
+                select_area.transform.Find("Info/Icon").gameObject.SetActive(false);
+            }
+            else
+            {
+                Image icon = select_area.transform.Find("Info/Icon").GetComponent<Image>();
+                icon.gameObject.SetActive(true);
+                icon.sprite = SpriteTextureLoader.getSprite(pItem.IconPath);
+            }
+
+            Transform options_root = select_area.transform.Find("Options");
+            clear_children(options_root);
+            int option_count = Math.Max(0, pItem.MaxIntVal);
+            int selected = ModConfigSelectOptionCodec.ClampIndex(pItem.IntVal, option_count);
+            if (selected != pItem.IntVal)
+            {
+                mark_modified(pItem);
+                pItem.SetValue(selected, true);
+            }
+
+            GridLayoutGroup grid = options_root.GetComponent<GridLayoutGroup>();
+            int column_count = option_count switch
+            {
+                <= 1 => 1,
+                2 => 2,
+                _ => 3
+            };
+            grid.constraintCount = column_count;
+            float width = 170f;
+            float spacing = grid.spacing.x;
+            float cell_width = (width - spacing * (column_count - 1)) / column_count;
+            grid.cellSize = new Vector2(cell_width, 20f);
+
+            if (option_count == 0)
+            {
+                GameObject empty = new GameObject("Empty", typeof(Text));
+                empty.transform.SetParent(options_root);
+                empty.transform.localScale = Vector3.one;
+                empty.GetComponent<RectTransform>().sizeDelta = new Vector2(170, 20);
+                Text empty_text = empty.GetComponent<Text>();
+                OT.InitializeCommonText(empty_text);
+                empty_text.alignment = TextAnchor.MiddleLeft;
+                empty_text.text = "N/A";
+                return;
+            }
+
+            for (int i = 0; i < option_count; i++)
+            {
+                int option_index = i;
+                string option_id = $"{pItem.Id}_{option_index}";
+                string option_text = LM.Get(option_id);
+                SimpleButton option_button = Instantiate(SimpleButton.Prefab, options_root);
+                option_button.transform.localScale = Vector3.one;
+                option_button.name = $"Option_{option_index}";
+                option_button.Setup(() =>
+                    {
+                        mark_modified(pItem);
+                        pItem.SetValue(option_index, true);
+                        refresh_select_buttons(options_root, pItem.IntVal);
+                    },
+                    null, option_text, new Vector2(54, 20));
+                option_button.TipButton.enabled = false;
+            }
+
+            refresh_select_buttons(options_root, pItem.IntVal);
+        }
+
+        private static void refresh_select_buttons(Transform pOptionsRoot, int pSelected)
+        {
+            int button_index = 0;
+            for (int i = 0; i < pOptionsRoot.childCount; i++)
+            {
+                SimpleButton option_button = pOptionsRoot.GetChild(i).GetComponent<SimpleButton>();
+                if (option_button == null) continue;
+                bool selected = button_index == pSelected;
+                option_button.Background.sprite = SpriteTextureLoader.getSprite(
+                    selected ? "ui/special/special_buttonRed" : "ui/special/special_buttonGray");
+                option_button.Background.type = Image.Type.Sliced;
+                option_button.Text.color = selected ? Color.white : new Color(0.9f, 0.9f, 0.9f, 1f);
+                button_index++;
+            }
+        }
+
+        private static void clear_children(Transform pTransform)
+        {
+            for (int i = pTransform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = pTransform.GetChild(i);
+                child.SetParent(null);
+                Destroy(child.gameObject);
+            }
+        }
+
+        private static bool TryParseFloat(string pText, out float pValue)
+        {
+            if (float.TryParse(pText, NumberStyles.Float | NumberStyles.AllowThousands,
+                    CultureInfo.InvariantCulture, out pValue))
+                return true;
+            return float.TryParse(pText, out pValue);
+        }
+
+        private static bool TryParseInt(string pText, out int pValue)
+        {
+            if (int.TryParse(pText, NumberStyles.Integer, CultureInfo.InvariantCulture, out pValue))
+                return true;
+            return int.TryParse(pText, out pValue);
+        }
+
+        private static void mark_modified(ModConfigItem pItem)
+        {
+            if (!Instance._modifiedItems.ContainsKey(pItem))
+            {
+                Instance._modifiedItems.Add(pItem, pItem.GetValue());
+            }
+        }
+
         private void setup_switch(ModConfigItem pItem)
         {
             switch_area.SetActive(true);
             var switch_button = switch_area.transform.Find("Button").GetComponent<General.UI.Prefabs.SwitchButton>();
             switch_button.Setup(pItem.BoolVal, () =>
             {
-                if (!Instance._modifiedItems.ContainsKey(pItem))
-                {
-                    Instance._modifiedItems.Add(pItem, pItem.GetValue());
-                }
-
+                mark_modified(pItem);
                 pItem.SetValue(!pItem.BoolVal, true);
             });
             switch_button.tip_button.textOnClick = pItem.Id;

@@ -1,6 +1,7 @@
 using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
+using NeoModLoader.services;
 using NeoModLoader.ui.prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
@@ -70,7 +71,10 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         scroll_area_bg.color = Color.white;
         var scroll_view_port = list_part.transform.Find("Viewport").GetComponent<RectTransform>();
         scroll_view_port.sizeDelta = new Vector2(0, -20);
-        scroll_view_port.localPosition -= new Vector3(0, 10);
+        scroll_view_port.localPosition = new Vector3(-54, 117.5f);
+        var scrollbar = list_part.transform.Find("Scrollbar Vertical Mask");
+        scrollbar.transform.localPosition = new Vector3(62.5f, 0);
+        scrollbar.gameObject.SetActive(false);
 
         var vert_layout = ContentTransform.gameObject.AddComponent<VerticalLayoutGroup>();
         OT.InitializeNoActionVerticalLayoutGroup(vert_layout);
@@ -128,7 +132,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ModConfigureButton.Background.enabled = false;
         ModCommunityButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ModCommunityButton.name = "ModCommunityButton";
-        ModCommunityButton.Setup(CommunityOfSelectedMod, SpriteTextureLoader.getSprite("ui/icons/iconCommunity"),
+        ModCommunityButton.Setup(CommunityOfSelectedMod, SpriteTextureLoader.getSprite("ui/icons/actor_traits/iconcommunity"),
                                  pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                                  {
                                      tip_name = "ModCommunity Title"
@@ -145,10 +149,8 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ToggleModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ToggleModButton.name = "ToggleModButton";
         ToggleModButton.Setup(ToggleSelectedMod, SpriteTextureLoader.getSprite("ui/icons/iconOn"),
-                              pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
-                              {
-                                  tip_name = "ToggleMod Title"
-                              });
+                              pSize: new Vector2(32, 32), pTipType: "normal");
+        ToggleModButton.TipButton.textOnClick = "ToggleMod Title";
         ToggleModButton.Background.enabled = false;
         ReloadModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ReloadModButton.name = "ReloadModButton";
@@ -224,7 +226,51 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void RefreshControlPart()
     {
-        throw new NotImplementedException();
+        IMod selected = null;
+        foreach (var mod in WorldBoxMod.LoadedMods)
+        {
+            if (mod.GetDeclaration() == CurrentSelected)
+            {
+                selected = mod;
+                break;
+            }
+        }
+        if (selected is IReloadable)
+        {
+            ReloadModButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            ReloadModButton.gameObject.SetActive(false);
+        }
+
+        if (selected is IConfigurable)
+        {
+            ModConfigureButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            ModConfigureButton.gameObject.SetActive(false);
+        }
+        ToggleModButton.TipButton.textOnClickDescription = WorldBoxMod.AllRecognizedMods[CurrentSelected] switch
+        {
+            ModState.LOADED => "mod_enabled_description",
+            ModState.DISABLED => "mod_disabled_description",
+            ModState.FAILED => "mod_failed_description",
+            _ => "mod_state_failed"
+        };
+        var next_disabled = ModInfoUtils.isModDisabled(CurrentSelected.UID);
+        if (next_disabled)
+        {
+            ToggleModButton.Icon.sprite = SpriteTextureLoader.getSprite("ui/icons/iconOff");
+            ToggleModButton.TipButton.text_description_2 = "mod_next_state_disabled";
+        }
+        else
+        {
+            ToggleModButton.Icon.sprite = SpriteTextureLoader.getSprite("ui/icons/iconOn");
+            ToggleModButton.TipButton.text_description_2 = "mod_next_state_enabled";
+        }
+
     }
 
     private void RefreshInfoPart()
@@ -244,12 +290,27 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void CommunityOfSelectedMod()
     {
-        throw new NotImplementedException();
+        foreach (var mod in WorldBoxMod.LoadedMods)
+        {
+            if (mod.GetDeclaration() == CurrentSelected)
+            {
+                Application.OpenURL(mod.GetUrl());
+                return;
+            }
+        }
+        Application.OpenURL(CurrentSelected.RepoUrl);
     }
 
     private void ConfigureSelectedMod()
     {
-        throw new NotImplementedException();
+        foreach (var mod in WorldBoxMod.LoadedMods)
+        {
+            if (mod.GetDeclaration() == CurrentSelected)
+            {
+                ModConfigureWindow.ShowWindow((mod as IConfigurable)?.GetConfig());
+                return;
+            }
+        }
     }
 
     private void UploadSelectedMod()
@@ -259,17 +320,56 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void ReloadSelectedMod()
     {
-        throw new NotImplementedException();
+        foreach (var mod in WorldBoxMod.LoadedMods)
+        {
+            if (mod.GetDeclaration() == CurrentSelected && mod is IReloadable reloadable)
+            {
+                if (!ModReloadUtils.Prepare(reloadable, CurrentSelected))
+                {
+                    LogService.LogWarning($"Failed to prepare mod {CurrentSelected.Name} for reloading.");
+                    return;
+                }
+
+                if (!ModReloadUtils.CompileNew())
+                {
+                    LogService.LogWarning($"Failed to compile new mod {CurrentSelected.Name} for reloading.");
+                    return;
+                }
+
+                if (!ModReloadUtils.PatchHotfixMethodsNT())
+                {
+                    LogService.LogWarning(
+                        $"Failed to patch hotfix methods of mod {CurrentSelected.Name} for reloading.");
+                    return;
+                }
+
+                if (!ModReloadUtils.Reload())
+                {
+                    LogService.LogWarning($"Failed to reload mod {CurrentSelected.Name}.");
+                }
+                return;
+            }
+        }
     }
 
     private void ToggleSelectedMod()
     {
-        throw new NotImplementedException();
+        var next_state = ModInfoUtils.toggleMod(CurrentSelected.UID);
+        if (next_state)
+        {
+            ToggleModButton.Icon.sprite = SpriteTextureLoader.getSprite("ui/icons/iconOn");
+            ToggleModButton.TipButton.text_description_2 = "mod_next_state_enabled";
+        }
+        else
+        {
+            ToggleModButton.Icon.sprite = SpriteTextureLoader.getSprite("ui/icons/iconOff");
+            ToggleModButton.TipButton.text_description_2 = "mod_next_state_disabled";
+        }
     }
 
     private void FolderOfSelectedMod()
     {
-        throw new NotImplementedException();
+        Application.OpenURL(CurrentSelected.FolderPath);
     }
 
     private enum DisplayType

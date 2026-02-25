@@ -9,6 +9,7 @@ namespace NeoModLoader.General.Event.Listeners;
 /// <summary>
 /// A listener at the end of <see cref="ClanManager.newClan"/> method.
 /// </summary>
+[Obsolete("Use patch instead")]
 public class ClanCreateListener : AbstractListener<ClanCreateListener, ClanCreateHandler>
 {
     /// <summary>

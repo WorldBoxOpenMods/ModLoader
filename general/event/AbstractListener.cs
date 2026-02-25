@@ -6,6 +6,7 @@ namespace NeoModLoader.General.Event;
 /// <summary>
 /// Basic Listener for unite all listener in a list
 /// </summary>
+[Obsolete("Use patch instead")]
 public abstract class BaseListener
 {
 }
@@ -14,6 +15,7 @@ public abstract class BaseListener
 /// </summary>
 /// <typeparam name="TListener"></typeparam>
 /// <typeparam name="THandler">Event handler type</typeparam>
+[Obsolete("Use patch instead")]
 public abstract class AbstractListener<TListener, THandler> : BaseListener 
     where THandler : AbstractHandler<THandler> 
     where TListener : AbstractListener<TListener, THandler>

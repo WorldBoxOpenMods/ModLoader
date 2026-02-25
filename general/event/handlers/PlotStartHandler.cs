@@ -2,6 +2,7 @@ namespace NeoModLoader.General.Event.Handlers;
 /// <summary>
 /// This class is used to handle plot start event.
 /// </summary>
+[Obsolete("Use patch instead")]
 public abstract class PlotStartHandler : AbstractHandler<PlotStartHandler>
 {
     /// <summary>
