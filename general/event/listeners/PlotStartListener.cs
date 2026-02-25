@@ -6,6 +6,7 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.General.Event.Listeners;
 
+[Obsolete("Use patch instead")]
 public class PlotStartListener : AbstractListener<PlotStartListener, PlotStartHandler>
 {
     protected static void HandleAll(Plot pPlot, Actor pActor, PlotAsset pAsset)

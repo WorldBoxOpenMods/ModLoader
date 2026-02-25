@@ -5,6 +5,7 @@ namespace NeoModLoader.General.Event.Handlers;
 /// <summary>
 /// This handler is made for making your own log message
 /// </summary>
+[Obsolete("Use patch instead")]
 public abstract class WorldLogMessageHandler : AbstractHandler<WorldLogMessageHandler>
 {
     /// <summary>
