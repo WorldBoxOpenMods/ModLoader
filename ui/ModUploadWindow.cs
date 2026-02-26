@@ -1,3 +1,4 @@
+#if !IL2CPP
 using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.services;
@@ -250,3 +251,4 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             .Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload).Done();
     }
 }
+#endif

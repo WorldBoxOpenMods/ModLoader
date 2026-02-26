@@ -1,5 +1,6 @@
 using HarmonyLib;
 using NeoModLoader.constants;
+using NeoModLoader.utils;
 
 namespace NeoModLoader.General.Game.extensions;
 
@@ -39,7 +40,7 @@ internal static class AssetExtensionInternal<TAsset, TLibrary>
         foreach (TAsset asset in pLibrary.list) pAction(asset);
 
         state.action = asset => { pAction(asset); };
-        state.done.UnionWith(pLibrary.list.Select(x => x.id));
+        state.done.UnionWith(pLibrary.list.Convert().Select(x => x.id));
 
         if (!_states.ContainsKey(pLibrary)) _states.Add(pLibrary, new List<LibraryState>());
         _states[pLibrary].Add(state);

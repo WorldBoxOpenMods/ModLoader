@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using JetBrains.Annotations;
+using NeoModLoader.utils;
+
 namespace NeoModLoader.api;
 
 /// <summary>
@@ -128,7 +130,6 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
         {
             ModFeature = modFeature;
         }
-        [CanBeNull]
         internal static FeatureLoadPathNode CreateFeatureLoadPath(FeatureTreeNode[] featureTrees)
         {
             FeatureTreeNode rootTreeNode = new FeatureTreeNode(new PlaceholderRootModFeature());
@@ -141,7 +142,7 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
             var nodesToProcess = new List<FeatureTreeNode>(rootTreeNode.DependentFeatures);
             while (nodesToProcess.Count > 0)
             {
-                FeatureTreeNode treeNode = nodesToProcess.Pop();
+                FeatureTreeNode treeNode = IL2CPPHelper.Convert(nodesToProcess).Pop();
                 FeatureLoadPathNode currentLoadPathNode = newestLoadPathNode;
                 while (currentLoadPathNode != null)
                 {

@@ -1,4 +1,9 @@
+#if !IL2CPP
 using DG.Tweening;
+#else
+using Il2CppDG.Tweening;
+#endif
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -11,6 +16,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class SimpleButton : APrefab<SimpleButton>
 {
+    #if !IL2CPP
     [SerializeField] private Button button;
 
     [SerializeField] private TipButton tipButton;
@@ -20,7 +26,17 @@ public class SimpleButton : APrefab<SimpleButton>
     [SerializeField] private Image icon;
 
     [SerializeField] private Text text;
+#else //attributes cant be used
+     private Button button;
 
+    private TipButton tipButton;
+
+   private Image background;
+
+     private Image icon;
+
+    private Text text;
+    #endif
     /// <summary>
     ///     The <see cref="Button" /> component
     /// </summary>
@@ -96,17 +112,17 @@ public class SimpleButton : APrefab<SimpleButton>
             this.TipButton.type = pTipType;
             if (string.IsNullOrEmpty(pTipData?.tip_name))
             {
-                TipButton.hoverAction = TipButton.showTooltipDefault;
+                TipButton.hoverAction = IL2CPPHelper.Convert<TooltipAction>(TipButton.showTooltipDefault);
             }
             else
             {
-                TipButton.hoverAction = () =>
+                TipButton.hoverAction = IL2CPPHelper.Convert<TooltipAction>(() =>
                 {
                     Tooltip.show(gameObject, TipButton.type, pTipData);
                     transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
                     transform.DOKill();
                     transform.DOScale(1f, 0.1f).SetEase(Ease.InBack);
-                };
+                });
             }
         }
     }
@@ -122,18 +138,18 @@ public class SimpleButton : APrefab<SimpleButton>
 
     internal static void _init()
     {
-        GameObject obj = new GameObject(nameof(SimpleButton), typeof(Button), typeof(Image), typeof(TipButton));
+        GameObject obj = new GameObject(nameof(SimpleButton), typeof(Button).Convert(), typeof(Image).Convert(), typeof(TipButton).Convert());
         obj.transform.SetParent(WorldBoxMod.Transform);
         obj.GetComponent<TipButton>().enabled = false;
         obj.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
         obj.GetComponent<Image>().type = Image.Type.Sliced;
 
-        GameObject icon = new GameObject("Icon", typeof(Image));
+        GameObject icon = new GameObject("Icon", typeof(Image).Convert());
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = Vector3.zero;
         icon.transform.localScale = Vector3.one;
 
-        GameObject text = new GameObject("Text", typeof(Text));
+        GameObject text = new GameObject("Text", typeof(Text).Convert());
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = Vector3.zero;
         text.transform.localScale = Vector3.one;

@@ -1,6 +1,7 @@
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Window;
 using NeoModLoader.services;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,7 +18,7 @@ public class InformationWindow : SingleAutoLayoutWindow<InformationWindow>
     /// <inheritdoc cref="InformationWindow.Init" />
     protected override void Init()
     {
-        text = new GameObject("Text", typeof(Text)).GetComponent<Text>();
+        text = new GameObject("Text", typeof(Text).Convert()).GetComponent<Text>();
         OT.InitializeCommonText(text);
         text.resizeTextForBestFit = true;
         text.resizeTextMinSize = 10;

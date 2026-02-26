@@ -11,8 +11,10 @@ internal static class UIManager
         InformationWindow.CreateWindow("Information", "Information Title");
         ModListWindow.CreateAndInit("NeoModList");
         NewModListWindow.CreateAndInit("NMLMenu");
+        #if !IL2CPP
         WorkshopModListWindow.CreateAndInit("WorkshopMods");
         ModUploadWindow.CreateAndInit("ModUpload");
+        #endif
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
         ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         ModConfigureWindow.CreateAndInit("ModConfigure");

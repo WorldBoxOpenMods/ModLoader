@@ -5,6 +5,7 @@ using NeoModLoader.services;
 using NeoModLoader.ui.prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
@@ -28,7 +29,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     protected override void Init()
     {
-        var type_select_part = new GameObject("TypeSelectPart", typeof(Image), typeof(VerticalLayoutGroup));
+        var type_select_part = new GameObject("TypeSelectPart", typeof(Image).Convert(), typeof(VerticalLayoutGroup).Convert());
         type_select_part.transform.SetParent(BackgroundTransform);
         type_select_part.transform.localPosition = new Vector3(-260, 0);
         type_select_part.transform.localScale = Vector3.one;
@@ -40,7 +41,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
         SimpleButton type_mod = Instantiate(SimpleButton.Prefab, type_select_part.transform);
         type_mod.name = "TypeMod";
-        type_mod.Setup(ShowMods, InternalResourcesGetter.GetIcon(), pSize: new Vector2(32, 32), pTipType: "normal",
+        type_mod.Setup(IL2CPPHelper.Convert<UnityAction>(ShowMods), InternalResourcesGetter.GetIcon(), pSize: new Vector2(32, 32), pTipType: "normal",
                        pTipData: new TooltipData
                        {
                            tip_name = "TypeMod Title"
@@ -48,7 +49,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         type_mod.Background.enabled = false;
         SimpleButton type_resources = Instantiate(SimpleButton.Prefab, type_select_part.transform);
         type_resources.name = "TypeResource";
-        type_resources.Setup(ShowResources, SpriteTextureLoader.getSprite("ui/icons/tech/icon_tech_city_storage_3"),
+        type_resources.Setup(IL2CPPHelper.Convert<UnityAction>(ShowResources), SpriteTextureLoader.getSprite("ui/icons/tech/icon_tech_city_storage_3"),
                              pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                              {
                                  tip_name = "TypeResource Title"
@@ -86,7 +87,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ListPart = ContentTransform as RectTransform;
         ListItemPool = new ObjectPoolGenericMono<ModListItem>(ModListItem.Prefab, ListPart);
 
-        var mod_info_part = new GameObject("ModInfoPart", typeof(Image), typeof(VerticalLayoutGroup));
+        var mod_info_part = new GameObject("ModInfoPart", typeof(Image).Convert(), typeof(VerticalLayoutGroup).Convert());
         mod_info_part.transform.SetParent(BackgroundTransform);
         mod_info_part.transform.localPosition = new Vector3(60, 25);
         mod_info_part.transform.localScale = Vector3.one;
@@ -94,14 +95,14 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         mod_info_part.GetComponent<Image>().type = Image.Type.Sliced;
         ModInfoPart = mod_info_part.GetComponent<RectTransform>();
 
-        var mod_control_part = new GameObject("ModControlPart", typeof(Image), typeof(HorizontalLayoutGroup));
+        var mod_control_part = new GameObject("ModControlPart", typeof(Image).Convert(), typeof(HorizontalLayoutGroup).Convert());
         mod_control_part.transform.SetParent(BackgroundTransform);
         mod_control_part.transform.localPosition = new Vector3(60, -102);
         mod_control_part.transform.localScale = Vector3.one;
         mod_control_part.GetComponent<Image>().sprite = InternalResourcesGetter.GetWindowEmptyFrame();
         mod_control_part.GetComponent<Image>().type = Image.Type.Sliced;
 
-        var nml_general_part = new GameObject("NMLGeneralPart", typeof(Image), typeof(VerticalLayoutGroup));
+        var nml_general_part = new GameObject("NMLGeneralPart", typeof(Image).Convert(), typeof(VerticalLayoutGroup).Convert());
         nml_general_part.transform.SetParent(BackgroundTransform);
         nml_general_part.transform.localPosition = new Vector3(264, 0);
         nml_general_part.transform.localScale = Vector3.one;
@@ -124,7 +125,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
         ModConfigureButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ModConfigureButton.name = "ModConfigureButton";
-        ModConfigureButton.Setup(ConfigureSelectedMod, SpriteTextureLoader.getSprite("ui/icons/iconOptions"),
+        ModConfigureButton.Setup(IL2CPPHelper.Convert<UnityAction>(ConfigureSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconOptions"),
                                  pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                                  {
                                      tip_name = "ModConfigure Title"
@@ -132,7 +133,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ModConfigureButton.Background.enabled = false;
         ModCommunityButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ModCommunityButton.name = "ModCommunityButton";
-        ModCommunityButton.Setup(CommunityOfSelectedMod, SpriteTextureLoader.getSprite("ui/icons/actor_traits/iconcommunity"),
+        ModCommunityButton.Setup(IL2CPPHelper.Convert<UnityAction>(CommunityOfSelectedMod), SpriteTextureLoader.getSprite("ui/icons/actor_traits/iconcommunity"),
                                  pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                                  {
                                      tip_name = "ModCommunity Title"
@@ -140,7 +141,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ModCommunityButton.Background.enabled = false;
         OpenModFolderButton = Instantiate(SimpleButton.Prefab, rect_transform);
         OpenModFolderButton.name = "OpenModFolderButton";
-        OpenModFolderButton.Setup(FolderOfSelectedMod, SpriteTextureLoader.getSprite("ui/icons/iconCustomWorld"),
+        OpenModFolderButton.Setup(IL2CPPHelper.Convert<UnityAction>(FolderOfSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconCustomWorld"),
                                   pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                                   {
                                       tip_name = "OpenFolder Title"
@@ -148,13 +149,13 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         OpenModFolderButton.Background.enabled = false;
         ToggleModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ToggleModButton.name = "ToggleModButton";
-        ToggleModButton.Setup(ToggleSelectedMod, SpriteTextureLoader.getSprite("ui/icons/iconOn"),
+        ToggleModButton.Setup(IL2CPPHelper.Convert<UnityAction>(ToggleSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconOn"),
                               pSize: new Vector2(32, 32), pTipType: "normal");
         ToggleModButton.TipButton.textOnClick = "ToggleMod Title";
         ToggleModButton.Background.enabled = false;
         ReloadModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ReloadModButton.name = "ReloadModButton";
-        ReloadModButton.Setup(ReloadSelectedMod, InternalResourcesGetter.GetReloadIcon(), pSize: new Vector2(32, 32),
+        ReloadModButton.Setup(IL2CPPHelper.Convert<UnityAction>(ReloadSelectedMod), InternalResourcesGetter.GetReloadIcon(), pSize: new Vector2(32, 32),
                               pTipType: "normal", pTipData: new TooltipData
                               {
                                   tip_name = "ReloadMod Title"
@@ -162,7 +163,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ReloadModButton.Background.enabled = false;
         UploadModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         UploadModButton.name = "UploadModButton";
-        UploadModButton.Setup(UploadSelectedMod, SpriteTextureLoader.getSprite("ui/icons/iconSaveCloud"),
+        UploadModButton.Setup(IL2CPPHelper.Convert<UnityAction>(UploadSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconSaveCloud"),
                               pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                               {
                                   tip_name = "UploadMod Title"

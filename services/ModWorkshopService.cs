@@ -1,3 +1,4 @@
+#if !IL2CPP
 using System.Reflection;
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
@@ -181,3 +182,4 @@ internal static class ModWorkshopService
         return workshopServiceBackend.GetNextModFromWorkshopItem();
     }
 }
+#endif

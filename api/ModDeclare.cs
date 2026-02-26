@@ -137,7 +137,7 @@ public class ModDeclare
         FolderPath = Path.GetDirectoryName(pFilePath) ??
                      throw new Exception("Cannot get folder path from input file path");
         var pathSegments = FolderPath.Split(Path.DirectorySeparatorChar);
-        int currentSearchIndex = pathSegments.IndexOf("workshop");
+        int currentSearchIndex = Array.IndexOf(pathSegments, "workshop");
         if (currentSearchIndex == -1) return;
         if (currentSearchIndex + 3 >= pathSegments.Length) return;
         if (pathSegments[++currentSearchIndex] != "content") return;

@@ -1,6 +1,7 @@
 using System.Text;
 using NeoModLoader.General;
 using NeoModLoader.ui;
+using NeoModLoader.utils;
 using NeoModLoader.utils.authentication;
 using RSG;
 
@@ -77,7 +78,7 @@ public static class ModUploadAuthenticationService
             {
                 if (!ModUploadAuthenticationWindow.Instance.Opened())
                 {
-                    promise.Reject(new Exception("Canceled"));
+                    promise.Reject(new Exception("Canceled").Convert());
                     break;
                 }
 

@@ -208,6 +208,8 @@
         <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
         <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll"/>
         <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll"/>
+        <EmbeddedResource Remove="android-assembly-dependencies\**" />
+        <None Remove="android-assembly-dependencies\**" />
     </ItemGroup>
   
     <ItemGroup>
@@ -222,6 +224,10 @@
   
     <ItemGroup>
       <None Include=".github\workflows\build.yml" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Compile Remove="android-assembly-dependencies\**" />
     </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

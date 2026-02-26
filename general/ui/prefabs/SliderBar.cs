@@ -1,3 +1,4 @@
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -25,10 +26,15 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// </example>
 public class SliderBar : APrefab<SliderBar>
 {
+    #if !IL2CPP
     [SerializeField] private Slider _slider;
 
     [SerializeField] private TipButton _tip_button;
+#else
+     private Slider _slider;
 
+    private TipButton _tip_button;
+    #endif
     public Slider slider => _slider;
 
     /// <summary>
@@ -81,33 +87,33 @@ public class SliderBar : APrefab<SliderBar>
 
     internal static void _init()
     {
-        GameObject slider_bar = new GameObject("SliderBar", typeof(Slider), typeof(TipButton));
+        GameObject slider_bar = new GameObject("SliderBar", typeof(Slider).Convert(), typeof(TipButton).Convert());
         slider_bar.transform.SetParent(WorldBoxMod.Transform);
         slider_bar.GetComponent<RectTransform>().sizeDelta = new(172, 20);
 
-        GameObject background = new GameObject("Background", typeof(Image));
+        GameObject background = new GameObject("Background", typeof(Image).Convert());
         background.transform.SetParent(slider_bar.transform);
         background.transform.localScale = Vector3.one;
         background.GetComponent<RectTransform>().sizeDelta = new(0, 0);
         background.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonGray");
         background.GetComponent<Image>().type = Image.Type.Sliced;
 
-        GameObject fill_area = new GameObject("Fill Area", typeof(RectTransform));
+        GameObject fill_area = new GameObject("Fill Area", typeof(RectTransform).Convert());
         fill_area.transform.SetParent(slider_bar.transform);
         fill_area.transform.localScale = Vector3.one;
         fill_area.GetComponent<RectTransform>().sizeDelta = new(-20, 0);
-        GameObject fill = new GameObject("Fill", typeof(Image));
+        GameObject fill = new GameObject("Fill", typeof(Image).Convert());
         fill.transform.SetParent(fill_area.transform);
         fill.transform.localScale = Vector3.one;
         fill.GetComponent<RectTransform>().sizeDelta = new(10, 0);
         fill.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
         fill.GetComponent<Image>().type = Image.Type.Sliced;
 
-        GameObject handle_area = new GameObject("Handle Slide Area", typeof(RectTransform));
+        GameObject handle_area = new GameObject("Handle Slide Area", typeof(RectTransform).Convert());
         handle_area.transform.SetParent(slider_bar.transform);
         handle_area.transform.localScale = Vector3.one;
         handle_area.GetComponent<RectTransform>().sizeDelta = new(-20, 0);
-        GameObject handle = new GameObject("Handle", typeof(Image));
+        GameObject handle = new GameObject("Handle", typeof(Image).Convert());
         handle.transform.SetParent(handle_area.transform);
         handle.transform.localScale = Vector3.one;
         handle.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");

@@ -1,10 +1,17 @@
 ﻿using HarmonyLib;
 using NeoModLoader.services;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-
+#if IL2CPP
+using Il2CppInterop.Runtime;
+using Il2CppSystem.Collections.Generic;
+using generic = Il2CppSystem.Collections.Generic;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+#else
+using generic = System.Collections.Generic;
+using System.Collections.Generic;
+#endif
 namespace NeoModLoader.utils
 {
     public delegate void Linker(Asset Asset);
@@ -13,9 +20,9 @@ namespace NeoModLoader.utils
     /// </summary>
     public class AssetLinker
     {
-        public List<Asset> Assets = new List<Asset>();
-        Dictionary<Type, Linker> CustomLinkers = new Dictionary<Type, Linker>();
-        internal List<string> AssetFilePaths = new List<string>();
+        public generic.List<Asset> Assets = new generic.List<Asset>();
+        generic.Dictionary<Type, Linker> CustomLinkers = new generic.Dictionary<Type, Linker>();
+        internal generic.List<string> AssetFilePaths = new generic.List<string>();
         /// <summary>
         /// gets the library of this asset
         /// </summary>
@@ -172,7 +179,7 @@ namespace NeoModLoader.utils
                 Achievement pAchievement = AssetManager.achievements.get(Asset.achievement_id);
                 if (pAchievement.unlock_assets == null)
                 {
-                    pAchievement.unlock_assets = new List<BaseUnlockableAsset>();
+                    pAchievement.unlock_assets = new generic.List<BaseUnlockableAsset>();
                     pAchievement.unlocks_something = true;
                 }
                 pAchievement.unlock_assets.Add(Asset);
@@ -232,11 +239,13 @@ namespace NeoModLoader.utils
             }
             if (Asset.color_hex != null)
             {
+                #if !IL2CPP
                 Asset.color = new Color32?(Toolbox.makeColor(Asset.color_hex));
+                #endif
             }
             if (Asset.check_flip == null)
             {
-                Asset.check_flip = (BaseSimObject _, WorldTile _) => true;
+                Asset.check_flip = IL2CPPHelper.Convert<WorldAction>((BaseSimObject _, WorldTile _) => true);
             }
             LinkWithAchievment(Asset);
         }
@@ -250,7 +259,7 @@ namespace NeoModLoader.utils
             if (!Asset.isTemplateAsset())
             {
                 AssetManager.architecture_library.loadAutoBuildingsForAsset(Asset);
-                foreach (ValueTuple<string, string> tSharedBuilding in Asset.shared_building_orders)
+                foreach (var tSharedBuilding in Asset.shared_building_orders)
                 {
                     Asset.addBuildingOrderKey(tSharedBuilding.Item1, tSharedBuilding.Item2);
                 }
@@ -507,16 +516,16 @@ namespace NeoModLoader.utils
         {
             foreach (ActorAsset tActorAsset in AssetManager.actor_library.list)
             {
-                List<string> traits = Library.getDefaultTraitsForMeta(tActorAsset);
+                generic.List<string> traits = Library.getDefaultTraitsForMeta(tActorAsset);
                 if (traits != null && traits.Contains(Asset.id))
                 {
-                    Asset.default_for_actor_assets ??= new List<ActorAsset>();
+                    Asset.default_for_actor_assets ??= new generic.List<ActorAsset>();
                     Asset.default_for_actor_assets.Add(tActorAsset);
                 }
             }
             if (Asset.opposite_list != null && Asset.opposite_list.Count > 0)
             {
-                Asset.opposite_traits = new HashSet<A>(Asset.opposite_list.Count);
+                Asset.opposite_traits = new generic.HashSet<A>(Asset.opposite_list.Count);
                 foreach (string tID in Asset.opposite_list)
                 {
                     A tOppositeTrait = Library.get(tID);
@@ -526,7 +535,8 @@ namespace NeoModLoader.utils
             if (Asset.traits_to_remove_ids != null)
             {
                 int tCount = Asset.traits_to_remove_ids.Length;
-                Asset.traits_to_remove = new A[tCount];
+                Asset.traits_to_remove = new A[tCount].Convert();
+             
                 for (int i = 0; i < tCount; i++)
                 {
                     string ID = Asset.traits_to_remove_ids[i];
@@ -623,10 +633,10 @@ namespace NeoModLoader.utils
                 Asset.has_get_map_icon_color = true;
             }
             BuildingAsset buildingAsset = Asset;
-            HashSet<BiomeTag> biome_tags_growth = Asset.biome_tags_growth;
+            generic.HashSet<BiomeTag> biome_tags_growth = Asset.biome_tags_growth;
             buildingAsset.has_biome_tags = biome_tags_growth != null && biome_tags_growth.Count > 0;
             BuildingAsset buildingAsset2 = Asset;
-            HashSet<BiomeTag> biome_tags_spread = Asset.biome_tags_spread;
+            generic.HashSet<BiomeTag> biome_tags_spread = Asset.biome_tags_spread;
             buildingAsset2.has_biome_tags_spread = biome_tags_spread != null && biome_tags_spread.Count > 0;
         }
         public static void LinkBiomeAsset(Asset asset)
@@ -681,26 +691,28 @@ namespace NeoModLoader.utils
             hotkeyAsset.overridden_key_mod_1 = hotkeyAsset.default_key_mod_1;
             hotkeyAsset.overridden_key_mod_2 = hotkeyAsset.default_key_mod_2;
             hotkeyAsset.overridden_key_mod_3 = hotkeyAsset.default_key_mod_3;
+            
             if (hotkeyAsset.default_key_mod_1 != null)
             {
-                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.AddToArray(hotkeyAsset.default_key_mod_1);
+                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.Convert().AddToArray(hotkeyAsset.default_key_mod_1);
             }
             if (hotkeyAsset.default_key_mod_2 != null)
             {
-                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.AddToArray(hotkeyAsset.default_key_mod_2);
+                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.Convert().AddToArray(hotkeyAsset.default_key_mod_2);
             }
             if (hotkeyAsset.default_key_mod_3 != null)
             {
-                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.AddToArray(hotkeyAsset.default_key_mod_3);
+                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.Convert().AddToArray(hotkeyAsset.default_key_mod_3);
             }
             if (hotkeyAsset.just_pressed_action != null)
             {
-                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.AddToArray(hotkeyAsset);
+                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.Convert().AddToArray(hotkeyAsset);
             }
             else if (hotkeyAsset.holding_action != null)
             {
-                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.AddToArray(hotkeyAsset);
+                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.Convert().AddToArray(hotkeyAsset);
             }
+            
         }
         public static void LinkWorldBehaviourAsset(Asset asset)
         {

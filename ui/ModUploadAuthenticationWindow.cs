@@ -4,6 +4,7 @@ using NeoModLoader.services;
 using NeoModLoader.utils;
 using NeoModLoader.utils.authentication;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
@@ -58,7 +59,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
         verticalLayoutGroup.spacing = 5;
         verticalLayoutGroup.padding = new RectOffset(5, 5, 5, 5);
 
-        GameObject auth_text_obj = new GameObject("AuthText", typeof(Text), typeof(LocalizedText));
+        GameObject auth_text_obj = new GameObject("AuthText", typeof(Text).Convert(), typeof(LocalizedText).Convert());
         auth_text_obj.transform.SetParent(ContentTransform);
         auth_text_obj.transform.localScale = Vector3.one;
         auth_text_obj.GetComponent<RectTransform>().sizeDelta = new(190, 50);
@@ -74,7 +75,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
         LocalizedTextManager.addTextField(localized_auth_text);
 
 
-        GameObject auth_grid_obj = new GameObject("AuthGrid", typeof(GridLayoutGroup));
+        GameObject auth_grid_obj = new GameObject("AuthGrid", typeof(GridLayoutGroup).Convert());
         auth_grid_obj.transform.SetParent(ContentTransform);
         auth_grid_obj.transform.localScale = Vector3.one;
         auth_grid_obj.GetComponent<RectTransform>().sizeDelta = new(200, 100);
@@ -87,12 +88,12 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
         layoutGroup.padding = new RectOffset(5, 5, 5, 5);
         layoutGroup.childAlignment = TextAnchor.MiddleCenter;
 
-        GameObject auth_button_obj = new GameObject("AuthButton", typeof(Image), typeof(Button), typeof(TipButton));
+        GameObject auth_button_obj = new GameObject("AuthButton", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         auth_button_obj.transform.SetParent(WorldBoxMod.Transform);
         prefab_auth_button = auth_button_obj.GetComponent<Button>();
         prefab_auth_button.image.sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonred");
         prefab_auth_button.image.type = Image.Type.Sliced;
-        GameObject auth_button_icon_obj = new GameObject("Icon", typeof(Image));
+        GameObject auth_button_icon_obj = new GameObject("Icon", typeof(Image).Convert());
         auth_button_icon_obj.transform.SetParent(auth_button_obj.transform);
         auth_button_icon_obj.transform.localPosition = Vector3.zero;
         auth_button_icon_obj.transform.localScale = Vector3.one;
@@ -114,7 +115,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
             button.transform.Find("Icon").GetComponent<RectTransform>().sizeDelta = pIconSize;
         }
 
-        button.onClick.AddListener(() =>
+        button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
         {
             if (pAuthFunc != null)
             {
@@ -125,7 +126,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
             {
                 AuthSkipped = true;
             }
-        });
+        }));
         var tip_button = button.GetComponent<TipButton>();
         tip_button.textOnClick = pId        + " Title";
         tip_button.text_description_2 = pId + " Description";

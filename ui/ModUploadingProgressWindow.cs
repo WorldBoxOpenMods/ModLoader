@@ -1,5 +1,6 @@
 using NeoModLoader.api;
 using NeoModLoader.General;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,7 +37,7 @@ internal class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressW
 
     protected override void Init()
     {
-        percent = new GameObject("Percent", typeof(Text)).GetComponent<Text>();
+        percent = new GameObject("Percent", typeof(Text).Convert()).GetComponent<Text>();
 
         RectTransform percentTransform = percent.GetComponent<RectTransform>();
         percentTransform.SetParent(ContentTransform);
@@ -49,7 +50,7 @@ internal class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressW
         percent.resizeTextMinSize = 6;
         percent.resizeTextForBestFit = true;
 
-        var bar_bg = new GameObject("Bar", typeof(Image), typeof(Mask)).GetComponent<Image>();
+        var bar_bg = new GameObject("Bar", typeof(Image).Convert(), typeof(Mask).Convert()).GetComponent<Image>();
         bar_bg.sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
         bar_bg.type = Image.Type.Sliced;
         bar_bg.color = Color.gray;
@@ -59,7 +60,7 @@ internal class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressW
         bar_bg_transform.localPosition = new(130, -123);
         bar_bg_transform.sizeDelta = new(190, 20);
 
-        bar = new GameObject("Image", typeof(Image)).GetComponent<Image>();
+        bar = new GameObject("Image", typeof(Image).Convert()).GetComponent<Image>();
         RectTransform bar_transform;
         (bar_transform = (RectTransform)bar.transform).SetParent(bar_bg_transform);
         bar_transform.localScale = Vector3.one;

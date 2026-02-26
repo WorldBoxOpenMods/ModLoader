@@ -1,4 +1,5 @@
 ﻿using NeoModLoader.General;
+using NeoModLoader.utils;
 
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 namespace NCMS.Utils
@@ -10,7 +11,7 @@ namespace NCMS.Utils
 
         internal static void init()
         {
-            AllWindows = ScrollWindow._all_windows;
+            AllWindows = ScrollWindow._all_windows.Convert();
         }
 
         public static ScrollWindow GetWindow(string pWindowID)

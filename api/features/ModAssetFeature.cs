@@ -1,3 +1,5 @@
+using NeoModLoader.utils;
+
 namespace NeoModLoader.api.features;
 
 /// <summary>
@@ -21,7 +23,7 @@ public abstract class ModAssetFeature<TAsset> : ModObjectFeature<TAsset> where T
         if (!base.Init()) return false;
         if (AddToLibrary)
         {
-            var library = AssetManager._instance._list.OfType<AssetLibrary<TAsset>>().FirstOrDefault();
+            var library = AssetManager._instance._list.Convert().OfType<AssetLibrary<TAsset>>().FirstOrDefault();
             if (library == null) throw new FeatureLoadException($"No library found for {typeof(TAsset).Name}");
             library.add(Object);
         }

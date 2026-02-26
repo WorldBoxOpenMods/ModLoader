@@ -1,3 +1,4 @@
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,8 +28,8 @@ public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup, AutoVert
     internal static void _init()
     {
         GameObject game_object =
-            new(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup),
-                typeof(ContentSizeFitter));
+            new(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup).Convert(), typeof(AutoVertLayoutGroup).Convert(),
+                typeof(ContentSizeFitter).Convert());
         game_object.transform.SetParent(WorldBoxMod.Transform);
 
         ContentSizeFitter fitter = game_object.GetComponent<ContentSizeFitter>();

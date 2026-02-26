@@ -5,6 +5,7 @@ using NeoModLoader.General;
 using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
@@ -38,7 +39,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     /// <inheritdoc cref="AbstractListWindow{T,TItem}.Init" />
     protected override void Init()
     {
-        GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image), typeof(Button), typeof(TipButton));
+        GameObject workshopButton = new GameObject("WorkshopButton", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         workshopButton.transform.SetParent(BackgroundTransform);
         workshopButton.transform.localPosition = new Vector3(140, 0);
         workshopButton.transform.localScale = Vector3.one;
@@ -46,7 +47,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image workshopButtonImage = workshopButton.GetComponent<Image>();
         workshopButtonImage.sprite = Resources.Load<Sprite>("ui/icons/iconSteam");
         Button workshopButtonButton = workshopButton.GetComponent<Button>();
-        workshopButtonButton.onClick.AddListener(() =>
+        workshopButtonButton.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
         {
             if (Others.is_editor)
             {
@@ -55,12 +56,12 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             }
 
             ScrollWindow.showWindow("WorkshopMods");
-        });
+        }));
         TipButton workshopButtonTipButton = workshopButton.GetComponent<TipButton>();
         workshopButtonTipButton.textOnClick = "WorkshopMods Title";
 
         GameObject modloaderButton =
-            new GameObject("ModLoaderButton", typeof(Image), typeof(Button), typeof(TipButton));
+            new GameObject("ModLoaderButton", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         modloaderButton.transform.SetParent(BackgroundTransform);
         modloaderButton.transform.localPosition = new(-125, 0);
         modloaderButton.transform.localScale = Vector3.one;
@@ -74,7 +75,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         modloaderButtonTipButton.text_description_2 = "NMLCommit";
         modloaderButtonTipButton.textOnClickDescription = "NeoModLoader Report";
         Button modloaderButtonButton = modloaderButton.GetComponent<Button>();
-        modloaderButtonButton.onClick.AddListener(() => { Application.OpenURL(CoreConstants.RepoURL); });
+        modloaderButtonButton.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() => { Application.OpenURL(CoreConstants.RepoURL); }));
     }
 
     /// <inheritdoc cref="AbstractListWindow{T,TItem}.OnNormalEnable" />
@@ -99,7 +100,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     /// <inheritdoc cref="AbstractListWindow{T,TItem}.CreateItemPrefab" />
     protected override AbstractListWindowItem<IMod> CreateItemPrefab()
     {
-        GameObject obj = new GameObject("ModListItemPrefab", typeof(Image), typeof(ModListItem));
+        GameObject obj = new GameObject("ModListItemPrefab", typeof(Image).Convert(), typeof(ModListItem).Convert());
         obj.SetActive(false);
 
         obj.transform.SetParent(WorldBoxMod.Transform);
@@ -109,7 +110,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         bg.sprite = Resources.Load<Sprite>("ui/special/windowInnerSliced");
         bg.type = Image.Type.Sliced;
 
-        GameObject icon = new GameObject("Icon", typeof(Image), typeof(Button), typeof(TipButton));
+        GameObject icon = new GameObject("Icon", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = new(-75, 0);
         icon.transform.localScale = Vector3.one;
@@ -118,7 +119,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image iconImage = icon.GetComponent<Image>();
         iconImage.sprite = InternalResourcesGetter.GetIcon();
 
-        GameObject iconFrame = new GameObject("IconFrame", typeof(Image));
+        GameObject iconFrame = new GameObject("IconFrame", typeof(Image).Convert());
         iconFrame.transform.SetParent(icon.transform);
         iconFrame.transform.localPosition = Vector3.zero;
         iconFrame.transform.localScale = Vector3.one;
@@ -128,7 +129,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         iconFrameImage.sprite = InternalResourcesGetter.GetIconFrame();
         iconFrameImage.type = Image.Type.Sliced;
 
-        GameObject text = new GameObject("Text", typeof(Text));
+        GameObject text = new GameObject("Text", typeof(Text).Convert());
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = new Vector3(2.5f, 0);
         text.transform.localScale = Vector3.one;
@@ -139,7 +140,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         textText.supportRichText = true;
 
 
-        var state_text = new GameObject("StateText", typeof(Text));
+        var state_text = new GameObject("StateText", typeof(Text).Convert());
         state_text.transform.SetParent(obj.transform);
         state_text.transform.localPosition = new Vector3(2.5f, -15.5f);
         state_text.transform.localScale = Vector3.one;
@@ -151,7 +152,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         state_textText.alignment = TextAnchor.LowerLeft;
 
         Vector2 single_button_size = new(22, 22);
-        GameObject configure = new GameObject("Configure", typeof(Image), typeof(Button), typeof(TipButton));
+        GameObject configure = new GameObject("Configure", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         configure.transform.SetParent(obj.transform);
         configure.transform.localPosition = new(87, 12);
         configure.transform.localScale = Vector3.one;
@@ -160,7 +161,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image configureImageBG = configure.GetComponent<Image>();
         configureImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         configureImageBG.type = Image.Type.Sliced;
-        GameObject configureIcon = new GameObject("Icon", typeof(Image));
+        GameObject configureIcon = new GameObject("Icon", typeof(Image).Convert());
         configureIcon.transform.SetParent(configure.transform);
         configureIcon.transform.localPosition = Vector3.zero;
         configureIcon.transform.localScale = Vector3.one;
@@ -168,7 +169,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image configureIconImage = configureIcon.GetComponent<Image>();
         configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconoptions");
 
-        GameObject website = new GameObject("Website", typeof(Image), typeof(Button), typeof(TipButton));
+        GameObject website = new GameObject("Website", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         website.transform.SetParent(obj.transform);
         website.transform.localPosition = new(87, -12);
         website.transform.localScale = Vector3.one;
@@ -177,7 +178,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image websiteImageBG = website.GetComponent<Image>();
         websiteImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         websiteImageBG.type = Image.Type.Sliced;
-        GameObject websiteIcon = new GameObject("Icon", typeof(Image));
+        GameObject websiteIcon = new GameObject("Icon", typeof(Image).Convert());
         websiteIcon.transform.SetParent(website.transform);
         websiteIcon.transform.localPosition = Vector3.zero;
         websiteIcon.transform.localScale = Vector3.one;
@@ -185,7 +186,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image websiteIconImage = websiteIcon.GetComponent<Image>();
         websiteIconImage.sprite = Resources.Load<Sprite>("ui/icons/actor_traits/iconcommunity");
 
-        GameObject reload = new GameObject("Reload", typeof(Image), typeof(Button), typeof(TipButton));
+        GameObject reload = new GameObject("Reload", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         reload.transform.SetParent(obj.transform);
         reload.transform.localPosition = new Vector3(64, -12);
         reload.transform.localScale = Vector3.one;
@@ -194,7 +195,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image reloadImageBG = reload.GetComponent<Image>();
         reloadImageBG.sprite = Resources.Load<Sprite>("ui/special/special_buttonred");
         reloadImageBG.type = Image.Type.Sliced;
-        GameObject reloadIcon = new GameObject("Icon", typeof(Image));
+        GameObject reloadIcon = new GameObject("Icon", typeof(Image).Convert());
         reloadIcon.transform.SetParent(reload.transform);
         reloadIcon.transform.localPosition = Vector3.zero;
         reloadIcon.transform.localScale = Vector3.one;
@@ -202,7 +203,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image reloadIconImage = reloadIcon.GetComponent<Image>();
         reloadIconImage.sprite = InternalResourcesGetter.GetReloadIcon();
 
-        GameObject open_folder = new("OpenFolder", typeof(Image), typeof(Button), typeof(TipButton));
+        GameObject open_folder = new("OpenFolder", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert());
         open_folder.transform.SetParent(obj.transform);
         open_folder.transform.localPosition = new Vector3(64, 11);
         open_folder.transform.localScale = Vector3.one;
@@ -211,7 +212,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image open_folderImageBG = open_folder.GetComponent<Image>();
         open_folderImageBG.sprite = Resources.Load<Sprite>("ui/special/special_buttonred");
         open_folderImageBG.type = Image.Type.Sliced;
-        GameObject open_folderIcon = new("Icon", typeof(Image));
+        GameObject open_folderIcon = new("Icon", typeof(Image).Convert());
         open_folderIcon.transform.SetParent(open_folder.transform);
         open_folderIcon.transform.localPosition = Vector3.zero;
         open_folderIcon.transform.localScale = Vector3.one;
@@ -232,7 +233,9 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         private IEnumerator WaitOpenWindow()
         {
             yield return new WaitForSeconds(3f);
+            #if !IL2CPP
             if (Instance.clickTimes == 8) ModUploadWindow.ShowWindow(_mod);
+            #endif
         }
 
         /// <inheritdoc cref="AbstractListWindowItem{TItem}.Setup" />
@@ -308,11 +311,11 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             configure_button.onClick.RemoveAllListeners();
             website_button.onClick.RemoveAllListeners();
             open_folder_button.onClick.RemoveAllListeners();
-            open_folder_button.onClick.AddListener(() => { Application.OpenURL(mod_declare.FolderPath); });
+            open_folder_button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() => { Application.OpenURL(mod_declare.FolderPath); }));
 
             if (mod_state == ModState.LOADED)
             {
-                icon.GetComponent<Button>().onClick.AddListener(() =>
+                icon.GetComponent<Button>().onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
                 {
                     float current_time = Time.time;
                     if (current_time - Instance.lastClickTime > 1)
@@ -341,7 +344,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                             }
                         }).Start();*/
                     }
-                });
+                }));
             }
 
             var current_state_text = mod_state switch
@@ -361,7 +364,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
                 icon.color = Color.red;
 
-                icon.GetComponent<Button>().onClick.AddListener(() =>
+                icon.GetComponent<Button>().onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
                 {
                     var curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
                     icon.color = curr_state ? Color.red : Color.yellow;
@@ -370,7 +373,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                         ? "mod_next_state_disabled"
                         : "mod_next_state_enabled");
                     state_text.text = $"{current_state_text}, {next_state_text}";
-                });
+                }));
             }
             else
             {
@@ -379,7 +382,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                     ? "ModDisabled Description"
                     : "ModEnabled Description";
                 icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.gray : Color.white;
-                icon.GetComponent<Button>().onClick.AddListener(() =>
+                icon.GetComponent<Button>().onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
                 {
                     bool curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
                     icon_tip_button.textOnClickDescription =
@@ -396,16 +399,16 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                         // Check mod loaded or not has been done in the following method.
                         ModCompileLoadService.TryCompileAndLoadModAtRuntime(mod_declare);
                     }
-                });
+                }));
                 icon_tip_button.text_description_2 = "";
             }
 
-            configure_button.onClick.AddListener(() =>
+            configure_button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
             {
                 // It can be sure that if mod is IConfigurable, then mod is loaded actually.
                 ModConfigureWindow.ShowWindow(configurable?.GetConfig());
-            });
-            website_button.onClick.AddListener(() => { Application.OpenURL(mod.GetUrl()); });
+            }));
+            website_button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() => { Application.OpenURL(mod.GetUrl()); }));
 
             if (!Config.isEditor)
             {
@@ -423,7 +426,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             var reload_button = transform.Find("Reload").GetComponent<Button>();
             reload_button.gameObject.SetActive(true);
             reload_button.onClick.RemoveAllListeners();
-            reload_button.onClick.AddListener(() =>
+            reload_button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
             {
                 if (!ModReloadUtils.Prepare(reloadable, mod_declare))
                 {
@@ -448,7 +451,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 {
                     LogService.LogWarning($"Failed to reload mod {mod_declare.Name}.");
                 }
-            });
+            }));
         }
     }
 }

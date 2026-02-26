@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using NeoModLoader.services;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -25,8 +26,8 @@ public static class PowerButtonCreator
     /// <param name="pParent">Which transform the button attached to</param>
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateWindowButton([NotNull] string pId, [NotNull] string pWindowId,
-        Sprite pIcon, [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
+    public static PowerButton CreateWindowButton( string pId, string pWindowId,
+        Sprite pIcon,  Transform pParent = null, Vector2 pLocalPosition = default)
     {
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("world_laws");
 
@@ -80,8 +81,8 @@ public static class PowerButtonCreator
     /// <param name="pParent">Which transform the button attached to</param>
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateSimpleButton([NotNull] string pId, UnityAction pAction,
-        Sprite pIcon, [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
+    public static PowerButton CreateSimpleButton( string pId, UnityAction pAction,
+        Sprite pIcon, Transform pParent = null, Vector2 pLocalPosition = default)
     {
         var prefab = ResourcesFinder.FindResource<PowerButton>("world_laws");
 
@@ -130,7 +131,7 @@ public static class PowerButtonCreator
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <returns>The PowerButton created</returns>
     public static PowerButton CreateGodPowerButton(string pGodPowerId, Sprite pIcon,
-        [CanBeNull] Transform pParent = null, Vector2 pLocalPosition = default)
+        Transform pParent = null, Vector2 pLocalPosition = default)
     {
         PowerButton prefab = ResourcesFinder.FindResource<PowerButton>("inspect");
 
@@ -181,7 +182,7 @@ public static class PowerButtonCreator
     /// <param name="pLocalPosition">The button position in <paramref name="pParent"/></param>
     /// <param name="pNoAutoSetToggleAction">Not set god power's toggle_action automatically if it's not null</param>
     /// <returns>The PowerButton created</returns>
-    public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, [CanBeNull] Transform pParent = null,
+    public static PowerButton CreateToggleButton(string pGodPowerId, Sprite pIcon, Transform pParent = null,
         Vector2 pLocalPosition = default, bool pNoAutoSetToggleAction = false)
     {
         GodPower god_power = AssetManager.powers.get(pGodPowerId);
@@ -213,12 +214,12 @@ public static class PowerButtonCreator
 
         if (god_power.toggle_action == null)
         {
-            god_power.toggle_action = toggleOption;
+            god_power.toggle_action = IL2CPPHelper.Convert<PowerToggleAction>(toggleOption);
         }
         else if (!pNoAutoSetToggleAction)
         {
-            god_power.toggle_action = (PowerToggleAction)Delegate.Combine(god_power.toggle_action,
-                new PowerToggleAction(toggleOption));
+            god_power.toggle_action = (PowerToggleAction)PowerToggleAction.Combine(god_power.toggle_action,
+                 IL2CPPHelper.Convert<PowerToggleAction>(toggleOption));
         }
 
         if (!PlayerConfig.dict.TryGetValue(god_power.toggle_name, out var option))

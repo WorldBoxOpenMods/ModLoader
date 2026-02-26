@@ -3,7 +3,8 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace NeoModLoader.utils;
-
+//asset bundle not apart of il2cpp assemblies nor is it in the il2cpp domain. cannot be used
+#if !IL2CPP
 /// <summary>
 ///     The class provides a wrapped asset bundle for easier use.
 /// </summary>
@@ -199,10 +200,10 @@ public class WrappedAssetBundle
         public readonly List<string> resources_full_names = new();
     }
 }
-
 /// <summary>
 /// The class provides some useful methods for loading non-hidden AssetBundles to ResourceTree.
 /// </summary>
+/// <remarks>not supported on mobile.</remarks>
 public static class AssetBundleUtils
 {
     private static readonly Dictionary<string, WrappedAssetBundle> LoadedAssetBundles = new();
@@ -272,3 +273,4 @@ public static class AssetBundleUtils
         return asset_bundles.ToArray();
     }
 }
+#endif

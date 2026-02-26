@@ -1,3 +1,4 @@
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class TextInput : APrefab<TextInput>
 {
+    #if !IL2CPP
     [SerializeField] private Image _icon;
 
     [SerializeField] private InputField _input;
@@ -17,7 +19,15 @@ public class TextInput : APrefab<TextInput>
     [SerializeField] private Text _text;
 
     [SerializeField] private TipButton _tip_button;
+#else
+   private Image _icon;
 
+     private InputField _input;
+
+     private Text _text;
+
+     private TipButton _tip_button;
+    #endif
     public Image icon => _icon;
     public InputField input => _input;
 
@@ -86,14 +96,14 @@ public class TextInput : APrefab<TextInput>
 
     internal static void _init()
     {
-        GameObject text_input = new GameObject("TextInput", typeof(TipButton), typeof(Image));
+        GameObject text_input = new GameObject("TextInput", typeof(TipButton).Convert(), typeof(Image).Convert());
         text_input.transform.SetParent(WorldBoxMod.Transform);
 
         Image bg = text_input.GetComponent<Image>();
         bg.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
         bg.type = Image.Type.Sliced;
 
-        GameObject input_field = new GameObject("InputField", typeof(Text), typeof(InputField));
+        GameObject input_field = new GameObject("InputField", typeof(Text).Convert(), typeof(InputField).Convert());
         input_field.transform.SetParent(text_input.transform);
         input_field.transform.localScale = Vector3.one;
         input_field.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
@@ -108,7 +118,7 @@ public class TextInput : APrefab<TextInput>
         input.text = "";
         input.lineType = InputField.LineType.SingleLine;
 
-        GameObject icon = new GameObject("Icon", typeof(Image));
+        GameObject icon = new GameObject("Icon", typeof(Image).Convert());
         icon.transform.SetParent(text_input.transform);
         icon.transform.localScale = Vector3.one;
         icon.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/inputFieldIcon");

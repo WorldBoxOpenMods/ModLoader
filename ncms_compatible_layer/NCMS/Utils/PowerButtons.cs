@@ -1,4 +1,5 @@
 ﻿using NeoModLoader.General;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -75,7 +76,7 @@ namespace NCMS.Utils
             // DO NOT catch repeat key exception here. There is a NCMS mod that use it.
             ToggleValues.Add(name, false);
 
-            asButton.onClick.AddListener(() => ToggleButton(name));
+            asButton.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() => ToggleButton(name)));
             // Set custom click callback
             if (call != null) asButton.onClick.AddListener(call);
             obj.transform.Find("ToggleIcon").GetComponent<ToggleIcon>().updateIcon(false);
@@ -94,7 +95,7 @@ namespace NCMS.Utils
             Transform parent = null, UnityAction callback = null)
         {
             // Since this will be removed, it's not necessary to move it into APrefab
-            GameObject button_obj = new GameObject(name, typeof(Image), typeof(Button));
+            GameObject button_obj = new GameObject(name, typeof(Image).Convert(), typeof(Button).Convert());
             if (parent != null) button_obj.transform.SetParent(parent);
             button_obj.transform.localScale = Vector3.one;
             button_obj.transform.localPosition = position;
@@ -104,7 +105,7 @@ namespace NCMS.Utils
             button_obj.GetComponent<Image>().SetNativeSize();
             button_obj.GetComponent<Button>().onClick.AddListener(callback);
 
-            GameObject text_obj = new GameObject(name + "_text", typeof(Text), typeof(Outline));
+            GameObject text_obj = new GameObject(name + "_text", typeof(Text).Convert(), typeof(Outline).Convert());
             text_obj.transform.SetParent(button_obj.transform);
             text_obj.transform.localScale = Vector3.one;
             text_obj.transform.localPosition = Vector3.zero;

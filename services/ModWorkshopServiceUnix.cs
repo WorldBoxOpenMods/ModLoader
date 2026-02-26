@@ -1,3 +1,4 @@
+#if !IL2CPP
 extern alias unixsteamwork;
 using System.Reflection;
 using NeoModLoader.api;
@@ -12,7 +13,7 @@ using unixsteamwork::Steamworks.Ugc;
 namespace NeoModLoader.services;
 
 extern alias unixsteamwork;
-
+//no workshop on mobile
 internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
 {
     static List<unixsteamwork::Steamworks.Ugc.Item> subscribedItems = new();
@@ -220,3 +221,4 @@ internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
         return subscribedItems;
     }
 }
+#endif

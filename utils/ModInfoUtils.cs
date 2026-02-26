@@ -1,4 +1,3 @@
-extern alias unixsteamwork;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -12,8 +11,10 @@ using NeoModLoader.ui;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
+#if !IL2CPP
 using unixsteamwork::Steamworks;
-
+extern alias unixsteamwork;
+#endif
 namespace NeoModLoader.utils;
 
 internal static class ModInfoUtils
@@ -355,7 +356,7 @@ internal static class ModInfoUtils
         }
 
         File.Delete(download_path);
-
+        #if !IL2CPP
         switch (Application.platform)
         {
             case RuntimePlatform.LinuxPlayer:
@@ -403,7 +404,7 @@ internal static class ModInfoUtils
             default:
                 break;
         }
-
+        #endif
         LogService.LogInfo($"Install BepInEx to {Paths.GamePath}");
     }
 

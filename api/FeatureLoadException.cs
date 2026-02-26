@@ -8,7 +8,7 @@ namespace NeoModLoader.api;
 public class FeatureLoadException : Exception
 {
     /// <inheritdoc/>
-    protected FeatureLoadException([NotNull]SerializationInfo info, StreamingContext context) : base(info, context)
+    protected FeatureLoadException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
     /// <inheritdoc/>

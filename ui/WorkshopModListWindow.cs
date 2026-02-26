@@ -1,3 +1,4 @@
+#if !IL2CPP
 using NeoModLoader.api;
 using NeoModLoader.services;
 using NeoModLoader.utils;
@@ -180,3 +181,4 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         }
     }
 }
+#endif

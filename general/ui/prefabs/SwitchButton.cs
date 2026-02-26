@@ -1,10 +1,13 @@
+using NeoModLoader.utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.General.UI.Prefabs;
 
 public class SwitchButton : APrefab<SwitchButton>
 {
+    #if !IL2CPP
     [SerializeField] private Button _button;
 
     [SerializeField] private Image _icon;
@@ -12,7 +15,15 @@ public class SwitchButton : APrefab<SwitchButton>
     [SerializeField] private Text _text;
 
     [SerializeField] private TipButton _tip_button;
+#else
+    private Button _button;
 
+    private Image _icon;
+
+    private Text _text;
+
+    private TipButton _tip_button;
+    #endif
     public Button button => _button;
     public Image icon => _icon;
     public Text text => _text;
@@ -31,17 +42,17 @@ public class SwitchButton : APrefab<SwitchButton>
             : SpriteTextureLoader.getSprite("ui/icons/iconOff");
         text.text = value ? LM.Get("short_on") : LM.Get("short_off");
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() =>
+        button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() =>
         {
             value_update();
             Setup(!value, value_update);
-        });
+        }));
     }
 
     internal static void _init()
     {
-        GameObject switch_button = new GameObject("SwitchButton", typeof(Image), typeof(Button), typeof(TipButton),
-            typeof(HorizontalLayoutGroup));
+        GameObject switch_button = new GameObject("SwitchButton", typeof(Image).Convert(), typeof(Button).Convert(), typeof(TipButton).Convert(),
+            typeof(HorizontalLayoutGroup).Convert());
         switch_button.transform.SetParent(WorldBoxMod.Transform);
         switch_button.transform.localScale = Vector3.one;
         switch_button.GetComponent<RectTransform>().sizeDelta = new(50, 18);
@@ -53,11 +64,11 @@ public class SwitchButton : APrefab<SwitchButton>
 
         switch_button.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
         switch_button.GetComponent<Image>().type = Image.Type.Sliced;
-        GameObject switch_button_icon = new GameObject("Icon", typeof(Image));
+        GameObject switch_button_icon = new GameObject("Icon", typeof(Image).Convert());
         switch_button_icon.transform.SetParent(switch_button.transform);
         switch_button_icon.transform.localScale = Vector3.one;
         switch_button_icon.GetComponent<RectTransform>().sizeDelta = new(18, 18);
-        GameObject switch_button_text = new GameObject("Text", typeof(Text));
+        GameObject switch_button_text = new GameObject("Text", typeof(Text).Convert());
         switch_button_text.transform.SetParent(switch_button.transform);
         switch_button_text.transform.localScale = Vector3.one;
         switch_button_text.GetComponent<RectTransform>().sizeDelta = new(24, 18);

@@ -107,7 +107,11 @@ public static class ResourcesPatch
 
     private static TextAsset LoadTextAsset(string path)
     {
-        TextAsset textAsset = new TextAsset(File.ReadAllText(path));
+        #if  IL2CPP
+        TextAsset textAsset = new TextAsset(TextAsset.CreateOptions.None, File.ReadAllText(path));
+         #else
+          TextAsset textAsset = new TextAsset(File.ReadAllText(path));
+       #endif
         textAsset.name = Path.GetFileNameWithoutExtension(path);
         return textAsset;
     }
@@ -139,8 +143,9 @@ public static class ResourcesPatch
         };
         string platform_folder = Path.Combine(pFolder, platform_subfolder_name);
         if (!Directory.Exists(platform_folder)) return;
-
+        #if ILIL2CPP
         AssetBundleUtils.LoadFromFolder(platform_folder);
+        #endif
     }
 
     [HarmonyPrefix]
