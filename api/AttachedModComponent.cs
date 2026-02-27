@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ namespace NeoModLoader.api;
 /// <summary>
 ///     This class is made for ncms mod to get <see cref="ModDeclare" /> for themselves
 /// </summary>
-public class AttachedModComponent : MonoBehaviour, IMod
+public class AttachedModComponent : WrappedBehaviour, IMod
 {
     private ModDeclare _declare;
 

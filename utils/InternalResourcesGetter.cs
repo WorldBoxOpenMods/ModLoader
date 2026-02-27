@@ -54,8 +54,8 @@ internal static class InternalResourcesGetter
     {
         if (string.IsNullOrEmpty(commit))
         {
-            var s = WorldBoxMod.NeoModLoaderAssembly.GetManifestResourceStream("NeoModLoader.resources.commit");
-
+            string name = Config.isAndroid ? "_mobile" : "";
+            var s = WorldBoxMod.NeoModLoaderAssembly.GetManifestResourceStream($"NeoModLoader{name}.resources.commit");
             commit = new StreamReader(s).ReadToEnd().Replace("\n", "").Replace("\r", "");
 
             s.Close();

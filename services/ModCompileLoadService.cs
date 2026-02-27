@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using ModDeclaration;
 using NCMS;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;

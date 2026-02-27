@@ -14,6 +14,11 @@ internal static class ListenerManager
     private static readonly HashSet<BaseListener> _listeners = new();
     public static void _init()
     {
+        if (Config.isAndroid)
+        {
+            LogService.LogWarning("Warning: listeners are not supported on android");
+            return;
+        }
         Type[] types = Assembly.GetExecutingAssembly().GetTypes();
         foreach (var type in types)
         {

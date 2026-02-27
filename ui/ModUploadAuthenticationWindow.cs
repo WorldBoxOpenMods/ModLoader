@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.services;
@@ -108,7 +109,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
 
     private Button CreateAuthButton(string pId, Sprite pIcon, Func<bool> pAuthFunc, Vector2 pIconSize = default)
     {
-        Button button = Instantiate(prefab_auth_button, auth_grid_transform);
+        Button button = GameObject.Instantiate(prefab_auth_button, auth_grid_transform);
         button.transform.Find("Icon").GetComponent<Image>().sprite = pIcon;
         if (pIconSize != default)
         {

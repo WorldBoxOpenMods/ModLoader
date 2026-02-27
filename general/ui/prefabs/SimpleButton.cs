@@ -3,7 +3,7 @@ using DG.Tweening;
 #else
 using Il2CppDG.Tweening;
 #endif
-using NeoModLoader.utils;
+using NeoModLoader.AndroidCompatibilityModule;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -16,7 +16,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class SimpleButton : APrefab<SimpleButton>
 {
-    #if !IL2CPP
+   
     [SerializeField] private Button button;
 
     [SerializeField] private TipButton tipButton;
@@ -26,17 +26,6 @@ public class SimpleButton : APrefab<SimpleButton>
     [SerializeField] private Image icon;
 
     [SerializeField] private Text text;
-#else //attributes cant be used
-     private Button button;
-
-    private TipButton tipButton;
-
-   private Image background;
-
-     private Image icon;
-
-    private Text text;
-    #endif
     /// <summary>
     ///     The <see cref="Button" /> component
     /// </summary>

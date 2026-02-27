@@ -1,13 +1,14 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.General;
 using UnityEngine;
 using UnityEngine.UI;
-
+using NeoModLoader.utils;
 namespace NeoModLoader.api;
 /// <summary>
 /// An abstract window class that should be only one instance.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow<T>
+public abstract class AbstractWindow<T> : WrappedBehaviour where T : AbstractWindow<T>
 {
     /// <summary>
     /// The only instance of this class.
@@ -38,7 +39,7 @@ public abstract class AbstractWindow<T> : MonoBehaviour where T : AbstractWindow
     /// </summary>
     public static string WindowId { get; protected set; }
     /// <summary>
-    /// ÒÔ pWindowId ´´½¨²¢³õÊ¼»¯Ò»¸ö T ÀàÐÍµÄ´°¿Ú
+    /// ï¿½ï¿½ pWindowId ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½Ò»ï¿½ï¿½ T ï¿½ï¿½ï¿½ÍµÄ´ï¿½ï¿½ï¿½
     /// </summary>
     /// <param name="pWindowId"></param>
     /// <returns></returns>

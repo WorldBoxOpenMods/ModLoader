@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;

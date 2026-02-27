@@ -1,5 +1,7 @@
 using System.Reflection;
 using UnityEngine;
+using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.services;
 
 namespace NeoModLoader.constants;
 
@@ -8,7 +10,15 @@ namespace NeoModLoader.constants;
 /// </summary>
 public static class Paths
 {
-    public static string MelonPath { get; internal set; }
+    /// <summary>
+    /// path to the root melon folder on android
+    /// </summary>
+    public static readonly string MelonPath = MelonHelper.GetPath();
+    /// <summary>
+    /// path to melon loader assemblies if on android
+    /// </summary>
+
+    public static readonly string MelonAssemblies = Combine(MelonPath, "MelonLoader", "net8");
     /// <summary>
     /// Path to the mod loader file
     /// </summary>
@@ -22,7 +32,7 @@ public static class Paths
     /// <summary>
     /// Path to folder StreamingAssets, or base melon path if on android
     /// </summary>
-    public static readonly string StreamingAssetsPath = Others.IsAndroid ? Application.streamingAssetsPath : MelonPath;
+    public static readonly string StreamingAssetsPath = !Others.IsAndroid ? Application.streamingAssetsPath : MelonPath;
 
     /// <summary>
     /// Path to game native Mods folder
@@ -73,9 +83,7 @@ public static class Paths
     /// Path to Mods folder provided by NML
     /// </summary>
     public static readonly string ModsPath =
-        Others.IsAndroid
-            ? Others.is_editor ? Combine(GamePath, "Assets", "Mods") : Combine(GamePath, "Mods")
-            : Combine(GamePath, "NMLMods");
+        Others.is_editor ? Combine(GamePath, "Assets", "Mods") : Combine(GamePath, Others.IsAndroid ? "NMLMods" : "Mods");
 
     /// <summary>
     /// Path to extracted Assemblies cache
@@ -159,7 +167,6 @@ public static class Paths
             nml_mod_path = Combine(NativeModsPath, "NeoModLoader.dll");
             if (!File.Exists(nml_mod_path)) nml_mod_path = Combine(NativeModsPath, "NeoModLoader_memload.dll");
         }
-
         NMLModPath = nml_mod_path;
     }
     /// <summary>

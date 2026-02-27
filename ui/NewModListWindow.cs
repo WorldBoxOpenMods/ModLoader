@@ -7,7 +7,7 @@ using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-
+using NeoModLoader.AndroidCompatibilityModule;
 namespace NeoModLoader.ui;
 
 internal class NewModListWindow : AbstractWideWindow<NewModListWindow>

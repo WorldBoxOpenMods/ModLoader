@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Window;
 using NeoModLoader.services;

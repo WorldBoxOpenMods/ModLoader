@@ -1,11 +1,5 @@
-﻿#if !IL2CPP
-using FMOD;
+﻿using FMOD;
 using FMODUnity;
-#else
-using Il2CppFMOD;
-using FMOD = Il2CppFMOD;
-using Il2CppFMODUnity;
-#endif
 using HarmonyLib;
 using NeoModLoader.services;
 using Newtonsoft.Json;

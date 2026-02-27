@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using JetBrains.Annotations;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 
 namespace NeoModLoader.api;

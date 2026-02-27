@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -7,7 +8,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 
 public class SwitchButton : APrefab<SwitchButton>
 {
-    #if !IL2CPP
+  
     [SerializeField] private Button _button;
 
     [SerializeField] private Image _icon;
@@ -15,15 +16,6 @@ public class SwitchButton : APrefab<SwitchButton>
     [SerializeField] private Text _text;
 
     [SerializeField] private TipButton _tip_button;
-#else
-    private Button _button;
-
-    private Image _icon;
-
-    private Text _text;
-
-    private TipButton _tip_button;
-    #endif
     public Button button => _button;
     public Image icon => _icon;
     public Text text => _text;

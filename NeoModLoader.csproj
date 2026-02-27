@@ -210,6 +210,8 @@
         <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll"/>
         <EmbeddedResource Remove="android-assembly-dependencies\**" />
         <None Remove="android-assembly-dependencies\**" />
+        <EmbeddedResource Remove="AndroidCompatibilityModule\IL2CPPWrapper\**" />
+        <None Remove="AndroidCompatibilityModule\IL2CPPWrapper\**" />
     </ItemGroup>
   
     <ItemGroup>
@@ -228,6 +230,7 @@
   
     <ItemGroup>
       <Compile Remove="android-assembly-dependencies\**" />
+      <Compile Remove="AndroidCompatibilityModule\IL2CPPWrapper\**" />
     </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

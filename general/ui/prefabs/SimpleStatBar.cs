@@ -1,4 +1,4 @@
-using NeoModLoader.utils;
+using NeoModLoader.AndroidCompatibilityModule;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +10,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class SimpleStatBar : APrefab<SimpleStatBar>
 {
-    #if !IL2CPP
+    
     [SerializeField] private Image _background;
 
     [SerializeField] private Image _bar;
@@ -18,15 +18,7 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
     [SerializeField] private Image _icon;
 
     [SerializeField] private StatBar _stat_bar;
-#else
-     private Image _background;
 
-    private Image _bar;
-
-    private Image _icon;
-
-   private StatBar _stat_bar;
-    #endif
     public Image background => _background;
     public Image bar => _bar;
     public Image icon => _icon;

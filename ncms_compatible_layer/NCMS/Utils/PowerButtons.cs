@@ -1,4 +1,5 @@
-﻿using NeoModLoader.General;
+﻿using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.General;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;

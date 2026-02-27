@@ -1,5 +1,6 @@
 using System.Reflection.Emit;
 using HarmonyLib;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
 using NeoModLoader.utils;
 using Newtonsoft.Json;

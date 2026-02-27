@@ -1,4 +1,3 @@
-#if IL2CPP
 namespace System.Runtime.CompilerServices
 {
     internal sealed class NullableAttribute : System.Attribute
@@ -12,4 +11,3 @@ namespace System.Runtime.CompilerServices
         public NullableContextAttribute(byte _) { }
     }
 }
-#endif

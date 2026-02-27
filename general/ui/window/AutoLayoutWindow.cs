@@ -1,7 +1,7 @@
 using NeoModLoader.General.UI.Window.Layout;
 using UnityEngine;
 using UnityEngine.UI;
-
+using NeoModLoader.AndroidCompatibilityModule;
 namespace NeoModLoader.General.UI.Window;
 
 public abstract class AutoLayoutWindow<T> : AutoVertLayoutGroup where T : AutoLayoutWindow<T>

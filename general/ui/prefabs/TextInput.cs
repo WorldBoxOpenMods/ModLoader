@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,7 +12,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class TextInput : APrefab<TextInput>
 {
-    #if !IL2CPP
+   
     [SerializeField] private Image _icon;
 
     [SerializeField] private InputField _input;
@@ -19,15 +20,6 @@ public class TextInput : APrefab<TextInput>
     [SerializeField] private Text _text;
 
     [SerializeField] private TipButton _tip_button;
-#else
-   private Image _icon;
-
-     private InputField _input;
-
-     private Text _text;
-
-     private TipButton _tip_button;
-    #endif
     public Image icon => _icon;
     public InputField input => _input;
 

@@ -1,4 +1,5 @@
 using System.Reflection;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// To standard the prefab. You would be better to initialize prefab in '_init' and call 'Setup' for setup an object <see cref="UnityEngine.Object.Instantiate{T}(T)"/> from prefab.
 /// </remarks>
 /// <typeparam name="T">Type of the actual prefab</typeparam>
-public abstract class APrefab<T> : MonoBehaviour where T : APrefab<T>
+public abstract class APrefab<T> : WrappedBehaviour where T : APrefab<T>
 {
     private static T mPrefab;
 

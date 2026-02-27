@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;

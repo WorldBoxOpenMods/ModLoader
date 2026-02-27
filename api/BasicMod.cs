@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
 using NeoModLoader.services;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace NeoModLoader.api;
 /// OnModLoad -> Awake -> OnEnable -> Start -> Update
 /// </remarks>
 /// </summary>
-public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged, IStagedLoad
+public abstract class BasicMod<T> : WrappedBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged, IStagedLoad
     where T : BasicMod<T>
 {
     private ModConfig  _config  = null!;

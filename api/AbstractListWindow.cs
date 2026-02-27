@@ -1,14 +1,15 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.General;
 using UnityEngine;
 using UnityEngine.UI;
-
+using NeoModLoader.utils;
 namespace NeoModLoader.api;
 
 /// <summary>
 /// Abstract List Window Item
 /// </summary>
 /// <typeparam name="TItem">The type of the parameter passed into to setup the item</typeparam>
-public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
+public abstract class AbstractListWindowItem<TItem> : WrappedBehaviour
 {
     /// <summary>
     /// Configure the item with the given object before added to the list

@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
 using NeoModLoader.utils;
 using UnityEngine;
@@ -39,7 +40,7 @@ public static class LogService
     private static ConcurrentBag<WrappedMessage> _pool = new();
     private const int pool_size = 100;
 
-    private class ConcurrentLogHandle : MonoBehaviour
+    private class ConcurrentLogHandle : WrappedBehaviour
     {
         private void Update()
         {
@@ -159,7 +160,7 @@ public static class LogService
     {
         if (Others.unity_player_enabled)
         {
-            UnityEngine.Debug.LogError("[NML]: " + message);
+            MelonHelper.LogError("[NML]: " + message);
         }
         else
         {
@@ -174,7 +175,7 @@ public static class LogService
     {
         if (Others.unity_player_enabled)
         {
-            UnityEngine.Debug.LogWarning("[NML]: " + message);
+            MelonHelper.LogWarning("[NML]: " + message);
         }
         else
         {
@@ -189,7 +190,7 @@ public static class LogService
     {
         if (Others.unity_player_enabled)
         {
-            UnityEngine.Debug.Log("[NML]: " + message);
+            MelonHelper.Log("[NML]: " + message);
         }
         else
         {

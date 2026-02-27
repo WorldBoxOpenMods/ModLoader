@@ -1,4 +1,5 @@
 using System.Text;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.General;
 using NeoModLoader.ui;
 using NeoModLoader.utils;

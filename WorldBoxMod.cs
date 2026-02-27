@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using HarmonyLib;
+using MelonLoader;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -10,14 +12,27 @@ using NeoModLoader.services;
 using NeoModLoader.ui;
 using NeoModLoader.utils;
 using UnityEngine;
-
+#if IL2CPP
+using Il2CppInterop.Runtime.Injection;
+#endif
 namespace NeoModLoader;
 
 /// <summary>
 /// Main class
 /// </summary>
+[MelonLoader.RegisterTypeInIl2Cpp]
 public class WorldBoxMod : MonoBehaviour
 {
+#if IL2CPP
+    public WorldBoxMod(IntPtr ptr) : base(ptr)
+    {
+    }
+
+    public WorldBoxMod() : base(ClassInjector.DerivedConstructorPointer<WorldBoxMod>())
+    {
+        ClassInjector.DerivedConstructorBody(this);
+    }
+#endif
     /// <summary>
     /// All successfully loaded mods.
     /// </summary>
@@ -44,17 +59,13 @@ public class WorldBoxMod : MonoBehaviour
     {
         Others.unity_player_enabled = true;
         Transform = transform;
-
         InactiveTransform = new GameObject("Inactive").transform;
         InactiveTransform.SetParent(Transform);
         InactiveTransform.gameObject.SetActive(false);
-
         LogService.Init();
-
-        if (ReflectionHelper.IsAssemblyLoaded("0Harmony")) {
+        if (ReflectionHelper.IsAssemblyLoaded("0Harmony") && !Config.isAndroid) {
             UnityExplorerFix();
         }
-
         fileSystemInitialize();
         LogService.LogInfo($"NeoModLoader Version: {InternalResourcesGetter.GetCommit()}");
     }
@@ -73,15 +84,19 @@ public class WorldBoxMod : MonoBehaviour
         }
 
         initialized = true;
+        
         ModUploadAuthenticationService.AutoAuth();
+        /*
         HarmonyUtils._init();
-        HarmonyLib.Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
+        HarmonyLib.Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id); ;
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(CustomAudioManager), Others.harmony_id);
+        */
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
-
+        LogService.LogInfo("initilizing modloader");
         SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
         {
+            LogService.LogInfo("res");
             ResourcesPatch.Initialize();
             LoadLocales();
             LM.ApplyLocale();
@@ -200,7 +215,7 @@ public class WorldBoxMod : MonoBehaviour
             Directory.CreateDirectory(Paths.ModsPath);
             LogService.LogInfo($"Create Mods folder at {Paths.ModsPath}");
         }
-
+        LogService.LogInfo(Paths.CompiledModsPath);
         if (!Directory.Exists(Paths.CompiledModsPath))
         {
             Directory.CreateDirectory(Paths.CompiledModsPath);
@@ -261,40 +276,43 @@ public class WorldBoxMod : MonoBehaviour
             }
         }
 
-        try
+        if (!Config.isAndroid)
         {
-            using var stream =
-                NeoModLoaderAssembly.GetManifestResourceStream(
-                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
-            if (File.Exists(Paths.PublicizedAssemblyPath))
+            try
             {
-                var modupdate_time = new FileInfo(Paths.NMLModPath).LastWriteTime;
-                var assemblyupdate_time = new FileInfo(Paths.PublicizedAssemblyPath).CreationTime;
-                if (modupdate_time > assemblyupdate_time)
+                using var stream =
+                    NeoModLoaderAssembly.GetManifestResourceStream(
+                        "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
+                if (File.Exists(Paths.PublicizedAssemblyPath))
                 {
-                    LogService.LogInfo($"NeoModLoader.dll is newer than Assembly-CSharp-Publicized.dll, " +
-                                       $"re-extract Assembly-CSharp-Publicized.dll from NeoModLoader.dll");
-                    File.Delete(Paths.PublicizedAssemblyPath);
-                    using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.Create, FileAccess.Write);
+                    var modupdate_time = new FileInfo(Paths.NMLModPath).LastWriteTime;
+                    var assemblyupdate_time = new FileInfo(Paths.PublicizedAssemblyPath).CreationTime;
+                    if (modupdate_time > assemblyupdate_time)
+                    {
+                        LogService.LogInfo($"NeoModLoader.dll is newer than Assembly-CSharp-Publicized.dll, " +
+                                           $"re-extract Assembly-CSharp-Publicized.dll from NeoModLoader.dll");
+                        File.Delete(Paths.PublicizedAssemblyPath);
+                        using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.Create,
+                            FileAccess.Write);
+                        stream.CopyTo(file);
+                    }
+                }
+                else
+                {
+                    using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.CreateNew, FileAccess.Write);
                     stream.CopyTo(file);
                 }
             }
-            else
+            catch (UnauthorizedAccessException) // If the file is hidden, delete it and try again
             {
+                File.Delete(Paths.PublicizedAssemblyPath);
+                using var stream =
+                    NeoModLoaderAssembly.GetManifestResourceStream(
+                        "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
                 using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.CreateNew, FileAccess.Write);
                 stream.CopyTo(file);
             }
         }
-        catch (UnauthorizedAccessException) // If the file is hidden, delete it and try again
-        {
-            File.Delete(Paths.PublicizedAssemblyPath);
-            using var stream =
-                NeoModLoaderAssembly.GetManifestResourceStream(
-                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
-            using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.CreateNew, FileAccess.Write);
-            stream.CopyTo(file);
-        }
-
         foreach (var file_full_path in Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"))
         {
             try
@@ -335,10 +353,12 @@ public class WorldBoxMod : MonoBehaviour
 
         if (!File.Exists(Paths.NMLAutoUpdateModulePath))
         {
+            string name = Config.isAndroid ? "_mobile" : "";
             using Stream stream = NeoModLoaderAssembly.GetManifestResourceStream(
-                "NeoModLoader.resources.assemblies.NeoModLoader.AutoUpdate.dll");
+                $"NeoModLoader{name}.resources.assemblies.NeoModLoader.AutoUpdate.dll");
             using var file = new FileStream(Paths.NMLAutoUpdateModulePath, FileMode.CreateNew, FileAccess.Write);
             stream.CopyTo(file);
         }
+        
     }
 }

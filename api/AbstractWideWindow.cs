@@ -1,11 +1,8 @@
-#if IL2CPP
-using Il2CppInterop.Runtime;
-#endif
 using NeoModLoader.General;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
-
+using NeoModLoader.AndroidCompatibilityModule;
 namespace NeoModLoader.api;
 
 /// <summary>
@@ -60,11 +57,7 @@ public abstract class AbstractWideWindow<T> : AbstractWindow<T> where T : Abstra
         //Instance.BackgroundTransform.GetComponent<RectTransform>().sizeDelta = new Vector2(600, 280);
 
         //Instance.BackgroundTransform.Find("CloseBackgound").localPosition = new Vector3(260, 147);
-        #if !IL2CPP
-        var title_bg = new GameObject("TitleBackground", typeof(Image));
-        #else
-        var title_bg = new GameObject("TitleBackground", Il2CppType.From(typeof(Image)));
-        #endif
+        var title_bg = new GameObject("TitleBackground", typeof(Image).Convert());
         title_bg.transform.SetParent(Instance.BackgroundTransform);
         title_bg.transform.localPosition = new Vector3(0, 145);
         title_bg.transform.localScale = Vector3.one;

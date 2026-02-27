@@ -1,12 +1,14 @@
-namespace NeoModLoader.utils;
+namespace NeoModLoader.AndroidCompatibilityModule;
 #if !IL2CPP
 using System = System;
 #else
+using Il2CppSystem.Collections;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using System = Il2CppSystem;
 using Il2CppInterop.Runtime;
 #endif
+using UnityEngine;
 /// <summary>
 /// collection of tools to allow mods to work on il2cpp and mono on the same code
 /// </summary>
@@ -51,6 +53,15 @@ public static class IL2CPPHelper
         }
         return hash;
     }
+    public static HashSet<E> Convert<E>(this System.Collections.Generic.HashSet<E> set)
+    {
+        HashSet<E> hash = new();
+        foreach (var VARIABLE in set)
+        {
+            hash.Add(VARIABLE);
+        }
+        return hash;
+    }
     public static System.Collections.Generic.List<E> Convert<E>(this List<E> e)
     {
         System.Collections.Generic.List<E> list = new System.Collections.Generic.List<E>();
@@ -78,8 +89,27 @@ public static class IL2CPPHelper
         }
         return dictionary;
     }
+    public static System.Collections.Generic.Dictionary<key, value> Convert<key, value>(this Dictionary<key, value> e) 
+    {
+        System.Collections.Generic.Dictionary<key, value> dictionary = new System.Collections.Generic.Dictionary<key, value>();
+        foreach (var item in e)
+        {
+            dictionary.Add(item.Key, item.Value);
+        }
+        return dictionary;
+    }
+
+    public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
+    {
+        return (T) UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays).WrappedBehaviour;
+    }
+    public static T AddComponent<T>(this GameObject gameObject) where T : WrappedBehaviour
+    {
+        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
+        return (T)behaviour.SetWrappedBehaviour((T)Activator.CreateInstance(typeof(T)));
+    }
     #else
-    public static D Convert<D>(this Delegate func) where D : System.Delegate
+    public static D Convert<D>(this Delegate func) where D : Delegate
     {
         return (D)func;
     }
@@ -87,7 +117,7 @@ public static class IL2CPPHelper
     {
         return type;
     }
-        public static E Convert<E>(this E e) where E : Exception
+    public static E Convert<E>(this E e) where E : Exception
     {
         return e;
     }

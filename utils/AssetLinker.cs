@@ -2,16 +2,8 @@
 using NeoModLoader.services;
 using Newtonsoft.Json;
 using System.Reflection;
+using NeoModLoader.AndroidCompatibilityModule;
 using UnityEngine;
-#if IL2CPP
-using Il2CppInterop.Runtime;
-using Il2CppSystem.Collections.Generic;
-using generic = Il2CppSystem.Collections.Generic;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-#else
-using generic = System.Collections.Generic;
-using System.Collections.Generic;
-#endif
 namespace NeoModLoader.utils
 {
     public delegate void Linker(Asset Asset);
@@ -20,9 +12,9 @@ namespace NeoModLoader.utils
     /// </summary>
     public class AssetLinker
     {
-        public generic.List<Asset> Assets = new generic.List<Asset>();
-        generic.Dictionary<Type, Linker> CustomLinkers = new generic.Dictionary<Type, Linker>();
-        internal generic.List<string> AssetFilePaths = new generic.List<string>();
+        public List<Asset> Assets = new List<Asset>();
+        Dictionary<Type, Linker> CustomLinkers = new Dictionary<Type, Linker>();
+        internal List<string> AssetFilePaths = new List<string>();
         /// <summary>
         /// gets the library of this asset
         /// </summary>
@@ -179,7 +171,7 @@ namespace NeoModLoader.utils
                 Achievement pAchievement = AssetManager.achievements.get(Asset.achievement_id);
                 if (pAchievement.unlock_assets == null)
                 {
-                    pAchievement.unlock_assets = new generic.List<BaseUnlockableAsset>();
+                    pAchievement.unlock_assets = new List<BaseUnlockableAsset>().Convert();
                     pAchievement.unlocks_something = true;
                 }
                 pAchievement.unlock_assets.Add(Asset);
@@ -516,16 +508,16 @@ namespace NeoModLoader.utils
         {
             foreach (ActorAsset tActorAsset in AssetManager.actor_library.list)
             {
-                generic.List<string> traits = Library.getDefaultTraitsForMeta(tActorAsset);
+                List<string> traits = Library.getDefaultTraitsForMeta(tActorAsset).Convert();
                 if (traits != null && traits.Contains(Asset.id))
                 {
-                    Asset.default_for_actor_assets ??= new generic.List<ActorAsset>();
+                    Asset.default_for_actor_assets ??= new List<ActorAsset>().Convert();
                     Asset.default_for_actor_assets.Add(tActorAsset);
                 }
             }
             if (Asset.opposite_list != null && Asset.opposite_list.Count > 0)
             {
-                Asset.opposite_traits = new generic.HashSet<A>(Asset.opposite_list.Count);
+                Asset.opposite_traits = new HashSet<A>(Asset.opposite_list.Count).Convert();
                 foreach (string tID in Asset.opposite_list)
                 {
                     A tOppositeTrait = Library.get(tID);
@@ -633,10 +625,10 @@ namespace NeoModLoader.utils
                 Asset.has_get_map_icon_color = true;
             }
             BuildingAsset buildingAsset = Asset;
-            generic.HashSet<BiomeTag> biome_tags_growth = Asset.biome_tags_growth;
+            HashSet<BiomeTag> biome_tags_growth = Asset.biome_tags_growth.Convert();
             buildingAsset.has_biome_tags = biome_tags_growth != null && biome_tags_growth.Count > 0;
             BuildingAsset buildingAsset2 = Asset;
-            generic.HashSet<BiomeTag> biome_tags_spread = Asset.biome_tags_spread;
+            HashSet<BiomeTag> biome_tags_spread = Asset.biome_tags_spread.Convert();
             buildingAsset2.has_biome_tags_spread = biome_tags_spread != null && biome_tags_spread.Count > 0;
         }
         public static void LinkBiomeAsset(Asset asset)

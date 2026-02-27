@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -26,15 +27,10 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// </example>
 public class SliderBar : APrefab<SliderBar>
 {
-    #if !IL2CPP
+    
     [SerializeField] private Slider _slider;
 
     [SerializeField] private TipButton _tip_button;
-#else
-     private Slider _slider;
-
-    private TipButton _tip_button;
-    #endif
     public Slider slider => _slider;
 
     /// <summary>

@@ -1,3 +1,4 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using UnityEngine;
 
 namespace BepInEx;
@@ -6,6 +7,6 @@ namespace BepInEx;
 /// <remarks>
 ///     There is a NCMS mod using this attribute
 /// </remarks>
-public abstract class BaseUnityPlugin : MonoBehaviour
+public abstract class BaseUnityPlugin : WrappedBehaviour
 {
 }

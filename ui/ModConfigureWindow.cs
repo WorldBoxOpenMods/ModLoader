@@ -2,11 +2,12 @@ using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using System.Globalization;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-
+using NeoModLoader.utils;
 namespace NeoModLoader.ui;
 
 /// <summary>
@@ -341,7 +342,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         _config = null;
     }
 
-    class ModConfigGrid : MonoBehaviour
+    class ModConfigGrid : WrappedBehaviour
     {
         private Transform grid;
         private Text title;
@@ -367,7 +368,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         }
     }
 
-    class ModConfigListItem : MonoBehaviour
+    class ModConfigListItem : WrappedBehaviour
     {
         public GameObject switch_area;
         public GameObject slider_area;

@@ -1,3 +1,7 @@
+#if !IL2CPP
+extern alias unixsteamwork;
+using unixsteamwork::Steamworks;
+#endif
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -11,10 +15,6 @@ using NeoModLoader.ui;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
-#if !IL2CPP
-using unixsteamwork::Steamworks;
-extern alias unixsteamwork;
-#endif
 namespace NeoModLoader.utils;
 
 internal static class ModInfoUtils
