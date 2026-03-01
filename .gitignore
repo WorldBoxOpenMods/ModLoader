@@ -1,4 +1,4 @@
-﻿.*
+.*
 !.github
 !.gitignore
 !.gitattributes
@@ -11,7 +11,6 @@
 assemblies
 !resources/assemblies
 resources/commit
-*.csproj
 *.user
 *.snk
 App.config
