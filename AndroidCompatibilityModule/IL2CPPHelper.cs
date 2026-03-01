@@ -19,6 +19,10 @@ public static class IL2CPPHelper
     {
         return DelegateSupport.ConvertDelegate<D>(func);
     }
+    public static System.Type C (this Type type)
+    {
+        return Il2CppType.From(type);
+    }
     public static A[] Convert<A>(this Il2CppArrayBase<A> arr)
     {
         return arr;
@@ -94,7 +98,15 @@ public static class IL2CPPHelper
         }
         return dictionary;
     }
-
+    public static GameObject CreateGameObject(string name, params Type[] types)
+    {
+        Il2CppSystem.Type[] Types = new Il2CppSystem.Type[types.Length];
+        for(int i = 0; i< types.Length; i++)
+        {
+            Types[i] = types[i].C();
+        }
+        return new GameObject(name, Types);
+    }
     public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
     {
         return (T) UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays).WrappedBehaviour;
@@ -104,10 +116,14 @@ public static class IL2CPPHelper
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
         return (T)behaviour.SetWrappedBehaviour((T)Activator.CreateInstance(typeof(T)));
     }
-    #else
+#else
     public static D C<D>(Delegate func) where D : Delegate
     {
         return (D)func;
+    }
+    public static System.Type C (this Type type)
+    {
+        return type;
     }
     public static System.Type Convert(this Type type)
     {
@@ -132,5 +148,9 @@ public static class IL2CPPHelper
     public static HashSet<E> Convert<E>(this HashSet<E> set){
     return set;
     }
-    #endif
+     public static GameObject CreateGameObject(string name, params Type[] Types)
+    {
+        return new GameObject(name, Types);
+    }
+#endif
 }

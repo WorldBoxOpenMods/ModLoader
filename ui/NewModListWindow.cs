@@ -30,7 +30,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     protected override void Init()
     {
-        var type_select_part = new GameObject("TypeSelectPart", typeof(Image), typeof(VerticalLayoutGroup));
+        var type_select_part = CreateGameObject("TypeSelectPart", typeof(Image), typeof(VerticalLayoutGroup));
         type_select_part.transform.SetParent(BackgroundTransform);
         type_select_part.transform.localPosition = new Vector3(-260, 0);
         type_select_part.transform.localScale = Vector3.one;
@@ -88,7 +88,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ListPart = ContentTransform as RectTransform;
         ListItemPool = new ObjectPoolGenericMono<ModListItem>(ModListItem.Prefab, ListPart);
 
-        var mod_info_part = new GameObject("ModInfoPart", typeof(Image), typeof(VerticalLayoutGroup));
+        var mod_info_part = CreateGameObject("ModInfoPart", typeof(Image), typeof(VerticalLayoutGroup));
         mod_info_part.transform.SetParent(BackgroundTransform);
         mod_info_part.transform.localPosition = new Vector3(60, 25);
         mod_info_part.transform.localScale = Vector3.one;
@@ -96,14 +96,14 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         mod_info_part.GetComponent<Image>().type = Image.Type.Sliced;
         ModInfoPart = mod_info_part.GetComponent<RectTransform>();
 
-        var mod_control_part = new GameObject("ModControlPart", typeof(Image), typeof(HorizontalLayoutGroup));
+        var mod_control_part = CreateGameObject("ModControlPart", typeof(Image), typeof(HorizontalLayoutGroup));
         mod_control_part.transform.SetParent(BackgroundTransform);
         mod_control_part.transform.localPosition = new Vector3(60, -102);
         mod_control_part.transform.localScale = Vector3.one;
         mod_control_part.GetComponent<Image>().sprite = InternalResourcesGetter.GetWindowEmptyFrame();
         mod_control_part.GetComponent<Image>().type = Image.Type.Sliced;
 
-        var nml_general_part = new GameObject("NMLGeneralPart", typeof(Image), typeof(VerticalLayoutGroup));
+        var nml_general_part = CreateGameObject("NMLGeneralPart", typeof(Image), typeof(VerticalLayoutGroup));
         nml_general_part.transform.SetParent(BackgroundTransform);
         nml_general_part.transform.localPosition = new Vector3(264, 0);
         nml_general_part.transform.localScale = Vector3.one;

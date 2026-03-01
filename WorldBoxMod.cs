@@ -12,11 +12,19 @@ using NeoModLoader.services;
 using NeoModLoader.ui;
 using NeoModLoader.utils;
 using UnityEngine;
+using Il2CppInterop.Runtime;
+
 #if IL2CPP
 using Il2CppInterop.Runtime.Injection;
 #endif
 namespace NeoModLoader;
+class patch
+{
+    public static void sigma()
+    {
 
+    }
+}
 /// <summary>
 /// Main class
 /// </summary>
@@ -59,7 +67,7 @@ public class WorldBoxMod : MonoBehaviour
     {
         Others.unity_player_enabled = true;
         Transform = transform;
-        InactiveTransform = new GameObject("Inactive").transform;
+        InactiveTransform = CreateGameObject("Inactive").transform;
         InactiveTransform.SetParent(Transform);
         InactiveTransform.gameObject.SetActive(false);
         LogService.Init();
@@ -69,7 +77,6 @@ public class WorldBoxMod : MonoBehaviour
         fileSystemInitialize();
         LogService.LogInfo($"NeoModLoader Version: {InternalResourcesGetter.GetCommit()}");
     }
-    
     private void Update()
     {
         if (!Config.game_loaded) return;
@@ -77,17 +84,22 @@ public class WorldBoxMod : MonoBehaviour
         {
             TabManager._checkNewTabs();
         }
-
+        
         if (initialized)
         {
             return;
         }
 
         initialized = true;
-        
-        ModUploadAuthenticationService.AutoAuth();
+        if(!Config.isAndroid)
+            ModUploadAuthenticationService.AutoAuth();
         
         HarmonyUtils._init();
+        LogService.LogInfo("NeoModLoader initializing");
+        
+        Harmony harony = new Harmony(Others.harmony_id);
+        LogService.LogInfo("loaded harmony");
+        LogService.LogInfo("patchrd!");
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id); ;
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(CustomAudioManager), Others.harmony_id);
@@ -194,7 +206,7 @@ public class WorldBoxMod : MonoBehaviour
             SmoothLoader.add(C<MapLoaderAction>(ExternalModInstallService.CheckExternalModInstall), "Check External Mods to Install");
         }), "Compile Mods And Load resources");
     }
-
+    
     private void LoadLocales()
     {
         string[] resources = NeoModLoaderAssembly.GetManifestResourceNames();
@@ -215,7 +227,6 @@ public class WorldBoxMod : MonoBehaviour
             Directory.CreateDirectory(Paths.ModsPath);
             LogService.LogInfo($"Create Mods folder at {Paths.ModsPath}");
         }
-        LogService.LogInfo(Paths.CompiledModsPath);
         if (!Directory.Exists(Paths.CompiledModsPath))
         {
             Directory.CreateDirectory(Paths.CompiledModsPath);

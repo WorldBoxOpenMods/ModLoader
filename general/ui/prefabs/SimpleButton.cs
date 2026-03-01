@@ -127,18 +127,18 @@ public class SimpleButton : APrefab<SimpleButton>
 
     internal static void _init()
     {
-        GameObject obj = new GameObject(nameof(SimpleButton), typeof(Button), typeof(Image), typeof(TipButton));
+        GameObject obj = CreateGameObject(nameof(SimpleButton), typeof(Button), typeof(Image), typeof(TipButton));
         obj.transform.SetParent(WorldBoxMod.Transform);
         obj.GetComponent<TipButton>().enabled = false;
         obj.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
         obj.GetComponent<Image>().type = Image.Type.Sliced;
 
-        GameObject icon = new GameObject("Icon", typeof(Image));
+        GameObject icon = CreateGameObject("Icon", typeof(Image));
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = Vector3.zero;
         icon.transform.localScale = Vector3.one;
 
-        GameObject text = new GameObject("Text", typeof(Text));
+        GameObject text = CreateGameObject("Text", typeof(Text));
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = Vector3.zero;
         text.transform.localScale = Vector3.one;

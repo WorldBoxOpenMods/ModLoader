@@ -42,7 +42,7 @@ public static class Paths
     /// <summary>
     /// Path to game native Managed folder, or IL2CPP assemblies if on android
     /// </summary>
-    public static readonly string ManagedPath = Others.IsAndroid
+    public static readonly string ManagedPath = !Others.IsAndroid
         ? Others.is_editor
             ? Combine(StreamingAssetsPath, "..", ".Managed")
             : Combine(StreamingAssetsPath, "..", "Managed")
@@ -65,9 +65,9 @@ public static class Paths
         Combine(NativeModsPath, "NeoModLoader.AutoUpdate_memload.dll");
 
     /// <summary>
-    /// Path to the publicized Assembly-CSharp.dll file
+    /// Path to the publicized Assembly-CSharp.dll file, or just assembly-csharp on android because its already publicized
     /// </summary>
-    public static readonly string PublicizedAssemblyPath = Combine(NMLPath, "Assembly-CSharp-Publicized.dll");
+    public static readonly string PublicizedAssemblyPath = Config.isAndroid ? Combine(ManagedPath, "Assembly-CSharp") : Combine(NMLPath, "Assembly-CSharp-Publicized.dll");
 
     /// <summary>
     /// Path to folder mods config under persistent data folder

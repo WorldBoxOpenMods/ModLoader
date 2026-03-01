@@ -429,11 +429,11 @@ public static class ModCompileLoadService
                     if (type.GetInterface(nameof(IMod)) == null)
                     {
                         mod_interface = mod_instance.AddComponent<AttachedModComponent>();
-                        main_component = (MonoBehaviour)mod_instance.AddComponent(type);
+                        main_component = (MonoBehaviour)mod_instance.AddComponent(type.C());
                     }
                     else
                     {
-                        mod_interface = (IMod)mod_instance.AddComponent(type);
+                        mod_interface = (IMod)mod_instance.AddComponent(type.C());
                         main_component = (MonoBehaviour)mod_interface;
                     }
 

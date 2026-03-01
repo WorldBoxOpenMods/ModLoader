@@ -50,26 +50,26 @@ internal class ModListItem : APrefab<ModListItem>
 
     private static void _init()
     {
-        var obj = new GameObject("ModListItem", typeof(Image));
+        var obj = CreateGameObject("ModListItem", typeof(Image));
         obj.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
         obj.GetComponent<Image>().type = Image.Type.Sliced;
         obj.GetComponent<RectTransform>().sizeDelta = new Vector2(88, 40);
 
-        var mod_icon = new GameObject("ModIcon", typeof(Image), typeof(Button));
+        var mod_icon = CreateGameObject("ModIcon", typeof(Image), typeof(Button));
         mod_icon.transform.SetParent(obj.transform);
         mod_icon.transform.localPosition = new Vector3(-24.5f, 0, 0);
         mod_icon.transform.localScale = Vector3.one;
         mod_icon.GetComponent<Image>().sprite = InternalResourcesGetter.GetIcon();
         mod_icon.GetComponent<RectTransform>().sizeDelta = new Vector2(28, 28);
 
-        var icon_frame = new GameObject("IconFrame", typeof(Image));
+        var icon_frame = CreateGameObject("IconFrame", typeof(Image));
         icon_frame.transform.SetParent(mod_icon.transform);
         icon_frame.transform.localPosition = Vector3.zero;
         icon_frame.transform.localScale = Vector3.one;
         icon_frame.GetComponent<Image>().sprite = InternalResourcesGetter.GetIconFrame();
         icon_frame.GetComponent<RectTransform>().sizeDelta = new Vector2(36, 36);
 
-        var text = new GameObject("ModName", typeof(Text));
+        var text = CreateGameObject("ModName", typeof(Text));
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = new Vector3(20, 0, 0);
         text.transform.localScale = Vector3.one;

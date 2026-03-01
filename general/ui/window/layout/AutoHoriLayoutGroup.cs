@@ -29,7 +29,7 @@ public class AutoHoriLayoutGroup : AutoLayoutGroup<HorizontalLayoutGroup, AutoHo
     internal static void _init()
     {
         GameObject game_object =
-            new GameObject(nameof(AutoHoriLayoutGroup), typeof(HorizontalLayoutGroup), typeof(AutoHoriLayoutGroup),
+            CreateGameObject(nameof(AutoHoriLayoutGroup), typeof(HorizontalLayoutGroup), typeof(AutoHoriLayoutGroup),
                 typeof(ContentSizeFitter));
 
         ContentSizeFitter fitter = game_object.GetComponent<ContentSizeFitter>();

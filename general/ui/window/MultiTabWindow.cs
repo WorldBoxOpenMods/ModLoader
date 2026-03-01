@@ -51,7 +51,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         GameObject tab_entries_container =
-            new GameObject("TabEntriesContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            CreateGameObject("TabEntriesContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         tab_entries_container.transform.SetParent(auto_layout_window.BackgroundTransform);
         tab_entries_container.transform.SetAsFirstSibling();
         tab_entries_container.transform.localPosition = Vector3.zero;
@@ -67,7 +67,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         tab_entries_container_layout.childScaleWidth = false;
         tab_entries_container_layout.spacing = 208;
 
-        GameObject left_container = new GameObject("LeftContainer", typeof(RectTransform), typeof(VerticalLayoutGroup),
+        GameObject left_container = CreateGameObject("LeftContainer", typeof(RectTransform), typeof(VerticalLayoutGroup),
                                         typeof(Mask), typeof(Image));
         left_container.transform.SetParent(tab_entries_container.transform);
         left_container.transform.localScale = Vector3.one;

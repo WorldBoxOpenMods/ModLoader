@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11520.95 d18.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeoModLoader_mobile", "NeoModLoader_mobile.csproj", "{6F122670-343B-3FB6-5FFB-66339AF7C496}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F122670-343B-3FB6-5FFB-66339AF7C496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F122670-343B-3FB6-5FFB-66339AF7C496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F122670-343B-3FB6-5FFB-66339AF7C496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F122670-343B-3FB6-5FFB-66339AF7C496}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6DD92563-9AEB-4E85-8F45-46F78A0329E1}
+	EndGlobalSection
+EndGlobal

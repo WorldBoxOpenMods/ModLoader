@@ -19,7 +19,7 @@ public class InformationWindow : SingleAutoLayoutWindow<InformationWindow>
     /// <inheritdoc cref="InformationWindow.Init" />
     protected override void Init()
     {
-        text = new GameObject("Text", typeof(Text)).GetComponent<Text>();
+        text = CreateGameObject("Text", typeof(Text)).GetComponent<Text>();
         OT.InitializeCommonText(text);
         text.resizeTextForBestFit = true;
         text.resizeTextMinSize = 10;

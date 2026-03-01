@@ -6,7 +6,11 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
-
+#if IL2CPP
+using Sys = Il2CppSystem;
+#else
+using Sys = System;
+#endif
 namespace NeoModLoader.utils;
 
 /// <summary>
@@ -107,11 +111,11 @@ public static class ResourcesPatch
 
     private static TextAsset LoadTextAsset(string path)
     {
-        #if  IL2CPP
+#if IL2CPP
         TextAsset textAsset = new TextAsset(TextAsset.CreateOptions.None, File.ReadAllText(path));
-         #else
+#else
           TextAsset textAsset = new TextAsset(File.ReadAllText(path));
-       #endif
+#endif
         textAsset.name = Path.GetFileNameWithoutExtension(path);
         return textAsset;
     }
@@ -143,15 +147,15 @@ public static class ResourcesPatch
         };
         string platform_folder = Path.Combine(pFolder, platform_subfolder_name);
         if (!Directory.Exists(platform_folder)) return;
-        #if ILIL2CPP
+#if ILIL2CPP
         AssetBundleUtils.LoadFromFolder(platform_folder);
-        #endif
+#endif
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
     private static void LoadAll_Prefix(ref string path)
     {
@@ -176,7 +180,7 @@ public static class ResourcesPatch
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
     private static Object[] LoadAll_Postfix(Object[] __result, string path,
         Type systemTypeInstance)
@@ -200,7 +204,7 @@ public static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
     private static void Load_Prefix(ref string path)
     {
@@ -225,7 +229,7 @@ public static class ResourcesPatch
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
     private static Object Load_Postfix(Object __result, string path,
         Type systemTypeInstance)

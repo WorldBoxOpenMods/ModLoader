@@ -13,7 +13,7 @@ internal class WrappedPowersTab
     private const float assumed_button_size = 32;
 
     private static readonly RectTransform _empty_button_placehold =
-        new GameObject("Empty Button Placehold", typeof(RectTransform)).GetComponent<RectTransform>();
+        CreateGameObject("Empty Button Placehold", typeof(RectTransform)).GetComponent<RectTransform>();
 
     private static readonly float[] available_y = new float[2] { 18, -18 };
     private Queue<GameObject> _active_lines;

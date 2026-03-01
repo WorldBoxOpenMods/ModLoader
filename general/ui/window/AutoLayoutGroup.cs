@@ -59,7 +59,7 @@ public abstract class AutoLayoutGroup<T, TElement> : AutoLayoutElement<TElement>
         where TSubGroup : LayoutGroup
     {
         GameObject game_object =
-            new GameObject(nameof(TSubGroup), typeof(TSub), typeof(TSubGroup));
+            CreateGameObject(nameof(TSubGroup), typeof(TSub), typeof(TSubGroup));
 
         TSub sub_group = game_object.GetComponent<TSub>();
 

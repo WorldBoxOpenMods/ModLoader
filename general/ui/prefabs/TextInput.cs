@@ -88,14 +88,14 @@ public class TextInput : APrefab<TextInput>
 
     internal static void _init()
     {
-        GameObject text_input = new GameObject("TextInput", typeof(TipButton), typeof(Image));
+        GameObject text_input = CreateGameObject("TextInput", typeof(TipButton), typeof(Image));
         text_input.transform.SetParent(WorldBoxMod.Transform);
 
         Image bg = text_input.GetComponent<Image>();
         bg.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
         bg.type = Image.Type.Sliced;
 
-        GameObject input_field = new GameObject("InputField", typeof(Text), typeof(InputField));
+        GameObject input_field = CreateGameObject("InputField", typeof(Text), typeof(InputField));
         input_field.transform.SetParent(text_input.transform);
         input_field.transform.localScale = Vector3.one;
         input_field.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
@@ -110,7 +110,7 @@ public class TextInput : APrefab<TextInput>
         input.text = "";
         input.lineType = InputField.LineType.SingleLine;
 
-        GameObject icon = new GameObject("Icon", typeof(Image));
+        GameObject icon = CreateGameObject("Icon", typeof(Image));
         icon.transform.SetParent(text_input.transform);
         icon.transform.localScale = Vector3.one;
         icon.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/inputFieldIcon");

@@ -58,7 +58,7 @@ public abstract class AbstractWideWindow<T> : AbstractWindow<T> where T : Abstra
         //Instance.BackgroundTransform.GetComponent<RectTransform>().sizeDelta = new Vector2(600, 280);
 
         //Instance.BackgroundTransform.Find("CloseBackgound").localPosition = new Vector3(260, 147);
-        var title_bg = new GameObject("TitleBackground", typeof(Image));
+        var title_bg = CreateGameObject("TitleBackground", typeof(Image));
         title_bg.transform.SetParent(Instance.BackgroundTransform);
         title_bg.transform.localPosition = new Vector3(0, 145);
         title_bg.transform.localScale = Vector3.one;

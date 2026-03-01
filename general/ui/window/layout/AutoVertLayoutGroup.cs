@@ -29,7 +29,7 @@ public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup, AutoVert
     internal static void _init()
     {
         GameObject game_object =
-            new GameObject(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup),
+            CreateGameObject(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup),
                 typeof(ContentSizeFitter));
         game_object.transform.SetParent(WorldBoxMod.Transform);
 

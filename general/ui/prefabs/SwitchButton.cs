@@ -43,7 +43,7 @@ public class SwitchButton : APrefab<SwitchButton>
 
     internal static void _init()
     {
-        GameObject switch_button = new GameObject("SwitchButton", typeof(Image), typeof(Button), typeof(TipButton),
+        GameObject switch_button = CreateGameObject("SwitchButton", typeof(Image), typeof(Button), typeof(TipButton),
             typeof(HorizontalLayoutGroup));
         switch_button.transform.SetParent(WorldBoxMod.Transform);
         switch_button.transform.localScale = Vector3.one;
@@ -56,11 +56,11 @@ public class SwitchButton : APrefab<SwitchButton>
 
         switch_button.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
         switch_button.GetComponent<Image>().type = Image.Type.Sliced;
-        GameObject switch_button_icon = new GameObject("Icon", typeof(Image));
+        GameObject switch_button_icon = CreateGameObject("Icon", typeof(Image));
         switch_button_icon.transform.SetParent(switch_button.transform);
         switch_button_icon.transform.localScale = Vector3.one;
         switch_button_icon.GetComponent<RectTransform>().sizeDelta = new(18, 18);
-        GameObject switch_button_text = new GameObject("Text", typeof(Text));
+        GameObject switch_button_text = CreateGameObject("Text", typeof(Text));
         switch_button_text.transform.SetParent(switch_button.transform);
         switch_button_text.transform.localScale = Vector3.one;
         switch_button_text.GetComponent<RectTransform>().sizeDelta = new(24, 18);

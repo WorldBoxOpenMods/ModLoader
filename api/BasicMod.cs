@@ -46,7 +46,7 @@ public abstract class BasicMod<T> : WrappedBehaviour, IMod, ILocalizable, IConfi
                 _prefab_library = transform.Find("PrefabLibrary");
                 if (_prefab_library == null)
                 {
-                    _prefab_library = new GameObject("PrefabLibrary").transform;
+                    _prefab_library = CreateGameObject("PrefabLibrary").transform;
                     _prefab_library.SetParent(transform);
                 }
             }
@@ -147,7 +147,7 @@ public abstract class BasicMod<T> : WrappedBehaviour, IMod, ILocalizable, IConfi
     /// <returns></returns>
     public static GameObject NewPrefab(string name)
     {
-        var obj = new GameObject(name);
+        var obj = CreateGameObject(name);
         obj.transform.SetParent(Instance.PrefabLibrary);
         return obj;
     }
