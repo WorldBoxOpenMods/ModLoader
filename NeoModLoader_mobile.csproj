@@ -1,0 +1,225 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <DefineConstants>IL2CPP</DefineConstants>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <LangVersion>14</LangVersion>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <Authors>WorldBoxOpenMods</Authors>
+        <PackageProjectUrl>https://github.com/WorldBoxOpenMods</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/WorldBoxOpenMods/ModLoader</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <AssemblyVersion>1.2.0.1</AssemblyVersion>
+        <DebugType>portable</DebugType>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyName>NeoModLoader_mobile</AssemblyName>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>wbopenmods.snk</AssemblyOriginatorKeyFile>
+    </PropertyGroup>
+
+  <!-- Used for HarmonyPatch, Authentication, Auto-update, Hotfix, Steam workshop-->
+    <ItemGroup>
+      <Reference Include="0Harmony">
+        <HintPath>resources\assemblies\0Harmony.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppInterop.Runtime">
+        <HintPath>android-assembly-dependencies\Il2CppInterop.Runtime.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2Cppmscorlib">
+        <HintPath>android-assembly-dependencies\Il2Cppmscorlib.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Core">
+        <HintPath>android-assembly-dependencies\Il2CppSystem.Core.dll</HintPath>
+      </Reference>
+      <Reference Include="MelonLoader">
+        <HintPath>android-assembly-dependencies\MelonLoader.dll</HintPath>
+      </Reference>
+        <Reference Include="Mono.Cecil.Pdb">
+            <HintPath>resources\assemblies\Mono.Cecil.Pdb.dll</HintPath>
+        </Reference>
+        <Reference Include="MonoMod.RuntimeDetour">
+            <HintPath>resources\assemblies\MonoMod.RuntimeDetour.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json">
+          <HintPath>assembly-dependencies\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+      <Reference Include="RSG">
+        <HintPath>android-assembly-dependencies\Il2CppRSG.dll</HintPath>
+      </Reference>
+      <Reference Include="Mono.Cecil">
+        <HintPath>resources\assemblies\Mono.Cecil.dll</HintPath>
+      </Reference>
+      <Reference Include="MonoMod.Utils">
+        <HintPath>resources\assemblies\MonoMod.Utils.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+  <!-- Used for Compile and load mods -->
+  <ItemGroup>
+      <Reference Include="Microsoft.CodeAnalysis">
+        <HintPath>resources\assemblies\Microsoft.CodeAnalysis.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis.CSharp">
+        <HintPath>resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections.Immutable">
+        <HintPath>resources\assemblies\System.Collections.Immutable.dll</HintPath>
+      </Reference>
+  </ItemGroup>
+
+  <!-- Used for UI and other services -->
+  <ItemGroup>
+      <Reference Include="Assembly-CSharp">
+        <HintPath>android-assembly-dependencies\Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Assembly-CSharp-firstpass">
+          <HintPath>android-assembly-dependencies\Assembly-CSharp-firstpass.dll</HintPath>
+      </Reference>
+      <Reference Include="strings">
+          <HintPath>android-assembly-dependencies\Il2Cppstrings.dll</HintPath>
+      </Reference>
+	  <Reference Include="DOTween">
+		<HintPath>android-assembly-dependencies\Il2CppDOTween.dll</HintPath>
+	  </Reference>
+      <Reference Include="FMODUnity">
+          <HintPath>android-assembly-dependencies\Il2CppFMODUnity.dll</HintPath>
+      </Reference>
+	  <Reference Include="UnityEngine.AudioModule">
+		 <HintPath>android-assembly-dependencies\UnityEngine.AudioModule.dll</HintPath>
+	  </Reference>
+      <Reference Include="UnityEngine.CoreModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.ImageConversionModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.ImageConversionModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.InputLegacyModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.InputLegacyModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.JSONSerializeModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.JSONSerializeModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.TextRenderingModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.TextRenderingModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
+        <HintPath>android-assembly-dependencies\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.UIModule.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+  
+    <ItemGroup>
+      <!-- Used for writing config file for auto-installing BepInEx in Linux and OSX-->
+      <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+      <!-- Used for reading sprite meta file generated by UnityEditor-->
+      <PackageReference Include="YamlDotNet" Version="13.7.1" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <None Remove="resources\assemblies\0Harmony.dll" />
+        <None Remove="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata-renamed.dll" />
+        <None Remove="resources\assemblies\System.Text.Encoding.CodePages.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Text.Encoding.CodePages.dll" />
+        <None Remove="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Threading.Tasks.Extensions.dll" />
+        <None Remove="resources\assemblies\System.Collections.Immutable.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Collections.Immutable.dll" />
+        <None Remove="resources\assemblies\System.Buffers.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Buffers.dll" />
+        <None Remove="resources\assemblies\System.Diagnostics.StackTrace.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Diagnostics.StackTrace.dll" />
+        <None Remove="resources\assemblies\System.Globalization.Extensions.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Globalization.Extensions.dll" />
+        <None Remove="resources\assemblies\System.Numerics.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Numerics.dll" />
+        <None Remove="resources\assemblies\System.Runtime.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Runtime.dll" />
+        <None Remove="resources\assemblies\System.Reflection.Metadata.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Reflection.Metadata.dll" />
+        <None Remove="resources\assemblies\System.Memory.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Memory.dll" />
+        <None Remove="resources\assemblies\System.Numerics.Vectors.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Numerics.Vectors.dll" />
+        <None Remove="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
+        <EmbeddedResource Include="resources\assemblies\System.Runtime.CompilerServices.Unsafe.dll" />
+      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.dll" />
+      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.dll" />
+      <None Remove="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
+      <EmbeddedResource Include="resources\assemblies\Microsoft.CodeAnalysis.CSharp.dll" />
+      <None Remove="resources\assemblies\Mono.Cecil.dll" />
+      <None Remove="resources\assemblies\MonoMod.RuntimeDetour.dll" />
+      <None Remove="resources\assemblies\MonoMod.Utils.dll" />
+      <None Remove="resources\assemblies\YamlDotNet.dll" />
+      <EmbeddedResource Include="resources\assemblies\YamlDotNet.dll" />
+      <None Remove="resources\assemblies\Facepunch.Steamworks.Posix.dll" />
+      <None Remove="resources\assemblies\Facepunch.Steamworks.Win64.dll" />
+      <None Remove="resources\logo.png" />
+      <EmbeddedResource Include="resources\logo.png" />
+      <None Remove="resources\locales\cz.json" />
+      <EmbeddedResource Include="resources\locales\cz.json" />
+      <None Remove="resources\locales\en.json" />
+      <EmbeddedResource Include="resources\locales\en.json" />
+      <None Remove="resources\locales\ch.json" />
+      <EmbeddedResource Include="resources\locales\ch.json" />
+      <None Remove="resources\square_frame_only.png" />
+      <EmbeddedResource Include="resources\square_frame_only.png" />
+      <None Remove="resources\commit" />
+      <EmbeddedResource Include="resources\commit" />
+      <None Remove="resources\github.png" />
+      <EmbeddedResource Include="resources\github.png" />
+      <None Remove="resources\assemblies\Gameloop.Vdf.dll" />
+      <None Remove="resources\reload.png" />
+      <EmbeddedResource Include="resources\reload.png" />
+      
+        <None Remove="resources\window_empty_frame.png" />
+        <EmbeddedResource Include="resources\window_empty_frame.png" />
+        <None Remove="resources\windowBigCloseSliced.png" />
+        <EmbeddedResource Include="resources\windowBigCloseSliced.png" />
+        <None Remove="resources\windowVertNamePlate.png" />
+        <EmbeddedResource Include="resources\windowVertNamePlate.png" />
+        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate" />
+        
+       
+        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
+        <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
+        <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll"/>
+        <EmbeddedResource Remove="assembly-dependencies\**" />
+        <None Remove="assembly-dependencies\**" />
+        <EmbeddedResource Remove="AndroidCompatibilityModule\Stubs\**" />
+        <None Remove="AndroidCompatibilityModule\Stubs\**" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Content Include=".github\ISSUE_TEMPLATE\bug-report-en.yaml" />
+      <Content Include=".github\ISSUE_TEMPLATE\bug-report-zh.yaml" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Folder Include=".github\ASSETS\" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <None Include=".github\workflows\build.yml" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Compile Remove="assembly-dependencies\**" />
+      <Compile Remove="AndroidCompatibilityModule\Stubs\**" />
+    </ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+   
+    </Target>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="sh ./before_build.sh" Condition=" '$(OS)' != 'Windows_NT' " />
+    </Target>
+  
+</Project>
