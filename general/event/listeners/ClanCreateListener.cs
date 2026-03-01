@@ -4,7 +4,6 @@ using System.Text;
 using HarmonyLib;
 using NeoModLoader.General.Event.Handlers;
 using NeoModLoader.services;
-
 namespace NeoModLoader.General.Event.Listeners;
 /// <summary>
 /// A listener at the end of <see cref="ClanManager.newClan"/> method.

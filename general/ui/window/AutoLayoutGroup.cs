@@ -3,7 +3,7 @@ using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Window;
 
 public abstract class AutoLayoutGroup<T, TElement> : AutoLayoutElement<TElement>
@@ -59,7 +59,7 @@ public abstract class AutoLayoutGroup<T, TElement> : AutoLayoutElement<TElement>
         where TSubGroup : LayoutGroup
     {
         GameObject game_object =
-            new(nameof(TSubGroup), typeof(TSub).Convert(), typeof(TSubGroup).Convert());
+            new GameObject(nameof(TSubGroup), typeof(TSub), typeof(TSubGroup));
 
         TSub sub_group = game_object.GetComponent<TSub>();
 

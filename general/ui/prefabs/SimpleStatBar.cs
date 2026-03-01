@@ -1,7 +1,7 @@
 using NeoModLoader.AndroidCompatibilityModule;
 using UnityEngine;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Prefabs;
 
 /// <summary>
@@ -100,14 +100,14 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
 
     internal static void _init()
     {
-        GameObject stat_bar_obj = new("SimpleStatBar", typeof(Button).Convert(), typeof(TipButton).Convert(),
-            typeof(Image).Convert());
+        GameObject stat_bar_obj = new GameObject("SimpleStatBar", typeof(Button), typeof(TipButton),
+            typeof(Image));
         stat_bar_obj.transform.SetParent(WorldBoxMod.Transform);
         stat_bar_obj.transform.localScale = Vector3.one;
         stat_bar_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 14f);
         stat_bar_obj.GetComponent<Image>().type = Image.Type.Sliced;
 
-        GameObject background = new("Background", typeof(Image).Convert());
+        GameObject background = new GameObject("Background", typeof(Image));
         background.transform.SetParent(stat_bar_obj.transform);
         Image image_background = background.GetComponent<Image>();
         image_background.sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
@@ -115,16 +115,15 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         image_background.color = new Color(0.49f, 0.49f, 0.49f);
 
 
-        GameObject mask = new("Mask", typeof(Image).Convert(), typeof(Mask).Convert());
+        GameObject mask = new GameObject("Mask", typeof(Image), typeof(Mask));
         mask.transform.SetParent(stat_bar_obj.transform);
         Mask mask_mask = mask.GetComponent<Mask>();
         mask_mask.showMaskGraphic = false;
         mask.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
         mask.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0.5f);
         mask.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0.5f);
-
-
-        GameObject bar = new("Bar", typeof(Image).Convert());
+        
+        GameObject bar = new GameObject("Bar", typeof(Image));
         bar.transform.SetParent(mask.transform);
         Image image_bar = bar.GetComponent<Image>();
         image_bar.sprite = SpriteTextureLoader.getSprite("ui/special/windowBar");
@@ -132,12 +131,12 @@ public class SimpleStatBar : APrefab<SimpleStatBar>
         bar.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0.5f);
         bar.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0.5f);
 
-        GameObject icon = new("Icon", typeof(Image).Convert(), typeof(Shadow).Convert());
+        GameObject icon = new GameObject("Icon", typeof(Image), typeof(Shadow));
         icon.transform.SetParent(stat_bar_obj.transform);
         Image image_icon = icon.GetComponent<Image>();
         image_icon.sprite = SpriteTextureLoader.getSprite("ui/icons/iconHealth");
 
-        GameObject text = new("Text", typeof(Text).Convert(), typeof(Shadow).Convert());
+        GameObject text = new GameObject("Text", typeof(Text), typeof(Shadow));
         text.transform.SetParent(stat_bar_obj.transform);
         Text text_text = text.GetComponent<Text>();
         text_text.text = "0/0";

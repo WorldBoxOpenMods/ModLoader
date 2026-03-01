@@ -9,7 +9,6 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
-
 namespace NeoModLoader.General.UI.Tab;
 
 public static class TabManager
@@ -30,7 +29,7 @@ public static class TabManager
         "CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/Power Tabs");
 
     private static readonly List<Button>
-        tab_entries = new(PowerTabController.instance._buttons.Convert()); // To avoid other mods' modifies
+        tab_entries = new (PowerTabController.instance._buttons.Convert()); // To avoid other mods' modifies
 
     private static readonly List<string> tab_names = new();
     private static readonly HashSet<string> tab_names_set = new();
@@ -222,15 +221,15 @@ public static class TabManager
             id = name,
             locale_key = pTitleKey,
             tab_type_main = true,
-            get_power_tab = IL2CPPHelper.Convert<PowerTabGetter>(() => tab)
+            get_power_tab = (Func<PowersTab>)(() => tab)
         };
         AssetManager.power_tab_library.add(asset);
         tab._asset = asset;
 
         Button tab_entry_button = tab_entry.GetComponent<Button>();
         tab_entry_button.onClick = new Button.ButtonClickedEvent();
-        tab_entry_button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() => tab.showTab(tab_entry_button)));
-        tab_entry_button.onClick.AddListener(IL2CPPHelper.Convert<UnityAction>(() => tab_entry.GetComponent<ButtonSfx>().playSound()));
+        tab_entry_button.onClick.AddListener((Action)(() => tab.showTab(tab_entry_button)));
+        tab_entry_button.onClick.AddListener((Action)(() => tab_entry.GetComponent<ButtonSfx>().playSound()));
 
         TipButton tab_entry_tip = tab_entry.GetComponent<TipButton>();
         tab_entry_tip.textOnClick = pTitleKey;

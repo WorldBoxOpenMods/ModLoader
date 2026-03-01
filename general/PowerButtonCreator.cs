@@ -215,7 +215,7 @@ public static class PowerButtonCreator
 
         if (god_power.toggle_action == null)
         {
-            god_power.toggle_action = IL2CPPHelper.Convert<PowerToggleAction>(toggleOption);
+            god_power.toggle_action = (Action<string>)(toggleOption);
         }
         else if (!pNoAutoSetToggleAction)
         {

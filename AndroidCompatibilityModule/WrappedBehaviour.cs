@@ -7,16 +7,9 @@ namespace NeoModLoader.AndroidCompatibilityModule;
 #if IL2CPP
 public class WrappedBehaviour
 {
-    public Transform transform
-    {
-        get =>  Wrapper.transform;
-        
-    }
+    public Transform transform => Wrapper.transform;
 
-    public GameObject gameObject
-    {
-        get => Wrapper.gameObject;
-    }
+    public GameObject gameObject => Wrapper.gameObject;
 
     public string name
     {

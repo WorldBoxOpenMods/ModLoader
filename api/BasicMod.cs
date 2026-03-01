@@ -2,7 +2,7 @@ using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
 using NeoModLoader.services;
 using UnityEngine;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.api;
 
 /// <summary>

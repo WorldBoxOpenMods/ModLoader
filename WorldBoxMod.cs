@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using HarmonyLib;
-using MelonLoader;
 using NeoModLoader.AndroidCompatibilityModule;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -94,7 +94,7 @@ public class WorldBoxMod : MonoBehaviour
         
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
         LogService.LogInfo("initilizing modloader");
-        SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+        SmoothLoader.add((Action)(() =>
         {
             LogService.LogInfo("res");
             ResourcesPatch.Initialize();
@@ -109,7 +109,7 @@ public class WorldBoxMod : MonoBehaviour
         }), "Initialize NeoModLoader");
 
         List<ModDependencyNode> mod_nodes = new();
-        SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+        SmoothLoader.add((Action)(() =>
         {
             ModCompileLoadService.loadInfoOfBepInExPlugins();
 
@@ -119,12 +119,12 @@ public class WorldBoxMod : MonoBehaviour
 
             ModCompileLoadService.prepareCompile(mod_nodes);
         }), "Load Mods Info And Prepare Mods");
-        SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+        SmoothLoader.add((Action)(() =>
         {
             var mods_to_load = new List<ModDeclare>();
             foreach (var mod in mod_nodes)
             {
-                SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+                SmoothLoader.add((Action)(() =>
                 {
                     if (ModCompileLoadService.compileMod(mod))
                     {
@@ -139,7 +139,7 @@ public class WorldBoxMod : MonoBehaviour
             AssetLinker Linker = new();
             foreach (var mod in mod_nodes)
             {
-                SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+                SmoothLoader.add((Action)(() =>
                 {
                     if (mods_to_load.Contains(mod.mod_decl))
                     {
@@ -153,7 +153,7 @@ public class WorldBoxMod : MonoBehaviour
                 }), "Load Resources From Mod " + mod.mod_decl.Name);
             }
 
-            SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+            SmoothLoader.add((Action)(() =>
             {
                 ModCompileLoadService.loadMods(mods_to_load);
                 Linker.AddAssets();
@@ -162,14 +162,14 @@ public class WorldBoxMod : MonoBehaviour
                 var successfulInit = new Dictionary<IMod, bool>();
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
-                    SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+                    SmoothLoader.add((Action)(() =>
                     {
                         successfulInit.Add(mod, ModCompileLoadService.TryInitMod(mod));
                     }), "Init Mod " + mod.GetDeclaration().Name);
                 }
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
-                    SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+                    SmoothLoader.add((Action)(() =>
                     {
                         if (successfulInit.ContainsKey(mod) && successfulInit[mod])
                         {
@@ -179,7 +179,7 @@ public class WorldBoxMod : MonoBehaviour
                 }
             }), "Load Mods");
 
-            SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(() =>
+            SmoothLoader.add((Action)(() =>
             {
                 #if !IL2CPP
                 ModWorkshopService.Init();
@@ -191,7 +191,7 @@ public class WorldBoxMod : MonoBehaviour
                 LM.ApplyLocale();
                 initialized_successfully = true;
             }), "NeoModLoader Post Initialize");
-            SmoothLoader.add(IL2CPPHelper.Convert<MapLoaderAction>(ExternalModInstallService.CheckExternalModInstall), "Check External Mods to Install");
+            SmoothLoader.add((Action)ExternalModInstallService.CheckExternalModInstall, "Check External Mods to Install");
         }), "Compile Mods And Load resources");
     }
 

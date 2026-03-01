@@ -13,7 +13,6 @@ using NeoModLoader.General;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.utils;
 using UnityEngine;
-
 namespace NeoModLoader.services;
 
 /// <summary>
@@ -430,11 +429,11 @@ public static class ModCompileLoadService
                     if (type.GetInterface(nameof(IMod)) == null)
                     {
                         mod_interface = mod_instance.AddComponent<AttachedModComponent>();
-                        main_component = (MonoBehaviour)mod_instance.AddComponent(IL2CPPHelper.Convert(type));
+                        main_component = (MonoBehaviour)mod_instance.AddComponent(type);
                     }
                     else
                     {
-                        mod_interface = (IMod)mod_instance.AddComponent(IL2CPPHelper.Convert(type));
+                        mod_interface = (IMod)mod_instance.AddComponent(type);
                         main_component = (MonoBehaviour)mod_interface;
                     }
 

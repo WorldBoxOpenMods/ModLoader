@@ -2,7 +2,7 @@ using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Window.Layout;
 
 public class AutoHoriLayoutGroup : AutoLayoutGroup<HorizontalLayoutGroup, AutoHoriLayoutGroup>
@@ -29,8 +29,8 @@ public class AutoHoriLayoutGroup : AutoLayoutGroup<HorizontalLayoutGroup, AutoHo
     internal static void _init()
     {
         GameObject game_object =
-            new(nameof(AutoHoriLayoutGroup), typeof(HorizontalLayoutGroup).Convert(), typeof(AutoHoriLayoutGroup).Convert(),
-                typeof(ContentSizeFitter).Convert());
+            new GameObject(nameof(AutoHoriLayoutGroup), typeof(HorizontalLayoutGroup), typeof(AutoHoriLayoutGroup),
+                typeof(ContentSizeFitter));
 
         ContentSizeFitter fitter = game_object.GetComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;

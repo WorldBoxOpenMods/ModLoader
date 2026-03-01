@@ -5,7 +5,7 @@ using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Window;
 
 /// <summary>
@@ -51,7 +51,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         GameObject tab_entries_container =
-            new("TabEntriesContainer", typeof(RectTransform).Convert(), typeof(HorizontalLayoutGroup).Convert());
+            new GameObject("TabEntriesContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         tab_entries_container.transform.SetParent(auto_layout_window.BackgroundTransform);
         tab_entries_container.transform.SetAsFirstSibling();
         tab_entries_container.transform.localPosition = Vector3.zero;
@@ -67,8 +67,8 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         tab_entries_container_layout.childScaleWidth = false;
         tab_entries_container_layout.spacing = 208;
 
-        GameObject left_container = new("LeftContainer", typeof(RectTransform).Convert(), typeof(VerticalLayoutGroup).Convert(),
-                                        typeof(Mask).Convert(), typeof(Image).Convert());
+        GameObject left_container = new GameObject("LeftContainer", typeof(RectTransform), typeof(VerticalLayoutGroup),
+                                        typeof(Mask), typeof(Image));
         left_container.transform.SetParent(tab_entries_container.transform);
         left_container.transform.localScale = Vector3.one;
         left_container.GetComponent<Mask>().showMaskGraphic = false;
@@ -117,7 +117,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
                                     m_tab_entries_left.childCount > m_tab_entries_right.childCount
                                         ? m_tab_entries_right
                                         : m_tab_entries_left);
-        tab_entry.Setup(IL2CPPHelper.Convert<UnityAction>(() =>
+        tab_entry.Setup((Action)(() =>
         {
             foreach (Transform tab in ContentTransform.parent) tab.gameObject.SetActive(false);
             if (tab_entry.Background.color == Color.gray)

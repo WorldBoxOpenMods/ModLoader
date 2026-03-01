@@ -7,7 +7,7 @@ using NeoModLoader.AndroidCompatibilityModule;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Prefabs;
 
 /// <summary>
@@ -101,11 +101,11 @@ public class SimpleButton : APrefab<SimpleButton>
             this.TipButton.type = pTipType;
             if (string.IsNullOrEmpty(pTipData?.tip_name))
             {
-                TipButton.hoverAction = IL2CPPHelper.Convert<TooltipAction>(TipButton.showTooltipDefault);
+                TipButton.hoverAction = (Action)(TipButton.showTooltipDefault);
             }
             else
             {
-                TipButton.hoverAction = IL2CPPHelper.Convert<TooltipAction>(() =>
+                TipButton.hoverAction = (Action)(() =>
                 {
                     Tooltip.show(gameObject, TipButton.type, pTipData);
                     transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
@@ -127,18 +127,18 @@ public class SimpleButton : APrefab<SimpleButton>
 
     internal static void _init()
     {
-        GameObject obj = new GameObject(nameof(SimpleButton), typeof(Button).Convert(), typeof(Image).Convert(), typeof(TipButton).Convert());
+        GameObject obj = new GameObject(nameof(SimpleButton), typeof(Button), typeof(Image), typeof(TipButton));
         obj.transform.SetParent(WorldBoxMod.Transform);
         obj.GetComponent<TipButton>().enabled = false;
         obj.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
         obj.GetComponent<Image>().type = Image.Type.Sliced;
 
-        GameObject icon = new GameObject("Icon", typeof(Image).Convert());
+        GameObject icon = new GameObject("Icon", typeof(Image));
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = Vector3.zero;
         icon.transform.localScale = Vector3.one;
 
-        GameObject text = new GameObject("Text", typeof(Text).Convert());
+        GameObject text = new GameObject("Text", typeof(Text));
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = Vector3.zero;
         text.transform.localScale = Vector3.one;

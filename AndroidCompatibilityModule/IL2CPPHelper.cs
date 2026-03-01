@@ -35,10 +35,6 @@ public static class IL2CPPHelper
     {
         return arr;
     }
-    public static System.Type Convert(this Type type)
-    {
-        return Il2CppType.From(type);
-    }
     public static System.Exception Convert(this Exception e)
     {
         return new System.Exception(e.Message);
@@ -135,6 +131,10 @@ public static class IL2CPPHelper
     }
     public static HashSet<E> Convert<E>(this HashSet<E> set){
     return set;
+    }
+    public static GameObject new GameObject(string name, params Type[] Types)
+    {
+        return new GameObject(name, Types);
     }
     #endif
 }
