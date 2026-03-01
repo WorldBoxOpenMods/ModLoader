@@ -3,6 +3,7 @@ using NeoModLoader.services;
 using Newtonsoft.Json;
 using System.Reflection;
 using NeoModLoader.AndroidCompatibilityModule;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 namespace NeoModLoader.utils
 {
@@ -237,7 +238,7 @@ namespace NeoModLoader.utils
             }
             if (Asset.check_flip == null)
             {
-                Asset.check_flip = IL2CPPHelper.Convert<WorldAction>((BaseSimObject _, WorldTile _) => true);
+                Asset.check_flip = C<WorldAction>((BaseSimObject _, WorldTile _) => true);
             }
             LinkWithAchievment(Asset);
         }

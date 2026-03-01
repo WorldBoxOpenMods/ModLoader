@@ -34,7 +34,7 @@ public class SwitchButton : APrefab<SwitchButton>
             : SpriteTextureLoader.getSprite("ui/icons/iconOff");
         text.text = value ? LM.Get("short_on") : LM.Get("short_off");
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener((Action)(() =>
+        button.onClick.AddListener(C<UnityAction>(() =>
         {
             value_update();
             Setup(!value, value_update);

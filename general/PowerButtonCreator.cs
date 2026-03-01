@@ -1,7 +1,6 @@
 using JetBrains.Annotations;
-using NeoModLoader.AndroidCompatibilityModule;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.services;
-using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -215,12 +214,12 @@ public static class PowerButtonCreator
 
         if (god_power.toggle_action == null)
         {
-            god_power.toggle_action = (Action<string>)(toggleOption);
+            god_power.toggle_action = C<PowerToggleAction>(toggleOption);
         }
         else if (!pNoAutoSetToggleAction)
         {
             god_power.toggle_action = (PowerToggleAction)PowerToggleAction.Combine(god_power.toggle_action,
-                 IL2CPPHelper.Convert<PowerToggleAction>(toggleOption));
+                C<PowerToggleAction>(toggleOption));
         }
 
         if (!PlayerConfig.dict.TryGetValue(god_power.toggle_name, out var option))

@@ -94,7 +94,7 @@ public class WorldBoxMod : MonoBehaviour
         
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
         LogService.LogInfo("initilizing modloader");
-        SmoothLoader.add((Action)(() =>
+        SmoothLoader.add(C<MapLoaderAction>(() =>
         {
             LogService.LogInfo("res");
             ResourcesPatch.Initialize();
@@ -109,7 +109,7 @@ public class WorldBoxMod : MonoBehaviour
         }), "Initialize NeoModLoader");
 
         List<ModDependencyNode> mod_nodes = new();
-        SmoothLoader.add((Action)(() =>
+        SmoothLoader.add(C<MapLoaderAction>(() =>
         {
             ModCompileLoadService.loadInfoOfBepInExPlugins();
 
@@ -119,12 +119,12 @@ public class WorldBoxMod : MonoBehaviour
 
             ModCompileLoadService.prepareCompile(mod_nodes);
         }), "Load Mods Info And Prepare Mods");
-        SmoothLoader.add((Action)(() =>
+        SmoothLoader.add(C<MapLoaderAction>(() =>
         {
             var mods_to_load = new List<ModDeclare>();
             foreach (var mod in mod_nodes)
             {
-                SmoothLoader.add((Action)(() =>
+                SmoothLoader.add(C<MapLoaderAction>(() =>
                 {
                     if (ModCompileLoadService.compileMod(mod))
                     {
@@ -139,7 +139,7 @@ public class WorldBoxMod : MonoBehaviour
             AssetLinker Linker = new();
             foreach (var mod in mod_nodes)
             {
-                SmoothLoader.add((Action)(() =>
+                SmoothLoader.add(C<MapLoaderAction>(() =>
                 {
                     if (mods_to_load.Contains(mod.mod_decl))
                     {
@@ -153,7 +153,7 @@ public class WorldBoxMod : MonoBehaviour
                 }), "Load Resources From Mod " + mod.mod_decl.Name);
             }
 
-            SmoothLoader.add((Action)(() =>
+            SmoothLoader.add(C<MapLoaderAction>(() =>
             {
                 ModCompileLoadService.loadMods(mods_to_load);
                 Linker.AddAssets();
@@ -162,14 +162,14 @@ public class WorldBoxMod : MonoBehaviour
                 var successfulInit = new Dictionary<IMod, bool>();
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
-                    SmoothLoader.add((Action)(() =>
+                    SmoothLoader.add(C<MapLoaderAction>(() =>
                     {
                         successfulInit.Add(mod, ModCompileLoadService.TryInitMod(mod));
                     }), "Init Mod " + mod.GetDeclaration().Name);
                 }
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
-                    SmoothLoader.add((Action)(() =>
+                    SmoothLoader.add(C<MapLoaderAction>(() =>
                     {
                         if (successfulInit.ContainsKey(mod) && successfulInit[mod])
                         {
@@ -179,7 +179,7 @@ public class WorldBoxMod : MonoBehaviour
                 }
             }), "Load Mods");
 
-            SmoothLoader.add((Action)(() =>
+            SmoothLoader.add(C<MapLoaderAction>(() =>
             {
                 #if !IL2CPP
                 ModWorkshopService.Init();
@@ -191,7 +191,7 @@ public class WorldBoxMod : MonoBehaviour
                 LM.ApplyLocale();
                 initialized_successfully = true;
             }), "NeoModLoader Post Initialize");
-            SmoothLoader.add((Action)ExternalModInstallService.CheckExternalModInstall, "Check External Mods to Install");
+            SmoothLoader.add(C<MapLoaderAction>(ExternalModInstallService.CheckExternalModInstall), "Check External Mods to Install");
         }), "Compile Mods And Load resources");
     }
 

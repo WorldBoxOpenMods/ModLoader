@@ -42,7 +42,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
         SimpleButton type_mod = Instantiate(SimpleButton.Prefab, type_select_part.transform);
         type_mod.name = "TypeMod";
-        type_mod.Setup((Action)(ShowMods), InternalResourcesGetter.GetIcon(), pSize: new Vector2(32, 32), pTipType: "normal",
+        type_mod.Setup(C<UnityAction>(ShowMods), InternalResourcesGetter.GetIcon(), pSize: new Vector2(32, 32), pTipType: "normal",
                        pTipData: new TooltipData
                        {
                            tip_name = "TypeMod Title"
@@ -50,7 +50,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         type_mod.Background.enabled = false;
         SimpleButton type_resources = Instantiate(SimpleButton.Prefab, type_select_part.transform);
         type_resources.name = "TypeResource";
-        type_resources.Setup((Action)(ShowResources), SpriteTextureLoader.getSprite("ui/icons/tech/icon_tech_city_storage_3"),
+        type_resources.Setup(C<UnityAction>(ShowResources), SpriteTextureLoader.getSprite("ui/icons/tech/icon_tech_city_storage_3"),
                              pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                              {
                                  tip_name = "TypeResource Title"
@@ -126,7 +126,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
         ModConfigureButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ModConfigureButton.name = "ModConfigureButton";
-        ModConfigureButton.Setup((Action)(ConfigureSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconOptions"),
+        ModConfigureButton.Setup(C<UnityAction>(ConfigureSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconOptions"),
                                  pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                                  {
                                      tip_name = "ModConfigure Title"
@@ -134,7 +134,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ModConfigureButton.Background.enabled = false;
         ModCommunityButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ModCommunityButton.name = "ModCommunityButton";
-        ModCommunityButton.Setup((Action)(CommunityOfSelectedMod), SpriteTextureLoader.getSprite("ui/icons/actor_traits/iconcommunity"),
+        ModCommunityButton.Setup(C<UnityAction>(CommunityOfSelectedMod), SpriteTextureLoader.getSprite("ui/icons/actor_traits/iconcommunity"),
                                  pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                                  {
                                      tip_name = "ModCommunity Title"
@@ -142,7 +142,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ModCommunityButton.Background.enabled = false;
         OpenModFolderButton = Instantiate(SimpleButton.Prefab, rect_transform);
         OpenModFolderButton.name = "OpenModFolderButton";
-        OpenModFolderButton.Setup((Action)(FolderOfSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconCustomWorld"),
+        OpenModFolderButton.Setup(C<UnityAction>(FolderOfSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconCustomWorld"),
                                   pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                                   {
                                       tip_name = "OpenFolder Title"
@@ -150,13 +150,13 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         OpenModFolderButton.Background.enabled = false;
         ToggleModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ToggleModButton.name = "ToggleModButton";
-        ToggleModButton.Setup((Action)(ToggleSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconOn"),
+        ToggleModButton.Setup(C<UnityAction>(ToggleSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconOn"),
                               pSize: new Vector2(32, 32), pTipType: "normal");
         ToggleModButton.TipButton.textOnClick = "ToggleMod Title";
         ToggleModButton.Background.enabled = false;
         ReloadModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         ReloadModButton.name = "ReloadModButton";
-        ReloadModButton.Setup((Action)(ReloadSelectedMod), InternalResourcesGetter.GetReloadIcon(), pSize: new Vector2(32, 32),
+        ReloadModButton.Setup(C<UnityAction>(ReloadSelectedMod), InternalResourcesGetter.GetReloadIcon(), pSize: new Vector2(32, 32),
                               pTipType: "normal", pTipData: new TooltipData
                               {
                                   tip_name = "ReloadMod Title"
@@ -164,7 +164,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         ReloadModButton.Background.enabled = false;
         UploadModButton = Instantiate(SimpleButton.Prefab, rect_transform);
         UploadModButton.name = "UploadModButton";
-        UploadModButton.Setup((Action)(UploadSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconSaveCloud"),
+        UploadModButton.Setup(C<UnityAction>(UploadSelectedMod), SpriteTextureLoader.getSprite("ui/icons/iconSaveCloud"),
                               pSize: new Vector2(32, 32), pTipType: "normal", pTipData: new TooltipData
                               {
                                   tip_name = "UploadMod Title"

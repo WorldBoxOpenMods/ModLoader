@@ -1,5 +1,5 @@
+using System.Collections;
 using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
-using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -48,7 +48,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image workshopButtonImage = workshopButton.GetComponent<Image>();
         workshopButtonImage.sprite = Resources.Load<Sprite>("ui/icons/iconSteam");
         Button workshopButtonButton = workshopButton.GetComponent<Button>();
-        workshopButtonButton.onClick.AddListener((Action)(() =>
+        workshopButtonButton.onClick.AddListener(C<UnityAction>(() =>
         {
             if (Others.is_editor)
             {
@@ -76,7 +76,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         modloaderButtonTipButton.text_description_2 = "NMLCommit";
         modloaderButtonTipButton.textOnClickDescription = "NeoModLoader Report";
         Button modloaderButtonButton = modloaderButton.GetComponent<Button>();
-        modloaderButtonButton.onClick.AddListener((Action)(() => { Application.OpenURL(CoreConstants.RepoURL); }));
+        modloaderButtonButton.onClick.AddListener(C<UnityAction>(() => { Application.OpenURL(CoreConstants.RepoURL); }));
     }
 
     /// <inheritdoc cref="AbstractListWindow{T,TItem}.OnNormalEnable" />
@@ -310,11 +310,11 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             configure_button.onClick.RemoveAllListeners();
             website_button.onClick.RemoveAllListeners();
             open_folder_button.onClick.RemoveAllListeners();
-            open_folder_button.onClick.AddListener((Action)(() => { Application.OpenURL(mod_declare.FolderPath); }));
+            open_folder_button.onClick.AddListener(C<UnityAction>(() => { Application.OpenURL(mod_declare.FolderPath); }));
 
             if (mod_state == ModState.LOADED)
             {
-                icon.GetComponent<Button>().onClick.AddListener((Action)(() =>
+                icon.GetComponent<Button>().onClick.AddListener(C<UnityAction>(() =>
                 {
                     float current_time = Time.time;
                     if (current_time - Instance.lastClickTime > 1)
@@ -356,7 +356,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
                 icon.color = Color.red;
 
-                icon.GetComponent<Button>().onClick.AddListener((Action)(() =>
+                icon.GetComponent<Button>().onClick.AddListener(C<UnityAction>(() =>
                 {
                     var curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
                     icon.color = curr_state ? Color.red : Color.yellow;
@@ -374,7 +374,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                     ? "ModDisabled Description"
                     : "ModEnabled Description";
                 icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.gray : Color.white;
-                icon.GetComponent<Button>().onClick.AddListener((Action)(() =>
+                icon.GetComponent<Button>().onClick.AddListener(C<UnityAction>(() =>
                 {
                     bool curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
                     icon_tip_button.textOnClickDescription =
@@ -395,12 +395,12 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 icon_tip_button.text_description_2 = "";
             }
 
-            configure_button.onClick.AddListener((Action)(() =>
+            configure_button.onClick.AddListener(C<UnityAction>(() =>
             {
                 // It can be sure that if mod is IConfigurable, then mod is loaded actually.
                 ModConfigureWindow.ShowWindow(configurable?.GetConfig());
             }));
-            website_button.onClick.AddListener((Action)(() => { Application.OpenURL(mod.GetUrl()); }));
+            website_button.onClick.AddListener(C<UnityAction>(() => { Application.OpenURL(mod.GetUrl()); }));
 
             if (!Config.isEditor)
             {
@@ -418,7 +418,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             var reload_button = transform.Find("Reload").GetComponent<Button>();
             reload_button.gameObject.SetActive(true);
             reload_button.onClick.RemoveAllListeners();
-            reload_button.onClick.AddListener((Action)(() =>
+            reload_button.onClick.AddListener(C<UnityAction>(() =>
             {
                 if (!ModReloadUtils.Prepare(reloadable, mod_declare))
                 {

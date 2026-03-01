@@ -117,7 +117,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
                                     m_tab_entries_left.childCount > m_tab_entries_right.childCount
                                         ? m_tab_entries_right
                                         : m_tab_entries_left);
-        tab_entry.Setup((Action)(() =>
+        tab_entry.Setup(C<UnityAction>(() =>
         {
             foreach (Transform tab in ContentTransform.parent) tab.gameObject.SetActive(false);
             if (tab_entry.Background.color == Color.gray)

@@ -117,7 +117,7 @@ internal class ModUploadAuthenticationWindow : AbstractWindow<ModUploadAuthentic
             button.transform.Find("Icon").GetComponent<RectTransform>().sizeDelta = pIconSize;
         }
 
-        button.onClick.AddListener((Action)(() =>
+        button.onClick.AddListener(C<UnityAction>(() =>
         {
             if (pAuthFunc != null)
             {

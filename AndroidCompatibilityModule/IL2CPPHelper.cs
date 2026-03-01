@@ -15,7 +15,7 @@ using UnityEngine;
 public static class IL2CPPHelper
 {
     #if IL2CPP
-    public static D Convert<D>(this Delegate func) where D : System.Delegate
+    public static D C<D>(Delegate func) where D : System.Delegate
     {
         return DelegateSupport.ConvertDelegate<D>(func);
     }
@@ -105,7 +105,7 @@ public static class IL2CPPHelper
         return (T)behaviour.SetWrappedBehaviour((T)Activator.CreateInstance(typeof(T)));
     }
     #else
-    public static D Convert<D>(this Delegate func) where D : Delegate
+    public static D C<D>(Delegate func) where D : Delegate
     {
         return (D)func;
     }
@@ -131,10 +131,6 @@ public static class IL2CPPHelper
     }
     public static HashSet<E> Convert<E>(this HashSet<E> set){
     return set;
-    }
-    public static GameObject new GameObject(string name, params Type[] Types)
-    {
-        return new GameObject(name, Types);
     }
     #endif
 }

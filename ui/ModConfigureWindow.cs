@@ -408,7 +408,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
             TextInput text_input = text_area.transform.Find("Input").GetComponent<TextInput>();
 
-            text_input.Setup(pItem.TextVal, (Action<string>)((string pStringVal) =>
+            text_input.Setup(pItem.TextVal, C<UnityAction<string>>((string pStringVal) =>
             {
                 if (!Instance._modifiedItems.ContainsKey(pItem))
                 {
@@ -438,7 +438,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_area.SetActive(true);
             TextInput value_input = slider_area.transform.Find("Control/Input").GetComponent<TextInput>();
             SliderBar slider_bar = slider_area.transform.Find("Control/Slider").GetComponent<SliderBar>();
-            slider_bar.Setup(pItem.FloatVal, pItem.MinFloatVal, pItem.MaxFloatVal, (Action<float>)((float pFloatVal) =>
+            slider_bar.Setup(pItem.FloatVal, pItem.MinFloatVal, pItem.MaxFloatVal, (UnityAction<float>)((float pFloatVal) =>
             {
                 mark_modified(pItem);
                 pItem.SetValue(pFloatVal, true);
@@ -447,7 +447,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_bar.tip_button.textOnClick = pItem.Id;
             slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
 
-            value_input.Setup(pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture), (Action<string>)((string pTextVal) =>
+            value_input.Setup(pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture), C<UnityAction<string>>((string pTextVal) =>
             {
                 if (!TryParseFloat(pTextVal, out float parsed))
                 {
@@ -479,7 +479,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_area.SetActive(true);
             TextInput value_input = slider_area.transform.Find("Control/Input").GetComponent<TextInput>();
             SliderBar slider_bar = slider_area.transform.Find("Control/Slider").GetComponent<SliderBar>();
-            slider_bar.Setup(pItem.IntVal, pItem.MinIntVal, pItem.MaxIntVal, (Action<float>)((float pIntVal) =>
+            slider_bar.Setup(pItem.IntVal, pItem.MinIntVal, pItem.MaxIntVal, C<UnityAction<float>>((float pIntVal) =>
             {
                 mark_modified(pItem);
                 pItem.SetValue(pIntVal, true);
@@ -488,7 +488,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_bar.tip_button.textOnClick = pItem.Id;
             slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
 
-            value_input.Setup(pItem.IntVal.ToString(CultureInfo.InvariantCulture), (Action<string>)((string pTextVal) =>
+            value_input.Setup(pItem.IntVal.ToString(CultureInfo.InvariantCulture), C<UnityAction<string>>((string pTextVal) =>
             {
                 if (!TryParseInt(pTextVal, out int parsed))
                 {
@@ -574,7 +574,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
                 SimpleButton option_button = Instantiate(SimpleButton.Prefab, options_root);
                 option_button.transform.localScale = Vector3.one;
                 option_button.name = $"Option_{option_index}";
-                option_button.Setup((Action)(() =>
+                option_button.Setup(C<UnityAction>(() =>
                     {
                         mark_modified(pItem);
                         pItem.SetValue(option_index, true);

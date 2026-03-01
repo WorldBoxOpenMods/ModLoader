@@ -6,7 +6,7 @@ using NeoModLoader.utils;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 namespace NeoModLoader.General.UI.Tab;
@@ -221,15 +221,15 @@ public static class TabManager
             id = name,
             locale_key = pTitleKey,
             tab_type_main = true,
-            get_power_tab = (Func<PowersTab>)(() => tab)
+            get_power_tab =  C<PowerTabGetter>(() => tab)
         };
         AssetManager.power_tab_library.add(asset);
         tab._asset = asset;
 
         Button tab_entry_button = tab_entry.GetComponent<Button>();
         tab_entry_button.onClick = new Button.ButtonClickedEvent();
-        tab_entry_button.onClick.AddListener((Action)(() => tab.showTab(tab_entry_button)));
-        tab_entry_button.onClick.AddListener((Action)(() => tab_entry.GetComponent<ButtonSfx>().playSound()));
+        tab_entry_button.onClick.AddListener(C<UnityAction>(() => tab.showTab(tab_entry_button)));
+        tab_entry_button.onClick.AddListener(C<UnityAction>(() => tab_entry.GetComponent<ButtonSfx>().playSound()));
 
         TipButton tab_entry_tip = tab_entry.GetComponent<TipButton>();
         tab_entry_tip.textOnClick = pTitleKey;

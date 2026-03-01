@@ -77,7 +77,7 @@ namespace NCMS.Utils
             // DO NOT catch repeat key exception here. There is a NCMS mod that use it.
             ToggleValues.Add(name, false);
 
-            asButton.onClick.AddListener((Action)(() => ToggleButton(name)));
+            asButton.onClick.AddListener(C<UnityAction>(() => ToggleButton(name)));
             // Set custom click callback
             if (call != null) asButton.onClick.AddListener(call);
             obj.transform.Find("ToggleIcon").GetComponent<ToggleIcon>().updateIcon(false);

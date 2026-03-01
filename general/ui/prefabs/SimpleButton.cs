@@ -101,11 +101,11 @@ public class SimpleButton : APrefab<SimpleButton>
             this.TipButton.type = pTipType;
             if (string.IsNullOrEmpty(pTipData?.tip_name))
             {
-                TipButton.hoverAction = (Action)(TipButton.showTooltipDefault);
+                TipButton.hoverAction =C<TooltipAction> (TipButton.showTooltipDefault);
             }
             else
             {
-                TipButton.hoverAction = (Action)(() =>
+                TipButton.hoverAction =C<TooltipAction> (() =>
                 {
                     Tooltip.show(gameObject, TipButton.type, pTipData);
                     transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
