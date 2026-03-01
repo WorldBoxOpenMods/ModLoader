@@ -49,6 +49,7 @@ public class Il2CPPBehaviour : MonoBehaviour
     internal WrappedBehaviour SetWrappedBehaviour(WrappedBehaviour Behaviour)
     {
         WrappedBehaviour = Behaviour;
+        Behaviour.Wrapper = this;
         update = GetWrappedMethod("Update");
         start = GetWrappedMethod("Start");
         awake = GetWrappedMethod("Awake");

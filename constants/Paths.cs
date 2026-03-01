@@ -67,7 +67,7 @@ public static class Paths
     /// <summary>
     /// Path to the publicized Assembly-CSharp.dll file, or just assembly-csharp on android because its already publicized
     /// </summary>
-    public static readonly string PublicizedAssemblyPath = Config.isAndroid ? Combine(ManagedPath, "Assembly-CSharp") : Combine(NMLPath, "Assembly-CSharp-Publicized.dll");
+    public static readonly string PublicizedAssemblyPath = Config.isAndroid ? Combine(ManagedPath, "Assembly-CSharp.dll") : Combine(NMLPath, "Assembly-CSharp-Publicized.dll");
 
     /// <summary>
     /// Path to folder mods config under persistent data folder

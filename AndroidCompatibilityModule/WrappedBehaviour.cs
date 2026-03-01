@@ -17,7 +17,7 @@ public class WrappedBehaviour
         set => Wrapper.name = value;
     }
 
-    public readonly Il2CPPBehaviour Wrapper;
+    public Il2CPPBehaviour Wrapper { get; internal set; };
     public C GetComponent<C>()
     {
         return Wrapper.GetComponent<C>();
@@ -36,14 +36,9 @@ public class WrappedBehaviour
     {
         GameObject.Destroy(Object);
     }
-    public WrappedBehaviour(Il2CPPBehaviour Wrapper)
-    {
-        this.Wrapper = Wrapper;
-    }
 
     public WrappedBehaviour()
     {
-        Wrapper = new Il2CPPBehaviour();
     }
 }
 #else
