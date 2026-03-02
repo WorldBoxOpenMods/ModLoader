@@ -95,20 +95,13 @@ public class WorldBoxMod : MonoBehaviour
             ModUploadAuthenticationService.AutoAuth();
         
         HarmonyUtils._init();
-        LogService.LogInfo("NeoModLoader initializing");
-        
-        Harmony harony = new Harmony(Others.harmony_id);
-        LogService.LogInfo("loaded harmony");
-        LogService.LogInfo("patchrd!");
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id); ;
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
         HarmonyLib.Harmony.CreateAndPatchAll(typeof(CustomAudioManager), Others.harmony_id);
         
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
-        LogService.LogInfo("initilizing modloader");
         SmoothLoader.add(C<MapLoaderAction>(() =>
         {
-            LogService.LogInfo("res");
             ResourcesPatch.Initialize();
             LoadLocales();
             LM.ApplyLocale();

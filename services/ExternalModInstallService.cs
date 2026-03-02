@@ -6,6 +6,10 @@ internal static class ExternalModInstallService
 {
     public static async void CheckExternalModInstall()
     {
+        if (Config.isAndroid)
+        {
+            return;
+        }
         var args = new List<string>(Environment.GetCommandLineArgs());
         args.RemoveAt(0);
         foreach (var arg in args) LogService.LogInfo(arg);

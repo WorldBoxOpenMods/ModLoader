@@ -14,8 +14,8 @@ internal static class UIManager
         #if !IL2CPP
         WorkshopModListWindow.CreateAndInit("WorkshopMods");
         ModUploadWindow.CreateAndInit("ModUpload");
-        #endif
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
+        #endif
         ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         ModConfigureWindow.CreateAndInit("ModConfigure");
         PowerButtonCreator.AddButtonToTab(

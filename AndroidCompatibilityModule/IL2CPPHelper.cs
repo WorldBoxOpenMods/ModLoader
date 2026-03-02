@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace NeoModLoader.AndroidCompatibilityModule;
 #if !IL2CPP
 using System = System;
@@ -18,6 +20,37 @@ public static class IL2CPPHelper
     public static D C<D>(Delegate func) where D : System.Delegate
     {
         return DelegateSupport.ConvertDelegate<D>(func);
+    }
+    public static bool IsValid(this Il2CppArrayBase arr)
+    {
+        return arr is { Length: > 0 };
+    }
+    //il2cpp array's indexof() is not good, better to just check pointers
+    public static int GetIndex<T>(this Il2CppReferenceArray<T> arr, T obj) where T : Il2CppObjectBase
+    {
+        for (int i = 0; i < arr.Length; i++)
+        {
+            if (arr[i].Pointer == obj.Pointer)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public static Il2CppObjectBase Cast(this Il2CppObjectBase obj, Type type)
+    {
+        var method = typeof(Il2CppObjectBase)
+            .GetMethod("Cast")
+            .MakeGenericMethod(type);
+        return (Il2CppObjectBase)method.Invoke(obj, null);
+    }
+    public static Component GetComponent(this GameObject obj, Type type, int index)
+    {
+        var arr = obj.GetComponents(type.C());
+        if(!arr.IsValid()) return null;
+        return (Component)arr[index].Cast(type);
     }
     public static System.Type C (this Type type)
     {
@@ -101,20 +134,44 @@ public static class IL2CPPHelper
     public static GameObject CreateGameObject(string name, params Type[] types)
     {
         Il2CppSystem.Type[] Types = new Il2CppSystem.Type[types.Length];
+        List<Type> WrappedTypes = new List<Type>();
         for(int i = 0; i< types.Length; i++)
         {
-            Types[i] = types[i].C();
+            if(typeof(WrappedBehaviour).IsAssignableFrom(types[i]))
+            {
+                WrappedTypes.Add(types[i]);
+                Types[i] = typeof(Il2CPPBehaviour).C();
+            }
+            else
+            {
+                Types[i] = types[i].C();
+            }
         }
-        return new GameObject(name, Types);
+        GameObject obj = new GameObject(name, Types);
+        if (WrappedTypes.Count <= 0) return obj;
+        {
+            var behs = obj.GetComponents<Il2CPPBehaviour>();
+            for (int i = 0; i < WrappedTypes.Count; i++)
+            {
+                behs[i].CreateWrapperIfNull(WrappedTypes[i]);
+            }
+        }
+        return obj;
     }
     public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
     {
-        return (T) UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays).WrappedBehaviour;
+        Il2CPPBehaviour il2cpp = UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays);
+        WrapperResolver.ResolveInstantiate(original.Wrapper.gameObject, il2cpp.gameObject);
+        return (T)il2cpp.WrappedBehaviour;
     }
     public static T AddComponent<T>(this GameObject gameObject) where T : WrappedBehaviour
     {
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
-        return (T)behaviour.SetWrappedBehaviour((T)Activator.CreateInstance(typeof(T)));
+        return behaviour.CreateWrapperIfNull(typeof(T)) as T;
+    }
+    public static T GetWrappedComponent<T>(this GameObject obj) where T : WrappedBehaviour
+    {
+        return WrapperHelper.GetWrappedComponent(obj, typeof(T)) as T;
     }
 #else
     public static D C<D>(Delegate func) where D : Delegate
@@ -151,6 +208,10 @@ public static class IL2CPPHelper
      public static GameObject CreateGameObject(string name, params Type[] Types)
     {
         return new GameObject(name, Types);
+    }
+    public static T GetWrappedComponent<T>(this GameObject obj) where T : WrappedBehaviour
+    {
+        return obj.GetComponent<T>();
     }
 #endif
 }

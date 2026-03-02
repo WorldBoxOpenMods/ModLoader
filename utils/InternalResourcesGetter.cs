@@ -16,14 +16,16 @@ internal static class InternalResourcesGetter
     private static string commit = "";
     private static long   last_write_time;
 
+    public static readonly string Resource =
+        Config.isAndroid ? "NeoModLoader_mobile.resources" : "NeoModLoader.resources";
     private static Texture2D LoadManifestTexture(string path_under_resources)
     {
         var s = Assembly.GetExecutingAssembly()
-                        .GetManifestResourceStream($"NeoModLoader.resources.{path_under_resources}");
+                        .GetManifestResourceStream($"{Resource}.{path_under_resources}");
         byte[] buffer = new byte[s.Length];
         s.Read(buffer, 0, buffer.Length);
 
-        Texture2D texture = new(0, 0);
+        Texture2D texture = new(0, 0, TextureFormat.RGBA32, false);
         texture.filterMode = FilterMode.Point;
         texture.LoadImage(buffer);
         return texture;
@@ -32,7 +34,7 @@ internal static class InternalResourcesGetter
     private static byte[] LoadManifestBytes(string path_under_resources)
     {
         var s = Assembly.GetExecutingAssembly()
-                        .GetManifestResourceStream($"NeoModLoader.resources.{path_under_resources}");
+                        .GetManifestResourceStream($"{Resource}.{path_under_resources}");
         byte[] buffer = new byte[s.Length];
         s.Read(buffer, 0, buffer.Length);
 
@@ -54,8 +56,7 @@ internal static class InternalResourcesGetter
     {
         if (string.IsNullOrEmpty(commit))
         {
-            string name = Config.isAndroid ? "_mobile" : "";
-            var s = WorldBoxMod.NeoModLoaderAssembly.GetManifestResourceStream($"NeoModLoader{name}.resources.commit");
+            var s = WorldBoxMod.NeoModLoaderAssembly.GetManifestResourceStream($"{Resource}.commit");
             commit = new StreamReader(s).ReadToEnd().Replace("\n", "").Replace("\r", "");
 
             s.Close();

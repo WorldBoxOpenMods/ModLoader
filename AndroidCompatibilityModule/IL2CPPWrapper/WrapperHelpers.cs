@@ -1,5 +1,7 @@
 
+using System.Reflection;
 using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.services;
 using UnityEngine;
 
 public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
@@ -130,5 +132,124 @@ public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
 		{
 			pElement.transform.SetParent(_parent_transform);
 		}
+	}
+}
+
+public static class WrapperHelper
+{
+	public static WrappedBehaviour GetWrappedComponent(GameObject Object, Type WrappedType)
+	{
+		foreach (Il2CPPBehaviour beh in Object.GetComponents<Il2CPPBehaviour>())
+		{
+			if (beh.WrappedBehaviour == null)
+			{
+				continue;
+			}
+
+			if (beh.WrappedBehaviour.GetType() == WrappedType)
+			{
+				return beh.WrappedBehaviour;
+			}
+		}
+		return null;
+	}
+}
+public class WrapperResolver
+{
+	static void AddChildren(Transform transform, List<Transform> children)
+	{
+		for (int i = 0; i < transform.GetChildCount(); i++)
+		{
+			Transform child = transform.GetChild(i);
+			children.Add(child);
+			AddChildren(child, children);
+		}
+	}
+	List<Transform> OrigObjects;
+	List<Transform> ClonedObjects;
+
+	public static void ResolveInstantiate(GameObject orig, GameObject clone)
+	{
+		WrapperResolver resolver = new WrapperResolver(orig, clone);
+		resolver.Resolve();
+	}
+	public WrapperResolver(GameObject orig, GameObject clone)
+	{
+		OrigObjects = new List<Transform>{orig.transform};
+		ClonedObjects = new List<Transform>{clone.transform};
+		AddChildren(orig.transform, OrigObjects);
+		AddChildren(clone.transform, ClonedObjects);
+	}
+
+	public void Resolve()
+	{
+		for (int i = 0; i < OrigObjects.Count; i++)
+		{
+			Il2CPPBehaviour[] origbeh = OrigObjects[i].GetComponents<Il2CPPBehaviour>();
+			if (origbeh == null) continue;
+			Il2CPPBehaviour[] clonedbeh =  ClonedObjects[i].GetComponents<Il2CPPBehaviour>();
+			for (int j = 0; j < origbeh.Length; j++)
+			{
+				Clone(origbeh[j], clonedbeh[j]);
+			}
+		}
+	}
+	public static int Getindex(Component beh, GameObject obj)
+	{
+		var arr = obj.GetComponents(beh.GetType().C());
+		if (!arr.IsValid())
+		{
+			return -1;
+		}
+		int result = arr.GetIndex(beh);
+		return result;
+	}
+	public void Clone(Il2CPPBehaviour orig, Il2CPPBehaviour clone)
+	{
+		WrappedBehaviour beh = orig.WrappedBehaviour;
+		Type WrappedType = orig.WrappedBehaviour.GetType();
+		WrappedBehaviour cloned = clone.CreateWrapperIfNull(WrappedType);
+		var fields = WrappedType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		foreach (var field in fields)
+		{
+			Type type = field.FieldType;
+			if (field.GetValue(beh) == null)
+			{
+				continue;
+			}
+			if (type == typeof(GameObject))
+			{
+				var obj =  (GameObject)field.GetValue(beh);
+				field.SetValue(cloned, ResolveGameObject(obj));
+			}
+			else if (type== typeof(Transform))
+			{
+				var obj =  (Transform)field.GetValue(beh);
+				field.SetValue(cloned, ResolveGameObject(obj.gameObject).transform);
+			}
+			else if (typeof(Component).IsAssignableFrom(type))
+			{
+				var obj =  (Component)field.GetValue(beh);
+				var result = ResolveGameObject(obj.gameObject).GetComponent(type, Getindex(obj, obj.gameObject));
+				field.SetValue(cloned, result);
+			}
+			else if (typeof(WrappedBehaviour).IsAssignableFrom(type))
+			{
+				var obj =  (WrappedBehaviour)field.GetValue(beh);
+				field.SetValue(cloned, ((Il2CPPBehaviour)ResolveGameObject(obj.gameObject).GetComponent(typeof(Il2CPPBehaviour), Getindex(obj.Wrapper, obj.gameObject))).CreateWrapperIfNull(type));
+			}
+			else
+			{
+				field.SetValue(cloned, field.GetValue(beh));
+			}
+		}
+	}
+	public GameObject ResolveGameObject(GameObject orig)
+	{
+		if (!OrigObjects.Contains(orig.transform))
+		{
+			return orig;
+		}
+		return ClonedObjects[OrigObjects.IndexOf(orig.transform)].gameObject;
 	}
 }

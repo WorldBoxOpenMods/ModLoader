@@ -17,12 +17,11 @@ public class WrappedBehaviour
         set => Wrapper.name = value;
     }
 
-    public Il2CPPBehaviour Wrapper { get; internal set; };
-    public C GetComponent<C>()
+    public Il2CPPBehaviour Wrapper { get; internal set; }
+    public C GetComponent<C>() where C : Component
     {
         return Wrapper.GetComponent<C>();
     }
-
     public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
     {
         return IL2CPPHelper.Instantiate(original, parent, worldPositionStays);
@@ -39,6 +38,7 @@ public class WrappedBehaviour
 
     public WrappedBehaviour()
     {
+       
     }
 }
 #else

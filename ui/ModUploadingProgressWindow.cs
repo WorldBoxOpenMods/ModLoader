@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
-
 internal class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressWindow>
 {
     private Image bar;

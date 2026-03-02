@@ -3,6 +3,7 @@ using Il2CppInterop.Runtime.Attributes;
 using Il2CppInterop.Runtime.Injection;
 using MelonLoader;
 using UnityEngine;
+using Object = Il2CppSystem.Object;
 
 namespace NeoModLoader.AndroidCompatibilityModule;
 [RegisterTypeInIl2Cpp]
@@ -43,10 +44,10 @@ public class Il2CPPBehaviour : MonoBehaviour
     [HideFromIl2Cpp]
     public MethodInfo GetWrappedMethod(string Method)
     {
-        return typeof(WrappedBehaviour).GetMethod(Method);
+        return WrappedBehaviour.GetType().GetMethod(Method);
     }
     [HideFromIl2Cpp]
-    internal WrappedBehaviour SetWrappedBehaviour(WrappedBehaviour Behaviour)
+    internal B SetWrappedBehaviour<B>(B Behaviour) where B : WrappedBehaviour
     {
         WrappedBehaviour = Behaviour;
         Behaviour.Wrapper = this;
@@ -56,6 +57,11 @@ public class Il2CPPBehaviour : MonoBehaviour
         onEnable = GetWrappedMethod("OnEnable");
         onDisable = GetWrappedMethod("OnDisable");
         return Behaviour;
+    }
+    [HideFromIl2Cpp]
+    internal WrappedBehaviour CreateWrapperIfNull(Type WrappedType)
+    {
+        return WrappedBehaviour ?? SetWrappedBehaviour((WrappedBehaviour)Activator.CreateInstance(WrappedType));
     }
     private MethodInfo update;
     private MethodInfo start;

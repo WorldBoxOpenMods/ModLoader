@@ -221,7 +221,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         Image open_folderIconImage = open_folderIcon.GetComponent<Image>();
         open_folderIconImage.sprite = SpriteTextureLoader.getSprite("ui/icons/iconCustomWorld");
 
-        return obj.GetComponent<ModListItem>();
+        return obj.GetWrappedComponent<ModListItem>();
     }
 
     /// <summary>

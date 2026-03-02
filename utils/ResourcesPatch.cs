@@ -48,11 +48,14 @@ public static class ResourcesPatch
         tree = new ResourceTree();
         SpriteAtlas atlas = Resources.FindObjectsOfTypeAll<SpriteAtlas>()
             .FirstOrDefault(x => x.name == "SpriteAtlasUI");
-
         Sprite[] sprites = new Sprite[atlas.spriteCount];
         atlas.GetSprites(sprites);
         foreach (var sprite in sprites)
         {
+            if (sprite == null)
+            {
+                continue;
+            }
             sprite.name = sprite.name.Replace("(Clone)", "");
             tree.Add($"ui/special/{sprite.name}", sprite);
         }
