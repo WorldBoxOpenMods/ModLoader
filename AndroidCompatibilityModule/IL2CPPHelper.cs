@@ -56,6 +56,11 @@ public static class IL2CPPHelper
     {
         return Il2CppType.From(type);
     }
+
+    public static Type C(this System.Type type)
+    {
+        return Type.GetType(type.AssemblyQualifiedName);
+    }
     public static A[] Convert<A>(this Il2CppArrayBase<A> arr)
     {
         return arr;

@@ -1,5 +1,6 @@
 using System.Globalization;
 using HarmonyLib;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.services;
 using Newtonsoft.Json;
@@ -186,12 +187,12 @@ public static class ResourcesPatch
         typeof(string), typeof(Sys.Type)
     })]
     private static Object[] LoadAll_Postfix(Object[] __result, string path,
-        Type systemTypeInstance)
+        Sys.Type systemTypeInstance)
     {
         if (tree == null) return __result;
         ResourceTreeNode node = tree.Find(path);
         if (node == null) return __result;
-        List<Object> append_list = node.GetAllObjects(systemTypeInstance);
+        List<Object> append_list = node.GetAllObjects(systemTypeInstance.C());
 
         if (append_list.Count == 0) return __result;
 

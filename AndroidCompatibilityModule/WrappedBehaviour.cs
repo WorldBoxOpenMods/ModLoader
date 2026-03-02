@@ -10,7 +10,6 @@ public class WrappedBehaviour
     public Transform transform => Wrapper.transform;
 
     public GameObject gameObject => Wrapper.gameObject;
-
     public string name
     {
         get => Wrapper.name;
