@@ -253,7 +253,7 @@ public static class SpriteLoadUtils
 
             public Sprite loadFromPath(string path)
             {
-                Texture2D texture = new(0, 0);
+                Texture2D texture = new(0, 0, TextureFormat.RGBA32, false);
                 texture.filterMode = FilterMode.Point;
                 texture.LoadImage(File.ReadAllBytes(path));
                 Sprite sprite = Sprite.Create(texture,

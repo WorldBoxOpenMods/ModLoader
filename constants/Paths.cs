@@ -1,4 +1,5 @@
 using System.Reflection;
+using MelonLoader.Utils;
 using UnityEngine;
 using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.services;
@@ -14,10 +15,14 @@ public static class Paths
     /// path to the root melon folder on android
     /// </summary>
     public static readonly string MelonPath = MelonHelper.GetPath();
+
+    /// <summary>
+    /// path to the dotnet dlls inside modded woldbox apk assets on android
+    /// </summary>
+    public static readonly string DotnetAPKPath = "dotnet/shared/Microsoft.NETCore.App/8.0.6/";
     /// <summary>
     /// path to melon loader assemblies if on android
     /// </summary>
-
     public static readonly string MelonAssemblies = Combine(MelonPath, "MelonLoader", "net8");
     /// <summary>
     /// Path to the mod loader file

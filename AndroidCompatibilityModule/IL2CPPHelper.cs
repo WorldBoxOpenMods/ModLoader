@@ -1,4 +1,5 @@
 using System.Reflection;
+using NeoModLoader_mobile.AndroidCompatibilityModule.IL2CPPWrapper;
 
 namespace NeoModLoader.AndroidCompatibilityModule;
 #if !IL2CPP
@@ -38,7 +39,12 @@ public static class IL2CPPHelper
 
         return -1;
     }
-
+    public static IEnumerable<T> Enumerate<T>(this System.Object Object) where T : System.Object{
+        Object.GetType().GetMethod("GetEnumerator")
+    }
+    public static Il2CppEnumeratorWrapper<T> Wrap<T>(this System.Collections.Generic.IEnumerator<T> enumerator) where T : System.Object{
+        return new  Il2CppEnumeratorWrapper<T>(enumerator);
+    }
     public static Il2CppObjectBase Cast(this Il2CppObjectBase obj, Type type)
     {
         var method = typeof(Il2CppObjectBase)
@@ -174,6 +180,11 @@ public static class IL2CPPHelper
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
         return behaviour.CreateWrapperIfNull(typeof(T)) as T;
     }
+    public static WrappedBehaviour AddComponent(this GameObject gameObject, Type type)
+    {
+        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
+        return behaviour.CreateWrapperIfNull(type);
+    }
     public static T GetWrappedComponent<T>(this GameObject obj) where T : WrappedBehaviour
     {
         return WrapperHelper.GetWrappedComponent(obj, typeof(T)) as T;
@@ -217,6 +228,14 @@ public static class IL2CPPHelper
     public static T GetWrappedComponent<T>(this GameObject obj) where T : WrappedBehaviour
     {
         return obj.GetComponent<T>();
+    }
+    public static WrappedBehaviour AddWrappedComponent(this GameObject gameObject, Type type)
+    {
+        return (WrappedBehaviour)gameObject.AddComponent(type);
+    }
+public static IEnumerator<T> Wrap<T>(this IEnumerator<T> enumerator) where T : System.Object
+    {
+        return enumerator;
     }
 #endif
 }

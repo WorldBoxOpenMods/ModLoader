@@ -60,6 +60,9 @@
       <Reference Include="RSG">
         <HintPath>android-assembly-dependencies\Il2CppRSG.dll</HintPath>
       </Reference>
+      <Reference Include="UnityEngine.UnityWebRequestModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
   <!-- Used for Compile and load mods -->

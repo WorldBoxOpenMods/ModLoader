@@ -1,5 +1,7 @@
+using System.IO.Compression;
 using System.Reflection;
 using System.Text;
+using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -13,6 +15,8 @@ using NeoModLoader.General;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.utils;
 using UnityEngine;
+using UnityEngine.Networking;
+
 namespace NeoModLoader.services;
 
 /// <summary>
@@ -140,7 +144,7 @@ public static class ModCompileLoadService
             foreach (var inc in pAddInc)
             {
                 string file_name = Path.GetFileName(inc);
-                if (file_name == "Assembly-CSharp.dll")
+                if (file_name == "Assembly-CSharp.dll" && !Config.isAndroid)
                 {
                     continue;
                 }
@@ -213,7 +217,54 @@ public static class ModCompileLoadService
         ModInfoUtils.RecordMod(pModDecl, available_depens, available_optional_depens, false, false);
         return true;
     }
+    private static readonly string[] RuntimeDlls = new[]
+    {
+        "System.Private.CoreLib.dll",
+        "System.Runtime.dll",
+        "System.Console.dll",
+        "netstandard.dll",
+        "System.Linq.dll",
+        "System.Collections.dll",
+        "System.Threading.dll",
+        // add any additional DLLs
+    };
+    
+    public static List<MetadataReference> LoadDotNetReferencesFromApk(string DotNetPathInApk)
+    {
+        #if IL2CPP
+        MelonLoader.Utils.APKAssetManager.Initialize();
 
+        List<MetadataReference> references = new List<MetadataReference>();
+
+        foreach (var dllName in RuntimeDlls)
+        {
+            string assetPath = DotNetPathInApk + dllName;
+
+            if (!MelonLoader.Utils.APKAssetManager.DoesAssetExist(assetPath))
+            {
+                LogService.LogWarning($"DLL not found in APK assets: {assetPath}");
+                continue;
+            }
+
+            try
+            {
+                byte[] dllBytes = MelonLoader.Utils.APKAssetManager.GetAssetBytes(assetPath);
+                if (dllBytes != null && dllBytes.Length > 0)
+                {
+                    references.Add(MetadataReference.CreateFromImage(dllBytes));
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.LogError($"Failed to load DLL {assetPath}: {ex}");
+            }
+        }
+
+        return references;
+        #else
+        throw new Exception("how did we get here?");
+        #endif
+    }
     /// <summary>
     /// Prepare references for mod nodes
     /// </summary>
@@ -229,6 +280,10 @@ public static class ModCompileLoadService
         var default_ref_path_list = new List<string>();
         default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath, "*.dll"));
         default_ref_path_list.AddRange(Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"));
+        if (Config.isAndroid)
+        {
+            default_ref_path_list.AddRange(Directory.GetFiles(Paths.MelonAssemblies, "*.dll"));
+        }
         default_ref_path_list.Add(Paths.NMLModPath);
         _default_ref_path = default_ref_path_list.ToArray();
 
@@ -246,6 +301,10 @@ public static class ModCompileLoadService
             }
         }
 
+        if (Config.isAndroid)
+        {
+            _default_ref = _default_ref.AddRangeToArray(LoadDotNetReferencesFromApk(Paths.DotnetAPKPath).ToArray());
+        }
         _publicized_assembly_ref = MetadataReference.CreateFromFile(Paths.PublicizedAssemblyPath);
     }
 
@@ -400,10 +459,8 @@ public static class ModCompileLoadService
             foreach (var type in mod_assembly.GetTypes())
             {
                 var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
-                if (!type.IsSubclassOf(typeof(MonoBehaviour)) ||
+                if (!type.IsSubclassOf(typeof(WrappedBehaviour)) ||
                     (type.GetInterface(nameof(IMod)) == null && mod_entry == null) || type.IsAbstract) continue;
-
-
                 mod_instance = new GameObject(pMod.Name)
                 {
                     transform =
@@ -425,16 +482,16 @@ public static class ModCompileLoadService
                 IMod mod_interface = null;
                 try
                 {
-                    MonoBehaviour main_component = null;
+                    WrappedBehaviour main_component = null;
                     if (type.GetInterface(nameof(IMod)) == null)
                     {
                         mod_interface = mod_instance.AddComponent<AttachedModComponent>();
-                        main_component = (MonoBehaviour)mod_instance.AddComponent(type.C());
+                        main_component = mod_instance.AddComponent(type);
                     }
                     else
                     {
-                        mod_interface = (IMod)mod_instance.AddComponent(type.C());
-                        main_component = (MonoBehaviour)mod_interface;
+                        mod_interface = (IMod)mod_instance.AddComponent(type);
+                        main_component = (WrappedBehaviour)mod_interface;
                     }
 
                     auto_localize(main_component);
@@ -455,7 +512,7 @@ public static class ModCompileLoadService
                 }
 
 
-                WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
+                WorldBoxMod.LoadedMods.Add(mod_interface);
                 WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
                 break;
             }

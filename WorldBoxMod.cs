@@ -12,19 +12,10 @@ using NeoModLoader.services;
 using NeoModLoader.ui;
 using NeoModLoader.utils;
 using UnityEngine;
-using Il2CppInterop.Runtime;
-
 #if IL2CPP
 using Il2CppInterop.Runtime.Injection;
 #endif
 namespace NeoModLoader;
-class patch
-{
-    public static void sigma()
-    {
-
-    }
-}
 /// <summary>
 /// Main class
 /// </summary>
@@ -70,6 +61,12 @@ public class WorldBoxMod : MonoBehaviour
         InactiveTransform = CreateGameObject("Inactive").transform;
         InactiveTransform.SetParent(Transform);
         InactiveTransform.gameObject.SetActive(false);
+        if (Config.isAndroid)
+        {
+            GameObject services = GameObject.Find("Services");
+            GameObject modloader = new GameObject("ModLoader");
+            modloader.transform.parent = services.transform;
+        }
         LogService.Init();
         if (ReflectionHelper.IsAssemblyLoaded("0Harmony") && !Config.isAndroid) {
             UnityExplorerFix();

@@ -236,7 +236,7 @@ public static class ResourcesPatch
         typeof(string), typeof(Sys.Type)
     })]
     private static Object Load_Postfix(Object __result, string path,
-        Type systemTypeInstance)
+        Sys.Type systemTypeInstance)
     {
         if (tree == null) return __result;
         var new_result = tree.Get(path);
