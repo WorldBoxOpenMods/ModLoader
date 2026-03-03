@@ -69,7 +69,6 @@ public static class ModCompileLoadService
         {
             list.Add(pModInc[option_depen]);
             preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
-
             if (pModInc[option_depen] != null) continue;
             LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
             return false;
@@ -84,6 +83,10 @@ public static class ModCompileLoadService
         var embeded_resources = new List<ResourceDescription>();
 
         bool is_ncms_mod = false;
+        if (Config.isAndroid)
+        {
+            preprocessor_symbols.Add("IL2CPP");
+        }
         var parse_option = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessor_symbols);
 
         foreach (var code_file in code_files)
