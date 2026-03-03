@@ -3,15 +3,15 @@ using Il2CppSystem.Collections;
 using NeoModLoader.services;
 using IEnumerable = System.Collections.IEnumerable;
 
-namespace NeoModLoader_mobile.AndroidCompatibilityModule.IL2CPPWrapper;
+namespace NeoModLoader.AndroidCompatibilityModule;
 
 public class Il2CppEnumeratorWrapper<T> : IEnumerator<T>, IEnumerable<T> where T : Il2CppSystem.Object
 {
-    private readonly IEnumerator _inner;
+    private IEnumerator _inner;
 
-    public Il2CppEnumeratorWrapper(Il2CppSystem.Collections.Generic.IEnumerator<T> inner)
+    public Il2CppEnumeratorWrapper(IEnumerator inner)
     {
-       _inner = inner.Cast<IEnumerator>();
+        _inner = inner;
     }
 
     public T Current => (T)_inner.Current;
@@ -24,7 +24,7 @@ public class Il2CppEnumeratorWrapper<T> : IEnumerator<T>, IEnumerable<T> where T
 
     public void Dispose()
     {
-      LogService.LogInfo("nah");
+        _inner = null;
     }
 
     public IEnumerator<T> GetEnumerator()

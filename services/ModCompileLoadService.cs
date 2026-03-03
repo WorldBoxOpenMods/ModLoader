@@ -459,7 +459,7 @@ public static class ModCompileLoadService
             foreach (var type in mod_assembly.GetTypes())
             {
                 var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
-                if (!type.IsSubclassOf(typeof(WrappedBehaviour)) ||
+                if (!(type.IsSubclassOf(typeof(WrappedBehaviour)) || type.IsSubclassOf(typeof(MonoBehaviour))) ||
                     (type.GetInterface(nameof(IMod)) == null && mod_entry == null) || type.IsAbstract) continue;
                 mod_instance = new GameObject(pMod.Name)
                 {
@@ -482,6 +482,7 @@ public static class ModCompileLoadService
                 IMod mod_interface = null;
                 try
                 {
+                    #if IL2CPP
                     WrappedBehaviour main_component = null;
                     if (type.GetInterface(nameof(IMod)) == null)
                     {
@@ -493,7 +494,19 @@ public static class ModCompileLoadService
                         mod_interface = (IMod)mod_instance.AddComponent(type);
                         main_component = (WrappedBehaviour)mod_interface;
                     }
-
+                    #else
+                    MonoBehaviour main_component = null;
+                    if (type.GetInterface(nameof(IMod)) == null)
+                    {
+                        mod_interface = mod_instance.AddComponent<AttachedModComponent>();
+                        main_component = (MonoBehaviour) mod_instance.AddComponent(type);
+                    }
+                    else
+                    {
+                        mod_interface = (IMod)mod_instance.AddComponent(type);
+                        main_component = (MonoBehaviour)mod_interface;
+                    }
+                    #endif
                     auto_localize(main_component);
 
                     mod_interface.OnLoad(pMod, mod_instance);

@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using IEnumerator = System.Collections.IEnumerator;
 #if IL2CPP
 using Il2CppSystem.Collections;
 #endif
@@ -25,7 +26,10 @@ public class WrappedBehaviour
     {
         return IL2CPPHelper.Instantiate(original, parent, worldPositionStays);
     }
-
+    public Coroutine StartCoroutine(IEnumerator enumerator)
+    {
+       return Wrapper.StartCoroutine(enumerator.ToIL2CPP());
+    }
     public static GameObject Instantiate(GameObject obj, Transform parent)
     {
         return GameObject.Instantiate(obj, parent);
@@ -42,5 +46,6 @@ public class WrappedBehaviour
 }
 #else
 public class WrappedBehaviour : MonoBehaviour{
+ public MonoBehaviour Wrapper => this;
 }
 #endif

@@ -64,7 +64,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
 
     protected override AbstractListWindowItem<ModDeclare> CreateItemPrefab()
     {
-        GameObject obj = CreateGameObject("WorkshopModListItemPrefab", typeof(Image), typeof(WorkshopModListItem));
+        GameObject obj = new GameObject("WorkshopModListItemPrefab", typeof(Image), typeof(WorkshopModListItem));
         obj.SetActive(false);
 
         obj.transform.SetParent(WorldBoxMod.Transform);
@@ -74,7 +74,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         bg.sprite = Resources.Load<Sprite>("ui/special/windowInnerSliced");
         bg.type = Image.Type.Sliced;
 
-        GameObject icon = CreateGameObject("Icon", typeof(Image));
+        GameObject icon = new GameObject("Icon", typeof(Image));
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = new(-75, 0);
         icon.transform.localScale = Vector3.one;
@@ -82,7 +82,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image iconImage = icon.GetComponent<Image>();
         iconImage.sprite = InternalResourcesGetter.GetIcon();
 
-        GameObject iconFrame = CreateGameObject("IconFrame", typeof(Image));
+        GameObject iconFrame = new GameObject("IconFrame", typeof(Image));
         iconFrame.transform.SetParent(icon.transform);
         iconFrame.transform.localPosition = Vector3.zero;
         iconFrame.transform.localScale = Vector3.one;
@@ -92,7 +92,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         iconFrameImage.sprite = InternalResourcesGetter.GetIconFrame();
         iconFrameImage.type = Image.Type.Sliced;
 
-        GameObject text = CreateGameObject("Text", typeof(Text));
+        GameObject text = new GameObject("Text", typeof(Text));
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = new(12.5f, 0);
         text.transform.localScale = Vector3.one;
@@ -103,7 +103,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         textText.supportRichText = true;
 
         Vector2 single_button_size = new(22, 22);
-        GameObject download = CreateGameObject("Load", typeof(Image), typeof(Button));
+        GameObject download = new GameObject("Load", typeof(Image), typeof(Button));
         download.transform.SetParent(obj.transform);
         download.transform.localPosition = new(87, 12);
         download.transform.localScale = Vector3.one;
@@ -111,7 +111,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image downloadImageBG = download.GetComponent<Image>();
         downloadImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         downloadImageBG.type = Image.Type.Sliced;
-        GameObject downloadIcon = CreateGameObject("Icon", typeof(Image));
+        GameObject downloadIcon = new GameObject("Icon", typeof(Image));
         downloadIcon.transform.SetParent(download.transform);
         downloadIcon.transform.localPosition = Vector3.zero;
         downloadIcon.transform.localScale = Vector3.one;
@@ -119,7 +119,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image configureIconImage = downloadIcon.GetComponent<Image>();
         configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconGameServices");
 
-        GameObject website = CreateGameObject("Website", typeof(Image), typeof(Button));
+        GameObject website = new GameObject("Website", typeof(Image), typeof(Button));
         website.transform.SetParent(obj.transform);
         website.transform.localPosition = new(87, -12);
         website.transform.localScale = Vector3.one;
@@ -127,7 +127,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image websiteImageBG = website.GetComponent<Image>();
         websiteImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         websiteImageBG.type = Image.Type.Sliced;
-        GameObject websiteIcon = CreateGameObject("Icon", typeof(Image));
+        GameObject websiteIcon = new GameObject("Icon", typeof(Image));
         websiteIcon.transform.SetParent(website.transform);
         websiteIcon.transform.localPosition = Vector3.zero;
         websiteIcon.transform.localScale = Vector3.one;

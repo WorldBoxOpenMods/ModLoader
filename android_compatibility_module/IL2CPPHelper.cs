@@ -1,10 +1,10 @@
 using System.Reflection;
-using NeoModLoader_mobile.AndroidCompatibilityModule.IL2CPPWrapper;
-
 namespace NeoModLoader.AndroidCompatibilityModule;
 #if !IL2CPP
 using System = System;
+using System.Collections;
 #else
+using NeoModLoader.AndroidCompatibilityModule.IL2CPPWrapper;
 using Il2CppSystem.Collections;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
@@ -39,11 +39,20 @@ public static class IL2CPPHelper
 
         return -1;
     }
-    public static IEnumerable<T> Enumerate<T>(this System.Object Object) where T : System.Object{
-        Object.GetType().GetMethod("GetEnumerator")
+    public static Il2CppEnumeratorWrapper<T> Enumerate<T>(this System.Object Object) where T : System.Object
+    {
+		var Getenumerator = Object.GetType().GetMethod("System_Collections_IEnumerable_GetEnumerator", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (Getenumerator == null)
+        {
+            throw new ArgumentException($"IL2CPP Object of {Object.GetType()} cannot be enumerated!");
+        }
+        var IEnumerator = (IEnumerator)Getenumerator.Invoke(null, null);
+        return new Il2CppEnumeratorWrapper<T>(IEnumerator);
     }
-    public static Il2CppEnumeratorWrapper<T> Wrap<T>(this System.Collections.Generic.IEnumerator<T> enumerator) where T : System.Object{
-        return new  Il2CppEnumeratorWrapper<T>(enumerator);
+
+    public static IL2CPPEnumerator ToIL2CPP(this global::System.Collections.IEnumerator enumerator)
+    {
+        return new IL2CPPEnumerator(enumerator);
     }
     public static Il2CppObjectBase Cast(this Il2CppObjectBase obj, Type type)
     {
@@ -233,7 +242,11 @@ public static class IL2CPPHelper
     {
         return (WrappedBehaviour)gameObject.AddComponent(type);
     }
-public static IEnumerator<T> Wrap<T>(this IEnumerator<T> enumerator) where T : System.Object
+    public static IEnumerable<T> Enumerate<T>(this IEnumerable<T> enumerable)
+    {
+        return enumerable;
+    }
+    public static IEnumerator ToIL2CPP(this IEnumerator enumerator)
     {
         return enumerator;
     }
