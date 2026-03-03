@@ -234,7 +234,7 @@ public static class IL2CPPHelper
     {
         return new GameObject(name, Types);
     }
-    public static T GetWrappedComponent<T>(this GameObject obj) where T : WrappedBehaviour
+    public static T GetWrappedComponent<T>(this GameObject obj)
     {
         return obj.GetComponent<T>();
     }
