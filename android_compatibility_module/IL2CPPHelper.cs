@@ -4,7 +4,7 @@ namespace NeoModLoader.AndroidCompatibilityModule;
 using System = System;
 using System.Collections;
 #else
-using NeoModLoader.AndroidCompatibilityModule.IL2CPPWrapper;
+using IL2CPPWrapper;
 using Il2CppSystem.Collections;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
@@ -179,8 +179,8 @@ public static class IL2CPPHelper
         return obj;
     }
     public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
-    {
-        Il2CPPBehaviour il2cpp = UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays);
+    { 
+        Il2CPPBehaviour il2cpp = Object.Instantiate(original.Wrapper, parent, worldPositionStays);
         WrapperResolver.ResolveInstantiate(original.Wrapper.gameObject, il2cpp.gameObject);
         return (T)il2cpp.WrappedBehaviour;
     }
@@ -194,9 +194,9 @@ public static class IL2CPPHelper
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
         return behaviour.CreateWrapperIfNull(type);
     }
-    public static T GetWrappedComponent<T>(this GameObject obj) where T : WrappedBehaviour
+    public static T GetWrappedComponent<T>(this GameObject obj)
     {
-        return WrapperHelper.GetWrappedComponent(obj, typeof(T)) as T;
+        return (T) WrapperHelper.GetWrappedComponent(obj, typeof(T));
     }
 #else
     public static D C<D>(Delegate func) where D : Delegate

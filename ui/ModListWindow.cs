@@ -40,26 +40,30 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     /// <inheritdoc cref="AbstractListWindow{T,TItem}.Init" />
     protected override void Init()
     {
-        GameObject workshopButton = CreateGameObject("WorkshopButton", typeof(Image), typeof(Button), typeof(TipButton));
-        workshopButton.transform.SetParent(BackgroundTransform);
-        workshopButton.transform.localPosition = new Vector3(140, 0);
-        workshopButton.transform.localScale = Vector3.one;
-        workshopButton.GetComponent<RectTransform>().sizeDelta = new(20, 20);
-        Image workshopButtonImage = workshopButton.GetComponent<Image>();
-        workshopButtonImage.sprite = Resources.Load<Sprite>("ui/icons/iconSteam");
-        Button workshopButtonButton = workshopButton.GetComponent<Button>();
-        workshopButtonButton.onClick.AddListener(C<UnityAction>(() =>
+        if (!Config.isAndroid)
         {
-            if (Others.is_editor)
+            GameObject workshopButton =
+                CreateGameObject("WorkshopButton", typeof(Image), typeof(Button), typeof(TipButton));
+            workshopButton.transform.SetParent(BackgroundTransform);
+            workshopButton.transform.localPosition = new Vector3(140, 0);
+            workshopButton.transform.localScale = Vector3.one;
+            workshopButton.GetComponent<RectTransform>().sizeDelta = new(20, 20);
+            Image workshopButtonImage = workshopButton.GetComponent<Image>();
+            workshopButtonImage.sprite = Resources.Load<Sprite>("ui/icons/iconSteam");
+            Button workshopButtonButton = workshopButton.GetComponent<Button>();
+            workshopButtonButton.onClick.AddListener(C<UnityAction>(() =>
             {
-                InformationWindow.ShowWindow("WorkshopMods Window is not supported in editor environment");
-                return;
-            }
+                if (Others.is_editor)
+                {
+                    InformationWindow.ShowWindow("WorkshopMods Window is not supported in editor environment");
+                    return;
+                }
 
-            ScrollWindow.showWindow("WorkshopMods");
-        }));
-        TipButton workshopButtonTipButton = workshopButton.GetComponent<TipButton>();
-        workshopButtonTipButton.textOnClick = "WorkshopMods Title";
+                ScrollWindow.showWindow("WorkshopMods");
+            }));
+            TipButton workshopButtonTipButton = workshopButton.GetComponent<TipButton>();
+            workshopButtonTipButton.textOnClick = "WorkshopMods Title";
+        }
 
         GameObject modloaderButton =
             CreateGameObject("ModLoaderButton", typeof(Image), typeof(Button), typeof(TipButton));
@@ -303,7 +307,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             TipButton icon_tip_button = icon.GetComponent<TipButton>();
 
             icon.sprite = sprite;
-            var configurable = mod.GetGameObject()?.GetComponent<IConfigurable>();
+            var configurable = mod.GetGameObject()?.GetWrappedComponent<IConfigurable>();
             configure_button.gameObject.SetActive(configurable != null);
 
             icon.GetComponent<Button>().onClick.RemoveAllListeners();

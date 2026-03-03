@@ -7,7 +7,6 @@ using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using NeoModLoader.AndroidCompatibilityModule;
 using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.ui;
 

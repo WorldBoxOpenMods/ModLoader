@@ -177,7 +177,7 @@ public static class SpriteLoadUtils
     private static Sprite loadSpriteSimply(string path)
     {
         byte[] raw_data = File.ReadAllBytes(path);
-        Texture2D texture = new(0, 0);
+        Texture2D texture = new(0, 0, TextureFormat.RGBA32, false);
         texture.filterMode = FilterMode.Point;
         texture.LoadImage(raw_data);
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 1);

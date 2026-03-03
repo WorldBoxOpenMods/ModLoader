@@ -2,6 +2,7 @@ using System.Reflection;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppInterop.Runtime.Injection;
 using MelonLoader;
+using NeoModLoader.services;
 using UnityEngine;
 using Object = Il2CppSystem.Object;
 
@@ -44,7 +45,22 @@ public class Il2CPPBehaviour : MonoBehaviour
     [HideFromIl2Cpp]
     public MethodInfo GetWrappedMethod(string Method)
     {
-        return WrappedBehaviour.GetType().GetMethod(Method);
+        Type type = WrappedBehaviour.GetType();
+        while (type != null)
+        {
+            var method = type.GetMethod(
+                Method,
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.DeclaredOnly);
+
+            if (method != null)
+                return method;
+
+            type = type.BaseType;
+        }
+        return null;
     }
     [HideFromIl2Cpp]
     internal B SetWrappedBehaviour<B>(B Behaviour) where B : WrappedBehaviour

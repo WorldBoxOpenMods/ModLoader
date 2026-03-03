@@ -1,7 +1,7 @@
 
 using System.Reflection;
 using NeoModLoader.AndroidCompatibilityModule;
-using NeoModLoader.services;
+using NeoModLoader.AndroidCompatibilityModule.IL2CPPWrapper;
 using UnityEngine;
 
 public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
@@ -137,7 +137,7 @@ public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
 
 public static class WrapperHelper
 {
-	public static WrappedBehaviour GetWrappedComponent(GameObject Object, Type WrappedType)
+	public static object GetWrappedComponent(GameObject Object, Type WrappedType)
 	{
 		foreach (Il2CPPBehaviour beh in Object.GetComponents<Il2CPPBehaviour>())
 		{
@@ -146,7 +146,7 @@ public static class WrapperHelper
 				continue;
 			}
 
-			if (beh.WrappedBehaviour.GetType() == WrappedType)
+			if (beh.WrappedBehaviour.GetType().IsAssignableTo(WrappedType))
 			{
 				return beh.WrappedBehaviour;
 			}
