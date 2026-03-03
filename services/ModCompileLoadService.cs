@@ -232,7 +232,7 @@ public static class ModCompileLoadService
         // add any additional DLLs
     };
     
-    public static List<MetadataReference> LoadDotNetReferencesFromApk(string DotNetPathInApk)
+    private static List<MetadataReference> LoadDotNetReferencesFromApk(string DotNetPathInApk)
     {
         #if IL2CPP
         MelonLoader.Utils.APKAssetManager.Initialize();
