@@ -23,7 +23,7 @@ namespace NeoModLoader.ncms_compatible_layer
     using UnityEngine.UI;
     using NeoModLoader.services;
     using System.Collections.Generic;
-
+    using static NeoModLoader.AndroidCompatibilityModule.Converter;
 
     internal class Mod
     {
@@ -37,7 +37,7 @@ namespace NeoModLoader.ncms_compatible_layer
         {
             OnDebug += new Action(() => { LogService.LogInfo($""Debug toggled for mod {Info.Name}""); });
 
-            button.onClick.AddListener(new UnityAction(() =>
+            button.onClick.AddListener(C<UnityAction>(() =>
             {
                 if (debugClicked < 10)
                 {
