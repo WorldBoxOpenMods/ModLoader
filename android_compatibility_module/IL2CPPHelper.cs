@@ -46,13 +46,13 @@ public static class IL2CPPHelper
         {
             throw new ArgumentException($"IL2CPP Object of {Object.GetType()} cannot be enumerated!");
         }
-        var IEnumerator = (IEnumerator)Getenumerator.Invoke(null, null);
+        var IEnumerator = (IEnumerator)Getenumerator.Invoke(Object, null);
         return new Il2CppEnumeratorWrapper<T>(IEnumerator);
     }
 
-    public static IL2CPPEnumerator ToIL2CPP(this global::System.Collections.IEnumerator enumerator)
+    public static IEnumerator ToIL2CPP(this global::System.Collections.IEnumerator enumerator)
     {
-        return new IL2CPPEnumerator(enumerator);
+      return new IL2CPPEnumerator(enumerator).Cast<IEnumerator>();
     }
     public static Il2CppObjectBase Cast(this Il2CppObjectBase obj, Type type)
     {

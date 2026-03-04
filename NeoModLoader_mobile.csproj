@@ -27,6 +27,9 @@
       <Reference Include="0Harmony">
         <HintPath>android-assembly-dependencies\0Harmony.dll</HintPath>
       </Reference>
+      <Reference Include="Il2CppInterop.Common">
+        <HintPath>..\..\..\Desktop\melon_data\MelonLoader\net8\Il2CppInterop.Common.dll</HintPath>
+      </Reference>
       <Reference Include="Il2CppInterop.Runtime">
         <HintPath>android-assembly-dependencies\Il2CppInterop.Runtime.dll</HintPath>
       </Reference>
