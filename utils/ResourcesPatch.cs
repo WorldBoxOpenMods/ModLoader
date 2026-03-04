@@ -49,7 +49,7 @@ public static class ResourcesPatch
         tree = new ResourceTree();
         SpriteAtlas atlas = Resources.FindObjectsOfTypeAll<SpriteAtlas>()
             .FirstOrDefault(x => x.name == "SpriteAtlasUI");
-        var sprites = new Sprite[atlas.spriteCount].Convert();
+        var sprites = new Sprite[atlas.spriteCount].C();
         atlas.GetSprites(sprites);
         foreach (var sprite in sprites)
         {

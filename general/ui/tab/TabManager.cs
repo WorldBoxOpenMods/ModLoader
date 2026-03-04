@@ -29,7 +29,7 @@ public static class TabManager
         "CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/Power Tabs");
 
     private static readonly List<Button>
-        tab_entries = new (PowerTabController.instance._buttons.Convert()); // To avoid other mods' modifies
+        tab_entries = new (PowerTabController.instance._buttons.C()); // To avoid other mods' modifies
 
     private static readonly List<string> tab_names = new();
     private static readonly HashSet<string> tab_names_set = new();

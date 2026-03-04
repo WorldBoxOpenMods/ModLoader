@@ -18,10 +18,7 @@ using UnityEngine;
 public static class IL2CPPHelper
 {
     #if IL2CPP
-    public static D C<D>(Delegate func) where D : System.Delegate
-    {
-        return DelegateSupport.ConvertDelegate<D>(func);
-    }
+    #region  IL2CPPONLY
     public static bool IsValid(this Il2CppArrayBase arr)
     {
         return arr is { Length: > 0 };
@@ -39,6 +36,47 @@ public static class IL2CPPHelper
 
         return -1;
     }
+    public static Il2CppObjectBase Cast(this Il2CppObjectBase obj, Type type)
+    {
+        var method = typeof(Il2CppObjectBase)
+            .GetMethod("Cast")
+            .MakeGenericMethod(type);
+        return (Il2CppObjectBase)method.Invoke(obj, null);
+    }
+
+    #endregion
+    #region  Wrappers
+    public static Component GetComponent(this GameObject obj, Type type, int index)
+    {
+        var arr = obj.GetComponents(type.C());
+        if(!arr.IsValid()) return null;
+        return (Component)arr[index].Cast(type);
+    }
+    public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
+    { 
+        Il2CPPBehaviour il2cpp = Object.Instantiate(original.Wrapper, parent, worldPositionStays);
+        WrapperResolver.ResolveInstantiate(original.Wrapper.gameObject, il2cpp.gameObject);
+        return (T)il2cpp.WrappedBehaviour;
+    }
+    public static T AddComponent<T>(this GameObject gameObject) where T : WrappedBehaviour
+    {
+        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
+        return behaviour.CreateWrapperIfNull(typeof(T)) as T;
+    }
+    public static WrappedBehaviour AddComponent(this GameObject gameObject, Type type)
+    {
+        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
+        return behaviour.CreateWrapperIfNull(type);
+    }
+    #endregion
+  public static T GetWrappedComponent<T>(this GameObject obj)
+    {
+        return (T) WrapperHelper.GetWrappedComponent(obj, typeof(T));
+    }
+    public static D C<D>(Delegate func) where D : System.Delegate
+    {
+        return DelegateSupport.ConvertDelegate<D>(func);
+    }
     public static Il2CppEnumeratorWrapper<T> Enumerate<T>(this System.Object Object) where T : System.Object
     {
 		var Getenumerator = Object.GetType().GetMethod("System_Collections_IEnumerable_GetEnumerator", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -54,19 +92,6 @@ public static class IL2CPPHelper
     {
       return new IL2CPPEnumerator(enumerator).Cast<IEnumerator>();
     }
-    public static Il2CppObjectBase Cast(this Il2CppObjectBase obj, Type type)
-    {
-        var method = typeof(Il2CppObjectBase)
-            .GetMethod("Cast")
-            .MakeGenericMethod(type);
-        return (Il2CppObjectBase)method.Invoke(obj, null);
-    }
-    public static Component GetComponent(this GameObject obj, Type type, int index)
-    {
-        var arr = obj.GetComponents(type.C());
-        if(!arr.IsValid()) return null;
-        return (Component)arr[index].Cast(type);
-    }
     public static System.Type C (this Type type)
     {
         return Il2CppType.From(type);
@@ -76,28 +101,43 @@ public static class IL2CPPHelper
     {
         return Type.GetType(type.AssemblyQualifiedName);
     }
-    public static A[] Convert<A>(this Il2CppArrayBase<A> arr)
+
+    #region  Arrays
+    public static A[] C<A>(this Il2CppArrayBase<A> arr)
     {
         return arr;
     }
-    public static Il2CppReferenceArray<A> Convert<A>(this A[] arr) where A : Il2CppObjectBase
+    public static Il2CppReferenceArray<A> A<A>(params A[] arr) where A : Il2CppObjectBase
     {
         return arr;
     }
-    public static Il2CppStructArray<A> ConvertStruct<A>(this A[] arr) where A : unmanaged
+    public static Il2CppStringArray A(params string[] arr)
     {
         return arr;
     }
-    public static Il2CppStringArray ConvertString<A>(this string[] arr)
+    public static Il2CppStructArray<A> As<A>(params A[] arr) where A : unmanaged
     {
         return arr;
     }
-    public static System.Exception Convert(this Exception e)
+    public static Il2CppReferenceArray<A> C<A>(this A[] arr) where A : Il2CppObjectBase
+    {
+        return arr;
+    }
+    public static Il2CppStructArray<A> Cs<A>(this  A[] arr) where A : unmanaged
+    {
+        return arr;
+    }
+    public static Il2CppStringArray C(this string[] arr)
+    {
+        return arr;
+    }
+    #endregion
+    public static System.Exception C(this Exception e)
     {
         return new System.Exception(e.Message);
     }
 
-    public static System.Collections.Generic.HashSet<E> Convert<E>(this HashSet<E> set)
+    public static System.Collections.Generic.HashSet<E> C<E>(this HashSet<E> set)
     {
         System.Collections.Generic.HashSet<E> hash = new();
         foreach (var VARIABLE in set)
@@ -106,7 +146,7 @@ public static class IL2CPPHelper
         }
         return hash;
     }
-    public static HashSet<E> Convert<E>(this System.Collections.Generic.HashSet<E> set)
+    public static HashSet<E> C<E>(this System.Collections.Generic.HashSet<E> set)
     {
         HashSet<E> hash = new();
         foreach (var VARIABLE in set)
@@ -115,7 +155,7 @@ public static class IL2CPPHelper
         }
         return hash;
     }
-    public static System.Collections.Generic.List<E> Convert<E>(this List<E> e)
+    public static System.Collections.Generic.List<E> C<E>(this List<E> e)
     {
         System.Collections.Generic.List<E> list = new System.Collections.Generic.List<E>();
         foreach (var item in e)
@@ -124,7 +164,7 @@ public static class IL2CPPHelper
         }
         return list;
     }
-    public static List<E> Convert<E>(this System.Collections.Generic.List<E> e)
+    public static List<E> C<E>(this System.Collections.Generic.List<E> e)
     {
         List<E> list = new List<E>();
         foreach (var item in e)
@@ -133,7 +173,7 @@ public static class IL2CPPHelper
         }
         return list;
     }
-    public static Dictionary<key, value> Convert<key, value>(this System.Collections.Generic.Dictionary<key, value> e) 
+    public static Dictionary<key, value> C<key, value>(this System.Collections.Generic.Dictionary<key, value> e) 
     {
         Dictionary<key, value> dictionary = new Dictionary<key, value>();
         foreach (var item in e)
@@ -142,7 +182,7 @@ public static class IL2CPPHelper
         }
         return dictionary;
     }
-    public static System.Collections.Generic.Dictionary<key, value> Convert<key, value>(this Dictionary<key, value> e) 
+    public static System.Collections.Generic.Dictionary<key, value> C<key, value>(this Dictionary<key, value> e) 
     {
         System.Collections.Generic.Dictionary<key, value> dictionary = new System.Collections.Generic.Dictionary<key, value>();
         foreach (var item in e)
@@ -178,77 +218,80 @@ public static class IL2CPPHelper
         }
         return obj;
     }
-    public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
-    { 
-        Il2CPPBehaviour il2cpp = Object.Instantiate(original.Wrapper, parent, worldPositionStays);
-        WrapperResolver.ResolveInstantiate(original.Wrapper.gameObject, il2cpp.gameObject);
-        return (T)il2cpp.WrappedBehaviour;
-    }
-    public static T AddComponent<T>(this GameObject gameObject) where T : WrappedBehaviour
-    {
-        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
-        return behaviour.CreateWrapperIfNull(typeof(T)) as T;
-    }
-    public static WrappedBehaviour AddComponent(this GameObject gameObject, Type type)
-    {
-        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
-        return behaviour.CreateWrapperIfNull(type);
-    }
-    public static T GetWrappedComponent<T>(this GameObject obj)
-    {
-        return (T) WrapperHelper.GetWrappedComponent(obj, typeof(T));
-    }
 #else
-    public static D C<D>(Delegate func) where D : Delegate
+     public static D C<D>(Delegate func) where D : System.Delegate
+     {
+         return (D)func;
+     }
+    public static IEnumerator<T> Enumerate<T>(this IEnumerable<T> Object)
     {
-        return (D)func;
-    }
-    public static System.Type C (this Type type)
-    {
-        return type;
-    }
-    public static System.Type Convert(this Type type)
-    {
-        return type;
-    }
-    public static E Convert<E>(this E e) where E : Exception
-    {
-        return e;
-    }
-    public static A[] Convert<A>(this A[] array)
-    {
-        return array;
-    }
-    public static List<E> Convert<E>(this List<E> e)
-    {
-        return e;
-    }
-    public static Dictionary<key, value> Convert<key, value>(this Dictionary<key, value> e) 
-    {
-        return e;
-    }
-    public static HashSet<E> Convert<E>(this HashSet<E> set){
-    return set;
-    }
-     public static GameObject CreateGameObject(string name, params Type[] Types)
-    {
-        return new GameObject(name, Types);
-    }
-    public static T GetWrappedComponent<T>(this GameObject obj)
-    {
-        return obj.GetComponent<T>();
-    }
-    public static WrappedBehaviour AddWrappedComponent(this GameObject gameObject, Type type)
-    {
-        return (WrappedBehaviour)gameObject.AddComponent(type);
-    }
-    public static IEnumerable<T> Enumerate<T>(this IEnumerable<T> enumerable)
-    {
-        return enumerable;
+        return Object.GetEnumerator();
     }
     public static IEnumerator ToIL2CPP(this IEnumerator enumerator)
     {
         return enumerator;
+    }
+    public static Type C (this Type type)
+    {
+        return type;
+    }
+
+    #region  Arrays
+    public static A[] C<A>(this A[] arr)
+    {
+        return arr;
+    }
+    public static A[] A<A>(this A[] arr)
+    {
+        return arr;
+    }
+    public static A[] As<A>(params A[] arr) where A : unmanaged
+    {
+        return arr;
+    }
+    public static A[] Cs<A>(this  A[] arr) where A : unmanaged
+    {
+        return arr;
+    }
+    #endregion
+    public static System.Exception C(this Exception e)
+    {
+        return new System.Exception(e.Message);
+    }
+    public static HashSet<E> C<E>(this System.Collections.Generic.HashSet<E> set)
+    {
+        HashSet<E> hash = new();
+        foreach (var VARIABLE in set)
+        {
+            hash.Add(VARIABLE);
+        }
+        return hash;
+    }
+    public static System.Collections.Generic.List<E> C<E>(this List<E> e)
+    {
+        System.Collections.Generic.List<E> list = new System.Collections.Generic.List<E>();
+        foreach (var item in e)
+        {
+            list.Add(item);
+        }
+        return list;
+    }
+    public static Dictionary<key, value> C<key, value>(this System.Collections.Generic.Dictionary<key, value> e) 
+    {
+        Dictionary<key, value> dictionary = new Dictionary<key, value>();
+        foreach (var item in e)
+        {
+            dictionary.Add(item.Key, item.Value);
+        }
+        return dictionary;
+    }
+    public static GameObject CreateGameObject(string name, params Type[] types)
+    {
+        return new GameObject(name, types);
+    }
+    public static T GetWrappedComponent<T>(this GameObject obj)
+    {
+        return obj.GetComponent<T>();
     }
 #endif
 }

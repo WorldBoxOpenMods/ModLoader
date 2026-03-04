@@ -147,7 +147,7 @@ public static class LogService
     }
     public static void LogException(Exception exception) {
         if (Others.unity_player_enabled) {
-            UnityEngine.Debug.LogException(IL2CPPHelper.Convert(exception));
+            UnityEngine.Debug.LogException(IL2CPPHelper.C(exception));
         } else {
             System.Console.WriteLine(exception);
         }

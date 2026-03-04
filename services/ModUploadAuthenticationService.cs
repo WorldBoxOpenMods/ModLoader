@@ -79,7 +79,7 @@ public static class ModUploadAuthenticationService
             {
                 if (!ModUploadAuthenticationWindow.Instance.Opened())
                 {
-                    promise.Reject(new Exception("Canceled").Convert());
+                    promise.Reject(new Exception("Canceled").C());
                     break;
                 }
 

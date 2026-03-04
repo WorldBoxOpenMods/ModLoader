@@ -12,7 +12,7 @@ namespace NCMS.Utils
 
         internal static void init()
         {
-            AllWindows = ScrollWindow._all_windows.Convert();
+            AllWindows = ScrollWindow._all_windows.C();
         }
 
         public static ScrollWindow GetWindow(string pWindowID)

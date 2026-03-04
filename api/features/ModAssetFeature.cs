@@ -24,7 +24,7 @@ public abstract class ModAssetFeature<TAsset> : ModObjectFeature<TAsset> where T
         if (!base.Init()) return false;
         if (AddToLibrary)
         {
-            var library = AssetManager._instance._list.Convert().OfType<AssetLibrary<TAsset>>().FirstOrDefault();
+            var library = AssetManager._instance._list.C().OfType<AssetLibrary<TAsset>>().FirstOrDefault();
             if (library == null) throw new FeatureLoadException($"No library found for {typeof(TAsset).Name}");
             library.add(Object);
         }
