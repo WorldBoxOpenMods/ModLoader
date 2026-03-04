@@ -23,7 +23,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore NeoModLoader_mobile.csproj
     - name: Build
-      run: dotnet build NeoModLoader_mobile.csproj --configuration Debug --no-restore
+      run: dotnet build NeoModLoader_mobile.csproj
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4
       with:
