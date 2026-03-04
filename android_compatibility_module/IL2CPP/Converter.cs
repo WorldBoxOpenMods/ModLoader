@@ -62,6 +62,11 @@ public static class Converter
     {
         return arr;
     }
+
+    public static System.Nullable<A> Nullify<A>(this A a) where A : new()
+    {
+        return new System.Nullable<A>(a);
+    }
     public static Il2CppReferenceArray<A> A<A>(params A[] arr) where A : Il2CppObjectBase
     {
         return arr;

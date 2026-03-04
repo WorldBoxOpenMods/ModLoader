@@ -9,11 +9,14 @@ public static class Converter
     {
         return a;
     }
-    public static A[] A<A>(this A[] a)
+    public static A[] A<A>(params A[] a)
     {
         return a;
     }
-    
+    public static A? Nullify<A>(this A a) where A : struct
+    {
+        return a;
+    }
      public static D C<D>(Delegate func) where D : System.Delegate
      {
          return (D)func;
