@@ -143,7 +143,7 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
             var nodesToProcess = new List<FeatureTreeNode>(rootTreeNode.DependentFeatures);
             while (nodesToProcess.Count > 0)
             {
-                FeatureTreeNode treeNode = IL2CPPHelper.C(nodesToProcess).Pop();
+                FeatureTreeNode treeNode = Converter.C(nodesToProcess).Pop();
                 FeatureLoadPathNode currentLoadPathNode = newestLoadPathNode;
                 while (currentLoadPathNode != null)
                 {

@@ -200,8 +200,8 @@
         <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll" />
         <EmbeddedResource Remove="assembly-dependencies\**" />
         <None Remove="assembly-dependencies\**" />
-        <EmbeddedResource Remove="android_compatibility_module\Stubs\**" />
-        <None Remove="android_compatibility_module\Stubs\**" />
+        <EmbeddedResource Remove="android_compatibility_module\Mono\**" />
+        <None Remove="android_compatibility_module\Mono\**" />
     </ItemGroup>
   
     <ItemGroup>
@@ -221,6 +221,7 @@
       <Compile Remove="assembly-dependencies\**" />
       <Compile Remove="AndroidCompatibilityModule\Stubs\**" />
       <Compile Remove="android_compatibility_module\Stubs\**" />
+      <Compile Remove="android_compatibility_module\Mono\**" />
     </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

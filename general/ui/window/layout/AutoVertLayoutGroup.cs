@@ -2,7 +2,7 @@ using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 namespace NeoModLoader.General.UI.Window.Layout;
 
 public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup, AutoVertLayoutGroup>

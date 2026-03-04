@@ -1,11 +1,8 @@
-
+using System.Collections;
 using UnityEngine;
-using IEnumerator = System.Collections.IEnumerator;
-#if IL2CPP
-using Il2CppSystem.Collections;
-#endif
+
 namespace NeoModLoader.AndroidCompatibilityModule;
-#if IL2CPP
+
 public class WrappedBehaviour
 {
     public Transform transform => Wrapper.transform;
@@ -24,11 +21,11 @@ public class WrappedBehaviour
     }
     public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
     {
-        return IL2CPPHelper.Instantiate(original, parent, worldPositionStays);
+        return Extentions.Instantiate(original, parent, worldPositionStays);
     }
     public Coroutine StartCoroutine(IEnumerator enumerator)
     {
-         return Wrapper.StartCoroutine(enumerator.ToIL2CPP());
+        return Wrapper.StartCoroutine(enumerator.ToIL2CPP());
     }
     public static GameObject Instantiate(GameObject obj, Transform parent)
     {
@@ -44,8 +41,3 @@ public class WrappedBehaviour
        
     }
 }
-#else
-public class WrappedBehaviour : MonoBehaviour{
- public MonoBehaviour Wrapper => this;
-}
-#endif

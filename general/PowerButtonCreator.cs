@@ -1,5 +1,5 @@
 using JetBrains.Annotations;
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.Events;

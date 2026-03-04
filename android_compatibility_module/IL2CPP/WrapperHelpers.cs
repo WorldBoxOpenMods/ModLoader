@@ -1,7 +1,6 @@
 
 using System.Reflection;
 using NeoModLoader.AndroidCompatibilityModule;
-using NeoModLoader.AndroidCompatibilityModule.IL2CPPWrapper;
 using UnityEngine;
 
 public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
@@ -72,7 +71,7 @@ public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
 		}
 		else
 		{
-			val = IL2CPPHelper.Instantiate(_prefab, _parent_transform);
+			val = Extentions.Instantiate(_prefab, _parent_transform);
 			_elements_total.Add(val);
 			val.name = typeof(T)?.ToString() + " " + _elements_total.Count + " " + val.transform.GetSiblingIndex();
 		}

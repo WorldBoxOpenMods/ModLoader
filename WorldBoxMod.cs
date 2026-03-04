@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.AndroidCompatibilityModule;
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;

@@ -3,7 +3,7 @@ using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.utils;
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;

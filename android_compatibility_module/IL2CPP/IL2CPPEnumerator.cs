@@ -1,19 +1,16 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppInterop.Runtime.Injection;
-using Il2CppSystem;
-using MelonLoader;
 using ArgumentNullException = System.ArgumentNullException;
 using Il2CppIEnumerator = Il2CppSystem.Collections.IEnumerator;
 using IntPtr = System.IntPtr;
 using NotSupportedException = System.NotSupportedException;
 using Type = System.Type;
 using Object = Il2CppSystem.Object;
-namespace NeoModLoader.AndroidCompatibilityModule.IL2CPPWrapper;
+namespace NeoModLoader.AndroidCompatibilityModule;
 /// <summary>
 /// source code from bepinex
 /// </summary>

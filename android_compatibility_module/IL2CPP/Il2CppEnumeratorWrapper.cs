@@ -3,7 +3,7 @@ using Il2CppSystem.Collections;
 using NeoModLoader.services;
 using IEnumerable = System.Collections.IEnumerable;
 
-namespace NeoModLoader.AndroidCompatibilityModule.IL2CPPWrapper;
+namespace NeoModLoader.AndroidCompatibilityModule;
 
 public class Il2CppEnumeratorWrapper<T> : IEnumerator<T>, IEnumerable<T> where T : Il2CppSystem.Object
 {

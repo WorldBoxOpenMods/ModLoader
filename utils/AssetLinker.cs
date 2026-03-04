@@ -3,7 +3,7 @@ using NeoModLoader.services;
 using Newtonsoft.Json;
 using System.Reflection;
 using NeoModLoader.AndroidCompatibilityModule;
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using UnityEngine;
 namespace NeoModLoader.utils
 {

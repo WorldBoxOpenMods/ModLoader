@@ -207,10 +207,8 @@
         <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll" />
         <EmbeddedResource Remove="android-assembly-dependencies\**" />
         <None Remove="android-assembly-dependencies\**" />
-        <EmbeddedResource Remove="AndroidCompatibilityModule\IL2CPPWrapper\**" />
-        <None Remove="AndroidCompatibilityModule\IL2CPPWrapper\**" />
-        <EmbeddedResource Remove="android_compatibility_module\IL2CPPWrapper\**" />
-        <None Remove="android_compatibility_module\IL2CPPWrapper\**" />
+        <EmbeddedResource Remove="android_compatibility_module\IL2CPP\**" />
+        <None Remove="android_compatibility_module\IL2CPP\**" />
     </ItemGroup>
   
     <ItemGroup>
@@ -231,6 +229,7 @@
       <Compile Remove="android-assembly-dependencies\**" />
       <Compile Remove="AndroidCompatibilityModule\IL2CPPWrapper\**" />
       <Compile Remove="android_compatibility_module\IL2CPPWrapper\**" />
+      <Compile Remove="android_compatibility_module\IL2CPP\**" />
     </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

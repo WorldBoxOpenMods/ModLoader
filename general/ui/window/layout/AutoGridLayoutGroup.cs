@@ -1,4 +1,4 @@
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using UnityEngine;
 using UnityEngine.UI;
 

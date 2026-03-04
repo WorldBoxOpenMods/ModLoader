@@ -6,7 +6,7 @@ using NeoModLoader.utils;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Events;
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 namespace NeoModLoader.General.UI.Tab;
