@@ -64,7 +64,10 @@ Report BUG</a>
 <h3 align="center">
     How to compile NML
 </h3>
-
+### Installing on android
+1. Download the latest version of lemon loader https://gamebanana.com/mods/656702
+follow instructions there on how to install
+2. Move neomodloader_mobile.dll to MelonLoader/com.mkarpenko.worldbox/Mods
 #### Compile with IDE
 
 1. clone
