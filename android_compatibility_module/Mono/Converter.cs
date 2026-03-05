@@ -21,6 +21,16 @@ public static class Converter
     {
         return (T)obj;
     }
+    public static System.Collections.Generic.List<T> CreateList<T>(params T[] arr)
+    {
+        System.Collections.Generic.List<T> list = new System.Collections.Generic.List<T>();
+        foreach (var t in arr)
+        {
+            list.Add(t);
+        }
+
+        return list;
+    }
      public static D C<D>(Delegate func) where D : System.Delegate
      {
          return (D)func;
