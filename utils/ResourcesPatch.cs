@@ -9,6 +9,7 @@ using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 #if IL2CPP
 using Sys = Il2CppSystem;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 #else
 using Sys = System;
 #endif
@@ -80,6 +81,10 @@ public static class ResourcesPatch
     {
         if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
             return SpriteLoadUtils.LoadSprites(path);
+        if (Config.isAndroid)
+        {
+            return new Object[] { };
+        }
         return new Object[]
         {
             LoadTextAsset(path)
@@ -111,13 +116,13 @@ public static class ResourcesPatch
 
     private static TextAsset LoadTextAsset(string path)
     {
-#if IL2CPP
-        TextAsset textAsset = new TextAsset(TextAsset.CreateOptions.None, File.ReadAllText(path));
-#else
+      #if !IL2CPP
           TextAsset textAsset = new TextAsset(File.ReadAllText(path));
-#endif
-        textAsset.name = Path.GetFileNameWithoutExtension(path);
+         textAsset.name = Path.GetFileNameWithoutExtension(path);
+        
         return textAsset;
+        #endif
+        return null;
     }
 
     internal static void LoadResourceFromFolder(string pFolder, AssetLinker Linker)
@@ -177,29 +182,34 @@ public static class ResourcesPatch
         path = string.Join("/", new_parts);
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
+   [HarmonyPostfix]
+   [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
         typeof(string), typeof(Sys.Type)
     })]
-    private static Object[] LoadAll_Postfix(Object[] __result, string path,
-        Sys.Type systemTypeInstance)
-    {
-        if (tree == null) return __result;
-        ResourceTreeNode node = tree.Find(path);
-        if (node == null) return __result;
-        List<Object> append_list = node.GetAllObjects(systemTypeInstance.C());
+   #if IL2CPP
+   private static void LoadAll_Postfix(ref Il2CppReferenceArray<Object> __result, string path, Sys.Type systemTypeInstance)
+   #else
+     private static void LoadAll_Postfix(ref Object[] __result, string path, Sys.Type systemTypeInstance)
+   #endif
+   {
+       if (tree == null) return;
 
-        if (append_list.Count == 0) return __result;
+       ResourceTreeNode node = tree.Find(path);
+       if (node == null) return;
 
-        var list = new List<Object>(__result);
+       List<Object> append_list = node.GetAllObjects(systemTypeInstance.C());
+       if (append_list.Count == 0) return;
 
-        HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
-        list.RemoveAll(x => names.Contains(x.name));
+       var list = new List<Object>(__result);
 
-        list.AddRange(append_list);
-        return list.ToArray();
-    }
+       HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
+       list.RemoveAll(x => names.Contains(x.name));
+
+       list.AddRange(append_list);
+
+       __result = list.ToArray();
+   }
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]

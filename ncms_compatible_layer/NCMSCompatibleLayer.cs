@@ -58,7 +58,7 @@ namespace NeoModLoader.ncms_compatible_layer
                 string hash = $""{name}-{pivotX}-{pivotY}-{pixelsPerUnit}"";
                 if (sprite_cache.TryGetValue(hash, out var sprite))
                     return sprite;
-                Texture2D texture2D = new Texture2D(0, 0);
+                Texture2D texture2D = new Texture2D(0, 0, TextureFormat.RGBA32, false);
                 texture2D.LoadImage(GetBytes(name));
                 texture2D.anisoLevel = 0;
                 texture2D.filterMode = FilterMode.Point;

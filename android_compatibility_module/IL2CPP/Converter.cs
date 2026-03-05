@@ -62,7 +62,17 @@ public static class Converter
     {
         return arr;
     }
+    //List.Of crashes game for some reason
+    public static System.Collections.Generic.List<T> CreateList<T>(params T[] arr)
+    {
+        System.Collections.Generic.List<T> list = new System.Collections.Generic.List<T>();
+        foreach (var t in arr)
+        {
+            list.Add(t);
+        }
 
+        return list;
+    }
     public static System.Nullable<A> Nullify<A>(this A a) where A : new()
     {
         return new System.Nullable<A>(a);
@@ -74,6 +84,11 @@ public static class Converter
     public static Il2CppStringArray A(params string[] arr)
     {
         return arr;
+    }
+
+    public static T Cast<T>( Il2CppObjectBase obj) where T : Il2CppObjectBase
+    {
+        return obj.Cast<T>();
     }
     public static Il2CppReferenceArray<A> C<A>(this A[] arr) where A : Il2CppObjectBase
     {

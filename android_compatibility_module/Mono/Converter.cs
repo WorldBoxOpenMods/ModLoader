@@ -17,6 +17,10 @@ public static class Converter
     {
         return a;
     }
+    public static T Cast<T>( object obj)
+    {
+        return (T)obj;
+    }
      public static D C<D>(Delegate func) where D : System.Delegate
      {
          return (D)func;
