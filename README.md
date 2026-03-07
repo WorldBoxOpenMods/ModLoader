@@ -49,7 +49,10 @@ If you're trying to play mods that aren't compatible with the latest version of 
 3. Start the game with experimental mode enabled
 
 It is recommended to subscribe to the NML item on the Steam Workshop to receive automatic updates
-
+## Installing on Android
+1. Download the latest version of lemon loader https://gamebanana.com/mods/656702
+follow instructions there on how to install
+2. Move neomodloader_mobile.dll to MelonLoader/com.mkarpenko.worldbox/Mods
 <h2 align="center">Others</h2>
 <h3 align="center">
 <a href="https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-en.yaml&title=%5BBug%5D%3A+">
@@ -64,7 +67,6 @@ Report BUG</a>
 <h3 align="center">
     How to compile NML
 </h3>
-
 #### Compile with IDE
 
 1. clone
@@ -103,3 +105,4 @@ New features or code reconstruction:
 2. Mod one-click install for various platforms
 3. Manage vanilla tab buttons
 4. Assembly-CSharp mod support(modify game code)
+

@@ -10,7 +10,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  Windows:
+  Android:
 
     runs-on: windows-2025
 
