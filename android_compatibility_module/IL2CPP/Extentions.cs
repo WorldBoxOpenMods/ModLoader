@@ -21,6 +21,11 @@ public static class Extentions
 
         return -1;
     }
+
+    public static nint GetPointer<T>(this T obj) where T : Il2CppObjectBase
+    {
+        return obj.Pointer;
+    }
     public static Il2CppObjectBase Cast(this Il2CppObjectBase obj, Type type)
     {
         var method = typeof(Il2CppObjectBase)

@@ -47,5 +47,24 @@ public static class Converter
     {
         return new GameObject(name, types);
     }
-   
+    public static System.Collections.Generic.List<T> L<T>(params T[] arr)
+    {
+        System.Collections.Generic.List<T> list = new();
+        foreach (var t in arr)
+        {
+            list.Add(t);
+        }
+
+        return list;
+    }
+    public static System.Collections.Generic.HashSet<T> H<T>(params T[] arr)
+    {
+        System.Collections.Generic.HashSet<T> list = new();
+        foreach (var t in arr)
+        {
+            list.Add(t);
+        }
+
+        return list;
+    }
 }

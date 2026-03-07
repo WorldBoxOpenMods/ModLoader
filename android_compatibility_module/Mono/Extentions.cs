@@ -8,4 +8,8 @@ public static class Extentions
     {
         return obj.GetComponent<T>();
     }
+    public static T GetPointer<T>(this T obj)
+        {
+            return obj;
+        }
 }
