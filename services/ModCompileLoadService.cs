@@ -229,7 +229,13 @@ public static class ModCompileLoadService
         "System.Linq.dll",
         "System.Collections.dll",
         "System.Threading.dll",
-        // add any additional DLLs
+        "System.ObjectModel.dll",
+        "System.ComponentModel.TypeConverter.dll",
+        "System.Linq.Expressions.dll",
+        "mscorlib.dll",
+        "System.Private.Uri.dll",
+        "System.IO.Compression.ZipFile.dll"
+        // add any additional DLLs 
     };
     
     private static List<MetadataReference> LoadDotNetReferencesFromApk(string DotNetPathInApk)

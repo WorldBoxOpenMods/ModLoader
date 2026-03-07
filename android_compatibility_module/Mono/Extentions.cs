@@ -12,4 +12,15 @@ public static class Extentions
         {
             return obj;
         }
+
+    public static List<Transform> GetChildren(this Transform transform)
+    {
+        List<Transform> list = new List<Transform>();
+        foreach (Transform tr in transform)
+        {
+            list.Add(tr);
+        }
+
+        return list;
+    }
 }

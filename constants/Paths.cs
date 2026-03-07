@@ -16,7 +16,7 @@ public static class Paths
     public static readonly string MelonPath = MelonHelper.GetPath();
 
     /// <summary>
-    /// path to the dotnet dlls inside modded woldbox apk assets on android
+    /// path to the dotnet dlls inside modded worldbox apk assets
     /// </summary>
     public static readonly string DotnetAPKPath = "dotnet/shared/Microsoft.NETCore.App/8.0.6/";
     /// <summary>

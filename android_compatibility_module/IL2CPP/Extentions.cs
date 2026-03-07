@@ -50,6 +50,16 @@ public static class Extentions
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
         return behaviour.CreateWrapperIfNull(typeof(T)) as T;
     }
+    public static List<Transform> GetChildren(this Transform transform)
+    {
+        List<Transform> list = new List<Transform>();
+        for (int i = 0; i < transform.GetChildCount(); i++)
+        {
+            Transform child = transform.GetChild(i);
+            list.Add(child);
+        }
+        return list;
+    }
     public static WrappedBehaviour AddComponent(this GameObject gameObject, Type type)
     {
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();

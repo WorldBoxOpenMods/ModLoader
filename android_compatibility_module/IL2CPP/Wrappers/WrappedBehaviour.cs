@@ -20,13 +20,33 @@ public class WrappedBehaviour
         Il2CPPBehaviour.DontDestroyOnLoad(gameObject);
     }
 
-    public static T FindObjectOfType<T>() where T : UnityEngine.Object
+    public static UnityEngine.Object FindObjectOfType(Type type)
     {
-        return Il2CPPBehaviour.FindObjectOfType<T>();
+        return Il2CPPBehaviour.FindObjectOfType(Il2CppType.From(type));
     }
-    public static T[] FindObjectsOfType<T>() where T : UnityEngine.Object
+    public static T FindObjectOfType<T>() where T : WrappedBehaviour
     {
-        return ((UnityEngine.Object[])Il2CPPBehaviour.FindObjectsOfType(Il2CppType.From(typeof(T)))).Cast<T>().ToArray();
+        T[] arr = FindObjectsOfType<T>();
+        return arr.Length != 0 ? arr[0] : null;
+    }
+    public static T[] FindObjectsOfType<T>() where T : WrappedBehaviour
+    {
+        List<T> list = new List<T>();
+        Il2CPPBehaviour[] il2cpp = FindObjectsOfType(typeof(Il2CPPBehaviour)).Cast<Il2CPPBehaviour>().ToArray();
+        Type type = typeof(T);
+        foreach (var beh in il2cpp)
+        {
+            if (beh.WrappedBehaviour.GetType().IsAssignableTo(type))
+            {
+                list.Add((T)beh.WrappedBehaviour);
+            }
+        }
+
+        return list.ToArray();
+    }
+    public static UnityEngine.Object[] FindObjectsOfType(Type type)
+    {
+        return Il2CPPBehaviour.FindObjectsOfType(Il2CppType.From(type));
     }
     public Il2CPPBehaviour Wrapper { get; internal set; }
     public C GetComponent<C>() where C : Component

@@ -157,9 +157,8 @@ public class WrapperResolver
 {
 	static void AddChildren(Transform transform, List<Transform> children)
 	{
-		for (int i = 0; i < transform.GetChildCount(); i++)
+		foreach (Transform child in transform.GetChildren())
 		{
-			Transform child = transform.GetChild(i);
 			children.Add(child);
 			AddChildren(child, children);
 		}
