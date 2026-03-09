@@ -17,6 +17,7 @@
 
 A new mod loader for [Worldbox](http://www.superworldbox.com/) after [NCMS](https://denq04.github.io/ncms/), called NML
 for short. Detailed introduction look [Gitbook](https://worldboxopenmods.gitbook.io/mod-tutorial-en).
+this is the android version of the project.
 
 <h2 align="center"> Overview </h2>
 
