@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using NeoModLoader.AndroidCompatibilityModule;
 using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using NeoModLoader.services;
 using UnityEngine;
@@ -115,7 +116,15 @@ public static class PowerButtonCreator
         obj.gameObject.SetActive(true);
         return obj;
     }
-
+    /// <summary>
+    ///  for compatibility with il2cpp
+    /// </summary>
+    /// <remarks>do NOT use delegates without the same parameters/return of <see cref="UnityAction"/></remarks>
+    public static PowerButton CreateSimpleButton(string pId, Delegate pAction,
+        Sprite pIcon, Transform pParent = null, Vector2 pLocalPosition = default)
+    {
+        return CreateSimpleButton(pId, C<UnityAction>(pAction), pIcon, pParent, pLocalPosition);
+    }
     /// <summary>
     /// Create a button to use common god power
     /// </summary>
