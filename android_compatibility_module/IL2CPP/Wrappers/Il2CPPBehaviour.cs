@@ -34,9 +34,14 @@ public class Il2CPPBehaviour : MonoBehaviour
         onDisable?.Invoke(WrappedBehaviour, null);
     }
 
+    private bool canawake;
     public void Awake()
     {
-        awake?.Invoke(WrappedBehaviour, null);
+        if(canawake){
+            LogService.LogInfo(WrappedBehaviour.GetType().FullName);
+            awake?.Invoke(WrappedBehaviour, null);
+            canawake = false;
+        }
     }
     public void Update()
     {
@@ -60,6 +65,7 @@ public class Il2CPPBehaviour : MonoBehaviour
 
             type = type.BaseType;
         }
+        
         return null;
     }
     [HideFromIl2Cpp]
@@ -70,6 +76,11 @@ public class Il2CPPBehaviour : MonoBehaviour
         update = GetWrappedMethod("Update");
         start = GetWrappedMethod("Start");
         awake = GetWrappedMethod("Awake");
+        canawake = true;
+        if (gameObject.activeInHierarchy)
+        {
+            Awake();
+        }
         onEnable = GetWrappedMethod("OnEnable");
         onDisable = GetWrappedMethod("OnDisable");
         return Behaviour;

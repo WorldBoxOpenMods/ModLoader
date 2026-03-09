@@ -464,6 +464,9 @@ public static class ModCompileLoadService
 
         foreach (var mod_assembly in mod_assemblies)
         {
+            #if IL2CPP
+            MelonLoader.RegisterTypeInIl2Cpp.RegisterAssembly(mod_assembly);
+            #endif
             GameObject mod_instance;
             foreach (var type in mod_assembly.GetTypes())
             {
