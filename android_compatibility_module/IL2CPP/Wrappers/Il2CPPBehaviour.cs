@@ -38,7 +38,6 @@ public class Il2CPPBehaviour : MonoBehaviour
     public void Awake()
     {
         if(canawake){
-            LogService.LogInfo(WrappedBehaviour.GetType().FullName);
             awake?.Invoke(WrappedBehaviour, null);
             canawake = false;
         }
