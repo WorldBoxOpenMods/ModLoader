@@ -1,6 +1,13 @@
+using System.Collections;
+using System.Reflection;
+using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSystem.Linq;
 using UnityEngine;
+using UnityEngine.Events;
+using IEnumerator = Il2CppSystem.Collections.IEnumerator;
+
 namespace NeoModLoader.AndroidCompatibilityModule;
 public static class Extentions
 {
@@ -21,7 +28,20 @@ public static class Extentions
 
         return -1;
     }
+    public static Il2CppSystem.Collections.Generic.List<T>  ToList<T>(this Il2CppObjectBase Object) where T : Il2CppSystem.Object
+    {
+        var enumerable = Object.Cast<Il2CppSystem.Collections.Generic.IEnumerable<T>>();
+        if (enumerable == null)
+        {
+            throw new ArgumentException($"IL2CPP Object of {Object.GetType()} cannot be enumerated!");
+        }
+        return enumerable.ToList();
+    }
 
+    public static IEnumerator ToIL2CPP(this global::System.Collections.IEnumerator enumerator)
+    {
+        return new IL2CPPEnumerator(enumerator).Cast<IEnumerator>();
+    }
     public static nint GetPointer<T>(this T obj) where T : Il2CppObjectBase
     {
         return obj.Pointer;
@@ -39,12 +59,6 @@ public static class Extentions
         if(!arr.IsValid()) return null;
         return (Component)arr[index].Cast(type);
     }
-    public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
-    { 
-        Il2CPPBehaviour il2cpp = UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays);
-        WrapperResolver.ResolveInstantiate(original.Wrapper.gameObject, il2cpp.gameObject);
-        return (T)il2cpp.WrappedBehaviour;
-    }
     public static T AddComponent<T>(this GameObject gameObject) where T : WrappedBehaviour
     {
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
@@ -59,6 +73,16 @@ public static class Extentions
             list.Add(child);
         }
         return list;
+    }
+    public static T GetWrappedComponent<T>(this GameObject obj)
+    {
+        return (T) WrapperHelper.GetWrappedComponent(obj, typeof(T));
+    }
+    public static void AddListener(this UnityEvent action, Delegate func){
+        action.AddListener(Converter.C<UnityAction>(func));
+    }
+    public static void AddListener<T>(this UnityEvent<T> action, Delegate func){
+        action.AddListener(Converter.C<UnityAction<T>>(func));
     }
     public static WrappedBehaviour AddComponent(this GameObject gameObject, Type type)
     {

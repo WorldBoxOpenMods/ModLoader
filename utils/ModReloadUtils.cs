@@ -124,6 +124,10 @@ internal static class ModReloadUtils
 
     private static bool IsHotfixable(MethodDefinition methodDefinition)
     {
+        if (Config.isAndroid)
+        {
+            return false;
+        }
         return methodDefinition.CustomAttributes.Any(
             attribute => attribute.AttributeType.FullName == typeof(HotfixableAttribute).FullName
         );

@@ -35,10 +35,6 @@ public static class Converter
      {
          return (D)func;
      }
-    public static IEnumerator<T> Enumerate<T>(this IEnumerable<T> Object)
-    {
-        return Object.GetEnumerator();
-    }
     public static IEnumerator ToIL2CPP(this IEnumerator enumerator)
     {
         return enumerator;

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using Il2CppSystem.Linq;
 
 namespace NeoModLoader.AndroidCompatibilityModule;
 using Il2CppSystem.Collections;
@@ -14,10 +15,7 @@ using UnityEngine;
 /// </summary>
 public static class Converter
 {
-  public static T GetWrappedComponent<T>(this GameObject obj)
-    {
-        return (T) WrapperHelper.GetWrappedComponent(obj, typeof(T));
-    }
+  
     public static D C<D>(Delegate func) where D : System.Delegate
     {
         return DelegateSupport.ConvertDelegate<D>(func);
@@ -30,22 +28,6 @@ public static class Converter
     public static System.ValueTuple<X, Y> C<X, Y>(ValueTuple<X, Y> tuple)
     {
         return new System.ValueTuple<X, Y>(tuple.Item1, tuple.Item2);
-    }
-    public static Il2CppEnumeratorWrapper<T> Enumerate<T>(this Il2CppObjectBase Object) where T : System.Object
-    {
-        var enumerable = Object.Cast<System.Collections.Generic.IEnumerable<T>>();
-        if (enumerable == null)
-        {
-            throw new ArgumentException($"IL2CPP Object of {Object.GetType()} cannot be enumerated!");
-        }
-
-        var IEnumerator = enumerable.GetEnumerator();
-        return new Il2CppEnumeratorWrapper<T>(IEnumerator.Cast<IEnumerator>());
-    }
-
-    public static IEnumerator ToIL2CPP(this global::System.Collections.IEnumerator enumerator)
-    {
-      return new IL2CPPEnumerator(enumerator).Cast<IEnumerator>();
     }
     public static System.Type C (this Type type)
     {

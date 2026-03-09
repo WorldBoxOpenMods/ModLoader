@@ -56,7 +56,7 @@ public class WrappedBehaviour
     }
     public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
     {
-        return Extentions.Instantiate(original, parent, worldPositionStays);
+        return WrapperHelper.Instantiate(original, parent, worldPositionStays);
     }
     public Coroutine StartCoroutine(IEnumerator enumerator)
     {
@@ -65,13 +65,22 @@ public class WrappedBehaviour
     public void StopAllCoroutines(){
         Wrapper.StopAllCoroutines();
     }
-    public static GameObject Instantiate(GameObject obj, Transform parent)
+    public static GameObject Instantiate(GameObject obj, Transform parent = null, bool positionstays = false)
     {
-        return GameObject.Instantiate(obj, parent);
+        return WrapperHelper.Instantiate(obj, parent, positionstays);
     }
     public static void Destroy(UnityEngine.Object Object)
     {
         GameObject.Destroy(Object);
+    }
+
+    public T AddComponent<T>() where T : Component
+    {
+        return Wrapper.AddComponent<T>();
+    }
+    public T AddComponent<T>(bool stub = true) where T : WrappedBehaviour
+    {
+        return gameObject.AddComponent<T>();
     }
     public static implicit operator Il2CPPBehaviour(WrappedBehaviour beh)
     {

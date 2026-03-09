@@ -71,7 +71,7 @@ public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
 		}
 		else
 		{
-			val = Extentions.Instantiate(_prefab, _parent_transform);
+			val = WrapperHelper.Instantiate(_prefab, _parent_transform);
 			_elements_total.Add(val);
 			val.name = typeof(T)?.ToString() + " " + _elements_total.Count + " " + val.transform.GetSiblingIndex();
 		}
@@ -136,6 +136,18 @@ public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
 
 public static class WrapperHelper
 {
+	public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
+	{ 
+		Il2CPPBehaviour il2cpp = UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays);
+		WrapperResolver.ResolveInstantiate(original.Wrapper.gameObject, il2cpp.gameObject);
+		return (T)il2cpp.WrappedBehaviour;
+	}
+	public static GameObject Instantiate(GameObject original, Transform parent, bool worldPositionStays = true)
+	{ 
+		GameObject newobj = UnityEngine.Object.Instantiate(original, parent, worldPositionStays);
+		WrapperResolver.ResolveInstantiate(original, newobj);
+		return newobj;
+	}
 	public static object GetWrappedComponent(GameObject Object, Type WrappedType)
 	{
 		foreach (Il2CPPBehaviour beh in Object.GetComponents<Il2CPPBehaviour>())
@@ -153,7 +165,8 @@ public static class WrapperHelper
 		return null;
 	}
 }
-public class WrapperResolver
+
+public class WrapperResolver : IDisposable
 {
 	static void AddChildren(Transform transform, List<Transform> children)
 	{
@@ -170,6 +183,7 @@ public class WrapperResolver
 	{
 		WrapperResolver resolver = new WrapperResolver(orig, clone);
 		resolver.Resolve();
+		resolver.Dispose();
 	}
 	public WrapperResolver(GameObject orig, GameObject clone)
 	{
@@ -192,13 +206,9 @@ public class WrapperResolver
 			}
 		}
 	}
-	public static int Getindex(Component beh, GameObject obj)
+	static int Getindex(Component beh, GameObject obj)
 	{
 		var arr = obj.GetComponents(beh.GetType().C());
-		if (!arr.IsValid())
-		{
-			return -1;
-		}
 		int result = arr.GetIndex(beh);
 		return result;
 	}
@@ -228,8 +238,7 @@ public class WrapperResolver
 			else if (typeof(Component).IsAssignableFrom(type))
 			{
 				var obj =  (Component)field.GetValue(beh);
-				var result = ResolveGameObject(obj.gameObject).GetComponent(type, Getindex(obj, obj.gameObject));
-				field.SetValue(cloned, result);
+				field.SetValue(cloned, ResolveGameObject(obj.gameObject).GetComponent(type, Getindex(obj, obj.gameObject)));
 			}
 			else if (typeof(WrappedBehaviour).IsAssignableFrom(type))
 			{
@@ -249,5 +258,11 @@ public class WrapperResolver
 			return orig;
 		}
 		return ClonedObjects[OrigObjects.IndexOf(orig.transform)].gameObject;
+	}
+
+	public void Dispose()
+	{
+		OrigObjects = null;
+		ClonedObjects = null;
 	}
 }

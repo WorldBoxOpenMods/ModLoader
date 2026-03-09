@@ -61,7 +61,7 @@ public abstract class AutoLayoutGroup<T, TElement> : AutoLayoutElement<TElement>
         GameObject game_object =
             CreateGameObject(nameof(TSubGroup), typeof(TSub), typeof(TSubGroup));
 
-        TSub sub_group = game_object.GetComponent<TSub>();
+        TSub sub_group = game_object.GetWrappedComponent<TSub>();
 
         if (pSize != default)
         {
