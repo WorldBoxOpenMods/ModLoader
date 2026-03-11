@@ -347,7 +347,7 @@ namespace NeoModLoader.utils
             Asset.phenotype_index = Library.list.Count - 1;
             Library._phenotypes_assets_by_index.Add(Asset.phenotype_index, Asset);   
         }
-        public static void LinkItem(Asset asset)
+        public static void LinkEquipmentAsset(Asset asset)
         {
             EquipmentAsset Asset = asset as EquipmentAsset;
             if (Asset.item_modifier_ids != null)
@@ -397,7 +397,7 @@ namespace NeoModLoader.utils
             }
             LinkAugmentationAsset(Asset);
         }
-        public static void LinkItemModifier(Asset asset)
+        public static void LinkItemModAsset(Asset asset)
         {
             ItemModAsset Asset = asset as ItemModAsset;
             ItemModifierLibrary Library = AssetManager.items_modifiers;
