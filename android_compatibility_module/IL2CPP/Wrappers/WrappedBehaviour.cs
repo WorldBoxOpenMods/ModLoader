@@ -1,14 +1,19 @@
 using System.Collections;
 using Il2CppInterop.Runtime;
+using NeoModLoader.services;
+using Newtonsoft.Json;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace NeoModLoader.AndroidCompatibilityModule;
 
 public class WrappedBehaviour
 {
+    [JsonIgnore]
     public Transform transform => Wrapper.transform;
-
+    [JsonIgnore]
     public GameObject gameObject => Wrapper.gameObject;
+    [JsonIgnore]
     public string name
     {
         get => Wrapper.name;
@@ -20,24 +25,24 @@ public class WrappedBehaviour
         Il2CPPBehaviour.DontDestroyOnLoad(gameObject);
     }
 
-    public static T FindObjectOfType<T>(bool stub = true) where T : UnityEngine.Object
+    public static T FindObjectOfType<T>(bool includeInactive = false) where T : UnityEngine.Object
     {
-        T[] arr = FindObjectsOfType<T>();
+        T[] arr = FindObjectsOfType<T>(includeInactive);
         return arr.Length != 0 ? arr[0] : null;
     }
-    public static T FindObjectOfType<T>() where T : WrappedBehaviour
+    public static T FindObjectOfType<T>(bool includeInactive = false, bool stub = true) where T : WrappedBehaviour
     {
-        T[] arr = FindObjectsOfType<T>();
+        T[] arr = FindObjectsOfType<T>(includeInactive);
         return arr.Length != 0 ? arr[0] : null;
     }
-    public static T[] FindObjectsOfType<T>() where T : WrappedBehaviour
+    public static T[] FindObjectsOfType<T>(bool includeInactive = false, bool stub = true) where T : WrappedBehaviour
     {
         List<T> list = new List<T>();
-        Il2CPPBehaviour[] il2cpp = FindObjectsOfType<Il2CPPBehaviour>();
+        Il2CPPBehaviour[] il2cpp = FindObjectsOfType<Il2CPPBehaviour>(includeInactive);
         Type type = typeof(T);
         foreach (var beh in il2cpp)
         {
-            if (beh.WrappedBehaviour.GetType().IsAssignableTo(type))
+            if (beh.WrappedType.IsAssignableTo(type))
             {
                 list.Add((T)beh.WrappedBehaviour);
             }
@@ -45,10 +50,16 @@ public class WrappedBehaviour
 
         return list.ToArray();
     }
-    public static T[] FindObjectsOfType<T>(bool stub = true) where T : UnityEngine.Object
+    public static T[] FindObjectsOfType<T>(bool includeInactive = false) where T : Object
     {
-        return ((UnityEngine.Object[])Il2CPPBehaviour.FindObjectsOfType(Il2CppType.From(typeof(T)))).Cast<T>().ToArray();
+        var arr = Object.FindObjectsOfType(Il2CppType.Of<T>(), includeInactive);
+        if (!arr.IsValid())
+            return [];
+        return arr
+            .Select(obj => obj.Cast<T>())
+            .ToArray();
     }
+    [JsonIgnore]
     public Il2CPPBehaviour Wrapper { get; internal set; }
     public C GetComponent<C>() where C : Component
     {

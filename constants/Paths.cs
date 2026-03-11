@@ -31,7 +31,7 @@ public static class Paths
     /// <summary>
     /// Path to persistent data
     /// </summary>
-    public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
+    public static readonly string PersistentDataPath = !Config.isAndroid ? Combine(Application.persistentDataPath) : Combine(MelonPath, "UserData");
 
     /// <summary>
     /// Path to folder StreamingAssets, or base melon path if on android

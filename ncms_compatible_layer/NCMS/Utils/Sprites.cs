@@ -17,7 +17,7 @@ public class Sprites
         if (!File.Exists(path))
             return (Sprite) null;
         */
-        var texture2D = new Texture2D(0, 0);
+        var texture2D = new Texture2D(0, 0, TextureFormat.RGBA32, false);
         texture2D.anisoLevel = 0;
         texture2D.filterMode = FilterMode.Point;
         texture2D.LoadImage(File.ReadAllBytes(path));

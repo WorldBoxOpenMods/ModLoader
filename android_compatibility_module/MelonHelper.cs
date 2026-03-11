@@ -10,6 +10,22 @@ public static class MelonHelper
     {
         return MelonEnvironment.GameRootDirectory;
     }
+    /// <summary>
+     /// Reads a file in the apk assets directory
+     /// </summary>
+     /// <param name="assetPath">the path to the file from the assets folder in the apk</param>
+     /// <returns>the file bytes, or null if not found</returns>
+    public static byte[] ReadAPKAsset(string assetPath)
+    {
+        APKAssetManager.Initialize();
+        if (!APKAssetManager.DoesAssetExist(assetPath))
+        {
+            MelonLogger.Warning($"DLL not found in APK assets: {assetPath}");
+            return null;
+        }
+        var dllBytes = APKAssetManager.GetAssetBytes(assetPath);
+        return dllBytes is { Length: > 0 } ? dllBytes : null;
+    }
 
     public static void Log(string msg)
     {
@@ -42,6 +58,9 @@ public static class MelonHelper
     public static void LogWarning(string msg)
     {
         UnityEngine.Debug.LogWarning(msg);
+    }
+    public static byte[] ReadAPKAsset(string assetPath){
+        throw new NotImplementedException("How did we get here?");
     }
     #endif
 }

@@ -1,4 +1,5 @@
 
+using System.Linq.Expressions;
 using System.Reflection;
 using NeoModLoader.AndroidCompatibilityModule;
 using UnityEngine;
@@ -136,6 +137,16 @@ public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
 
 public static class WrapperHelper
 {
+	public static WrappedAction CreateWrappedAction(MethodInfo method)
+	{
+		var param = Expression.Parameter(typeof(WrappedBehaviour), "beh");
+
+		var call = Expression.Call(
+			Expression.Convert(param, method.DeclaringType), // cast WrappedBehaviour → ConcurrentLogHandle
+			method
+		);
+		return Expression.Lambda<WrappedAction>(call, param).Compile();
+	}
 	public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true) where T : WrappedBehaviour
 	{ 
 		Il2CPPBehaviour il2cpp = UnityEngine.Object.Instantiate(original.Wrapper, parent, worldPositionStays);
@@ -157,7 +168,7 @@ public static class WrapperHelper
 				continue;
 			}
 
-			if (beh.WrappedBehaviour.GetType().IsAssignableTo(WrappedType))
+			if (beh.WrappedType.IsAssignableTo(WrappedType))
 			{
 				return beh.WrappedBehaviour;
 			}
@@ -215,7 +226,7 @@ public class WrapperResolver : IDisposable
 	public void Clone(Il2CPPBehaviour orig, Il2CPPBehaviour clone)
 	{
 		WrappedBehaviour beh = orig.WrappedBehaviour;
-		Type WrappedType = orig.WrappedBehaviour.GetType();
+		Type WrappedType = orig.WrappedType;
 		WrappedBehaviour cloned = clone.CreateWrapperIfNull(WrappedType);
 		var fields = WrappedType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		foreach (var field in fields)

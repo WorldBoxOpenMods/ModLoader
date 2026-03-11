@@ -240,39 +240,21 @@ public static class ModCompileLoadService
     
     private static List<MetadataReference> LoadDotNetReferencesFromApk(string DotNetPathInApk)
     {
-        #if IL2CPP
-        MelonLoader.Utils.APKAssetManager.Initialize();
-
         List<MetadataReference> references = new List<MetadataReference>();
-
         foreach (var dllName in RuntimeDlls)
         {
             string assetPath = DotNetPathInApk + dllName;
-
-            if (!MelonLoader.Utils.APKAssetManager.DoesAssetExist(assetPath))
+            byte[] dllBytes = MelonHelper.ReadAPKAsset(assetPath);
+            if (dllBytes != null)
             {
-                LogService.LogWarning($"DLL not found in APK assets: {assetPath}");
-                continue;
+                references.Add(MetadataReference.CreateFromImage(dllBytes));
             }
-
-            try
+            else
             {
-                byte[] dllBytes = MelonLoader.Utils.APKAssetManager.GetAssetBytes(assetPath);
-                if (dllBytes != null && dllBytes.Length > 0)
-                {
-                    references.Add(MetadataReference.CreateFromImage(dllBytes));
-                }
-            }
-            catch (Exception ex)
-            {
-                LogService.LogError($"Failed to load DLL {assetPath}: {ex}");
+                LogService.LogError($"Failed to load DLL {assetPath}");
             }
         }
-
         return references;
-        #else
-        throw new Exception("how did we get here?");
-        #endif
     }
     /// <summary>
     /// Prepare references for mod nodes
@@ -494,8 +476,8 @@ public static class ModCompileLoadService
                 IMod mod_interface = null;
                 try
                 {
+                    object main_component;
                     #if IL2CPP
-                    WrappedBehaviour main_component = null;
                     if (type.GetInterface(nameof(IMod)) == null)
                     {
                         mod_interface = mod_instance.AddComponent<AttachedModComponent>();
@@ -507,11 +489,10 @@ public static class ModCompileLoadService
                         main_component = (WrappedBehaviour)mod_interface;
                     }
                     #else
-                    MonoBehaviour main_component = null;
-                    if (type.GetInterface(nameof(IMod)) == null)
-                    {
+                    if (type.GetInterface(nameof(IMod)) == null){
                         mod_interface = mod_instance.AddComponent<AttachedModComponent>();
                         main_component = (MonoBehaviour) mod_instance.AddComponent(type);
+
                     }
                     else
                     {
