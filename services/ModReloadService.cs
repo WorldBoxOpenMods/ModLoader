@@ -37,12 +37,30 @@ internal static class ModReloadService
         string locale_path = localizable_mod.GetLocaleFilesDirectory(pMod.GetDeclaration());
         if (!Directory.Exists(locale_path)) return;
 
-        var files = Directory.GetFiles(locale_path);
+        var files = Directory.GetFiles(locale_path, "*", SearchOption.AllDirectories);
+        char csv_separator = ',';
+        if (pMod is ICsvSepCustomized sep_customized)
+            csv_separator = sep_customized.GetCsvSeparator();
+
         foreach (var locale_file in files)
         {
             LogService.LogInfo(
                 $"Reload {locale_file} as {Path.GetFileNameWithoutExtension(locale_file)}");
-            LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
+            try
+            {
+                if (locale_file.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
+                }
+                else if (locale_file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    LM.LoadLocales(locale_file, csv_separator);
+                }
+            }
+            catch (FormatException e)
+            {
+                LogService.LogWarning(e.Message);
+            }
         }
 
         LM.ApplyLocale();
