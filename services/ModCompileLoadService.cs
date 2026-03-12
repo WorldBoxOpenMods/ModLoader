@@ -30,9 +30,10 @@ public static class ModCompileLoadService
     private static readonly Dictionary<string, MetadataReference> mod_ref = new();
 
     private static bool compileMod(ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
-        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, bool pForce = false,
+        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, out string pCompileErrors, bool pForce = false,
         bool pDisableOptionalDepen = false)
     {
+        pCompileErrors = string.Empty;
         var available_optional_depens = pDisableOptionalDepen
             ? new List<string>()
             : pModDecl.OptionalDependencies.Where(pModInc.ContainsKey).ToList();
@@ -192,14 +193,7 @@ public static class ModCompileLoadService
 
         if (!result.Success)
         {
-            StringBuilder diags = new StringBuilder();
-            foreach (var diagnostic in result.Diagnostics)
-            {
-                if (diagnostic.Severity != DiagnosticSeverity.Error) continue;
-                diags.AppendLine(diagnostic.ToString());
-            }
-
-            LogService.LogError(diags.ToString());
+            pCompileErrors = CollectCompileErrors(result.Diagnostics);
             return false;
         }
 
@@ -213,6 +207,41 @@ public static class ModCompileLoadService
 
         ModInfoUtils.RecordMod(pModDecl, available_depens, available_optional_depens, false, false);
         return true;
+    }
+
+    private static string CollectCompileErrors(IEnumerable<Diagnostic> pDiagnostics)
+    {
+        StringBuilder diags = new StringBuilder();
+        foreach (var diagnostic in pDiagnostics)
+        {
+            if (diagnostic.Severity != DiagnosticSeverity.Error) continue;
+            diags.AppendLine(diagnostic.ToString());
+        }
+
+        return diags.ToString().TrimEnd();
+    }
+
+    private static void LogCompileFailure(string pModUid, string pCompileErrors)
+    {
+        if (string.IsNullOrWhiteSpace(pCompileErrors))
+        {
+            LogService.LogError($"Failed to compile mod {pModUid}");
+            return;
+        }
+
+        LogService.LogError($"Failed to compile mod {pModUid}:\n{pCompileErrors}");
+    }
+
+    private static void LogCompileFailureWithOptionalDependencies(string pModUid, string pCompileErrors)
+    {
+        if (string.IsNullOrWhiteSpace(pCompileErrors))
+        {
+            LogService.LogWarning($"Failed to compile mod {pModUid} with optional dependencies, but succeeded after disabling them");
+            return;
+        }
+
+        LogService.LogWarning(
+            $"Failed to compile mod {pModUid} with optional dependencies, but succeeded after disabling them:\n{pCompileErrors}");
     }
 
     /// <summary>
@@ -276,14 +305,12 @@ public static class ModCompileLoadService
             return true;
         }
 
-        bool compile_result = false;
-
-        bool disable_optional_depen = false;
-        RECOMPILE:
+        bool compile_result;
+        bool has_available_optional_depen = pModNode.mod_decl.OptionalDependencies.Any(mod_ref.ContainsKey);
+        string compile_errors;
         compile_result =
             compileMod(pModNode.mod_decl, _default_ref,
-                pModNode.GetAdditionReferences(!disable_optional_depen).ToArray(), mod_ref, pForce,
-                disable_optional_depen
+                pModNode.GetAdditionReferences().ToArray(), mod_ref, out compile_errors, pForce
             );
         if (compile_result)
         {
@@ -291,12 +318,31 @@ public static class ModCompileLoadService
                 MetadataReference.CreateFromFile(Path.Combine(Paths.CompiledModsPath,
                     $"{pModNode.mod_decl.UID}.dll"));
         }
-        else if (!disable_optional_depen && pModNode.mod_decl.OptionalDependencies.Length > 0)
+        else if (has_available_optional_depen)
         {
             LogService.LogWarning(
                 $"Cannot compile mod {pModNode.mod_decl.UID} with Optional Dependencies, try to disable them");
-            disable_optional_depen = true;
-            goto RECOMPILE;
+            string compile_errors_without_optional_depen;
+            compile_result =
+                compileMod(pModNode.mod_decl, _default_ref,
+                    pModNode.GetAdditionReferences(false).ToArray(), mod_ref, out compile_errors_without_optional_depen,
+                    pForce, true
+                );
+            if (compile_result)
+            {
+                mod_ref[pModNode.mod_decl.UID] =
+                    MetadataReference.CreateFromFile(Path.Combine(Paths.CompiledModsPath,
+                        $"{pModNode.mod_decl.UID}.dll"));
+                LogCompileFailureWithOptionalDependencies(pModNode.mod_decl.UID, compile_errors);
+            }
+            else
+            {
+                LogCompileFailure(pModNode.mod_decl.UID, compile_errors_without_optional_depen);
+            }
+        }
+        else
+        {
+            LogCompileFailure(pModNode.mod_decl.UID, compile_errors);
         }
 
         if (!compile_result)
