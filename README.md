@@ -50,7 +50,7 @@ If you're trying to play mods that aren't compatible with the latest version of 
 
 It is recommended to subscribe to the NML item on the Steam Workshop to receive automatic updates
 
-## Installing on Android
+### Installing on Android
 
 1. Download the latest version of lemon loader https://gamebanana.com/mods/656702
 follow instructions there on how to install
