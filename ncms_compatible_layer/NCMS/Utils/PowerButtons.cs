@@ -23,7 +23,7 @@ namespace NCMS.Utils
             Transform parent = null, UnityAction call = null)
         {
             LM.AddToCurrentLocale(name, title);
-            LM.AddToCurrentLocale(name + " Description", description);
+            LM.AddToCurrentLocale(name + " description", description);
             LM.ApplyLocale(false);
             PowerButton asPowerButton;
             switch (type)
