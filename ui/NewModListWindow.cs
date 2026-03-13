@@ -320,16 +320,9 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void ReloadSelectedMod()
     {
-        foreach (var mod in WorldBoxMod.LoadedMods)
+        if (!ModReloadService.ReloadMod(CurrentSelected))
         {
-            if (mod.GetDeclaration() == CurrentSelected && mod is IReloadable reloadable)
-            {
-                if (!ModReloadService.ReloadMod(reloadable, CurrentSelected))
-                {
-                    LogService.LogWarning($"Failed to reload mod {CurrentSelected.Name}.");
-                }
-                return;
-            }
+            LogService.LogWarning($"Failed to reload mod {CurrentSelected.Name}.");
         }
     }
 

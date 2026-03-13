@@ -413,8 +413,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 return;
             }
 
-            var reloadable = mod.GetGameObject()?.GetComponent<IReloadable>();
-            if (reloadable == null)
+            if (!ModReloadService.CanReload(mod_declare))
             {
                 transform.Find("Reload").gameObject.SetActive(false);
                 return;
@@ -425,7 +424,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             reload_button.onClick.RemoveAllListeners();
             reload_button.onClick.AddListener(() =>
             {
-                if (!ModReloadService.ReloadMod(reloadable, mod_declare))
+                if (!ModReloadService.ReloadMod(mod_declare))
                 {
                     LogService.LogWarning($"Failed to reload mod {mod_declare.Name}.");
                 }

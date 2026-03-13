@@ -11,6 +11,29 @@ namespace NeoModLoader.services;
 /// </summary>
 public static class ModReloadService
 {
+    private static bool TryGetReloadable(ModDeclare pModDeclare, out IReloadable pReloadable)
+    {
+        foreach (var mod in WorldBoxMod.LoadedMods)
+        {
+            if (mod.GetDeclaration() == pModDeclare && mod is IReloadable reloadable)
+            {
+                pReloadable = reloadable;
+                return true;
+            }
+        }
+
+        pReloadable = null;
+        return false;
+    }
+
+    /// <summary>
+    /// Checks whether a loaded mod supports hot-reload.
+    /// </summary>
+    public static bool CanReload(ModDeclare pModDeclare)
+    {
+        return TryGetReloadable(pModDeclare, out _);
+    }
+
     /// <summary>
     /// Recompiles and patches a reloadable mod.
     /// </summary>
@@ -25,20 +48,21 @@ public static class ModReloadService
     /// <summary>
     /// Recompiles, patches and invokes the reload callback of a mod.
     /// </summary>
+    public static bool ReloadMod(ModDeclare pModDeclare)
+    {
+        return TryGetReloadable(pModDeclare, out var reloadable) && ReloadMod(reloadable, pModDeclare);
+    }
+
+    /// <summary>
+    /// Recompiles, patches and invokes the reload callback of a mod.
+    /// </summary>
     public static bool ReloadMod(IReloadable pMod, ModDeclare pModDeclare)
     {
         if (!HotfixMethods(pMod, pModDeclare)) return false;
         if (pMod is IMod mod)
         {
-            try
-            {
-                if (!ReloadResources(mod)) return false;
-                ReloadLocales(mod);
-            }
-            catch
-            {
-                return false;
-            }
+            if (!ReloadResources(mod)) return false;
+            ReloadLocales(mod);
         }
         return ModReloadUtils.Reload();
     }
