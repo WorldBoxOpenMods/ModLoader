@@ -11,27 +11,12 @@ namespace NeoModLoader.services;
 /// </summary>
 public static class ModReloadService
 {
-    private static bool TryGetReloadable(ModDeclare pModDeclare, out IReloadable pReloadable)
-    {
-        foreach (var mod in WorldBoxMod.LoadedMods)
-        {
-            if (mod.GetDeclaration() == pModDeclare && mod is IReloadable reloadable)
-            {
-                pReloadable = reloadable;
-                return true;
-            }
-        }
-
-        pReloadable = null;
-        return false;
-    }
-
     /// <summary>
     /// Checks whether a loaded mod supports hot-reload.
     /// </summary>
     public static bool CanReload(ModDeclare pModDeclare)
     {
-        return TryGetReloadable(pModDeclare, out _);
+        return WorldBoxMod.TryGetLoadedMod(pModDeclare, out var mod) && mod is IReloadable;
     }
 
     /// <summary>
@@ -50,7 +35,9 @@ public static class ModReloadService
     /// </summary>
     public static bool ReloadMod(ModDeclare pModDeclare)
     {
-        return TryGetReloadable(pModDeclare, out var reloadable) && ReloadMod(reloadable, pModDeclare);
+        return WorldBoxMod.TryGetLoadedMod(pModDeclare, out var mod) &&
+               mod is IReloadable reloadable &&
+               ReloadMod(reloadable, pModDeclare);
     }
 
     /// <summary>

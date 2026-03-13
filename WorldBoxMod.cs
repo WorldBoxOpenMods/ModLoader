@@ -24,6 +24,30 @@ public class WorldBoxMod : MonoBehaviour
     /// </summary>
     public static List<IMod> LoadedMods = new();
 
+    /// <summary>
+    /// Tries to get a loaded mod by declaration UID.
+    /// </summary>
+    /// <param name="pModDeclare">The target mod declaration.</param>
+    /// <param name="pLoadedMod">The loaded mod instance when found.</param>
+    /// <returns><see langword="true"/> when the mod is loaded; otherwise <see langword="false"/>.</returns>
+    public static bool TryGetLoadedMod(ModDeclare pModDeclare, out IMod pLoadedMod)
+    {
+        if (pModDeclare != null)
+        {
+            foreach (var mod in LoadedMods)
+            {
+                if (mod.GetDeclaration().UID == pModDeclare.UID)
+                {
+                    pLoadedMod = mod;
+                    return true;
+                }
+            }
+        }
+
+        pLoadedMod = null;
+        return false;
+    }
+
     internal static Dictionary<ModDeclare, ModState> AllRecognizedMods = new();
     internal static Transform Transform;
     internal static Transform InactiveTransform;

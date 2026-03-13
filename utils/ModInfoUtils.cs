@@ -416,19 +416,12 @@ internal static class ModInfoUtils
             to_install_bepinex = true;
         }
 
-        bool already_loaded = false;
-        foreach (var loaded_mod in WorldBoxMod.LoadedMods)
+        if (WorldBoxMod.TryGetLoadedMod(mod, out _))
         {
-            if (loaded_mod.GetDeclaration().UID == mod.UID)
-            {
-                // Just because this mod's folder linked to workshop and already loaded from local folder link.
-                //LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
-                already_loaded = true;
-                break;
-            }
+            // Just because this mod's folder linked to workshop and already loaded from local folder link.
+            //LogService.LogWarning($"Repeat Mod with {mod.UUID}, Only load one of them");
+            return;
         }
-
-        if (already_loaded) return;
         link_request_mods.Enqueue(mod);
     }
 

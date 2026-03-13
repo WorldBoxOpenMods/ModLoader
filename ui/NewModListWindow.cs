@@ -226,15 +226,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void RefreshControlPart()
     {
-        IMod selected = null;
-        foreach (var mod in WorldBoxMod.LoadedMods)
-        {
-            if (mod.GetDeclaration() == CurrentSelected)
-            {
-                selected = mod;
-                break;
-            }
-        }
+        WorldBoxMod.TryGetLoadedMod(CurrentSelected, out IMod selected);
         if (selected is IReloadable)
         {
             ReloadModButton.gameObject.SetActive(true);
@@ -290,26 +282,20 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void CommunityOfSelectedMod()
     {
-        foreach (var mod in WorldBoxMod.LoadedMods)
+        if (WorldBoxMod.TryGetLoadedMod(CurrentSelected, out var mod))
         {
-            if (mod.GetDeclaration() == CurrentSelected)
-            {
-                Application.OpenURL(mod.GetUrl());
-                return;
-            }
+            Application.OpenURL(mod.GetUrl());
+            return;
         }
         Application.OpenURL(CurrentSelected.RepoUrl);
     }
 
     private void ConfigureSelectedMod()
     {
-        foreach (var mod in WorldBoxMod.LoadedMods)
+        if (WorldBoxMod.TryGetLoadedMod(CurrentSelected, out var mod))
         {
-            if (mod.GetDeclaration() == CurrentSelected)
-            {
-                ModConfigureWindow.ShowWindow((mod as IConfigurable)?.GetConfig());
-                return;
-            }
+            ModConfigureWindow.ShowWindow((mod as IConfigurable)?.GetConfig());
+            return;
         }
     }
 

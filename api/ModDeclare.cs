@@ -339,7 +339,7 @@ public static class ModDeclareExtensions
 
                     break;
                 case ModTypeEnum.COMPILED_NEOMOD:
-                    IMod modObj = WorldBoxMod.LoadedMods.FirstOrDefault(m => m.GetDeclaration() == mod);
+                    WorldBoxMod.TryGetLoadedMod(mod, out IMod modObj);
                     if (modObj != null)
                     {
                         if (pModAssembly == modObj.GetType().Assembly)

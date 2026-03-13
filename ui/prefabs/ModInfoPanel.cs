@@ -68,7 +68,7 @@ public class ModInfoPanel : APrefab<ModInfoPanel>
         ModState mod_state = WorldBoxMod.AllRecognizedMods[pModDeclaration];
         if (mod_state == ModState.LOADED)
         {
-            IMod mod = WorldBoxMod.LoadedMods.Find(x => x.GetDeclaration() == pModDeclaration);
+            WorldBoxMod.TryGetLoadedMod(pModDeclaration, out IMod mod);
             if (mod is IDecoratePanel decorate) 
             {
                 decorate.DecoratePanel(this);
