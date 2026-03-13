@@ -174,7 +174,7 @@ public static class LM
             var key = line[0];
 
             if (string.IsNullOrEmpty(key)) continue;
-            if (line.Length > languages.Length) throw new Exception($"Line {i} has more ',' than its head.");
+            if (line.Length > languages.Length) throw new Exception($"Line {i} has more '{sep}' than its head.");
 
             for (int j = 1; j < line.Length; j++)
             {
