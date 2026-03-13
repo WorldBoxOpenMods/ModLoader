@@ -324,26 +324,7 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
         {
             if (mod.GetDeclaration() == CurrentSelected && mod is IReloadable reloadable)
             {
-                if (!ModReloadUtils.Prepare(reloadable, CurrentSelected))
-                {
-                    LogService.LogWarning($"Failed to prepare mod {CurrentSelected.Name} for reloading.");
-                    return;
-                }
-
-                if (!ModReloadUtils.CompileNew())
-                {
-                    LogService.LogWarning($"Failed to compile new mod {CurrentSelected.Name} for reloading.");
-                    return;
-                }
-
-                if (!ModReloadUtils.PatchHotfixMethodsNT())
-                {
-                    LogService.LogWarning(
-                        $"Failed to patch hotfix methods of mod {CurrentSelected.Name} for reloading.");
-                    return;
-                }
-
-                if (!ModReloadUtils.Reload())
+                if (!ModReloadService.ReloadMod(reloadable, CurrentSelected))
                 {
                     LogService.LogWarning($"Failed to reload mod {CurrentSelected.Name}.");
                 }

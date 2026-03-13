@@ -6,8 +6,14 @@ using NeoModLoader.utils.Builders;
 
 namespace NeoModLoader.services;
 
-internal static class ModReloadService
+/// <summary>
+/// Coordinates mod hot-reload workflows.
+/// </summary>
+public static class ModReloadService
 {
+    /// <summary>
+    /// Recompiles and patches a reloadable mod.
+    /// </summary>
     public static bool HotfixMethods(IReloadable pMod, ModDeclare pModDeclare)
     {
         if (!ModReloadUtils.Prepare(pMod, pModDeclare)) return false;
@@ -16,6 +22,30 @@ internal static class ModReloadService
         return true;
     }
 
+    /// <summary>
+    /// Recompiles, patches and invokes the reload callback of a mod.
+    /// </summary>
+    public static bool ReloadMod(IReloadable pMod, ModDeclare pModDeclare)
+    {
+        if (!HotfixMethods(pMod, pModDeclare)) return false;
+        if (pMod is IMod mod)
+        {
+            try
+            {
+                if (!ReloadResources(mod)) return false;
+                ReloadLocales(mod);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        return ModReloadUtils.Reload();
+    }
+
+    /// <summary>
+    /// Rebuilds mod resources from disk.
+    /// </summary>
     public static bool ReloadResources(IMod pMod)
     {
         MasterBuilder Builder = new();
@@ -26,9 +56,12 @@ internal static class ModReloadService
         Builder.AddBuilders(builders);
         Builder.AddBuilders(builders2);
         Builder.BuildAll();
-        return false;
+        return true;
     }
 
+    /// <summary>
+    /// Reloads locale files from disk and applies them.
+    /// </summary>
     public static void ReloadLocales(IMod pMod)
     {
         ModCompileLoadService.LoadLocales(pMod, pMod.GetDeclaration(), true, true);

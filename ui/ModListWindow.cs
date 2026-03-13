@@ -425,26 +425,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             reload_button.onClick.RemoveAllListeners();
             reload_button.onClick.AddListener(() =>
             {
-                if (!ModReloadUtils.Prepare(reloadable, mod_declare))
-                {
-                    LogService.LogWarning($"Failed to prepare mod {mod_declare.Name} for reloading.");
-                    return;
-                }
-
-                if (!ModReloadUtils.CompileNew())
-                {
-                    LogService.LogWarning($"Failed to compile new mod {mod_declare.Name} for reloading.");
-                    return;
-                }
-
-                if (!ModReloadUtils.PatchHotfixMethodsNT())
-                {
-                    LogService.LogWarning(
-                        $"Failed to patch hotfix methods of mod {mod_declare.Name} for reloading.");
-                    return;
-                }
-
-                if (!ModReloadUtils.Reload())
+                if (!ModReloadService.ReloadMod(reloadable, mod_declare))
                 {
                     LogService.LogWarning($"Failed to reload mod {mod_declare.Name}.");
                 }

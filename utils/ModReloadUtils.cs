@@ -41,7 +41,7 @@ internal static class ModReloadUtils
     private static readonly List<object> _generated_wrapper_delegates = new();
     private static readonly List<Type> _generated_wrapper_types = new();
 
-    public static bool Prepare(IReloadable pMod, ModDeclare pModDeclare)
+    internal static bool Prepare(IReloadable pMod, ModDeclare pModDeclare)
     {
         _mod = pMod;
         _mod_declare = pModDeclare;
@@ -91,7 +91,7 @@ internal static class ModReloadUtils
         return true;
     }
 
-    public static bool CompileNew()
+    internal static bool CompileNew()
     {
         if (!ModCompileLoadService.TryCompileModAtRuntime(_mod_declare, true)) return false;
         foreach (var type in EnumerateTypesRecursive(_old_assembly_definition.MainModule.Types))
@@ -950,7 +950,7 @@ internal static class ModReloadUtils
         _op_code_map.Add(Mono.Cecil.Cil.OpCodes.Tail, OpCodes.Tailcall);
     }
 
-    public static bool PatchHotfixMethodsNT()
+    internal static bool PatchHotfixMethodsNT()
     {
         if (_op_code_map.Count == 0)
         {
@@ -1550,7 +1550,7 @@ internal static class ModReloadUtils
         }
     }
 
-    public static bool Reload()
+    internal static bool Reload()
     {
         try
         {
