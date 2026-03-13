@@ -244,6 +244,48 @@ public static class ModCompileLoadService
             $"Failed to compile mod {pModUid} with optional dependencies, but succeeded after disabling them:\n{pCompileErrors}");
     }
 
+    internal static void LoadLocales(object pModComponent, ModDeclare pModDeclare, bool pUpdateTexts = true,
+        bool pLogLoadedFiles = false)
+    {
+        if (pModComponent is not ILocalizable localizable_mod)
+            return;
+
+        string locale_path = localizable_mod.GetLocaleFilesDirectory(pModDeclare);
+        if (!Directory.Exists(locale_path)) return;
+
+        char csv_separator = ',';
+        if (pModComponent is ICsvSepCustomized sep_customized)
+            csv_separator = sep_customized.GetCsvSeparator();
+
+        var files = Directory.GetFiles(locale_path, "*", SearchOption.AllDirectories);
+        foreach (var locale_file in files)
+        {
+            if (pLogLoadedFiles)
+            {
+                LogService.LogInfo(
+                    $"Reload {locale_file} as {Path.GetFileNameWithoutExtension(locale_file)}");
+            }
+
+            try
+            {
+                if (locale_file.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
+                }
+                else if (locale_file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    LM.LoadLocales(locale_file, csv_separator);
+                }
+            }
+            catch (FormatException e)
+            {
+                LogService.LogWarning(e.Message);
+            }
+        }
+
+        LM.ApplyLocale(pUpdateTexts);
+    }
+
     /// <summary>
     /// Prepare references for mod nodes
     /// </summary>
@@ -483,8 +525,7 @@ public static class ModCompileLoadService
                         mod_interface = (IMod)mod_instance.AddComponent(type);
                         main_component = (MonoBehaviour)mod_interface;
                     }
-
-                    auto_localize(main_component);
+                    LoadLocales(main_component, pMod, false);
 
                     mod_interface.OnLoad(pMod, mod_instance);
                     mod_instance.SetActive(true);
@@ -511,42 +552,6 @@ public static class ModCompileLoadService
             {
                 pMod.FailReason.AppendLine("No Valid Mod Component Found");
                 ModInfoUtils.clearModCompileTimestamp(pMod.UID);
-            }
-        }
-
-        void auto_localize(object mod_component)
-        {
-            if (mod_component is ILocalizable localizable)
-            {
-                string locales_dir = localizable.GetLocaleFilesDirectory(pMod);
-                if (Directory.Exists(locales_dir))
-                {
-                    var files = Directory.GetFiles(locales_dir, "*", SearchOption.AllDirectories);
-                    var csv_separator = ',';
-                    if (mod_component is ICsvSepCustomized sep_customized)
-                        csv_separator = sep_customized.GetCsvSeparator();
-
-                    foreach (var locale_file in files)
-                    {
-                        try
-                        {
-                            if (locale_file.EndsWith(".json"))
-                            {
-                                LM.LoadLocale(Path.GetFileNameWithoutExtension(locale_file), locale_file);
-                            }
-                            else if (locale_file.EndsWith(".csv"))
-                            {
-                                LM.LoadLocales(locale_file, csv_separator);
-                            }
-                        }
-                        catch (FormatException e)
-                        {
-                            LogService.LogWarning(e.Message);
-                        }
-                    }
-
-                    LM.ApplyLocale(false);
-                }
             }
         }
     }
