@@ -294,8 +294,8 @@ public static class ModCompileLoadService
     {
         foreach (var mod_node in pModNodes)
         {
-            mod_inc_path.Add(mod_node.mod_decl.UID,
-                Path.Combine(Paths.CompiledModsPath, $"{mod_node.mod_decl.UID}.dll"));
+            mod_inc_path[mod_node.mod_decl.UID] =
+                Path.Combine(Paths.CompiledModsPath, $"{mod_node.mod_decl.UID}.dll");
         }
 
         var default_ref_path_list = new List<string>();
@@ -327,8 +327,8 @@ public static class ModCompileLoadService
     /// <param name="pModNode"></param>
     public static void prepareCompileRuntime(ModDependencyNode pModNode)
     {
-        mod_inc_path.Add(pModNode.mod_decl.UID,
-            Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll"));
+        mod_inc_path[pModNode.mod_decl.UID] =
+            Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll");
     }
 
     /// <summary>
@@ -339,11 +339,17 @@ public static class ModCompileLoadService
     /// <returns></returns>
     public static bool compileMod(ModDependencyNode pModNode, bool pForce = false)
     {
-        if (Directory.GetFiles(pModNode.mod_decl.FolderPath).Any(file => file.EndsWith(".dll")))
+        string[] precompiled_dll_files = Directory.GetFiles(pModNode.mod_decl.FolderPath, "*.dll");
+        if (precompiled_dll_files.Length > 0)
         {
             LogService.LogInfo(
                 $"{pModNode.mod_decl.UID} detected as precompiled, compilation phase will be skipped on it!");
             pModNode.mod_decl.SetModType(ModTypeEnum.COMPILED_NEOMOD);
+
+            string main_dll = precompiled_dll_files.FirstOrDefault(file =>
+                                  Path.GetFileNameWithoutExtension(file) == pModNode.mod_decl.UID) ??
+                              precompiled_dll_files[0];
+            mod_ref[pModNode.mod_decl.UID] = MetadataReference.CreateFromFile(main_dll);
             return true;
         }
 
@@ -545,6 +551,7 @@ public static class ModCompileLoadService
 
                 WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
                 WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
+                ModDepenSolveService.MarkModLoaded(pMod);
                 break;
             }
 
@@ -625,6 +632,59 @@ public static class ModCompileLoadService
         return false;
     }
 
+    private static string BuildRuntimeLoadErrorMessage(ModDeclare pModDeclare, string pReason)
+    {
+        return $"Failed to load mod {pModDeclare.Name}:\n{pReason.Trim()}";
+    }
+
+    private static void ShowRuntimeLoadError(ModDeclare pModDeclare, string pFallbackReason)
+    {
+        string reason = pModDeclare.FailReason.ToString().Trim();
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            reason = pFallbackReason;
+        }
+
+        ErrorWindow.errorMessage = BuildRuntimeLoadErrorMessage(pModDeclare, reason);
+        ScrollWindow.get("error_with_reason").clickShow();
+    }
+
+    private static bool TryCompileRuntimeNode(ModDependencyNode pModNode, bool pForce = false)
+    {
+        prepareCompileRuntime(pModNode);
+        bool success = compileMod(pModNode, pForce);
+        if (success)
+        {
+            return true;
+        }
+
+        WorldBoxMod.AllRecognizedMods[pModNode.mod_decl] = ModState.FAILED;
+        return false;
+    }
+
+    private static bool TryLoadCompiledModAtRuntime(ModDeclare pModDeclare)
+    {
+        MasterBuilder builder = new MasterBuilder();
+        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModResourceFolderName),
+            out List<Builder> builders);
+        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath,
+            Paths.NCMSAdditionModResourceFolderName), out List<Builder> builders2);
+        ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModAssetBundleFolderName));
+
+        LoadMod(pModDeclare);
+        builder.AddBuilders(builders);
+        builder.AddBuilders(builders2);
+        builder.BuildAll();
+
+        if (IsModLoaded(pModDeclare.UID))
+        {
+            return true;
+        }
+
+        WorldBoxMod.AllRecognizedMods[pModDeclare] = ModState.FAILED;
+        return false;
+    }
+
     /// <summary>
     /// Compile mod at runtime.
     /// </summary>
@@ -633,6 +693,7 @@ public static class ModCompileLoadService
     /// <returns></returns>
     public static bool TryCompileModAtRuntime(ModDeclare pModDeclare, bool pForce = false)
     {
+        pModDeclare = ModInfoUtils.EnsureRecognizedMod(pModDeclare);
         if (pModDeclare.ModType == ModTypeEnum.BEPINEX)
         {
             ModInfoUtils.LinkBepInExModToLocalRequest(pModDeclare);
@@ -640,28 +701,16 @@ public static class ModCompileLoadService
             return false;
         }
 
-        ModDependencyNode node = ModDepenSolveService.SolveModDependencyRuntime(pModDeclare);
-        if (node == null)
-        {
-            ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
-                                       $"Failed to solve mod dependency." +
-                                       $"Check Incompatible mods and dependencies, then try again.";
-            ScrollWindow.get("error_with_reason").clickShow();
-            return false;
-        }
-
-        bool success = compileMod(node, pForce);
+        ModDependencyNode node = ModDepenSolveService.EnsureNode(pModDeclare);
+        bool success = TryCompileRuntimeNode(node, pForce);
         if (!success)
         {
-            ErrorWindow.errorMessage = $"Failed to load mod {pModDeclare.Name}:\n" +
-                                       $"Failed to compile mod." +
-                                       $"Check Incompatible mods and dependencies, then try again.";
-            ScrollWindow.get("error_with_reason").clickShow();
+            ShowRuntimeLoadError(pModDeclare,
+                "Failed to compile mod. Check incompatible mods and dependencies, then try again.");
             return false;
         }
 
         ModInfoUtils.SaveModRecords();
-
         return true;
     }
 
@@ -672,23 +721,99 @@ public static class ModCompileLoadService
     /// <returns></returns>
     public static bool TryCompileAndLoadModAtRuntime(ModDeclare mod_declare)
     {
+        mod_declare = ModInfoUtils.EnsureRecognizedMod(mod_declare);
         bool actually_loaded = IsModLoaded(mod_declare.UID);
 
         if (actually_loaded) return false;
 
-        bool compile_success = TryCompileModAtRuntime(mod_declare);
+        if (mod_declare.ModType == ModTypeEnum.BEPINEX)
+        {
+            ModInfoUtils.LinkBepInExModToLocalRequest(mod_declare);
+            ModInfoUtils.DealWithBepInExModLinkRequests();
+            return false;
+        }
 
-        if (!compile_success) return false;
-        MasterBuilder Builder = new MasterBuilder();
-        ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod_declare.FolderPath, Paths.ModResourceFolderName), out List<Builder> builders);
-        ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod_declare.FolderPath,
-            Paths.NCMSAdditionModResourceFolderName), out List<Builder> builders2);
+        ModEnablePlan plan = ModDepenSolveService.BuildRuntimeEnablePlan(mod_declare);
+        if (plan.HasFailure)
+        {
+            ShowRuntimeLoadError(mod_declare, plan.FailureReason);
+            return false;
+        }
 
-        LoadMod(mod_declare);
-        Builder.AddBuilders(builders);
-        Builder.AddBuilders(builders2);
-        Builder.BuildAll();
+        foreach (ModDependencyNode node in plan.LoadOrder)
+        {
+            if (node.Loaded || IsModLoaded(node.mod_decl.UID))
+            {
+                ModDepenSolveService.MarkModLoaded(node.mod_decl);
+                continue;
+            }
+
+            if (!TryCompileRuntimeNode(node))
+            {
+                ModDepenSolveService.RollbackEnablePlan(plan);
+                mod_declare.FailReason.Clear();
+                mod_declare.FailReason.Append(node.mod_decl.FailReason);
+                WorldBoxMod.AllRecognizedMods[mod_declare] = ModState.FAILED;
+                ShowRuntimeLoadError(node.mod_decl,
+                    "Failed to compile mod. Check incompatible mods and dependencies, then try again.");
+                return false;
+            }
+        }
+
+        foreach (ModDependencyNode node in plan.LoadOrder)
+        {
+            if (node.Loaded || IsModLoaded(node.mod_decl.UID))
+            {
+                ModDepenSolveService.MarkModLoaded(node.mod_decl);
+                continue;
+            }
+
+            if (!TryLoadCompiledModAtRuntime(node.mod_decl))
+            {
+                ModDepenSolveService.RollbackEnablePlan(plan);
+                mod_declare.FailReason.Clear();
+                mod_declare.FailReason.Append(node.mod_decl.FailReason);
+                WorldBoxMod.AllRecognizedMods[mod_declare] = ModState.FAILED;
+                ShowRuntimeLoadError(node.mod_decl, "Failed to load mod. Check the log for details.");
+                return false;
+            }
+        }
+
+        if (!plan.RequestedRoots.All(IsModLoaded))
+        {
+            ModDepenSolveService.RollbackEnablePlan(plan);
+            ShowRuntimeLoadError(mod_declare, "Failed to load mod. Check the log for details.");
+            return false;
+        }
+
+        ModDepenSolveService.CommitEnablePlan(plan);
+        ModInfoUtils.SaveModRecords();
         return true;
+    }
+
+    public static bool TryEnableMod(ModDeclare pModDeclare)
+    {
+        pModDeclare = ModInfoUtils.EnsureRecognizedMod(pModDeclare);
+        if (IsModLoaded(pModDeclare.UID))
+        {
+            ModEnablePlan plan = ModDepenSolveService.BuildRuntimeEnablePlan(pModDeclare);
+            if (plan.HasFailure)
+            {
+                ShowRuntimeLoadError(pModDeclare, plan.FailureReason);
+                return false;
+            }
+
+            ModDepenSolveService.CommitEnablePlan(plan);
+            ModInfoUtils.SaveModRecords();
+            return true;
+        }
+
+        return TryCompileAndLoadModAtRuntime(pModDeclare);
+    }
+
+    public static void DisableMod(ModDeclare pModDeclare)
+    {
+        ModDepenSolveService.SetModDesiredEnabled(pModDeclare, false);
     }
 
     /// <summary>
@@ -701,6 +826,7 @@ public static class ModCompileLoadService
         GameObject bepinexManager = GameObject.Find("BepInEx_Manager");
         foreach (var mod in bepInExMods)
         {
+            ModDeclare recognized_mod = ModInfoUtils.EnsureRecognizedMod(mod);
             if (IsModLoaded(mod.UID))
             {
                 LogService.LogWarning($"Repeat Mod with {mod.UID}, Only load one of them");
@@ -722,9 +848,10 @@ public static class ModCompileLoadService
                 }
             }
 
-            virtualMod.OnLoad(mod, virtualModComponent);
+            virtualMod.OnLoad(recognized_mod, virtualModComponent);
             WorldBoxMod.LoadedMods.Add(virtualMod);
-            WorldBoxMod.AllRecognizedMods[mod] = ModState.LOADED;
+            WorldBoxMod.AllRecognizedMods[recognized_mod] = ModState.LOADED;
+            ModDepenSolveService.MarkModLoaded(recognized_mod);
         }
     }
 }

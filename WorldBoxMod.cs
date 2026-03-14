@@ -121,13 +121,15 @@ public class WorldBoxMod : MonoBehaviour
         }, "Initialize NeoModLoader");
 
         List<ModDependencyNode> mod_nodes = new();
+        ModEnablePlan startup_enable_plan = null;
         SmoothLoader.add(() =>
         {
             ModCompileLoadService.loadInfoOfBepInExPlugins();
 
-            var mods = ModInfoUtils.findAndPrepareMods();
-
-            mod_nodes.AddRange(ModDepenSolveService.SolveModDependencies(mods));
+            ModInfoUtils.findAndPrepareMods();
+            ModDepenSolveService.InitializeGraph(AllRecognizedMods.Keys);
+            startup_enable_plan = ModDepenSolveService.BuildStartupEnablePlan();
+            mod_nodes.AddRange(startup_enable_plan.LoadOrder);
 
             ModCompileLoadService.prepareCompile(mod_nodes);
         }, "Load Mods Info And Prepare Mods");
@@ -171,6 +173,18 @@ public class WorldBoxMod : MonoBehaviour
             {
                 ModCompileLoadService.loadMods(mods_to_load);
                 Builder.BuildAll();
+                if (startup_enable_plan != null)
+                {
+                    if (startup_enable_plan.RequestedRoots.All(ModCompileLoadService.IsModLoaded))
+                    {
+                        ModDepenSolveService.CommitEnablePlan(startup_enable_plan);
+                    }
+                    else
+                    {
+                        ModDepenSolveService.RollbackEnablePlan(startup_enable_plan);
+                    }
+                }
+
                 ModInfoUtils.SaveModRecords();
                 NCMSCompatibleLayer.Init();
                 var successfulInit = new Dictionary<IMod, bool>();

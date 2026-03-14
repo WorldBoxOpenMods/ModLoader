@@ -344,61 +344,51 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 });
             }
 
-            var current_state_text = mod_state switch
+            void RefreshToggleState()
             {
-                ModState.DISABLED => LM.Get("mod_state_disabled"),
-                ModState.LOADED => LM.Get("mod_state_enabled"),
-                ModState.FAILED => LM.Get("mod_state_failed")
-            };
-            var next_state_text = LM.Get(ModInfoUtils.isModDisabled(mod_declare.UID)
-                ? "mod_next_state_disabled"
-                : "mod_next_state_enabled");
-            state_text.text = $"{current_state_text}, {next_state_text}";
-            if (mod_state == ModState.FAILED)
-            {
-                icon_tip_button.textOnClick = "ModLoadFailed Title";
-                icon_tip_button.textOnClickDescription = "ModLoadFailed Description";
-                icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
-                icon.color = Color.red;
-
-                icon.GetComponent<Button>().onClick.AddListener(() =>
+                mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
+                string current_state_text = mod_state switch
                 {
-                    var curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
-                    icon.color = curr_state ? Color.red : Color.yellow;
+                    ModState.DISABLED => LM.Get("mod_state_disabled"),
+                    ModState.LOADED => LM.Get("mod_state_enabled"),
+                    ModState.FAILED => LM.Get("mod_state_failed")
+                };
+                string next_state_text = LM.Get(ModInfoUtils.isModDisabled(mod_declare.UID)
+                    ? "mod_next_state_disabled"
+                    : "mod_next_state_enabled");
+                state_text.text = $"{current_state_text}, {next_state_text}";
 
-                    next_state_text = LM.Get(!curr_state
-                        ? "mod_next_state_disabled"
-                        : "mod_next_state_enabled");
-                    state_text.text = $"{current_state_text}, {next_state_text}";
-                });
-            }
-            else
-            {
+                if (mod_state == ModState.FAILED)
+                {
+                    icon_tip_button.textOnClick = "ModLoadFailed Title";
+                    icon_tip_button.textOnClickDescription = "ModLoadFailed Description";
+                    icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
+                    icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.yellow : Color.red;
+                    return;
+                }
+
                 icon_tip_button.textOnClick = "ToggleMod Title";
                 icon_tip_button.textOnClickDescription = ModInfoUtils.isModDisabled(mod_declare.UID)
                     ? "ModDisabled Description"
                     : "ModEnabled Description";
-                icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.gray : Color.white;
-                icon.GetComponent<Button>().onClick.AddListener(() =>
-                {
-                    bool curr_state = ModInfoUtils.toggleMod(mod_declare.UID);
-                    icon_tip_button.textOnClickDescription =
-                        curr_state ? "ModEnabled Description" : "ModDisabled Description";
-                    icon.color = curr_state ? Color.white : Color.gray;
-
-                    next_state_text = LM.Get(!curr_state
-                        ? "mod_next_state_disabled"
-                        : "mod_next_state_enabled");
-                    state_text.text = $"{current_state_text}, {next_state_text}";
-
-                    if (curr_state)
-                    {
-                        // Check mod loaded or not has been done in the following method.
-                        ModCompileLoadService.TryCompileAndLoadModAtRuntime(mod_declare);
-                    }
-                });
                 icon_tip_button.text_description_2 = "";
+                icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.gray : Color.white;
             }
+
+            icon.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                if (ModInfoUtils.isModDisabled(mod_declare.UID))
+                {
+                    ModCompileLoadService.TryEnableMod(mod_declare);
+                }
+                else
+                {
+                    ModCompileLoadService.DisableMod(mod_declare);
+                }
+
+                RefreshToggleState();
+            });
+            RefreshToggleState();
 
             configure_button.onClick.AddListener(() =>
             {

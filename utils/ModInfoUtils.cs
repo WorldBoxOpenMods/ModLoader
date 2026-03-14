@@ -241,30 +241,26 @@ internal static class ModInfoUtils
         }
 
         SKIP_WORKSHOP:
+        List<ModDeclare> recognized_mods = new();
+        HashSet<string> registered_mods = new();
         foreach (var mod in mods)
         {
-            WorldBoxMod.AllRecognizedMods[mod] = ModState.FAILED;
+            ModDeclare recognized_mod = EnsureRecognizedMod(mod);
+            if (!registered_mods.Add(recognized_mod.UID))
+            {
+                continue;
+            }
+
+            if (WorldBoxMod.AllRecognizedMods[recognized_mod] != ModState.LOADED)
+            {
+                WorldBoxMod.AllRecognizedMods[recognized_mod] =
+                    isModDisabled(recognized_mod.UID) ? ModState.DISABLED : ModState.FAILED;
+            }
+
+            recognized_mods.Add(recognized_mod);
         }
 
-        return removeDisabledMods(mods);
-    }
-
-    private static List<ModDeclare> removeDisabledMods(List<ModDeclare> mods_to_process)
-    {
-        var result = new List<ModDeclare>();
-        foreach (var mod in mods_to_process)
-        {
-            if (isModDisabled(mod.UID))
-            {
-                WorldBoxMod.AllRecognizedMods[mod] = ModState.DISABLED;
-            }
-            else
-            {
-                result.Add(mod);
-            }
-        }
-
-        return result;
+        return recognized_mods;
     }
 
     internal static void DealWithBepInExModLinkRequests()
@@ -561,33 +557,103 @@ internal static class ModInfoUtils
         return mod;
     }
 
+    public static bool TryGetRecognizedMod(string pModUID, out ModDeclare pModDeclare)
+    {
+        foreach (var recognized_mod in WorldBoxMod.AllRecognizedMods.Keys)
+        {
+            if (recognized_mod.UID != pModUID) continue;
+
+            pModDeclare = recognized_mod;
+            return true;
+        }
+
+        pModDeclare = null;
+        return false;
+    }
+
+    public static ModDeclare EnsureRecognizedMod(ModDeclare pModDeclare)
+    {
+        if (TryGetRecognizedMod(pModDeclare.UID, out ModDeclare recognized_mod))
+        {
+            return recognized_mod;
+        }
+
+        WorldBoxMod.AllRecognizedMods[pModDeclare] = isModDisabled(pModDeclare.UID) ? ModState.DISABLED : ModState.FAILED;
+        return pModDeclare;
+    }
+
+    public static bool TryFindMod(string pModUID, out ModDeclare pModDeclare)
+    {
+        if (TryGetRecognizedMod(pModUID, out pModDeclare))
+        {
+            return true;
+        }
+
+        if (TryFindModInFolder(Paths.ModsPath, pModUID, true, false, out pModDeclare))
+        {
+            return true;
+        }
+
+        if (TryFindModInFolder(Paths.NativeModsPath, pModUID, false, false, out pModDeclare))
+        {
+            return true;
+        }
+
+        if (!Others.is_editor &&
+            TryFindModInFolder(Paths.CommonModsWorkshopPath, pModUID, false, true, out pModDeclare))
+        {
+            return true;
+        }
+
+        pModDeclare = null;
+        return false;
+    }
+
+    private static bool TryFindModInFolder(string pFolderPath, string pModUID, bool pLogModJsonNotFound,
+        bool pSetWorkshopRepoUrl, out ModDeclare pModDeclare)
+    {
+        pModDeclare = null;
+        if (!Directory.Exists(pFolderPath))
+        {
+            return false;
+        }
+
+        foreach (var mod_folder in Directory.GetDirectories(pFolderPath))
+        {
+            var mod = recogMod(mod_folder, pLogModJsonNotFound);
+            if (mod == null || mod.UID != pModUID)
+            {
+                continue;
+            }
+
+            if (pSetWorkshopRepoUrl && string.IsNullOrEmpty(mod.RepoUrl))
+            {
+                mod.SetRepoUrlToWorkshopPage(Path.GetFileName(mod_folder));
+            }
+
+            pModDeclare = EnsureRecognizedMod(mod);
+            return true;
+        }
+
+        return false;
+    }
+
     public static bool isModDisabled(string pModUID)
     {
         return mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache) && cache.disabled;
     }
 
-    /// <summary>
-    /// Toggle Mod Disabled Status
-    /// </summary>
-    /// <param name="pModUID"></param>
-    /// <returns>Enable mod and return true; or disable mod and return false</returns>
-    public static bool toggleMod(string pModUID, bool pSave = true)
+    public static void setModDisabled(string pModUID, bool pDisabled, bool pSave = true)
     {
         if (!mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache))
         {
             cache = new ModCompilationCache(pModUID);
-            cache.disabled = true;
             mod_compilation_caches[pModUID] = cache;
-
-            return false;
         }
 
-        var result = cache.disabled;
-        cache.disabled = !cache.disabled;
+        cache.disabled = pDisabled;
         if (pSave)
             SaveModRecords();
-
-        return result;
     }
 
     public static void SaveModRecords()

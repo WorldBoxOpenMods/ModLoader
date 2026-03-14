@@ -1,6 +1,5 @@
 using System.Text;
 using NeoModLoader.api;
-using NeoModLoader.services;
 
 namespace NeoModLoader.utils;
 
@@ -25,6 +24,16 @@ public class ModDependencyNode
     public HashSet<ModDependencyNode> necessary_depend_on;
 
     /// <summary>
+    ///     Whether this mod should be enabled in future sessions.
+    /// </summary>
+    public bool DesiredEnabled { get; set; }
+
+    /// <summary>
+    ///     Whether this mod is loaded in the current session.
+    /// </summary>
+    public bool Loaded { get; set; }
+
+    /// <summary>
     ///     Create a new mod dependency node for a mod declaration
     /// </summary>
     /// <param name="pModDecl"></param>
@@ -39,7 +48,12 @@ public class ModDependencyNode
     /// <summary>
     ///     Related mod declaration
     /// </summary>
-    public ModDeclare mod_decl { get; }
+    public ModDeclare mod_decl { get; private set; }
+
+    public void UpdateDeclaration(ModDeclare pModDecl)
+    {
+        mod_decl = pModDecl;
+    }
 
     /// <summary>
     ///     Get all additional assembly references that this mod depends on.
@@ -47,15 +61,35 @@ public class ModDependencyNode
     /// <returns></returns>
     public List<string> GetAdditionReferences(bool recursive = true)
     {
-        var references = new List<string>();
-        var assemblies_path = Path.Combine(mod_decl.FolderPath, "Assemblies");
-        if (Directory.Exists(assemblies_path)) references.AddRange(Directory.GetFiles(assemblies_path, "*.dll"));
-
-        if (recursive)
-            foreach (ModDependencyNode dependency in depend_on)
-                references.AddRange(dependency.GetAdditionReferences());
-
+        List<string> references = new();
+        HashSet<string> visited = new();
+        collectAdditionReferences(this, recursive, references, visited);
         return references;
+    }
+
+    private static void collectAdditionReferences(ModDependencyNode pNode, bool pRecursive, List<string> pReferences,
+        HashSet<string> pVisited)
+    {
+        if (!pVisited.Add(pNode.mod_decl.UID))
+        {
+            return;
+        }
+
+        var assemblies_path = Path.Combine(pNode.mod_decl.FolderPath, "Assemblies");
+        if (Directory.Exists(assemblies_path))
+        {
+            pReferences.AddRange(Directory.GetFiles(assemblies_path, "*.dll"));
+        }
+
+        if (!pRecursive)
+        {
+            return;
+        }
+
+        foreach (ModDependencyNode dependency in pNode.depend_on)
+        {
+            collectAdditionReferences(dependency, true, pReferences, pVisited);
+        }
     }
 }
 
@@ -70,47 +104,90 @@ public class ModDependencyGraph
     public HashSet<ModDependencyNode> nodes;
 
     /// <summary>
+    ///     Fast lookup by mod UID.
+    /// </summary>
+    public Dictionary<string, ModDependencyNode> node_map;
+
+    public ModDependencyGraph()
+    {
+        nodes = new();
+        node_map = new();
+    }
+
+    /// <summary>
     ///     Create a new mod dependency graph from a collection of mod declarations.
     /// </summary>
     /// <param name="mods"></param>
-    public ModDependencyGraph(ICollection<ModDeclare> mods)
+    public ModDependencyGraph(ICollection<ModDeclare> mods) : this()
     {
-        Dictionary<string, ModDependencyNode> node_map = new Dictionary<string, ModDependencyNode>();
-
         foreach (ModDeclare mod in mods)
         {
-            node_map.Add(mod.UID, new ModDependencyNode(mod));
+            RegisterMod(mod);
         }
 
-        foreach (ModDeclare mod in mods)
+        RebuildEdges();
+    }
+
+    public ModDependencyNode RegisterMod(ModDeclare pModDecl, bool pDesiredEnabled = false, bool pLoaded = false)
+    {
+        if (node_map.TryGetValue(pModDecl.UID, out ModDependencyNode node))
         {
-            ModDependencyNode node = node_map[mod.UID];
+            node.UpdateDeclaration(pModDecl);
+            node.DesiredEnabled = pDesiredEnabled;
+            node.Loaded = pLoaded;
+            return node;
+        }
 
-            foreach (string dependency in mod.Dependencies)
+        node = new ModDependencyNode(pModDecl)
+        {
+            DesiredEnabled = pDesiredEnabled,
+            Loaded = pLoaded
+        };
+        node_map.Add(pModDecl.UID, node);
+        nodes.Add(node);
+        return node;
+    }
+
+    public bool TryGetNode(string pModUID, out ModDependencyNode pNode)
+    {
+        return node_map.TryGetValue(pModUID, out pNode);
+    }
+
+    public void RebuildEdges()
+    {
+        foreach (ModDependencyNode node in nodes)
+        {
+            node.necessary_depend_on.Clear();
+            node.depend_on.Clear();
+            node.depend_by.Clear();
+        }
+
+        foreach (ModDependencyNode node in nodes)
+        {
+            foreach (string dependency in node.mod_decl.Dependencies)
             {
-                if (node_map.TryGetValue(dependency, out var dependency_node))
+                if (!node_map.TryGetValue(dependency, out ModDependencyNode dependency_node))
                 {
-                    dependency_node.depend_by.Add(node);
-                    node.necessary_depend_on.Add(dependency_node);
+                    continue;
                 }
-            }
 
+                dependency_node.depend_by.Add(node);
+                node.necessary_depend_on.Add(dependency_node);
+            }
 
             node.depend_on.UnionWith(node.necessary_depend_on);
 
-            foreach (string optional_dependency in mod.OptionalDependencies)
+            foreach (string optional_dependency in node.mod_decl.OptionalDependencies)
             {
-                if (node_map.TryGetValue(optional_dependency, out var dependency_node))
+                if (!node_map.TryGetValue(optional_dependency, out ModDependencyNode dependency_node))
                 {
-                    dependency_node.depend_by.Add(node);
-                    node.depend_on.Add(dependency_node);
+                    continue;
                 }
+
+                dependency_node.depend_by.Add(node);
+                node.depend_on.Add(dependency_node);
             }
         }
-
-        nodes = new();
-        nodes.UnionWith(node_map.Values);
-        ModDependencyUtils.RemoveModsWithoutRequiredDependencies(this);
     }
 }
 
@@ -127,259 +204,87 @@ internal static class ModDependencyUtils
         return sb.ToString();
     }
 
-    public static ModDependencyNode TryToAppendMod(ModDependencyGraph pGraph, ModDeclare pModAppend)
+    public static string BuildMissingDependencyMessage(ModDeclare pModDeclare, IEnumerable<string> pMissingDependencies)
     {
-        bool success = true;
-        StringBuilder sb = new StringBuilder();
-        if (pModAppend.IncompatibleWith != null && pModAppend.IncompatibleWith.Length > 0)
+        StringBuilder sb = new();
+        sb.AppendLine($"Mod {pModDeclare.UID} has missing dependencies:");
+        foreach (string dependency in pMissingDependencies.Distinct())
         {
-            bool incom_headLog = false;
-            foreach (var gnode in pGraph.nodes)
-            {
-                if (pModAppend.IncompatibleWith.Contains(gnode.mod_decl.UID))
-                {
-                    if (!incom_headLog)
-                    {
-                        sb.AppendLine($"Mod {pModAppend.UID} is incompatible with mods:");
-                        incom_headLog = true;
-                        success = false;
-                    }
-
-                    sb.AppendLine($"    {gnode.mod_decl.UID}");
-                }
-            }
+            sb.AppendLine($"    {dependency}");
         }
 
-        ModDependencyNode node = new(pModAppend);
-        bool mis_depen_headLog = false;
-        foreach (string dependency in pModAppend.Dependencies)
-        {
-            try
-            {
-                ModDependencyNode depen_node = pGraph.nodes.First(n => n.mod_decl.UID == dependency);
-                if (mis_depen_headLog || !success) continue;
-                node.necessary_depend_on.Add(depen_node);
-                depen_node.depend_by.Add(node);
-            }
-            catch (InvalidOperationException)
-            {
-                if (!mis_depen_headLog)
-                {
-                    sb.AppendLine($"Mod {pModAppend.UID} has missing dependencies:");
-                    mis_depen_headLog = true;
-                    success = false;
-                    continue;
-                }
-
-                sb.AppendLine($"    {dependency}");
-            }
-        }
-
-        if (!success)
-        {
-            LogService.LogError(sb.ToString());
-            pModAppend.FailReason.AppendLine(sb.ToString());
-            return null;
-        }
-
-        foreach (string option_depen in pModAppend.OptionalDependencies)
-        {
-            foreach (var gnode in pGraph.nodes)
-            {
-                if (gnode.mod_decl.UID == option_depen)
-                {
-                    node.depend_on.Add(gnode);
-                    gnode.depend_by.Add(node);
-                }
-            }
-        }
-
-        pGraph.nodes.Add(node);
-        return node;
+        sb.Append("Grab the missing dependency mod and try again.");
+        return sb.ToString();
     }
 
-    public static void RemoveCircleDependencies(ModDependencyGraph pGraph)
+    public static string BuildIncompatibleModMessage(ModDeclare pModDeclare, IEnumerable<string> pIncompatibleMods)
     {
-        // Remove circle dependencies and make sure more mods load.
-        // and log error/pop up warning if there is any. 
+        StringBuilder sb = new();
+        sb.AppendLine($"Mod {pModDeclare.UID} is incompatible with mods:");
+        foreach (string incompatible_mod in pIncompatibleMods.Distinct())
+        {
+            sb.AppendLine($"    {incompatible_mod}");
+        }
 
-        // First, try to remove optional depend edges for circle.
-
-        // If there is still circle, try to find the solution with minimum node count to remove to make circles disappear.
+        return sb.ToString().TrimEnd();
     }
 
-    public static void RemoveIncompatibleMods(ModDependencyGraph pGraph)
+    public static string BuildCircularDependencyMessage(ModDeclare pModDeclare)
     {
-        // Remove incompatible mods and make sure more mods load.
-        // and log error/pop up warning if there is any.
-
-        // TODO: The following code is generated by Copilot.
-        Queue<ModDependencyNode> check_nodes = new Queue<ModDependencyNode>();
-        foreach (ModDependencyNode node in pGraph.nodes)
-        {
-            check_nodes.Enqueue(node);
-        }
-
-        while (check_nodes.Count > 0)
-        {
-            var curr_node = check_nodes.Dequeue();
-            if (!pGraph.nodes.Contains(curr_node))
-            {
-                continue;
-            }
-
-            if (curr_node.mod_decl.IncompatibleWith.Length > 0)
-            {
-                // This mod has incompatible mods.
-                // Remove this mod and log error/pop up warning.
-                // Then add all mods that depend on this mod to check_nodes.
-
-                foreach (var depend_by_node in curr_node.depend_by)
-                {
-                    check_nodes.Enqueue(depend_by_node);
-                }
-
-                pGraph.nodes.Remove(curr_node);
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Mod {curr_node.mod_decl.UID} is incompatible with mods:");
-                foreach (var incompatible_with in curr_node.mod_decl.IncompatibleWith)
-                {
-                    try
-                    {
-                        var incompatible_node = pGraph.nodes.First(node => node.mod_decl.UID == incompatible_with);
-                        if (curr_node.necessary_depend_on.Contains(incompatible_node))
-                        {
-                            sb.AppendLine($"    {incompatible_with}");
-                        }
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        sb.AppendLine($"    {incompatible_with}");
-                    }
-                }
-
-                curr_node.mod_decl.FailReason.AppendLine(sb.ToString());
-                LogService.LogWarning(sb.ToString());
-            }
-        }
+        return $"Mod {pModDeclare.UID} has circular dependencies.";
     }
 
-    public static void RemoveModsWithoutRequiredDependencies(ModDependencyGraph pGraph)
+    public static List<ModDependencyNode> SortModsCompileOrderFromDependencyTopology(IEnumerable<ModDependencyNode> pNodes)
     {
-        // Remove mods without required dependencies. 
-        // and log error/pop up warning if there is any.
-        Queue<ModDependencyNode> check_nodes = new Queue<ModDependencyNode>();
-        foreach (ModDependencyNode node in pGraph.nodes)
+        HashSet<ModDependencyNode> selected_nodes = new(pNodes);
+        Dictionary<ModDependencyNode, int> node_in_degree = new();
+        Queue<ModDependencyNode> queue = new();
+        foreach (ModDependencyNode node in selected_nodes.OrderBy(node => node.mod_decl.UID))
         {
-            check_nodes.Enqueue(node);
-        }
-
-        while (check_nodes.Count > 0)
-        {
-            var curr_node = check_nodes.Dequeue();
-            if (!pGraph.nodes.Contains(curr_node))
-            {
-                continue;
-            }
-
-            if (curr_node.necessary_depend_on.Count < curr_node.mod_decl.Dependencies.Length)
-            {
-                // This mod has missing dependencies.
-                // Remove this mod and log error/pop up warning.
-                // Then add all mods that depend on this mod to check_nodes.
-
-                foreach (var depend_by_node in curr_node.depend_by)
-                {
-                    check_nodes.Enqueue(depend_by_node);
-                }
-
-                foreach (ModDependencyNode depend_on_node in curr_node.depend_on)
-                    depend_on_node.depend_by.Remove(curr_node);
-
-                pGraph.nodes.Remove(curr_node);
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Mod {curr_node.mod_decl.UID} has missing dependencies:");
-                foreach (var dependency in curr_node.mod_decl.Dependencies)
-                {
-                    try
-                    {
-                        var depen_node = pGraph.nodes.First(node => node.mod_decl.UID == dependency);
-                        if (!curr_node.necessary_depend_on.Contains(depen_node))
-                        {
-                            sb.AppendLine($"    {dependency}");
-                        }
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        sb.AppendLine($"    {dependency}");
-                    }
-                }
-
-                curr_node.mod_decl.FailReason.AppendLine(sb.ToString());
-                LogService.LogError(sb.ToString());
-            }
-            else
-            {
-                // This mod has all required dependencies.
-                // Check this mod's optional dependencies.
-                // If any optional dependency is missing, just cancel dependency.
-                foreach (var optional_dependency in curr_node.mod_decl.OptionalDependencies)
-                {
-                    if (pGraph.nodes.All(node => node.mod_decl.UID != optional_dependency))
-                    {
-                        try
-                        {
-                            var optional_node = pGraph.nodes.First(node => node.mod_decl.UID == optional_dependency);
-                            if (curr_node.depend_on.Contains(optional_node))
-                            {
-                                curr_node.depend_on.Remove(optional_node);
-                            }
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // ignored
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public static List<ModDependencyNode> SortModsCompileOrderFromDependencyTopology(ModDependencyGraph pGraph)
-    {
-        // Sort mods compile order from dependency topology.
-        Dictionary<ModDependencyNode, int> node_in_degree = new Dictionary<ModDependencyNode, int>();
-        Queue<ModDependencyNode> queue = new Queue<ModDependencyNode>();
-        foreach (var node in pGraph.nodes)
-        {
-            node_in_degree.Add(node, node.depend_on.Count);
-            if (node.depend_on.Count == 0)
+            int in_degree = node.depend_on.Count(dependency => selected_nodes.Contains(dependency));
+            node_in_degree.Add(node, in_degree);
+            if (in_degree == 0)
             {
                 queue.Enqueue(node);
             }
         }
 
-        List<ModDependencyNode> mods = new List<ModDependencyNode>();
+        List<ModDependencyNode> mods = new();
         while (queue.Count > 0)
         {
             ModDependencyNode curr_node = queue.Dequeue();
             mods.Add(curr_node);
 
-            foreach (var depend_on_node in curr_node.depend_by)
+            foreach (ModDependencyNode depend_on_node in curr_node.depend_by.OrderBy(node => node.mod_decl.UID))
             {
-                try
+                if (!selected_nodes.Contains(depend_on_node))
                 {
-                    node_in_degree[depend_on_node]--;
-                    if (node_in_degree[depend_on_node] == 0) queue.Enqueue(depend_on_node);
+                    continue;
                 }
-                catch (KeyNotFoundException)
+
+                if (!node_in_degree.ContainsKey(depend_on_node))
                 {
-                    // ignored
-                    LogService
-                        .LogError(
-                            $"Key {depend_on_node.mod_decl.UID} not found in node_in_degree when checking {curr_node.mod_decl.UID}");
+                    continue;
+                }
+
+                node_in_degree[depend_on_node]--;
+                if (node_in_degree[depend_on_node] == 0)
+                {
+                    queue.Enqueue(depend_on_node);
                 }
             }
+        }
+
+        if (mods.Count == selected_nodes.Count)
+        {
+            return mods;
+        }
+
+        foreach (ModDependencyNode remaining_node in selected_nodes
+                     .Where(node => !mods.Contains(node))
+                     .OrderBy(node => node.mod_decl.UID))
+        {
+            mods.Add(remaining_node);
         }
 
         return mods;

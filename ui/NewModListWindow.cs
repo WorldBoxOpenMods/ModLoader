@@ -314,17 +314,16 @@ internal class NewModListWindow : AbstractWideWindow<NewModListWindow>
 
     private void ToggleSelectedMod()
     {
-        var next_state = ModInfoUtils.toggleMod(CurrentSelected.UID);
-        if (next_state)
+        if (ModInfoUtils.isModDisabled(CurrentSelected.UID))
         {
-            ToggleModButton.Icon.sprite = SpriteTextureLoader.getSprite("ui/icons/iconOn");
-            ToggleModButton.TipButton.text_description_2 = "mod_next_state_enabled";
+            ModCompileLoadService.TryEnableMod(CurrentSelected);
         }
         else
         {
-            ToggleModButton.Icon.sprite = SpriteTextureLoader.getSprite("ui/icons/iconOff");
-            ToggleModButton.TipButton.text_description_2 = "mod_next_state_disabled";
+            ModCompileLoadService.DisableMod(CurrentSelected);
         }
+
+        RefreshControlPart();
     }
 
     private void FolderOfSelectedMod()
