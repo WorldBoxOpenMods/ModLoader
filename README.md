@@ -24,7 +24,7 @@ for short. Detailed introduction look [Gitbook](https://worldboxopenmods.gitbook
     How to install
 </h3>
 
-### Automatic install
+### Automatic Installation
 
 The installer is available for both Linux and Windows.  
 Click the links below to download:
@@ -41,7 +41,7 @@ If you're trying to play mods that aren't compatible with the latest version of 
 
 </br>
 
-### Manual install
+### Manual Installation
 
 1. Download NeoModLoader.dll (and NeoModLoader.pdb) in "releases" at the right of the page and put it in
    GAMEPATH/worldbox_Data/StreamingAssets/mods folder
@@ -50,10 +50,12 @@ If you're trying to play mods that aren't compatible with the latest version of 
 
 It is recommended to subscribe to the NML item on the Steam Workshop to receive automatic updates
 
-### Installing on Android
+### Android Installation
+
+Driven by the [Android Version Repository](https://github.com/MelvinShwuaner/ModLoader/)
 
 1. Download the latest version of lemon loader https://gamebanana.com/mods/656702
-follow instructions there on how to install
+follow instructions there on how to install.
 2. Move neomodloader_mobile.dll to MelonLoader/com.mkarpenko.worldbox/Mods
 
 <h2 align="center">Others</h2>
