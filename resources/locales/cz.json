@@ -27,7 +27,7 @@
   "SkipAuth Description": "跳过验证\n将上传至Unverified Mod",
   "NeoModLoader Updated": "NeoModLoader 已更新, 重启游戏以应用更新",
   "TypeMod Title": "模组",
-  "NMLMENU Title": "模组列表",
+  "NMLMenu Title": "模组列表",
   "TypeResource Title": "资源包",
   "ModConfigure Title": "模组设置",
   "ModCommunity Title": "模组社区",
