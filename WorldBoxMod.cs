@@ -119,6 +119,7 @@ public class WorldBoxMod : MonoBehaviour
         }, "Initialize NeoModLoader");
 
         List<ModDependencyNode> mod_nodes = new();
+        HashSet<string> compiled_mod_uids = new();
         ModEnablePlan startup_enable_plan = null;
         SmoothLoader.add(() =>
         {
@@ -128,32 +129,16 @@ public class WorldBoxMod : MonoBehaviour
             ModDepenSolveService.InitializeGraph(AllRecognizedMods.Keys);
             startup_enable_plan = ModDepenSolveService.BuildStartupEnablePlan();
             mod_nodes.AddRange(startup_enable_plan.LoadOrder);
-
-            ModCompileLoadService.prepareCompile(mod_nodes);
         }, "Load Mods Info And Prepare Mods");
         SmoothLoader.add(() =>
         {
-            var mods_to_load = new List<ModDeclare>();
-            foreach (var mod in mod_nodes)
-            {
-                SmoothLoader.add(() =>
-                {
-                    if (ModCompileLoadService.compileMod(mod))
-                    {
-                        mods_to_load.Add(mod.mod_decl);
-                    }
-                    else
-                    {
-                        LogService.LogError($"Failed to compile mod {mod.mod_decl.Name}");
-                    }
-                }, "Compile Mod " + mod.mod_decl.Name);
-            }
+            compiled_mod_uids = ModCompileLoadService.CompileModNodes(mod_nodes);
             MasterBuilder Builder = new();
             foreach (var mod in mod_nodes)
             {
                 SmoothLoader.add(() =>
                 {
-                    if (mods_to_load.Contains(mod.mod_decl))
+                    if (!mod.Loaded && compiled_mod_uids.Contains(mod.mod_decl.UID))
                     {
                         ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
                             Paths.ModResourceFolderName), out List<Builder> builders);
@@ -169,7 +154,10 @@ public class WorldBoxMod : MonoBehaviour
 
             SmoothLoader.add(() =>
             {
-                ModCompileLoadService.loadMods(mods_to_load);
+                ModCompileLoadService.loadMods(mod_nodes
+                    .Where(mod => !mod.Loaded && compiled_mod_uids.Contains(mod.mod_decl.UID))
+                    .Select(mod => mod.mod_decl)
+                    .ToList());
                 Builder.BuildAll();
                 if (startup_enable_plan != null)
                 {

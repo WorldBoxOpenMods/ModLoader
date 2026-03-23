@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -21,193 +22,34 @@ namespace NeoModLoader.services;
 /// </summary>
 public static class ModCompileLoadService
 {
-    private static string[] _default_ref_path = null!;
-    private static readonly Dictionary<string, string> mod_inc_path = new();
-    private static readonly HashSet<string> _loaded_ref = new();
-
-    private static MetadataReference[] _default_ref = null!;
-    private static MetadataReference _publicized_assembly_ref = null!;
-    private static readonly Dictionary<string, MetadataReference> mod_ref = new();
-
-    private static bool compileMod(ModDeclare pModDecl, IEnumerable<MetadataReference> pDefaultInc,
-        string[] pAddInc, Dictionary<string, MetadataReference> pModInc, out string pCompileErrors, bool pForce = false,
-        bool pDisableOptionalDepen = false)
+    private sealed class CompileSessionContext
     {
-        pCompileErrors = string.Empty;
-        var available_optional_depens = pDisableOptionalDepen
-            ? new List<string>()
-            : pModDecl.OptionalDependencies.Where(pModInc.ContainsKey).ToList();
-        var available_depens = pModDecl.Dependencies.Where(pModInc.ContainsKey).ToList();
-        if (!pForce && !ModInfoUtils.doesModNeedRecompile(pModDecl, available_depens, available_optional_depens))
+        public CompileSessionContext(MetadataReference[] pDefaultReferences, MetadataReference pPublicizedAssemblyReference)
         {
-            LoadAddInc();
-            return true;
+            DefaultReferences = pDefaultReferences;
+            PublicizedAssemblyReference = pPublicizedAssemblyReference;
         }
 
-        var preprocessor_symbols = new List<string>();
-
-        List<MetadataReference> list = pDefaultInc.ToList();
-        list.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
-        LoadAddInc();
-        if (pModDecl.UsePublicizedAssembly)
-        {
-            list.Add(_publicized_assembly_ref);
-        }
-
-        foreach (var depen in available_depens)
-        {
-            list.Add(pModInc[depen]);
-
-            if (pModInc[depen] != null) continue;
-            LogService.LogError($"{pModDecl.UID}'s optional ref of {depen} instance is null");
-            return false;
-        }
-
-        foreach (var option_depen in available_optional_depens)
-        {
-            list.Add(pModInc[option_depen]);
-            preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
-
-            if (pModInc[option_depen] != null) continue;
-            LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
-            return false;
-        }
-
-        var syntaxTrees = new List<SyntaxTree>();
-        var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
-            file_name =>
-                file_name.EndsWith(".cs") && !file_name.StartsWith("."),
-            dir_name => !dir_name.StartsWith(".") &&
-                        !Paths.CompileIgnoreSearchDirectories.Contains(dir_name));
-        var embeded_resources = new List<ResourceDescription>();
-
-        bool is_ncms_mod = false;
-        var parse_option = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessor_symbols);
-
-        foreach (var code_file in code_files)
-        {
-            SourceText sourceText = SourceText.From(File.ReadAllText(code_file), Encoding.UTF8);
-            SyntaxTree syntaxTree =
-                CSharpSyntaxTree.ParseText(
-                    sourceText,
-                    parse_option,
-                    code_file.Substring(pModDecl.FolderPath.Length + 1)
-                );
-            syntaxTrees.Add(syntaxTree);
-            if (!is_ncms_mod)
-            {
-                is_ncms_mod = NCMSCompatibleLayer.IsNCMSMod(syntaxTree);
-            }
-        }
-
-
-        if (is_ncms_mod)
-        {
-            // Load Manifest Files
-            string embeded_resource_folder = Path.Combine(pModDecl.FolderPath, Paths.NCMSModEmbededResourceFolderName);
-            if (Directory.Exists(embeded_resource_folder))
-            {
-                var embeded_resource_files = Directory.GetFiles(
-                    embeded_resource_folder, "*",
-                    SearchOption.AllDirectories);
-                foreach (var file in embeded_resource_files)
-                {
-                    var relative_path = file.Substring(embeded_resource_folder.Length + 1);
-                    var resource_name =
-                        $"{pModDecl.Name}.Resources.{relative_path.Replace('\\', '.').Replace('/', '.')}";
-                    var resource_desc = new ResourceDescription(
-                        resource_name,
-                        () => File.OpenRead(file),
-                        true
-                    );
-                    embeded_resources.Add(resource_desc);
-                }
-            }
-
-            // Load Global Object
-            SourceText global_object_sourceText = SourceText.From(NCMSCompatibleLayer.modGlobalObject, Encoding.UTF8);
-            SyntaxTree global_object_syntaxTree =
-                CSharpSyntaxTree.ParseText(
-                    global_object_sourceText,
-                    parse_option,
-                    $"{pModDecl.Name}.GlobalObject.cs"
-                );
-            syntaxTrees.Add(global_object_syntaxTree);
-        }
-
-        pModDecl.IsNCMSMod = is_ncms_mod;
-
-        void LoadAddInc()
-        {
-            foreach (var inc in pAddInc)
-            {
-                string file_name = Path.GetFileName(inc);
-                if (file_name == "Assembly-CSharp.dll")
-                {
-                    continue;
-                }
-
-                if (_loaded_ref.Contains(file_name)) continue;
-                _loaded_ref.Add(file_name);
-                try
-                {
-                    var loaded_inc = Assembly.LoadFrom(inc);
-                    LogService.LogInfo($"Load {loaded_inc.FullName}");
-                }
-                catch (Exception e)
-                {
-                    LogService.LogWarning($"Failed to load Assembly {file_name} for mod {pModDecl.UID}");
-                    LogService.LogWarning(e.Message);
-                    LogService.LogWarning(e.StackTrace);
-                }
-            }
-        }
-
-
-        var identity = new AssemblyIdentity(
-            pModDecl.UID, pModDecl.ParseVersion(), null
-        );
-
-        var compilation = CSharpCompilation.Create(
-            $"{pModDecl.UID}",
-            syntaxTrees,
-            list,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                allowUnsafe: true, deterministic: true, assemblyIdentityComparer: AssemblyIdentityComparer.Default)
-        );
-
-        using MemoryStream dllms = new MemoryStream();
-        using MemoryStream pdbms = new MemoryStream();
-
-        string dll_path = Path.Combine(Paths.CompiledModsPath, $"{pModDecl.UID}.dll");
-        string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{pModDecl.UID}.pdb");
-
-        var result = compilation.Emit(dllms, pdbms,
-            manifestResources: embeded_resources,
-            options: new EmitOptions(
-                debugInformationFormat: DebugInformationFormat
-                    .PortablePdb,
-                pdbFilePath: pdb_path
-            )
-        );
-
-        if (!result.Success)
-        {
-            pCompileErrors = CollectCompileErrors(result.Diagnostics);
-            return false;
-        }
-
-        using var dll_fs = new FileStream(dll_path, FileMode.Create, FileAccess.Write);
-        dllms.Seek(0, SeekOrigin.Begin);
-        dllms.WriteTo(dll_fs);
-
-        using var pdb_fs = new FileStream(pdb_path, FileMode.Create, FileAccess.Write);
-        pdbms.Seek(0, SeekOrigin.Begin);
-        pdbms.WriteTo(pdb_fs);
-
-        ModInfoUtils.RecordMod(pModDecl, available_depens, available_optional_depens, false, false);
-        return true;
+        public MetadataReference[] DefaultReferences { get; }
+        public MetadataReference PublicizedAssemblyReference { get; }
+        public ConcurrentDictionary<string, MetadataReference> ModReferences { get; } = new();
+        public ConcurrentDictionary<string, byte> LoadedAdditionalReferences { get; } = new();
     }
+
+    private sealed class CompileNodeResult
+    {
+        public ModDependencyNode Node { get; set; } = null!;
+        public bool Success { get; set; }
+        public string FailureReason { get; set; } = string.Empty;
+        public string CompileErrors { get; set; } = string.Empty;
+        public string OptionalDependencyCompileErrors { get; set; } = string.Empty;
+        public bool UsedOptionalDependencyFallback { get; set; }
+        public bool ShouldRecordCompileCache { get; set; }
+        public MetadataReference ProducedReference { get; set; }
+        public IReadOnlyList<string> AvailableDependencies { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<string> AvailableOptionalDependencies { get; set; } = Array.Empty<string>();
+    }
+
 
     private static string CollectCompileErrors(IEnumerable<Diagnostic> pDiagnostics)
     {
@@ -242,6 +84,19 @@ public static class ModCompileLoadService
 
         LogService.LogWarning(
             $"Failed to compile mod {pModUid} with optional dependencies, but succeeded after disabling them:\n{pCompileErrors}");
+    }
+
+    private static string BuildFailedDependencyCompileMessage(ModDeclare pModDeclare,
+        IEnumerable<string> pFailedDependencies)
+    {
+        StringBuilder sb = new();
+        sb.AppendLine($"Compile skipped for mod {pModDeclare.UID} because required dependencies failed to compile:");
+        foreach (string dependency_uid in pFailedDependencies.Distinct())
+        {
+            sb.AppendLine($"    {dependency_uid}");
+        }
+
+        return sb.ToString().TrimEnd();
     }
 
     internal static void LoadLocales(object pModComponent, ModDeclare pModDeclare, bool pUpdateTexts = true,
@@ -284,124 +139,6 @@ public static class ModCompileLoadService
         }
 
         LM.ApplyLocale(pUpdateTexts);
-    }
-
-    /// <summary>
-    /// Prepare references for mod nodes
-    /// </summary>
-    /// <param name="pModNodes"></param>
-    public static void prepareCompile(List<ModDependencyNode> pModNodes)
-    {
-        foreach (var mod_node in pModNodes)
-        {
-            mod_inc_path[mod_node.mod_decl.UID] =
-                Path.Combine(Paths.CompiledModsPath, $"{mod_node.mod_decl.UID}.dll");
-        }
-
-        var default_ref_path_list = new List<string>();
-        default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath, "*.dll"));
-        default_ref_path_list.AddRange(Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"));
-        default_ref_path_list.Add(Paths.NMLModPath);
-        _default_ref_path = default_ref_path_list.ToArray();
-
-        _default_ref = new MetadataReference[_default_ref_path.Length];
-        for (int i = 0; i < _default_ref_path.Length; i++)
-        {
-            try
-            {
-                _default_ref[i] = MetadataReference.CreateFromFile(_default_ref_path[i]);
-                if (_default_ref[i] == null) throw new Exception("Ref created is null");
-            }
-            catch (Exception e)
-            {
-                LogService.LogError($"Error when load default reference {_default_ref_path[i]}: {e.Message}");
-            }
-        }
-
-        _publicized_assembly_ref = MetadataReference.CreateFromFile(Paths.PublicizedAssemblyPath);
-    }
-
-    /// <summary>
-    /// Prepare references for a single mod node
-    /// </summary>
-    /// <param name="pModNode"></param>
-    public static void prepareCompileRuntime(ModDependencyNode pModNode)
-    {
-        mod_inc_path[pModNode.mod_decl.UID] =
-            Path.Combine(Paths.CompiledModsPath, $"{pModNode.mod_decl.UID}.dll");
-    }
-
-    /// <summary>
-    /// Public mod compiling method
-    /// </summary>
-    /// <param name="pModNode">The mod to compile</param>
-    /// <param name="pForce">Wheather recompile when the mod does not need to recompile</param>
-    /// <returns></returns>
-    public static bool compileMod(ModDependencyNode pModNode, bool pForce = false)
-    {
-        string[] precompiled_dll_files = Directory.GetFiles(pModNode.mod_decl.FolderPath, "*.dll");
-        if (precompiled_dll_files.Length > 0)
-        {
-            LogService.LogInfo(
-                $"{pModNode.mod_decl.UID} detected as precompiled, compilation phase will be skipped on it!");
-            pModNode.mod_decl.SetModType(ModTypeEnum.COMPILED_NEOMOD);
-
-            string main_dll = precompiled_dll_files.FirstOrDefault(file =>
-                                  Path.GetFileNameWithoutExtension(file) == pModNode.mod_decl.UID) ??
-                              precompiled_dll_files[0];
-            mod_ref[pModNode.mod_decl.UID] = MetadataReference.CreateFromFile(main_dll);
-            return true;
-        }
-
-        bool compile_result;
-        bool has_available_optional_depen = pModNode.mod_decl.OptionalDependencies.Any(mod_ref.ContainsKey);
-        string compile_errors;
-        compile_result =
-            compileMod(pModNode.mod_decl, _default_ref,
-                pModNode.GetAdditionReferences().ToArray(), mod_ref, out compile_errors, pForce
-            );
-        if (compile_result)
-        {
-            mod_ref[pModNode.mod_decl.UID] =
-                MetadataReference.CreateFromFile(Path.Combine(Paths.CompiledModsPath,
-                    $"{pModNode.mod_decl.UID}.dll"));
-        }
-        else if (has_available_optional_depen)
-        {
-            LogService.LogWarning(
-                $"Cannot compile mod {pModNode.mod_decl.UID} with Optional Dependencies, try to disable them");
-            string compile_errors_without_optional_depen;
-            compile_result =
-                compileMod(pModNode.mod_decl, _default_ref,
-                    pModNode.GetAdditionReferences(false).ToArray(), mod_ref, out compile_errors_without_optional_depen,
-                    pForce, true
-                );
-            if (compile_result)
-            {
-                mod_ref[pModNode.mod_decl.UID] =
-                    MetadataReference.CreateFromFile(Path.Combine(Paths.CompiledModsPath,
-                        $"{pModNode.mod_decl.UID}.dll"));
-                LogCompileFailureWithOptionalDependencies(pModNode.mod_decl.UID, compile_errors);
-            }
-            else
-            {
-                LogCompileFailure(pModNode.mod_decl.UID, compile_errors_without_optional_depen);
-            }
-        }
-        else
-        {
-            LogCompileFailure(pModNode.mod_decl.UID, compile_errors);
-        }
-
-        if (!compile_result)
-        {
-            mod_inc_path.Remove(pModNode.mod_decl.UID);
-            pModNode.mod_decl.FailReason.AppendLine(
-                "Compile Failed\n Check Log for details\n All mods compiled before it will be recompiled next time");
-            File.WriteAllText(Paths.ModCompileRecordPath, "");
-        }
-
-        return compile_result;
     }
 
     /// <summary>
@@ -561,13 +298,13 @@ public static class ModCompileLoadService
         }
         if (all_success)
         {
-                WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
-                ModDepenSolveService.MarkModLoaded(pMod);
-            }
+            WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
+            ModDepenSolveService.MarkModLoaded(pMod);
+        }
         else
-            {
+        {
             pMod.FailReason.AppendLine("All mod assemblies failed to load.");
-                ModInfoUtils.clearModCompileTimestamp(pMod.UID);
+            ModInfoUtils.clearModCompileTimestamp(pMod.UID);
         }
     }
 
@@ -657,19 +394,6 @@ public static class ModCompileLoadService
         ScrollWindow.get("error_with_reason").clickShow();
     }
 
-    private static bool TryCompileRuntimeNode(ModDependencyNode pModNode, bool pForce = false)
-    {
-        prepareCompileRuntime(pModNode);
-        bool success = compileMod(pModNode, pForce);
-        if (success)
-        {
-            return true;
-        }
-
-        WorldBoxMod.AllRecognizedMods[pModNode.mod_decl] = ModState.FAILED;
-        return false;
-    }
-
     private static bool TryLoadCompiledModAtRuntime(ModDeclare pModDeclare)
     {
         MasterBuilder builder = new MasterBuilder();
@@ -710,7 +434,7 @@ public static class ModCompileLoadService
         }
 
         ModDependencyNode node = ModDepenSolveService.EnsureNode(pModDeclare);
-        bool success = TryCompileRuntimeNode(node, pForce);
+        bool success = CompileModNodes(new[] { node }, pForce).Contains(node.mod_decl.UID);
         if (!success)
         {
             ShowRuntimeLoadError(pModDeclare,
@@ -748,6 +472,7 @@ public static class ModCompileLoadService
             return false;
         }
 
+        HashSet<string> compiled_nodes = CompileModNodes(plan.LoadOrder);
         foreach (ModDependencyNode node in plan.LoadOrder)
         {
             if (node.Loaded || IsModLoaded(node.mod_decl.UID))
@@ -756,7 +481,7 @@ public static class ModCompileLoadService
                 continue;
             }
 
-            if (!TryCompileRuntimeNode(node))
+            if (!compiled_nodes.Contains(node.mod_decl.UID))
             {
                 ModDepenSolveService.RollbackEnablePlan(plan);
                 mod_declare.FailReason.Clear();
@@ -861,5 +586,500 @@ public static class ModCompileLoadService
             WorldBoxMod.AllRecognizedMods[recognized_mod] = ModState.LOADED;
             ModDepenSolveService.MarkModLoaded(recognized_mod);
         }
+    }
+    internal static HashSet<string> CompileModNodes(IEnumerable<ModDependencyNode> pModNodes, bool pForce = false)
+    {
+        List<ModDependencyNode> nodes = pModNodes.Distinct().ToList();
+        HashSet<string> successful_nodes = new();
+        if (nodes.Count == 0)
+        {
+            return successful_nodes;
+        }
+
+        CompileSessionContext context = CreateCompileSessionContext(nodes);
+        List<List<ModDependencyNode>> stages =
+            ModDependencyUtils.PartitionModsCompileStagesFromDependencyTopology(nodes);
+        Dictionary<string, CompileNodeResult> completed_results = new();
+        bool should_clear_compile_records = false;
+
+        foreach (List<ModDependencyNode> stage in stages)
+        {
+            Dictionary<string, MetadataReference> available_mod_references =
+                context.ModReferences.ToDictionary(entry => entry.Key, entry => entry.Value);
+            ConcurrentDictionary<string, CompileNodeResult> stage_results = new();
+            int max_degree_of_parallelism = Math.Min(stage.Count, Math.Max(1, Environment.ProcessorCount - 1));
+
+            Parallel.ForEach(stage, new ParallelOptions { MaxDegreeOfParallelism = max_degree_of_parallelism }, node =>
+            {
+                stage_results[node.mod_decl.UID] =
+                    CompileNodeInSession(node, context, available_mod_references, completed_results, pForce);
+            });
+
+            foreach (ModDependencyNode node in stage)
+            {
+                CompileNodeResult result = stage_results[node.mod_decl.UID];
+                completed_results[node.mod_decl.UID] = result;
+
+                if (result.Success)
+                {
+                    successful_nodes.Add(node.mod_decl.UID);
+                    node.mod_decl.FailReason.Clear();
+
+                    if (result.ProducedReference != null)
+                    {
+                        context.ModReferences[node.mod_decl.UID] = result.ProducedReference;
+                    }
+
+                    if (result.ShouldRecordCompileCache)
+                    {
+                        ModInfoUtils.RecordMod(node.mod_decl, result.AvailableDependencies.ToList(),
+                            result.AvailableOptionalDependencies.ToList(), false, false);
+                    }
+
+                    if (result.UsedOptionalDependencyFallback)
+                    {
+                        LogCompileFailureWithOptionalDependencies(node.mod_decl.UID,
+                            result.OptionalDependencyCompileErrors);
+                    }
+
+                    continue;
+                }
+
+                should_clear_compile_records = true;
+                ApplyCompileFailure(result);
+            }
+        }
+
+        if (should_clear_compile_records)
+        {
+            File.WriteAllText(Paths.ModCompileRecordPath, "");
+        }
+
+        LogService.PullAllConcurrentLogToCurrentThread();
+        return successful_nodes;
+    }
+
+    private static CompileSessionContext CreateCompileSessionContext(IReadOnlyCollection<ModDependencyNode> pModNodes)
+    {
+        var default_ref_paths = new List<string>();
+        default_ref_paths.AddRange(Directory.GetFiles(Paths.ManagedPath, "*.dll"));
+        default_ref_paths.AddRange(Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"));
+        default_ref_paths.Add(Paths.NMLModPath);
+
+        List<MetadataReference> default_references = new();
+        foreach (string default_ref_path in default_ref_paths)
+        {
+            try
+            {
+                default_references.Add(MetadataReference.CreateFromFile(default_ref_path));
+            }
+            catch (Exception e)
+            {
+                LogService.LogError($"Error when load default reference {default_ref_path}: {e.Message}");
+            }
+        }
+
+        CompileSessionContext context = new(default_references.ToArray(),
+            MetadataReference.CreateFromFile(Paths.PublicizedAssemblyPath));
+        SeedAvailableModReferences(context, pModNodes);
+        return context;
+    }
+
+    private static void SeedAvailableModReferences(CompileSessionContext pContext, IReadOnlyCollection<ModDependencyNode> pModNodes)
+    {
+        HashSet<string> selected_node_uids = pModNodes.Select(node => node.mod_decl.UID).ToHashSet();
+        HashSet<string> visited = new();
+
+        foreach (ModDependencyNode node in pModNodes)
+        {
+            SeedAvailableModReferencesRecursive(node, pContext, selected_node_uids, visited);
+        }
+    }
+
+    private static void SeedAvailableModReferencesRecursive(ModDependencyNode pNode, CompileSessionContext pContext,
+        ISet<string> pSelectedNodeUids, ISet<string> pVisited)
+    {
+        if (!pVisited.Add(pNode.mod_decl.UID))
+        {
+            return;
+        }
+
+        bool should_seed_current_reference = pNode.Loaded || !pSelectedNodeUids.Contains(pNode.mod_decl.UID);
+        if (should_seed_current_reference && TryCreateMetadataReference(pNode.mod_decl, out MetadataReference reference))
+        {
+            pContext.ModReferences[pNode.mod_decl.UID] = reference;
+        }
+
+        foreach (ModDependencyNode dependency in pNode.depend_on)
+        {
+            SeedAvailableModReferencesRecursive(dependency, pContext, pSelectedNodeUids, pVisited);
+        }
+    }
+
+    private static CompileNodeResult CompileNodeInSession(ModDependencyNode pNode, CompileSessionContext pContext,
+        IReadOnlyDictionary<string, MetadataReference> pAvailableModReferences,
+        IReadOnlyDictionary<string, CompileNodeResult> pCompletedResults, bool pForce)
+    {
+        List<string> failed_dependencies = pNode.mod_decl.Dependencies
+            .Where(dependency_uid =>
+                pCompletedResults.TryGetValue(dependency_uid, out CompileNodeResult dependency_result) &&
+                !dependency_result.Success)
+            .Distinct()
+            .ToList();
+        if (failed_dependencies.Count > 0)
+        {
+            return CreateFailedResult(pNode, BuildFailedDependencyCompileMessage(pNode.mod_decl, failed_dependencies));
+        }
+
+        if (pNode.Loaded)
+        {
+            if (TryCreateMetadataReference(pNode.mod_decl, out MetadataReference reference))
+            {
+                return CreateSuccessResult(pNode, reference);
+            }
+
+            if (pNode.mod_decl.ModType is ModTypeEnum.BEPINEX or ModTypeEnum.RESOURCE_PACK)
+            {
+                return new CompileNodeResult
+                {
+                    Node = pNode,
+                    Success = true
+                };
+            }
+
+            return CreateFailedResult(pNode,
+                $"Mod {pNode.mod_decl.UID} is already loaded, but its compiled assembly could not be found.");
+        }
+
+        string[] precompiled_dll_files = Directory.GetFiles(pNode.mod_decl.FolderPath, "*.dll");
+        if (precompiled_dll_files.Length > 0)
+        {
+            LogService.LogInfoConcurrent(
+                $"{pNode.mod_decl.UID} detected as precompiled, compilation phase will be skipped on it!");
+            pNode.mod_decl.SetModType(ModTypeEnum.COMPILED_NEOMOD);
+
+            string main_dll = precompiled_dll_files.FirstOrDefault(file =>
+                                  Path.GetFileNameWithoutExtension(file) == pNode.mod_decl.UID) ??
+                              precompiled_dll_files[0];
+            return CreateSuccessResult(pNode, MetadataReference.CreateFromFile(main_dll));
+        }
+
+        bool has_available_optional_depen =
+            pNode.mod_decl.OptionalDependencies.Any(pAvailableModReferences.ContainsKey);
+        CompileNodeResult compile_result =
+            CompileModFromSource(pNode, pNode.GetAdditionReferences().ToArray(), pAvailableModReferences, pContext,
+                pForce);
+        if (compile_result.Success)
+        {
+            return compile_result;
+        }
+
+        if (!has_available_optional_depen)
+        {
+            return compile_result;
+        }
+
+        LogService.LogWarningConcurrent(
+            $"Cannot compile mod {pNode.mod_decl.UID} with Optional Dependencies, try to disable them");
+        CompileNodeResult fallback_result =
+            CompileModFromSource(pNode, pNode.GetAdditionReferences(false).ToArray(), pAvailableModReferences,
+                pContext, pForce, true);
+        if (!fallback_result.Success)
+        {
+            return fallback_result;
+        }
+
+        return new CompileNodeResult
+        {
+            Node = pNode,
+            Success = true,
+            ProducedReference = fallback_result.ProducedReference,
+            AvailableDependencies = fallback_result.AvailableDependencies,
+            AvailableOptionalDependencies = fallback_result.AvailableOptionalDependencies,
+            ShouldRecordCompileCache = fallback_result.ShouldRecordCompileCache,
+            UsedOptionalDependencyFallback = true,
+            OptionalDependencyCompileErrors = compile_result.CompileErrors
+        };
+    }
+
+    private static CompileNodeResult CompileModFromSource(ModDependencyNode pNode, string[] pAddInc,
+        IReadOnlyDictionary<string, MetadataReference> pAvailableModReferences, CompileSessionContext pContext,
+        bool pForce = false, bool pDisableOptionalDepen = false)
+    {
+        ModDeclare pModDecl = pNode.mod_decl;
+        List<string> available_optional_depens = pDisableOptionalDepen
+            ? new List<string>()
+            : pModDecl.OptionalDependencies.Where(pAvailableModReferences.ContainsKey).ToList();
+        List<string> available_depens = pModDecl.Dependencies.Where(pAvailableModReferences.ContainsKey).ToList();
+
+        if (!pForce && !ModInfoUtils.doesModNeedRecompile(pModDecl, available_depens, available_optional_depens))
+        {
+            LoadAdditionalReferences(pContext, pAddInc, pModDecl.UID);
+            if (!TryCreateMetadataReference(pModDecl, out MetadataReference reference))
+            {
+                return CreateFailedResult(pNode, $"Compiled assembly for mod {pModDecl.UID} was not found.");
+            }
+
+            return new CompileNodeResult
+            {
+                Node = pNode,
+                Success = true,
+                ProducedReference = reference,
+                AvailableDependencies = available_depens,
+                AvailableOptionalDependencies = available_optional_depens
+            };
+        }
+
+        var preprocessor_symbols = new List<string>();
+        List<MetadataReference> references = pContext.DefaultReferences.ToList();
+        references.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
+        LoadAdditionalReferences(pContext, pAddInc, pModDecl.UID);
+        if (pModDecl.UsePublicizedAssembly)
+        {
+            references.Add(pContext.PublicizedAssemblyReference);
+        }
+
+        foreach (string dependency_uid in available_depens)
+        {
+            if (!pAvailableModReferences.TryGetValue(dependency_uid, out MetadataReference dependency_reference))
+            {
+                return CreateFailedResult(pNode,
+                    $"Required dependency {dependency_uid} is missing a compiled assembly reference.");
+            }
+
+            references.Add(dependency_reference);
+        }
+
+        foreach (string optional_dependency_uid in available_optional_depens)
+        {
+            if (!pAvailableModReferences.TryGetValue(optional_dependency_uid,
+                    out MetadataReference optional_dependency_reference))
+            {
+                return CreateFailedResult(pNode,
+                    $"Optional dependency {optional_dependency_uid} is missing a compiled assembly reference.");
+            }
+
+            references.Add(optional_dependency_reference);
+            preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(optional_dependency_uid));
+        }
+
+        var syntax_trees = new List<SyntaxTree>();
+        var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
+            file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
+            dir_name => !dir_name.StartsWith(".") &&
+                        !Paths.CompileIgnoreSearchDirectories.Contains(dir_name));
+        var embeded_resources = new List<ResourceDescription>();
+
+        bool is_ncms_mod = false;
+        var parse_option = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessor_symbols);
+
+        foreach (string code_file in code_files)
+        {
+            SourceText source_text = SourceText.From(File.ReadAllText(code_file), Encoding.UTF8);
+            SyntaxTree syntax_tree =
+                CSharpSyntaxTree.ParseText(
+                    source_text,
+                    parse_option,
+                    code_file.Substring(pModDecl.FolderPath.Length + 1)
+                );
+            syntax_trees.Add(syntax_tree);
+            if (!is_ncms_mod)
+            {
+                is_ncms_mod = NCMSCompatibleLayer.IsNCMSMod(syntax_tree);
+            }
+        }
+
+        if (is_ncms_mod)
+        {
+            string embeded_resource_folder = Path.Combine(pModDecl.FolderPath, Paths.NCMSModEmbededResourceFolderName);
+            if (Directory.Exists(embeded_resource_folder))
+            {
+                string[] embeded_resource_files = Directory.GetFiles(embeded_resource_folder, "*",
+                    SearchOption.AllDirectories);
+                foreach (string file in embeded_resource_files)
+                {
+                    string relative_path = file.Substring(embeded_resource_folder.Length + 1);
+                    string resource_name =
+                        $"{pModDecl.Name}.Resources.{relative_path.Replace('\\', '.').Replace('/', '.')}";
+                    embeded_resources.Add(new ResourceDescription(
+                        resource_name,
+                        () => File.OpenRead(file),
+                        true
+                    ));
+                }
+            }
+
+            SourceText global_object_source_text = SourceText.From(NCMSCompatibleLayer.modGlobalObject, Encoding.UTF8);
+            SyntaxTree global_object_syntax_tree =
+                CSharpSyntaxTree.ParseText(
+                    global_object_source_text,
+                    parse_option,
+                    $"{pModDecl.Name}.GlobalObject.cs"
+                );
+            syntax_trees.Add(global_object_syntax_tree);
+        }
+
+        pModDecl.IsNCMSMod = is_ncms_mod;
+
+        var compilation = CSharpCompilation.Create(
+            pModDecl.UID,
+            syntax_trees,
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+                allowUnsafe: true, deterministic: true, assemblyIdentityComparer: AssemblyIdentityComparer.Default)
+        );
+
+        using MemoryStream dllms = new();
+        using MemoryStream pdbms = new();
+
+        string dll_path = Path.Combine(Paths.CompiledModsPath, $"{pModDecl.UID}.dll");
+        string pdb_path = Path.Combine(Paths.CompiledModsPath, $"{pModDecl.UID}.pdb");
+
+        EmitResult emit_result = compilation.Emit(dllms, pdbms,
+            manifestResources: embeded_resources,
+            options: new EmitOptions(
+                debugInformationFormat: DebugInformationFormat.PortablePdb,
+                pdbFilePath: pdb_path
+            )
+        );
+
+        if (!emit_result.Success)
+        {
+            return new CompileNodeResult
+            {
+                Node = pNode,
+                Success = false,
+                FailureReason = "Compile Failed\n Check Log for details\n All mods compiled before it will be recompiled next time",
+                CompileErrors = CollectCompileErrors(emit_result.Diagnostics),
+                AvailableDependencies = available_depens,
+                AvailableOptionalDependencies = available_optional_depens
+            };
+        }
+
+        using (var dll_fs = new FileStream(dll_path, FileMode.Create, FileAccess.Write))
+        {
+            dllms.Seek(0, SeekOrigin.Begin);
+            dllms.WriteTo(dll_fs);
+        }
+
+        using (var pdb_fs = new FileStream(pdb_path, FileMode.Create, FileAccess.Write))
+        {
+            pdbms.Seek(0, SeekOrigin.Begin);
+            pdbms.WriteTo(pdb_fs);
+        }
+
+        return new CompileNodeResult
+        {
+            Node = pNode,
+            Success = true,
+            ProducedReference = MetadataReference.CreateFromFile(dll_path),
+            AvailableDependencies = available_depens,
+            AvailableOptionalDependencies = available_optional_depens,
+            ShouldRecordCompileCache = true
+        };
+    }
+
+    private static void LoadAdditionalReferences(CompileSessionContext pContext, IEnumerable<string> pAdditionalReferences,
+        string pModUid)
+    {
+        foreach (string inc in pAdditionalReferences)
+        {
+            string file_name = Path.GetFileName(inc);
+            if (file_name == "Assembly-CSharp.dll")
+            {
+                continue;
+            }
+
+            if (!pContext.LoadedAdditionalReferences.TryAdd(file_name, 0))
+            {
+                continue;
+            }
+
+            try
+            {
+                Assembly loaded_inc = Assembly.LoadFrom(inc);
+                LogService.LogInfoConcurrent($"Load {loaded_inc.FullName}");
+            }
+            catch (Exception e)
+            {
+                LogService.LogWarningConcurrent($"Failed to load Assembly {file_name} for mod {pModUid}");
+                LogService.LogWarningConcurrent(e.Message);
+                if (e.StackTrace != null)
+                {
+                    LogService.LogWarningConcurrent(e.StackTrace);
+                }
+            }
+        }
+    }
+
+    private static bool TryCreateMetadataReference(ModDeclare pModDeclare, out MetadataReference pReference)
+    {
+        pReference = null;
+        if (!TryGetCompiledAssemblyPath(pModDeclare, out string assembly_path))
+        {
+            return false;
+        }
+
+        pReference = MetadataReference.CreateFromFile(assembly_path);
+        return true;
+    }
+
+    private static bool TryGetCompiledAssemblyPath(ModDeclare pModDeclare, out string pAssemblyPath)
+    {
+        if (pModDeclare.ModType == ModTypeEnum.COMPILED_NEOMOD)
+        {
+            string[] dll_files = Directory.GetFiles(pModDeclare.FolderPath, "*.dll");
+            if (dll_files.Length == 0)
+            {
+                pAssemblyPath = string.Empty;
+                return false;
+            }
+
+            pAssemblyPath = dll_files.FirstOrDefault(file =>
+                                Path.GetFileNameWithoutExtension(file) == pModDeclare.UID) ??
+                            dll_files[0];
+            return true;
+        }
+
+        pAssemblyPath = Path.Combine(Paths.CompiledModsPath, $"{pModDeclare.UID}.dll");
+        return File.Exists(pAssemblyPath);
+    }
+
+    private static CompileNodeResult CreateSuccessResult(ModDependencyNode pNode, MetadataReference pProducedReference)
+    {
+        return new CompileNodeResult
+        {
+            Node = pNode,
+            Success = true,
+            ProducedReference = pProducedReference
+        };
+    }
+
+    private static CompileNodeResult CreateFailedResult(ModDependencyNode pNode, string pFailureReason,
+        string pCompileErrors = "")
+    {
+        return new CompileNodeResult
+        {
+            Node = pNode,
+            Success = false,
+            FailureReason = pFailureReason,
+            CompileErrors = pCompileErrors
+        };
+    }
+
+    private static void ApplyCompileFailure(CompileNodeResult pResult)
+    {
+        if (!string.IsNullOrWhiteSpace(pResult.CompileErrors))
+        {
+            LogCompileFailure(pResult.Node.mod_decl.UID, pResult.CompileErrors);
+        }
+        else if (!string.IsNullOrWhiteSpace(pResult.FailureReason))
+        {
+            LogService.LogError(pResult.FailureReason);
+        }
+
+        pResult.Node.mod_decl.FailReason.Clear();
+        pResult.Node.mod_decl.FailReason.AppendLine(pResult.FailureReason);
+        WorldBoxMod.AllRecognizedMods[pResult.Node.mod_decl] = ModState.FAILED;
     }
 }
