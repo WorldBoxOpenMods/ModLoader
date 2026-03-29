@@ -2,7 +2,6 @@ using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.utils;
-using NeoModLoader.utils.Builders;
 
 namespace NeoModLoader.services;
 
@@ -59,14 +58,13 @@ public static class ModReloadService
     /// </summary>
     public static bool ReloadResources(IMod pMod)
     {
-        MasterBuilder Builder = new();
+        AssetLinker linker = new();
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath,
-            Paths.ModResourceFolderName), out List<Builder> builders);
+            Paths.ModResourceFolderName), linker);
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath,
-            Paths.NCMSAdditionModResourceFolderName), out List<Builder> builders2);
-        Builder.AddBuilders(builders);
-        Builder.AddBuilders(builders2);
-        Builder.BuildAll();
+            Paths.NCMSAdditionModResourceFolderName), linker);
+    
+        linker.AddAssets();
         return true;
     }
 

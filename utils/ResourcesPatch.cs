@@ -2,7 +2,6 @@ using System.Globalization;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.services;
-using NeoModLoader.utils.Builders;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -82,51 +81,28 @@ public static class ResourcesPatch
             LoadTextAsset(path)
         };
     }
-    static Builder LoadAsset(string Path, string Extention) => Extention switch
-    {
-        //"actorasset" => new ActorAssetBuilder(Path, false),
-        ".actortraitasset" => new ActorTraitBuilder(Path, false),
-        ".subspeciestraitasset" => new SubspeciesTraitBuilder(Path, false),
-        //".itemasset" => new ItemBuilder(Path, false), // had to comment out because whatever generics system melvin set up for this broke and I don't have time to look into it
-        //".itemmodifierasset" => new ItemModifierBuilder(Path, false), // same issue as above
-        ".clantraitasset" => new ClanTraitBuilder(Path, false),
-        ".culturetraitasset" => new CultureTraitBuilder(Path, false),
-        ".actortraitgroupasset" => new GroupAssetBuilder<ActorTraitGroupAsset>(Path, false),
-        ".achievementgroupasset" => new GroupAssetBuilder<AchievementGroupAsset>(Path, false),
-        ".clantraitgroupasset" => new GroupAssetBuilder<ClanTraitGroupAsset>(Path, false),
-        ".culturetraitgroupasset" => new GroupAssetBuilder<CultureTraitGroupAsset>(Path, false),
-        ".itemgroupasset" => new GroupAssetBuilder<ItemGroupAsset>(Path, false),
-        ".kingdomtraitgroupasset" => new GroupAssetBuilder<KingdomTraitGroupAsset>(Path, false),
-        ".languagetraitgroupasset" => new GroupAssetBuilder<LanguageTraitGroupAsset>(Path, false),
-        ".plotcategoryasset" => new GroupAssetBuilder<PlotCategoryAsset>(Path, false),
-        ".religiontraitgroupasset" => new GroupAssetBuilder<ReligionTraitGroupAsset>(Path, false),
-        ".subspeciestraitgroupasset" => new GroupAssetBuilder<SubspeciesTraitGroupAsset>(Path, false),
-        ".worldlawgroupasset" => new GroupAssetBuilder<WorldLawGroupAsset>(Path, false),
-        _ => throw new NotSupportedException($"the asset {Extention} has not been supported yet!"),
-    };
     /// <summary>
     /// doesnt return anything, simply adds the wav to the wav library that contains all the custom sounds
     /// </summary>
-    private static void LoadWavFile(string path)
+    private static void LoadWavFile(string abspath, string path)
     {
-        string Name = Path.GetFileNameWithoutExtension(path);
-        if (CustomAudioManager.AudioWavLibrary.ContainsKey(Name))
+        if (CustomAudioManager.AudioWavLibrary.ContainsKey(path))
         {
-            LogService.LogError($"The Sound file {Name} has already been loaded!");
+            LogService.LogError($"The Sound file {path} has already been loaded!");
             return;
         }
         WavContainer container;
         try
         {
             container = JsonConvert.DeserializeObject<WavContainer>(
-                File.ReadAllText(Path.GetDirectoryName(path) + "/" + Name + ".json"));
-            container.Path = path;
+                File.ReadAllText(Path.GetDirectoryName(abspath) + "/" + Path.GetFileNameWithoutExtension(abspath) + ".json"));
+            container.Path = abspath;
         }
         catch (Exception)
         {
-            container = new WavContainer(path, SoundMode.Stereo3D, 50f);
+            container = new WavContainer(abspath, SoundMode.Stereo3D, 50f);
         }
-        CustomAudioManager.AudioWavLibrary.Add(Name, container);
+        CustomAudioManager.AudioWavLibrary.Add(path, container);
     }
 
     private static TextAsset LoadTextAsset(string path)
@@ -136,20 +112,14 @@ public static class ResourcesPatch
         return textAsset;
     }
 
-    internal static void LoadResourceFromFolder(string pFolder, out List<Builder> Builders)
+    internal static void LoadResourceFromFolder(string pFolder, AssetLinker Linker)
     {
-        Builders = null;
         if (!Directory.Exists(pFolder)) return;
         var files = SystemUtils.SearchFileRecursive(pFolder, filename => !filename.StartsWith("."),
             dirname => !dirname.StartsWith("."));
         foreach (var file in files)
         {
-            tree.AddFromFile(file.Replace(pFolder, "").Replace('\\', '/').Substring(1), file, out Builder builder);
-            if(builder != null)
-            {
-                Builders ??= new List<Builder>();
-                Builders.Add(builder);
-            }
+            tree.AddFromFile(file.Replace(pFolder, "").Replace('\\', '/').Substring(1), file, Linker);
         }
     }
 
@@ -346,25 +316,24 @@ public static class ResourcesPatch
             node.objects[Path.GetFileNameWithoutExtension(lower_path)] = obj;
         }
 
-        /// <summary>
+         /// <summary>
         /// Load resources under absPath, and patch them to the tree under the folder of path.
         /// </summary>
         /// <param name="path">Path to resource in tree</param>
         /// <param name="absPath">Path to resource in actual filesystem</param>
-        /// <param name="Builder">if your folder contains asset files (.actorasset, .itemasset) pass a master builder to load these assets, then make it buildall</param>
-        public void AddFromFile(string path, string absPath, out Builder Builder)
+        /// <param name="Linker">Asset Loader</param>
+        public void AddFromFile(string path, string absPath, AssetLinker Linker)
         {
-            Builder = null;
             string lower_path = path.ToLower();
             if (lower_path.EndsWith(".meta") || lower_path.EndsWith("sprites.json")) return;
             if (lower_path.EndsWith(".wav"))
             {
-                LoadWavFile(absPath);
+                LoadWavFile(absPath, lower_path.Replace(".wav", ""));
                 return;
             }
-            if (lower_path.EndsWith("asset"))
+            if (Path.GetExtension(lower_path).EndsWith("asset") || Path.GetExtension(lower_path).EndsWith("trait"))
             {
-                Builder = LoadAsset(absPath, Path.GetExtension(lower_path));
+                Linker.AssetFilePaths.Add(absPath);
                 return;
             }
             string parent_path = Path.GetDirectoryName(lower_path);
@@ -401,6 +370,7 @@ public static class ResourcesPatch
                 node.objects[obj.name.ToLower()] = obj;
             }
         }
+    }
     }
 
     class ResourceTreeNode
@@ -443,4 +413,3 @@ public static class ResourcesPatch
             return result;
         }
     }
-}

@@ -1,36 +1,30 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using NeoModLoader.services;
+using Newtonsoft.Json.Linq;
 using System.Reflection;
 
-namespace NeoModLoader.utils.SerializedAssets
+namespace NeoModLoader.utils
 {
     /// <summary>
     /// Because delegates like worldaction cannot be serialized, this is used so you can serialize them
     /// </summary>
     [Serializable]
-    public class SerializableAsset<A> where A : Asset, new()
+    public class SerializableAsset
     {
         /// <summary>
         /// the variables of the asset
         /// </summary>
         public Dictionary<string, object> Variables = new();
         /// <summary>
-        /// the delegates of the asset
-        /// </summary>
-        /// <remarks>
-        /// the way it stores delegates is that it stores their name, the path to their class, and then searches the assembly for a matching delegate
-        /// </remarks>
-        public Dictionary<string, string> Delegates = new();
-        /// <summary>
         /// takes delegates and variables from an asset and takes them to a serializable asset
         /// </summary>
-        public static void Serialize(A Asset, SerializableAsset<A> asset)
+        public static void Serialize(Asset Asset, SerializableAsset asset)
         {
-            foreach (FieldInfo field in typeof(A).GetFields())
+            foreach (FieldInfo field in Asset.GetType().GetFields())
             {
                 object Value = field.GetValue(Asset);
                 if (Value is Delegate value)
                 {
-                    asset.Delegates.Add(field.Name, value.AsString(false));
+                    asset.Variables.Add(field.Name, value.AsString(false));
                 }
                 else
                 {
@@ -41,19 +35,27 @@ namespace NeoModLoader.utils.SerializedAssets
         /// <summary>
         /// Converts the augmentation asset to a serializable version
         /// </summary>
-        public static SerializableAsset<A> FromAsset(A Asset)
+        public static SerializableAsset FromAsset(Asset Asset)
         {
-            SerializableAsset<A> asset = new();
+            SerializableAsset asset = new();
             Serialize(Asset, asset);
             return asset;
         }
         /// <summary>
         /// takes delegates and variables from a serializable asset and takes them to a asset
         /// </summary>
-        public static void Deserialize(SerializableAsset<A> Asset, A asset)
+        public static void Deserialize(SerializableAsset Asset, Asset asset)
         {
             static object GetRealValueOfObject(object Value, Type Type)
             {
+                if(Value == null)
+                {
+                    return null;
+                }
+                if (typeof(Delegate).IsAssignableFrom(Type))
+                {
+                    return (Value as string).AsDelegate(Type);
+                }
                 if (Type == typeof(int))
                 {
                     return Convert.ToInt32(Value);
@@ -62,22 +64,27 @@ namespace NeoModLoader.utils.SerializedAssets
                 {
                     return Convert.ToSingle(Value);
                 }
+                else if (typeof(Enum).IsAssignableFrom(Type))
+                {
+                    return Enum.ToObject(Type, Convert.ToInt32(Value));
+                }
                 else if (Value is JObject JObject)
                 {
-                    return JObject.ToObject(Type);
+                    try
+                    {
+                        return JObject.ToObject(Type);
+                    }
+                    catch(Exception e)
+                    {
+                        LogService.LogWarning($"Warning: the field {Type.Name} of Asset {Type.DeclaringType} is invalid.");
+                        return null;
+                    }
                 }
                 return Value;
             }
-            foreach (FieldInfo field in typeof(A).GetFields())
+            foreach (FieldInfo field in asset.GetType().GetFields())
             {
-                if (typeof(Delegate).IsAssignableFrom(field.FieldType))
-                {
-                    if (Asset.Delegates.TryGetValue(field.Name, out string Delegate))
-                    {
-                        field.SetValue(asset, Delegate.AsDelegate(field.FieldType));
-                    }
-                }
-                else if (Asset.Variables.TryGetValue(field.Name, out object Value))
+                if (Asset.Variables.TryGetValue(field.Name, out object Value))
                 {
                     field.SetValue(asset, GetRealValueOfObject(Value, field.FieldType));
                 }
@@ -86,9 +93,9 @@ namespace NeoModLoader.utils.SerializedAssets
         /// <summary>
         /// converts the serializable version to its asset
         /// </summary>
-        public static A ToAsset(SerializableAsset<A> Asset)
+        public static Asset ToAsset(SerializableAsset Asset, Type AssetType)
         {
-            A asset = new();
+            Asset asset = Activator.CreateInstance(AssetType) as Asset;
             Deserialize(Asset, asset);
             return asset;
         }

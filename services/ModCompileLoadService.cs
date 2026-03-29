@@ -12,7 +12,6 @@ using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.utils;
-using NeoModLoader.utils.Builders;
 using UnityEngine;
 
 namespace NeoModLoader.services;
@@ -396,17 +395,16 @@ public static class ModCompileLoadService
 
     private static bool TryLoadCompiledModAtRuntime(ModDeclare pModDeclare)
     {
-        MasterBuilder builder = new MasterBuilder();
+        AssetLinker linker = new AssetLinker();
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModResourceFolderName),
-            out List<Builder> builders);
+            linker);
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath,
-            Paths.NCMSAdditionModResourceFolderName), out List<Builder> builders2);
+            Paths.NCMSAdditionModResourceFolderName), linker);
         ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModAssetBundleFolderName));
 
         LoadMod(pModDeclare);
-        builder.AddBuilders(builders);
-        builder.AddBuilders(builders2);
-        builder.BuildAll();
+     
+        linker.AddAssets();
 
         if (IsModLoaded(pModDeclare.UID))
         {
