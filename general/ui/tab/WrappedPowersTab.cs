@@ -25,15 +25,23 @@ internal class WrappedPowersTab
     {
         Tab = pPowersTab;
 
-        Modifiable = !PowerTabNames.GetNames().Contains(Tab.name);
-
         ButtonGroups = new();
         CustomRectGroups = new();
 
-        AddGroup("Default");
-
         _inactive_lines = new();
         _active_lines = new();
+
+        if (Tab == null)
+        {
+            // Tab not found (e.g. hierarchy changed in a newer WorldBox build):
+            // don't NRE, just leave this wrapper inert.
+            Modifiable = false;
+            return;
+        }
+
+        Modifiable = !PowerTabNames.GetNames().Contains(Tab.name);
+
+        AddGroup("Default");
     }
 
     internal void RecordLine(GameObject line)
