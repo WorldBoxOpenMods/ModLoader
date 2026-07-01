@@ -109,16 +109,19 @@ internal static class ModReloadUtils
         return true;
     }
 
-    private static IEnumerable<TypeDefinition> EnumerateTypesRecursive(IEnumerable<TypeDefinition> types)
+    private static List<TypeDefinition> EnumerateTypesRecursive(IEnumerable<TypeDefinition> types)
+    {
+        var result = new List<TypeDefinition>();
+        CollectTypesRecursive(types, result);
+        return result;
+    }
+
+    private static void CollectTypesRecursive(IEnumerable<TypeDefinition> types, List<TypeDefinition> result)
     {
         foreach (var type in types)
         {
-            yield return type;
-
-            foreach (var nested in EnumerateTypesRecursive(type.NestedTypes))
-            {
-                yield return nested;
-            }
+            result.Add(type);
+            CollectTypesRecursive(type.NestedTypes, result);
         }
     }
 

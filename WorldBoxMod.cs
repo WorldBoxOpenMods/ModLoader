@@ -323,6 +323,16 @@ public class WorldBoxMod : MonoBehaviour
         {
             try
             {
+                string assembly_name = AssemblyName.GetAssemblyName(file_full_path).Name;
+                if (AppDomain.CurrentDomain.GetAssemblies()
+                    .Any(assembly => string.Equals(
+                        assembly.GetName().Name,
+                        assembly_name,
+                        StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
                 LoadFrom(file_full_path);
             }
             catch (BadImageFormatException)
