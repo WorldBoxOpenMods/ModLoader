@@ -278,10 +278,23 @@ public static class PowerButtonCreator
     public static PowersTab GetTab(string pId)
     {
         if (string.IsNullOrEmpty(pId)) return null;
+
+        // Fast path (valid up to 0.51.0): hard-coded UI hierarchy lookup.
         Transform tabTransform = CanvasMain.instance.canvas_ui.transform.Find(
             $"CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/Power Tabs/{pId}");
+        if (tabTransform != null)
+        {
+            var found = tabTransform.GetComponent<PowersTab>();
+            if (found != null) return found;
+        }
 
-        return tabTransform == null ? null : tabTransform.GetComponent<PowersTab>();
+        // Fallback (0.51.1+): the hierarchy moved. Locate the tab by its object name.
+        foreach (var tab in Resources.FindObjectsOfTypeAll<PowersTab>())
+        {
+            if (tab != null && tab.name == pId) return tab;
+        }
+
+        return null;
     }
 
     /// <summary>
