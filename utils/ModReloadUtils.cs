@@ -128,7 +128,8 @@ internal static class ModReloadUtils
     private static bool IsHotfixable(MethodDefinition methodDefinition)
     {
         return methodDefinition.CustomAttributes.Any(
-            attribute => attribute.AttributeType.FullName == typeof(HotfixableAttribute).FullName
+            attribute => attribute.AttributeType.FullName == typeof(HotfixableAttribute).FullName 
+                         || methodDefinition.DeclaringType.CustomAttributes.Any(attribute => attribute.AttributeType.FullName == typeof(HotfixableAttribute).FullName)
         );
     }
 
