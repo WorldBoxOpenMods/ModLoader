@@ -693,7 +693,7 @@ internal static class ModInfoUtils
         List<string> pOptionalDependencies)
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
-        if (!File.Exists(Path.Combine(Paths.CompiledModsPath, pModDeclare.UID))) return true;
+        if (!File.Exists(Path.Combine(Paths.CompiledModsPath, $"{pModDeclare.UID}.dll"))) return true;
         var curr = new HashSet<string>(pDependencies);
         var last = new HashSet<string>(cache.dependencies);
 
@@ -701,21 +701,20 @@ internal static class ModInfoUtils
         curr = new HashSet<string>(pOptionalDependencies);
         last = new HashSet<string>(cache.optional_dependencies);
         if (!curr.SetEquals(last)) return true;
-
         var last_compile_time = cache.timestamp;
         bool need_recompile = last_compile_time <
-                              Others.confirmed_compile_time + getModNewestUpdateTimestamp(pModDeclare.FolderPath);
+                              getModNewestUpdateTimestamp(pModDeclare.FolderPath);
         if (need_recompile) return true;
 
         foreach (var depen in pDependencies)
         {
-            need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
+            need_recompile |= last_compile_time < getModLastCompileTimestamp(depen);
             if (need_recompile) return true;
         }
 
         foreach (var depen in pOptionalDependencies)
         {
-            need_recompile |= last_compile_time < Others.confirmed_compile_time + getModLastCompileTimestamp(depen);
+            need_recompile |= last_compile_time < getModLastCompileTimestamp(depen);
             if (need_recompile) return true;
         }
 

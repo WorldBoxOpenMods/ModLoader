@@ -132,6 +132,7 @@ public static class ResourcesPatch
             RuntimePlatform.WindowsPlayer => "win",
             RuntimePlatform.WindowsEditor => "win",
             RuntimePlatform.Android => "and",
+            RuntimePlatform.IPhonePlayer => "ios",
             RuntimePlatform.OSXPlayer => "osx",
             RuntimePlatform.OSXEditor => "osx",
             RuntimePlatform.LinuxPlayer => "linux",
