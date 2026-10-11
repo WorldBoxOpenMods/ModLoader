@@ -12,13 +12,8 @@ public static class Others
     /// </summary>
     public static bool unity_player_enabled { get; internal set; } = false;
 
-    public static bool IsAndroid
-    {
-        get
-        {
-            return Application.platform ==  RuntimePlatform.Android;
-        }
-    }
+    public static bool IsMobile => Application.platform ==  RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer;
+
     /// <summary>
     /// Check whether the game is running on unity editor. For NeoModSDK
     /// </summary>

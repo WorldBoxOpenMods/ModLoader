@@ -575,7 +575,7 @@ public class PCInputSystem : MonoBehaviour
     #endregion
     internal static void Init()
     {
-        if (!Others.IsAndroid)
+        if (!Others.IsMobile)
         {
             return;
         }
