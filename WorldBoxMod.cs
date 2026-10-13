@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.AndroidCompatibilityModule.PCInputSystem;
 using NeoModLoader.api;
@@ -253,7 +253,6 @@ public class WorldBoxMod : MonoBehaviour
                 if (resource.EndsWith(".dll"))
                 {
                     if (resource.Contains("Assembly-CSharp-Publicized")) continue;
-                    if (resource.Contains("AutoUpdate")) continue;
                     var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
                     var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name).Replace("-renamed", "");
 
@@ -353,28 +352,21 @@ public class WorldBoxMod : MonoBehaviour
         }
 
         File.WriteAllText(Paths.NMLCommitPath, InternalResourcesGetter.GetCommit());
+
+        // The built-in auto updater has been removed. Delete the leftover module so the
+        // game's native loader (which scans the mods folder before NML runs) stops
+        // picking it up on the next launch.
         if (File.Exists(Paths.NMLAutoUpdateModulePath))
         {
-            FileInfo file = new(Paths.NMLAutoUpdateModulePath);
-            if (file.LastWriteTimeUtc.Ticks < InternalResourcesGetter.GetLastWriteTime())
-                try
-                {
-                    file.Delete();
-                    LogService.LogInfo($"NeoModLoader.dll is newer than AutoUpdate.dll, " +
-                                       $"re-extract AutoUpdate.dll from NeoModLoader.dll");
-                }
-                catch (Exception e)
-                {
-                    // ignored
-                }
-        }
-
-        if (!File.Exists(Paths.NMLAutoUpdateModulePath))
-        {
-            using Stream stream = NeoModLoaderAssembly.GetManifestResourceStream(
-                "NeoModLoader.resources.assemblies.NeoModLoader.AutoUpdate.dll");
-            using var file = new FileStream(Paths.NMLAutoUpdateModulePath, FileMode.CreateNew, FileAccess.Write);
-            stream.CopyTo(file);
+            try
+            {
+                File.Delete(Paths.NMLAutoUpdateModulePath);
+                LogService.LogInfo("Removed leftover auto update module (updater is disabled)");
+            }
+            catch (Exception e)
+            {
+                LogService.LogError($"Failed to delete leftover auto update module: {e.Message}");
+            }
         }
     }
 }

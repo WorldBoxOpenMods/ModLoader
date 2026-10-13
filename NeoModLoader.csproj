@@ -201,11 +201,8 @@
         <EmbeddedResource Include="resources\windowBigCloseSliced.png" />
         <None Remove="resources\windowVertNamePlate.png" />
         <EmbeddedResource Include="resources\windowVertNamePlate.png" />
-        <None Remove="resources\assemblies\NeoModLoader.AutoUpdate" />
         <None Remove="resources\assemblies\Assembly-CSharp-Publicized.dll"/>
         <EmbeddedResource Include="resources\assemblies\Assembly-CSharp-Publicized.dll"/>
-      <None Remove="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
-      <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
         <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll"/>
         <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll"/>
         <None Remove="resources\b_na.png" />
