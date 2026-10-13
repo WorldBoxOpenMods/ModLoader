@@ -74,7 +74,8 @@ internal class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressW
     {
         Instance.uploading = true;
         Instance.uploadProgress.Reset();
-        ScrollWindow.showWindow(WindowId);
+        ScrollWindow.moveAllToLeftAndRemove(false);
+        ScrollWindow.showWindow(WindowId, true);
         Instance.start_time = Time.time;
         return Instance.uploadProgress;
     }
