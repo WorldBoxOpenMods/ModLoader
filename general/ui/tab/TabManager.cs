@@ -22,7 +22,8 @@ public static class TabManager
 
     private static readonly Transform tab_entry_container =
         CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/TabsButtons");
-
+    private static GridLayoutGroup tab_button_layout => tab_entry_container.GetComponent<GridLayoutGroup>();
+    
     private static readonly Transform tab_container = CanvasMain.instance.canvas_ui.transform.Find(
         "CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/Power Tabs");
 
@@ -62,6 +63,7 @@ public static class TabManager
         TabCreatures.Init();
         TabNature.Init();
         TabOther.Init();
+        tab_button_layout.startCorner = GridLayoutGroup.Corner.LowerLeft; //make tabs go up instead of down on mobile
     }
 
     [HarmonyPrefix, HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getNext))]

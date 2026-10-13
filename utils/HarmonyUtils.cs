@@ -1,3 +1,4 @@
+using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.utils.instpredictors;
 
@@ -83,5 +84,21 @@ public static class HarmonyUtils
     internal static void _init()
     {
         BaseInstPredictor._init();
+    }
+    public static bool HasPatches(this Type type)
+    {
+        if (type.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
+        {
+            return true;
+        }
+        return type.GetMethods(BindingFlags.Public |
+                               BindingFlags.NonPublic |
+                               BindingFlags.Static)
+            .Any(m =>
+                m.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyPrefix), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyPostfix), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyTranspiler), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyFinalizer), true).Length > 0);
     }
 }

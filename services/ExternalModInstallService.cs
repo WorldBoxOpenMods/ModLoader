@@ -7,6 +7,10 @@ internal static class ExternalModInstallService
     public static async void CheckExternalModInstall()
     {
         var args = new List<string>(Environment.GetCommandLineArgs());
+        if (args.Count == 0)
+        {
+            return;
+        }
         args.RemoveAt(0);
         foreach (var arg in args) LogService.LogInfo(arg);
 

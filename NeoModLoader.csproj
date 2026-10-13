@@ -4,7 +4,7 @@
         <TargetFramework>net48</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
-        <LangVersion>11</LangVersion>
+        <LangVersion>14</LangVersion>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
         <Authors>WorldBoxOpenMods</Authors>
         <PackageProjectUrl>https://github.com/WorldBoxOpenMods</PackageProjectUrl>
@@ -100,6 +100,9 @@
       </Reference>
       <Reference Include="UnityEngine.ImageConversionModule">
         <HintPath>assembly-dependencies\UnityEngine.ImageConversionModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>assembly-dependencies\UnityEngine.IMGUIModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.InputLegacyModule">
         <HintPath>assembly-dependencies\UnityEngine.InputLegacyModule.dll</HintPath>
@@ -227,6 +230,7 @@
   
     <ItemGroup>
       <Folder Include=".github\ASSETS\" />
+      <Folder Include="utils\Collections\" />
     </ItemGroup>
   
     <ItemGroup>
