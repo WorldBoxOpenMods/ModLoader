@@ -16,6 +16,8 @@ internal static class UIManager
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
         ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         ModConfigureWindow.CreateAndInit("ModConfigure");
+        AIDisclosureWindow.CreateAndInit("AIDisclosureWindow");
+        AIConfirmWindow.CreateAndInit("AIConfirmWindow");
         PowerButtonCreator.AddButtonToTab(
             PowerButtonCreator.CreateWindowButton("NML_ModsList", "NeoModList",
                                                   InternalResourcesGetter.GetIcon()),

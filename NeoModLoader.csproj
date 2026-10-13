@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
@@ -208,6 +208,18 @@
       <EmbeddedResource Include="resources\assemblies\NeoModLoader.AutoUpdate.dll"/>
         <None Remove="resources\assemblies\Mono.Cecil.Pdb.dll"/>
         <EmbeddedResource Include="resources\assemblies\Mono.Cecil.Pdb.dll"/>
+        <None Remove="resources\b_na.png" />
+        <EmbeddedResource Include="resources\b_na.png" />
+        <None Remove="resources\b_ast.png" />
+        <EmbeddedResource Include="resources\b_ast.png" />
+        <None Remove="resources\b_made.png" />
+        <EmbeddedResource Include="resources\b_made.png" />
+        <None Remove="resources\i_na.png" />
+        <EmbeddedResource Include="resources\i_na.png" />
+        <None Remove="resources\i_ast.png" />
+        <EmbeddedResource Include="resources\i_ast.png" />
+        <None Remove="resources\i_made.png" />
+        <EmbeddedResource Include="resources\i_made.png" />
     </ItemGroup>
   
     <ItemGroup>

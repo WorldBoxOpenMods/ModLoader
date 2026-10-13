@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using NeoModLoader.api;
+using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.services;
 using NeoModLoader.utils;
@@ -17,6 +19,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
     private Text mod_name_text;
     private Text mod_version_text;
     private IMod selected_mod;
+    private readonly Dictionary<string, (Image bg, Text text)> tag_buttons = new();
 
     public static void ShowWindow(IMod mod)
     {
@@ -37,6 +40,8 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         Instance.mod_author_text.text = mod_decl.Author;
         Instance.mod_version_text.text = mod_decl.Version;
         Instance.mod_description_text.text = mod_decl.Description;
+
+        Instance.updateTagButtonsUI();
 
         ScrollWindow.showWindow(WindowId);
     }
@@ -105,7 +110,6 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         input_fileid.GetComponent<RectTransform>().sizeDelta =
             input_fileid_inputfield_rect.sizeDelta + new Vector2(2, 2);
 
-
         GameObject mod_info = new GameObject("ModInfo", typeof(Image));
         mod_info.transform.SetParent(ContentTransform);
         mod_info.transform.localPosition = new(130, -78, 0);
@@ -159,6 +163,75 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         mod_version_text = create_grid_text("Mod Version");
         mod_description_text = create_grid_text("Mod Description");
 
+        GameObject tags_box = new GameObject("CategoryTags", typeof(Image));
+        tags_box.transform.SetParent(ContentTransform);
+        tags_box.transform.localPosition = new(130, -135, 0);
+        tags_box.transform.localScale = Vector3.one;
+        tags_box.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
+        tags_box.GetComponent<Image>().type = Image.Type.Sliced;
+        tags_box.GetComponent<RectTransform>().sizeDelta = new(190, 114);
+
+        GameObject tags_title = new GameObject("Title", typeof(Text), typeof(LocalizedText));
+        tags_title.transform.SetParent(tags_box.transform);
+        tags_title.transform.localScale = Vector3.one;
+        tags_title.transform.localPosition = new(0, 48);
+        tags_title.GetComponent<RectTransform>().sizeDelta = new(180, 14);
+        Text tags_title_text = tags_title.GetComponent<Text>();
+        OT.InitializeCommonText(tags_title_text);
+        tags_title_text.alignment = TextAnchor.MiddleCenter;
+        tags_title_text.fontSize = 8;
+        LocalizedText tags_title_loc = tags_title.GetComponent<LocalizedText>();
+        tags_title_loc.key = "ModUpload_Categories_Title";
+        LocalizedTextManager.addTextField(tags_title_loc);
+
+        GameObject tags_grid = new GameObject("Grid", typeof(GridLayoutGroup));
+        tags_grid.transform.SetParent(tags_box.transform);
+        tags_grid.transform.localScale = Vector3.one;
+        tags_grid.transform.localPosition = new(0, -8);
+        tags_grid.GetComponent<RectTransform>().sizeDelta = new(182, 88);
+        GridLayoutGroup tags_layout = tags_grid.GetComponent<GridLayoutGroup>();
+        tags_layout.childAlignment = TextAnchor.MiddleCenter;
+        tags_layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        tags_layout.constraintCount = 2;
+        tags_layout.spacing = new Vector2(4, 2);
+        tags_layout.cellSize = new Vector2(88, 15);
+
+        foreach (string tag in CoreConstants.ModCategories)
+        {
+            string currentTag = tag;
+            GameObject btn_obj = new GameObject(tag, typeof(Image), typeof(Button));
+            btn_obj.transform.SetParent(tags_grid.transform);
+            btn_obj.transform.localScale = Vector3.one;
+            btn_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(88, 15);
+
+            Image btn_bg = btn_obj.GetComponent<Image>();
+            btn_bg.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
+            btn_bg.type = Image.Type.Sliced;
+
+            GameObject txt_obj = new GameObject("Text", typeof(Text));
+            txt_obj.transform.SetParent(btn_obj.transform);
+            txt_obj.transform.localScale = Vector3.one;
+            txt_obj.transform.localPosition = Vector3.zero;
+            txt_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(84, 15);
+            Text btn_txt = txt_obj.GetComponent<Text>();
+            OT.InitializeCommonText(btn_txt);
+            btn_txt.alignment = TextAnchor.MiddleCenter;
+            btn_txt.resizeTextForBestFit = true;
+            btn_txt.resizeTextMinSize = 6;
+            btn_txt.resizeTextMaxSize = 9;
+            btn_txt.text = currentTag;
+
+            btn_obj.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                if (selected_mod == null) return;
+                var decl = selected_mod.GetDeclaration();
+                decl.ToggleTag(currentTag);
+                decl.Save();
+                updateTagButtonsUI();
+            });
+
+            tag_buttons[currentTag] = (btn_bg, btn_txt);
+        }
 
         GameObject input_changelog = new GameObject("Input ChangeLog", typeof(Image));
         input_changelog.transform.SetParent(ContentTransform);
@@ -230,6 +303,12 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
 
     private void uploadSelectedMod()
     {
+        if (selected_mod == null) return;
+        AIDisclosureWindow.ShowWindow(selected_mod, executeUpload);
+    }
+
+    private void executeUpload()
+    {
         string fileId = mod_fileid_text.text;
         if (fileId.Any(c => !char.IsDigit(c)))
         {
@@ -248,5 +327,27 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         ulong fileIdLong = ulong.Parse(fileId);
         ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
             .Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload).Done();
+    }
+
+    private void updateTagButtonsUI()
+    {
+        if (selected_mod == null || tag_buttons.Count == 0) return;
+        var decl = selected_mod.GetDeclaration();
+        foreach (var kvp in tag_buttons)
+        {
+            string tag = kvp.Key;
+            var (bg, txt) = kvp.Value;
+            bool active = decl.HasTag(tag);
+            if (active)
+            {
+                bg.color = new Color(0.2f, 0.65f, 0.25f, 0.85f);
+                txt.text = $"<color=#A0FFA0>✓</color> {tag}";
+            }
+            else
+            {
+                bg.color = new Color(0.18f, 0.18f, 0.18f, 0.7f);
+                txt.text = $"<color=#888888>{tag}</color>";
+            }
+        }
     }
 }
