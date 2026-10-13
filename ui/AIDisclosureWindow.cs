@@ -520,7 +520,8 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
             Instance.check_translation = decl.AICheckTranslation;
             Instance.check_audio = decl.AICheckAudio;
 
-            if (string.IsNullOrEmpty(decl.IconPath))
+            if (string.IsNullOrEmpty(decl.IconPath) ||
+                !File.Exists(Path.Combine(decl.FolderPath, decl.IconPath)))
             {
                 Instance.preview_icon_image.sprite = InternalResourcesGetter.GetIcon();
             }

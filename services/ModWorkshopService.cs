@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
 using NeoModLoader.constants;
@@ -38,10 +39,10 @@ internal static class ModWorkshopService
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
     /// </summary>
-    public static Promise UploadMod(IMod mod, string changelog, bool verified = false)
+    public static Promise UploadMod(IMod mod, string changelog, bool verified = false, string uploadName = null)
     {
         ModDeclare mod_decl = mod.GetDeclaration();
-        string name = mod_decl.Name;
+        string name = string.IsNullOrEmpty(uploadName) ? mod_decl.Name : uploadName;
         string description = BuildModDescription(mod_decl);
         string workshopPath = Path.Combine(SaveManager.generateMainPath("workshop_upload_mod") + mod_decl.UID);
 
@@ -50,7 +51,6 @@ internal static class ModWorkshopService
 
         string previewImagePath = PreparePreviewImage(mod_decl, workshopPath);
 
-        // This works for BepInEx mods
         File.WriteAllText(Path.Combine(workshopPath, "mod.json"), JsonConvert.SerializeObject(mod_decl, Formatting.Indented));
 
         return workshopServiceBackend.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified, mod_decl.GetAIAttributionDisplay(), mod_decl.Tags);
@@ -68,10 +68,42 @@ internal static class ModWorkshopService
 
         File.WriteAllText(Path.Combine(workshopPath, "mod.json"), JsonConvert.SerializeObject(mod_decl, Formatting.Indented));
 
-        return workshopServiceBackend.EditMod(fileID, previewImagePath, workshopPath, changelog, mod_decl.GetAIAttributionDisplay(), mod_decl.Tags);
+        return workshopServiceBackend.EditMod(fileID, previewImagePath, workshopPath, changelog, mod_decl);
     }
 
-    private static string BuildModDescription(ModDeclare mod_decl)
+    public static string UpdateDescriptionDisclaimer(string steamDescription, ModDeclare mod_decl)
+    {
+        string newDisclaimer = BuildAIDisclaimer(mod_decl);
+        if (string.IsNullOrEmpty(steamDescription))
+        {
+            return BuildModDescription(mod_decl);
+        }
+
+        string pattern = @"\[hr\]\[\/hr\](?:(?!\[hr\]\[\/hr\])[\s\S])*?(?:AI Content Disclosure|Authorship:|generative AI|AI Content)[\s\S]*?\[hr\]\[\/hr\]";
+        if (Regex.IsMatch(steamDescription, pattern, RegexOptions.IgnoreCase))
+        {
+            return Regex.Replace(steamDescription, pattern, newDisclaimer, RegexOptions.IgnoreCase);
+        }
+
+        string partialPattern = @"(?:\[hr\]\[\/hr\]\s*)?(?:\[b\])?(?:AI Content Disclosure|Authorship:)[\s\S]*?(?:\[hr\]\[\/hr\]|(?=(?:ModLoader:|模组加载器:|\z)))";
+        if (Regex.IsMatch(steamDescription, partialPattern, RegexOptions.IgnoreCase))
+        {
+            return Regex.Replace(steamDescription, partialPattern, newDisclaimer, RegexOptions.IgnoreCase);
+        }
+
+        string footerPattern = @"(?:\r?\n)+(?:ModLoader:\s*https?:\S+|模组加载器:\s*https?:\S+)[\s\S]*$";
+        Match footerMatch = Regex.Match(steamDescription, footerPattern, RegexOptions.IgnoreCase);
+        if (footerMatch.Success)
+        {
+            string beforeFooter = steamDescription.Substring(0, footerMatch.Index).TrimEnd();
+            string footer = steamDescription.Substring(footerMatch.Index).TrimStart();
+            return beforeFooter + "\n\n" + newDisclaimer + "\n\n" + footer;
+        }
+
+        return steamDescription.TrimEnd() + "\n\n" + newDisclaimer;
+    }
+
+    public static string BuildModDescription(ModDeclare mod_decl)
     {
         string name = mod_decl.Name;
         string aiDisclaimer = BuildAIDisclaimer(mod_decl);
@@ -84,7 +116,7 @@ internal static class ModWorkshopService
                $"模组加载器: {CoreConstants.RepoURL}";
     }
 
-    private static string BuildAIDisclaimer(ModDeclare mod_decl)
+    public static string BuildAIDisclaimer(ModDeclare mod_decl)
     {
         if (mod_decl.AIAttribution == "ai_made" || mod_decl.AIAttribution == "ai_assisted")
         {
@@ -144,7 +176,8 @@ internal static class ModWorkshopService
     private static string PreparePreviewImage(ModDeclare mod_decl, string workshopPath)
     {
         string previewImagePath;
-        if (string.IsNullOrEmpty(mod_decl.IconPath))
+        if (string.IsNullOrEmpty(mod_decl.IconPath) ||
+            !File.Exists(Path.Combine(mod_decl.FolderPath, mod_decl.IconPath)))
         {
             using Stream icon_stream = Assembly.GetExecutingAssembly()
                 .GetManifestResourceStream("NeoModLoader.resources.logo.png");

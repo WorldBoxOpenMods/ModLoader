@@ -232,7 +232,7 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
         private IEnumerator WaitOpenWindow()
         {
             yield return new WaitForSeconds(3f);
-            if (Instance.clickTimes == 8) ModUploadWindow.ShowWindow(_mod);
+            if (Instance.clickTimes == 8) ModUploadModeWindow.ShowWindow(_mod);
         }
 
         /// <inheritdoc cref="AbstractListWindowItem{TItem}.Setup" />

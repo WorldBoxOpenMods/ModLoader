@@ -1,4 +1,5 @@
 extern alias unixsteamwork;
+using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -21,9 +22,9 @@ internal static class ModInfoUtils
     private static Queue<ModDeclare> link_request_mods = new();
     private static bool to_install_bepinex;
 
-    private static Dictionary<string, ModCompilationCache> mod_compilation_caches;
+    private static ConcurrentDictionary<string, ModCompilationCache> mod_compilation_caches;
 
-    private static readonly Dictionary<string, long> mod_last_update_timestamps = new();
+    private static readonly ConcurrentDictionary<string, long> mod_last_update_timestamps = new();
 
     public static void InitializeModCompileCache()
     {
@@ -36,17 +37,18 @@ internal static class ModInfoUtils
         };
         try
         {
-            mod_compilation_caches =
-                JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
-                new Dictionary<string, ModCompilationCache>();
+            var dict = JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings);
+            mod_compilation_caches = dict != null
+                ? new ConcurrentDictionary<string, ModCompilationCache>(dict)
+                : new ConcurrentDictionary<string, ModCompilationCache>();
         }
         catch (Exception)
         {
-            mod_compilation_caches = new Dictionary<string, ModCompilationCache>();
+            mod_compilation_caches = new ConcurrentDictionary<string, ModCompilationCache>();
         }
         finally
         {
-            mod_compilation_caches ??= new Dictionary<string, ModCompilationCache>();
+            mod_compilation_caches ??= new ConcurrentDictionary<string, ModCompilationCache>();
         }
 
         if (File.Exists(Paths.ModsDisabledRecordPath))
@@ -750,7 +752,7 @@ internal static class ModInfoUtils
     private static long getModNewestUpdateTimestamp(string pModFolderPath)
     {
         var dir = new DirectoryInfo(pModFolderPath);
-        if (mod_last_update_timestamps.ContainsKey(dir.FullName)) return mod_last_update_timestamps[dir.FullName];
+        if (mod_last_update_timestamps.TryGetValue(dir.FullName, out long cached)) return cached;
         var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
             dirname => !dirname.StartsWith(".") &&
                        !Paths.CompileIgnoreSearchDirectories.Contains(dirname));
