@@ -731,7 +731,11 @@ public static class ModCompileLoadService
             return CreateFailedResult(pNode, BuildFailedDependencyCompileMessage(pNode.mod_decl, failed_dependencies));
         }
 
-        if (pNode.Loaded)
+        // A force compile of a source mod (hot reload) must recompile even though the mod is
+        // already loaded; returning the stale assembly reference here used to make every
+        // reload a silent no-op (no source change was ever detected or patched).
+        bool force_recompile = pForce && pNode.mod_decl.ModType == ModTypeEnum.NEOMOD;
+        if (pNode.Loaded && !force_recompile)
         {
             if (TryCreateMetadataReference(pNode.mod_decl, out MetadataReference reference))
             {
