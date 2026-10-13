@@ -177,7 +177,7 @@ internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
                     return;
                 }
 
-                // result.FileId;
+                ModUploadingProgressWindow.Instance.fileId = fileID;
                 promise.Resolve();
             }, TaskScheduler.FromCurrentSynchronizationContext());
         return promise;

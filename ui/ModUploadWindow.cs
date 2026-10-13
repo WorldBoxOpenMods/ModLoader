@@ -41,6 +41,15 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         Instance.mod_version_text.text = mod_decl.Version;
         Instance.mod_description_text.text = mod_decl.Description;
 
+        if (mod_decl.SteamId > 0)
+        {
+            Instance.mod_fileid_text.text = mod_decl.SteamId.ToString();
+        }
+        else
+        {
+            Instance.mod_fileid_text.text = "";
+        }
+
         Instance.updateTagButtonsUI();
 
         ScrollWindow.showWindow(WindowId);
@@ -319,14 +328,32 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         {
             ModUploadAuthenticationService.Authenticate().Then(
                 () => ModWorkshopService.UploadMod(selected_mod, changelog_text.text,
-                    ModUploadAuthenticationService.Authed)).Then(ModUploadingProgressWindow.FinishUpload,
+                    ModUploadAuthenticationService.Authed)).Then(() =>
+                {
+                    if (selected_mod != null && ModUploadingProgressWindow.Instance.fileId > 0)
+                    {
+                        var decl = selected_mod.GetDeclaration();
+                        decl.SteamId = ModUploadingProgressWindow.Instance.fileId;
+                        decl.Save();
+                    }
+                    ModUploadingProgressWindow.FinishUpload();
+                },
                 ModUploadingProgressWindow.ErrorUpload);
             return;
         }
 
         ulong fileIdLong = ulong.Parse(fileId);
         ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
-            .Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload).Done();
+            .Then(() =>
+            {
+                if (selected_mod != null)
+                {
+                    var decl = selected_mod.GetDeclaration();
+                    decl.SteamId = fileIdLong;
+                    decl.Save();
+                }
+                ModUploadingProgressWindow.FinishUpload();
+            }, ModUploadingProgressWindow.ErrorUpload).Done();
     }
 
     private void updateTagButtonsUI()
