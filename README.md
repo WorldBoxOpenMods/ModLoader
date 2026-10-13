@@ -41,6 +41,22 @@ It is recommended to subscribe to the NML item on the Steam Workshop to receive 
 2. Move NeoModLoader.dll to Android/data/com.mkarpenko.worldbox/mods
 3. enable experimental mode and start the game
 
+
+### Automatic Installation
+
+The installer is available for both Linux and Windows.  
+Click the links below to download:
+* [Linux Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-linux)
+* [Windows Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-win.exe)
+
+</br>
+
+### Downgrade Tool
+
+If you're trying to play mods that aren't compatible with the latest version of Worldbox, you can use **Worldbox Rewind** to downgrade to an older version:
+* [Download Worldbox Rewind](https://gmblahaj.xyz/pages/rewind)
+
+
 <h2 align="center">Others</h2>
 <h3 align="center">
 <a href="https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-en.yaml&title=%5BBug%5D%3A+">
