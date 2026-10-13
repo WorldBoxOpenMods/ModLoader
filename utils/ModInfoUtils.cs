@@ -682,6 +682,7 @@ internal static class ModInfoUtils
 
         cache.disabled = pDisabled;
         cache.timestamp = getModNewestUpdateTimestamp(pModDeclare.FolderPath);
+        cache.compile_environment = ModCompileLoadService.GetCompileEnvironmentSignature();
 
         mod_compilation_caches[pModDeclare.UID] = cache;
         if (pSave)
@@ -694,6 +695,7 @@ internal static class ModInfoUtils
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
         if (!File.Exists(Path.Combine(Paths.CompiledModsPath, $"{pModDeclare.UID}.dll"))) return true;
+        if (cache.compile_environment != ModCompileLoadService.GetCompileEnvironmentSignature()) return true;
         var curr = new HashSet<string>(pDependencies);
         var last = new HashSet<string>(cache.dependencies);
 

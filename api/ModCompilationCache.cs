@@ -6,6 +6,7 @@ internal class ModCompilationCache
     public bool         disabled;
     public string       mod_id;
     public List<string> optional_dependencies;
+    public string       compile_environment;
 
     /// <summary>
     ///     The timestamp of the mod's last update

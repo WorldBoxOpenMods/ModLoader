@@ -800,6 +800,73 @@ public static class ModCompileLoadService
         };
     }
 
+    private static List<string> GetCompileEnvironmentPreprocessorSymbols()
+    {
+        List<string> symbols = new();
+        switch (Application.platform)
+        {
+            case RuntimePlatform.WindowsPlayer:
+            case RuntimePlatform.WindowsEditor:
+                symbols.Add("NML_WINDOWS");
+                break;
+            case RuntimePlatform.LinuxPlayer:
+            case RuntimePlatform.LinuxEditor:
+                symbols.Add("NML_LINUX");
+                symbols.Add("NML_UNIX");
+                break;
+            case RuntimePlatform.OSXPlayer:
+            case RuntimePlatform.OSXEditor:
+                symbols.Add("NML_MACOS");
+                symbols.Add("NML_UNIX");
+                break;
+            case RuntimePlatform.Android:
+                symbols.Add("NML_ANDROID");
+                break;
+            case RuntimePlatform.IPhonePlayer:
+                symbols.Add("NML_IOS");
+                break;
+            default:
+                symbols.Add($"NML_PLATFORM_{Application.platform.ToString().ToUpperInvariant()}");
+                break;
+        }
+
+        string game_version = NormalizeGameVersion(Application.version);
+        if (!string.IsNullOrEmpty(game_version))
+        {
+            symbols.Add($"NML_GAME_VERSION_{game_version}");
+        }
+
+        return symbols;
+    }
+
+    private static string NormalizeGameVersion(string pVersion)
+    {
+        if (string.IsNullOrWhiteSpace(pVersion)) return null;
+
+        StringBuilder normalized = new();
+        bool previous_was_separator = true;
+        foreach (char character in pVersion.Trim())
+        {
+            if (char.IsLetterOrDigit(character))
+            {
+                normalized.Append(char.ToUpperInvariant(character));
+                previous_was_separator = false;
+            }
+            else if (!previous_was_separator)
+            {
+                normalized.Append('_');
+                previous_was_separator = true;
+            }
+        }
+
+        return normalized.ToString().Trim('_');
+    }
+
+    internal static string GetCompileEnvironmentSignature()
+    {
+        return string.Join(";", GetCompileEnvironmentPreprocessorSymbols());
+    }
+
     private static CompileNodeResult CompileModFromSource(ModDependencyNode pNode, string[] pAddInc,
         IReadOnlyDictionary<string, MetadataReference> pAvailableModReferences, CompileSessionContext pContext,
         bool pForce = false, bool pDisableOptionalDepen = false)
@@ -828,7 +895,7 @@ public static class ModCompileLoadService
             };
         }
 
-        var preprocessor_symbols = new List<string>();
+        var preprocessor_symbols = GetCompileEnvironmentPreprocessorSymbols();
         List<MetadataReference> references = pContext.DefaultReferences.ToList();
         references.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
         LoadAdditionalReferences(pContext, pAddInc, pModDecl.UID);
