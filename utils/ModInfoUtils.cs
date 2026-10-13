@@ -682,6 +682,7 @@ internal static class ModInfoUtils
 
         cache.disabled = pDisabled;
         cache.timestamp = getModNewestUpdateTimestamp(pModDeclare.FolderPath);
+        cache.compile_timestamp = DateTime.UtcNow.Ticks;
         cache.compile_environment = ModCompileLoadService.GetCompileEnvironmentSignature();
 
         mod_compilation_caches[pModDeclare.UID] = cache;
@@ -695,6 +696,7 @@ internal static class ModInfoUtils
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
         if (!File.Exists(Path.Combine(Paths.CompiledModsPath, $"{pModDeclare.UID}.dll"))) return true;
+        if (cache.compile_timestamp <= 0) return true;
         if (cache.compile_environment != ModCompileLoadService.GetCompileEnvironmentSignature()) return true;
         var curr = new HashSet<string>(pDependencies);
         var last = new HashSet<string>(cache.dependencies);
@@ -703,21 +705,21 @@ internal static class ModInfoUtils
         curr = new HashSet<string>(pOptionalDependencies);
         last = new HashSet<string>(cache.optional_dependencies);
         if (!curr.SetEquals(last)) return true;
-        var last_compile_time = cache.timestamp;
-        bool need_recompile = last_compile_time <
+        var last_source_update_time = cache.timestamp;
+        bool need_recompile = last_source_update_time <
                               getModNewestUpdateTimestamp(pModDeclare.FolderPath);
         if (need_recompile) return true;
 
         foreach (var depen in pDependencies)
         {
-            need_recompile |= last_compile_time < getModLastCompileTimestamp(depen);
-            if (need_recompile) return true;
+            long dependency_compile_time = getModLastCompileTimestamp(depen);
+            if (dependency_compile_time > 0 && cache.compile_timestamp < dependency_compile_time) return true;
         }
 
         foreach (var depen in pOptionalDependencies)
         {
-            need_recompile |= last_compile_time < getModLastCompileTimestamp(depen);
-            if (need_recompile) return true;
+            long dependency_compile_time = getModLastCompileTimestamp(depen);
+            if (dependency_compile_time > 0 && cache.compile_timestamp < dependency_compile_time) return true;
         }
 
         return false;
@@ -728,13 +730,11 @@ internal static class ModInfoUtils
         if (!mod_compilation_caches.TryGetValue(pModUUID, out ModCompilationCache cache))
         {
             cache = new ModCompilationCache(pModUUID);
-            cache.disabled = false;
-            cache.timestamp = 0;
             mod_compilation_caches[pModUUID] = cache;
-            return;
         }
 
         cache.timestamp = 0;
+        cache.compile_timestamp = 0;
         if (pSave)
             SaveModRecords();
     }
@@ -742,7 +742,9 @@ internal static class ModInfoUtils
     // ReSharper disable once InconsistentNaming
     private static long getModLastCompileTimestamp(string pModUID)
     {
-        return mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache) ? cache.timestamp : 0;
+        return mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache)
+            ? cache.compile_timestamp
+            : 0;
     }
 
     private static long getModNewestUpdateTimestamp(string pModFolderPath)

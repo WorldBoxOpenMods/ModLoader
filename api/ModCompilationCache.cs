@@ -9,9 +9,14 @@ internal class ModCompilationCache
     public string       compile_environment;
 
     /// <summary>
-    ///     The timestamp of the mod's last update
+    ///     The timestamp of the mod's newest source update.
     /// </summary>
     public long timestamp;
+
+    /// <summary>
+    ///     The timestamp of the mod's last successful compilation.
+    /// </summary>
+    public long compile_timestamp;
 
     private ModCompilationCache()
     {

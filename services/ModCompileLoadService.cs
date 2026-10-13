@@ -598,7 +598,7 @@ public static class ModCompileLoadService
         List<List<ModDependencyNode>> stages =
             ModDependencyUtils.PartitionModsCompileStagesFromDependencyTopology(nodes);
         Dictionary<string, CompileNodeResult> completed_results = new();
-        bool should_clear_compile_records = false;
+        bool has_compile_failures = false;
 
         foreach (List<ModDependencyNode> stage in stages)
         {
@@ -631,7 +631,8 @@ public static class ModCompileLoadService
                     if (result.ShouldRecordCompileCache)
                     {
                         ModInfoUtils.RecordMod(node.mod_decl, result.AvailableDependencies.ToList(),
-                            result.AvailableOptionalDependencies.ToList(), false, false);
+                            result.AvailableOptionalDependencies.ToList(), ModInfoUtils.isModDisabled(node.mod_decl.UID),
+                            false);
                     }
 
                     if (result.UsedOptionalDependencyFallback)
@@ -643,14 +644,15 @@ public static class ModCompileLoadService
                     continue;
                 }
 
-                should_clear_compile_records = true;
+                has_compile_failures = true;
+                ModInfoUtils.clearModCompileTimestamp(node.mod_decl.UID, false);
                 ApplyCompileFailure(result);
             }
         }
 
-        if (should_clear_compile_records)
+        if (has_compile_failures)
         {
-            File.WriteAllText(Paths.ModCompileRecordPath, "");
+            ModInfoUtils.SaveModRecords();
         }
 
         LogService.PullAllConcurrentLogToCurrentThread();
