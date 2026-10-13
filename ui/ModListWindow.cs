@@ -235,16 +235,8 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
             if (Instance.clickTimes == 8) ModUploadModeWindow.ShowWindow(_mod);
         }
 
-        /// <inheritdoc cref="AbstractListWindowItem{TItem}.Setup" />
-        /// <param name="mod">The mod to display</param>
-        public override void Setup(IMod mod)
+        private string FormatModDisplayText(ModDeclare mod_declare)
         {
-            _mod = mod;
-            ModDeclare mod_declare = mod.GetDeclaration();
-            ModState mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
-
-            Text text = transform.Find("Text").GetComponent<Text>();
-            var state_text = transform.Find("StateText").GetComponent<Text>();
             string mod_name = mod_declare.Name;
             string mod_author = mod_declare.Author;
             string mod_desc = mod_declare.Description;
@@ -267,149 +259,111 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                 mod_desc = LM.Get(multilang_mod_desc_key);
             }
 
-            switch (mod_declare.ModType)
+            return mod_declare.ModType switch
             {
+                ModTypeEnum.NEOMOD or ModTypeEnum.COMPILED_NEOMOD or ModTypeEnum.RESOURCE_PACK =>
+                    $"{mod_name}\t{mod_declare.Version}\n{mod_author}\n{mod_desc}",
+                ModTypeEnum.BEPINEX =>
+                    $"[BepInEx] {mod_name}\t{mod_declare.Version}\n{mod_author}\n{mod_desc}",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
 
-                case ModTypeEnum.NEOMOD:
-                case ModTypeEnum.COMPILED_NEOMOD:
-                case ModTypeEnum.RESOURCE_PACK:
-                    text.text = $"{mod_name}\t{mod_declare.Version}\n{mod_author}\n{mod_desc}";
-                    break;
-                case ModTypeEnum.BEPINEX:
-                    text.text = $"[BepInEx] {mod_name}\t{mod_declare.Version}\n{mod_author}\n{mod_desc}";
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-            
-            Sprite sprite = null;
+        private Sprite GetModIcon(ModDeclare mod_declare)
+        {
             if (!string.IsNullOrEmpty(mod_declare.IconPath) &&
                 File.Exists(Path.Combine(mod_declare.FolderPath, mod_declare.IconPath)))
             {
-                sprite = SpriteLoadUtils.LoadSingleSprite(Path.Combine(mod_declare.FolderPath, mod_declare.IconPath));
+                return SpriteLoadUtils.LoadSingleSprite(Path.Combine(mod_declare.FolderPath, mod_declare.IconPath));
             }
 
-            if (sprite == null)
+            return InternalResourcesGetter.GetIcon();
+        }
+
+        private void OnIconClicked(ModDeclare mod_declare)
+        {
+            float current_time = Time.time;
+            if (current_time - Instance.lastClickTime > 1)
             {
-                sprite = InternalResourcesGetter.GetIcon();
+                Instance.clickTimes = 0;
             }
 
-            Image icon = transform.Find("Icon").GetComponent<Image>();
-            Button configure_button = transform.Find("Configure").GetComponent<Button>();
-            Button website_button = transform.Find("Website").GetComponent<Button>();
-            Button open_folder_button = transform.Find("OpenFolder").GetComponent<Button>();
-            TipButton icon_tip_button = icon.GetComponent<TipButton>();
-
-            icon.sprite = sprite;
-            var configurable = mod.GetGameObject()?.GetComponent<IConfigurable>();
-            configure_button.gameObject.SetActive(configurable != null);
-
-            icon.GetComponent<Button>().onClick.RemoveAllListeners();
-            configure_button.onClick.RemoveAllListeners();
-            website_button.onClick.RemoveAllListeners();
-            open_folder_button.onClick.RemoveAllListeners();
-            open_folder_button.onClick.AddListener(() => { Application.OpenURL(mod_declare.FolderPath); });
-
-            if (mod_state == ModState.LOADED)
+            if (mod_declare != Instance.clickedMod)
             {
-                icon.GetComponent<Button>().onClick.AddListener(() =>
+                Instance.clickedMod = mod_declare;
+                Instance.clickTimes = 0;
+            }
+
+            Instance.lastClickTime = current_time;
+            Instance.clickTimes++;
+            if (Instance.clickTimes == 8)
+            {
+                StartCoroutine(nameof(WaitOpenWindow));
+                /*
+                new Task(() =>
                 {
-                    float current_time = Time.time;
-                    if (current_time - Instance.lastClickTime > 1)
-                    {
-                        Instance.clickTimes = 0;
-                    }
-
-                    if (mod_declare != Instance.clickedMod)
-                    {
-                        Instance.clickedMod = mod_declare;
-                        Instance.clickTimes = 0;
-                    }
-
-                    Instance.lastClickTime = current_time;
-                    Instance.clickTimes++;
+                    Thread.Sleep(3000);
                     if (Instance.clickTimes == 8)
                     {
-                        StartCoroutine(nameof(WaitOpenWindow));
-                        /*
-                        new Task(() =>
-                        {
-                            Thread.Sleep(3000);
-                            if (Instance.clickTimes == 8)
-                            {
-                                ModUploadWindow.ShowWindow(mod);
-                            }
-                        }).Start();*/
+                        ModUploadWindow.ShowWindow(mod);
                     }
-                });
+                }).Start();*/
             }
+        }
 
-            void RefreshToggleState()
+        private void RefreshToggleState(ModDeclare mod_declare, Image icon, TipButton icon_tip_button, Text state_text)
+        {
+            ModState mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
+            string current_state_text = mod_state switch
             {
-                mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
-                string current_state_text = mod_state switch
-                {
-                    ModState.DISABLED => LM.Get("mod_state_disabled"),
-                    ModState.LOADED => LM.Get("mod_state_enabled"),
-                    ModState.FAILED => LM.Get("mod_state_failed")
-                };
-                string next_state_text = LM.Get(ModInfoUtils.isModDisabled(mod_declare.UID)
-                    ? "mod_next_state_disabled"
-                    : "mod_next_state_enabled");
-                state_text.text = $"{current_state_text}, {next_state_text}";
+                ModState.DISABLED => LM.Get("mod_state_disabled"),
+                ModState.LOADED => LM.Get("mod_state_enabled"),
+                ModState.FAILED => LM.Get("mod_state_failed")
+            };
+            string next_state_text = LM.Get(ModInfoUtils.isModDisabled(mod_declare.UID)
+                ? "mod_next_state_disabled"
+                : "mod_next_state_enabled");
+            state_text.text = $"{current_state_text}, {next_state_text}";
 
-                if (mod_state == ModState.FAILED)
-                {
-                    icon_tip_button.textOnClick = "ModLoadFailed Title";
-                    icon_tip_button.textOnClickDescription = "ModLoadFailed Description";
-                    icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
-                    icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.yellow : Color.red;
-                    return;
-                }
-
-                icon_tip_button.textOnClick = "ToggleMod Title";
-                icon_tip_button.textOnClickDescription = ModInfoUtils.isModDisabled(mod_declare.UID)
-                    ? "ModDisabled Description"
-                    : "ModEnabled Description";
-                icon_tip_button.text_description_2 = "";
-                icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.gray : Color.white;
-            }
-
-            icon.GetComponent<Button>().onClick.AddListener(() =>
+            if (mod_state == ModState.FAILED)
             {
-                if (ModInfoUtils.isModDisabled(mod_declare.UID))
-                {
-                    ModCompileLoadService.TryEnableMod(mod_declare);
-                }
-                else
-                {
-                    ModCompileLoadService.DisableMod(mod_declare);
-                }
-
-                RefreshToggleState();
-            });
-            RefreshToggleState();
-
-            configure_button.onClick.AddListener(() =>
-            {
-                // It can be sure that if mod is IConfigurable, then mod is loaded actually.
-                ModConfigureWindow.ShowWindow(configurable?.GetConfig());
-            });
-            website_button.onClick.AddListener(() => { Application.OpenURL(mod.GetUrl()); });
-
-            if (!Config.isEditor)
-            {
-                transform.Find("Reload").gameObject.SetActive(false);
+                icon_tip_button.textOnClick = "ModLoadFailed Title";
+                icon_tip_button.textOnClickDescription = "ModLoadFailed Description";
+                icon_tip_button.text_description_2 = mod_declare.FailReason.ToString();
+                icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.yellow : Color.red;
                 return;
             }
 
-            if (!ModReloadService.CanReload(mod_declare))
+            icon_tip_button.textOnClick = "ToggleMod Title";
+            icon_tip_button.textOnClickDescription = ModInfoUtils.isModDisabled(mod_declare.UID)
+                ? "ModDisabled Description"
+                : "ModEnabled Description";
+            icon_tip_button.text_description_2 = "";
+            icon.color = ModInfoUtils.isModDisabled(mod_declare.UID) ? Color.gray : Color.white;
+        }
+
+        private void ToggleModState(ModDeclare mod_declare)
+        {
+            if (ModInfoUtils.isModDisabled(mod_declare.UID))
             {
-                transform.Find("Reload").gameObject.SetActive(false);
+                ModCompileLoadService.TryEnableMod(mod_declare);
+            }
+            else
+            {
+                ModCompileLoadService.DisableMod(mod_declare);
+            }
+        }
+
+        private void SetupReloadButton(ModDeclare mod_declare)
+        {
+            var reloadObj = transform.Find("Reload").gameObject;
+            if (!Config.isEditor || !ModReloadService.CanReload(mod_declare))
+            {
+                reloadObj.SetActive(false);
                 return;
             }
 
-            var reload_button = transform.Find("Reload").GetComponent<Button>();
+            var reload_button = reloadObj.GetComponent<Button>();
             reload_button.gameObject.SetActive(true);
             reload_button.onClick.RemoveAllListeners();
             reload_button.onClick.AddListener(() =>
@@ -419,6 +373,57 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
                     LogService.LogWarning($"Failed to reload mod {mod_declare.Name}.");
                 }
             });
+        }
+
+        /// <inheritdoc cref="AbstractListWindowItem{TItem}.Setup" />
+        /// <param name="mod">The mod to display</param>
+        public override void Setup(IMod mod)
+        {
+            _mod = mod;
+            ModDeclare mod_declare = mod.GetDeclaration();
+            ModState mod_state = WorldBoxMod.AllRecognizedMods[mod_declare];
+
+            Text text = transform.Find("Text").GetComponent<Text>();
+            var state_text = transform.Find("StateText").GetComponent<Text>();
+            text.text = FormatModDisplayText(mod_declare);
+
+            Image icon = transform.Find("Icon").GetComponent<Image>();
+            icon.sprite = GetModIcon(mod_declare);
+            TipButton icon_tip_button = icon.GetComponent<TipButton>();
+
+            Button configure_button = transform.Find("Configure").GetComponent<Button>();
+            Button website_button = transform.Find("Website").GetComponent<Button>();
+            Button open_folder_button = transform.Find("OpenFolder").GetComponent<Button>();
+
+            var configurable = mod.GetGameObject()?.GetComponent<IConfigurable>();
+            configure_button.gameObject.SetActive(configurable != null);
+
+            icon.GetComponent<Button>().onClick.RemoveAllListeners();
+            configure_button.onClick.RemoveAllListeners();
+            website_button.onClick.RemoveAllListeners();
+            open_folder_button.onClick.RemoveAllListeners();
+
+            open_folder_button.onClick.AddListener(() => { Application.OpenURL(mod_declare.FolderPath); });
+            configure_button.onClick.AddListener(() =>
+            {
+                // It can be sure that if mod is IConfigurable, then mod is loaded actually.
+                ModConfigureWindow.ShowWindow(configurable?.GetConfig());
+            });
+            website_button.onClick.AddListener(() => { Application.OpenURL(mod.GetUrl()); });
+
+            if (mod_state == ModState.LOADED)
+            {
+                icon.GetComponent<Button>().onClick.AddListener(() => OnIconClicked(mod_declare));
+            }
+
+            icon.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                ToggleModState(mod_declare);
+                RefreshToggleState(mod_declare, icon, icon_tip_button, state_text);
+            });
+
+            RefreshToggleState(mod_declare, icon, icon_tip_button, state_text);
+            SetupReloadButton(mod_declare);
         }
     }
 }

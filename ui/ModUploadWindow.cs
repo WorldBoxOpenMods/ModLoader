@@ -361,60 +361,74 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         }
     }
 
-    private void executeUpload()
+    private string GetInputFileIdText()
     {
-        string inputText = Instance.mod_fileid_inputfield != null && !string.IsNullOrEmpty(Instance.mod_fileid_inputfield.text)
-            ? Instance.mod_fileid_inputfield.text
-            : mod_fileid_text.text;
-
-        if (is_update_mode)
+        if (Instance.mod_fileid_inputfield != null && !string.IsNullOrEmpty(Instance.mod_fileid_inputfield.text))
         {
-            ulong fileIdLong = 0;
-            if (!string.IsNullOrEmpty(inputText) && ulong.TryParse(inputText, out ulong parsedId) && parsedId > 0)
-            {
-                fileIdLong = parsedId;
-            }
-            else if (selected_mod != null && selected_mod.GetDeclaration().SteamId > 0)
-            {
-                fileIdLong = selected_mod.GetDeclaration().SteamId;
-            }
-
-            if (fileIdLong > 0)
-            {
-                ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
-                    .Then(() =>
-                    {
-                        if (selected_mod != null)
-                        {
-                            var decl = selected_mod.GetDeclaration();
-                            decl.SteamId = fileIdLong;
-                            decl.Save();
-                        }
-                        ModUploadingProgressWindow.FinishUpload();
-                    }, ModUploadingProgressWindow.ErrorUpload).Done();
-                return;
-            }
+            return Instance.mod_fileid_inputfield.text;
         }
+        return mod_fileid_text.text;
+    }
 
-        string uploadName = null;
-        if (!string.IsNullOrEmpty(inputText) && !ulong.TryParse(inputText, out _))
+    private ulong ResolveTargetWorkshopId(string inputText)
+    {
+        if (!string.IsNullOrEmpty(inputText) && ulong.TryParse(inputText, out ulong parsedId) && parsedId > 0)
         {
-            uploadName = inputText;
+            return parsedId;
         }
+        return selected_mod != null ? selected_mod.GetDeclaration().SteamId : 0;
+    }
 
+    private void SaveModWorkshopId(ulong fileId)
+    {
+        if (selected_mod == null) return;
+        var decl = selected_mod.GetDeclaration();
+        decl.SteamId = fileId;
+        decl.Save();
+    }
+
+    private void ExecuteUpdateMod(ulong fileIdLong)
+    {
+        ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
+            .Then(() =>
+            {
+                SaveModWorkshopId(fileIdLong);
+                ModUploadingProgressWindow.FinishUpload();
+            }, ModUploadingProgressWindow.ErrorUpload).Done();
+    }
+
+    private void ExecuteNewUpload(string uploadName)
+    {
         ModUploadAuthenticationService.Authenticate().Then(
             () => ModWorkshopService.UploadMod(selected_mod, changelog_text.text,
                 ModUploadAuthenticationService.Authed, uploadName)).Then(() =>
             {
-                if (selected_mod != null && ModUploadingProgressWindow.Instance.fileId > 0)
+                if (ModUploadingProgressWindow.Instance.fileId > 0)
                 {
-                    var decl = selected_mod.GetDeclaration();
-                    decl.SteamId = ModUploadingProgressWindow.Instance.fileId;
-                    decl.Save();
+                    SaveModWorkshopId(ModUploadingProgressWindow.Instance.fileId);
                 }
                 ModUploadingProgressWindow.FinishUpload();
             },
             ModUploadingProgressWindow.ErrorUpload);
+    }
+
+    private void executeUpload()
+    {
+        string inputText = GetInputFileIdText();
+        if (is_update_mode)
+        {
+            ulong fileIdLong = ResolveTargetWorkshopId(inputText);
+            if (fileIdLong > 0)
+            {
+                ExecuteUpdateMod(fileIdLong);
+                return;
+            }
+        }
+
+        string uploadName = (!string.IsNullOrEmpty(inputText) && !ulong.TryParse(inputText, out _))
+            ? inputText
+            : null;
+        ExecuteNewUpload(uploadName);
     }
 
     private void updateTagButtonsUI()

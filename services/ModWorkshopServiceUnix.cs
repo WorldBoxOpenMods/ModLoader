@@ -1,5 +1,6 @@
 extern alias unixsteamwork;
 using System.Reflection;
+using System.Threading.Tasks;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.ui;
@@ -136,64 +137,72 @@ internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
         return promise;
     }
 
+    private async Task<string> FetchUpdatedDescriptionAsync(ulong fileID, ModDeclare mod_decl)
+    {
+        try
+        {
+            Query q = Query.Items.WithFileId(fileID).WithLongDescription(true);
+            ResultPage? resultPage = await q.GetPageAsync(1);
+            if (resultPage.HasValue)
+            {
+                foreach (var entry in resultPage.Value.Entries)
+                {
+                    if (!string.IsNullOrEmpty(entry.Description))
+                    {
+                        return ModWorkshopService.UpdateDescriptionDisclaimer(entry.Description, mod_decl);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning($"Failed to get existing description: {e.Message}");
+        }
+
+        return ModWorkshopService.BuildModDescription(mod_decl);
+    }
+
+    private Editor ConfigureEditor(ulong fileID, string previewImagePath, string workshopPath, string changelog,
+        string desc, ModDeclare mod_decl)
+    {
+        Editor editor = new Editor(fileID)
+            .WithPreviewFile(previewImagePath)
+            .WithContent(workshopPath)
+            .WithChangeLog(changelog)
+            .WithTag("Mod");
+
+        if (!string.IsNullOrEmpty(desc))
+        {
+            editor = editor.WithDescription(desc);
+        }
+
+        string aiTag = mod_decl.GetAIAttributionDisplay();
+        if (!string.IsNullOrEmpty(aiTag))
+        {
+            editor = editor.WithTag(aiTag);
+        }
+
+        if (mod_decl.Tags != null)
+        {
+            foreach (string tag in mod_decl.Tags)
+            {
+                if (!string.IsNullOrEmpty(tag))
+                {
+                    editor = editor.WithTag(tag);
+                }
+            }
+        }
+
+        return editor;
+    }
+
     private async void ExecuteEditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog,
         ModDeclare mod_decl, Promise promise, ModUploadingProgressWindow.UploadProgress progress)
     {
         try
         {
-            string desc = null;
-            try
-            {
-                Query q = Query.Items.WithFileId(fileID).WithLongDescription(true);
-                ResultPage? resultPage = await q.GetPageAsync(1);
-                if (resultPage.HasValue)
-                {
-                    foreach (var entry in resultPage.Value.Entries)
-                    {
-                        if (!string.IsNullOrEmpty(entry.Description))
-                        {
-                            desc = ModWorkshopService.UpdateDescriptionDisclaimer(entry.Description, mod_decl);
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                LogService.LogWarning($"Failed to get existing description: {e.Message}");
-            }
-
-            if (string.IsNullOrEmpty(desc))
-            {
-                desc = ModWorkshopService.BuildModDescription(mod_decl);
-            }
-
-            Editor editor = new Editor(fileID)
-                .WithPreviewFile(previewImagePath)
-                .WithContent(workshopPath)
-                .WithChangeLog(changelog)
-                .WithTag("Mod");
-
-            if (!string.IsNullOrEmpty(desc))
-            {
-                editor = editor.WithDescription(desc);
-            }
-
-            string aiTag = mod_decl.GetAIAttributionDisplay();
-            if (!string.IsNullOrEmpty(aiTag))
-            {
-                editor = editor.WithTag(aiTag);
-            }
-            if (mod_decl.Tags != null)
-            {
-                foreach (string tag in mod_decl.Tags)
-                {
-                    if (!string.IsNullOrEmpty(tag))
-                    {
-                        editor = editor.WithTag(tag);
-                    }
-                }
-            }
+            string desc = await FetchUpdatedDescriptionAsync(fileID, mod_decl);
+            Editor editor = ConfigureEditor(fileID, previewImagePath, workshopPath, changelog, desc, mod_decl);
 
             PublishResult result = await editor.SubmitAsync(progress);
             if (result.NeedsWorkshopAgreement)
