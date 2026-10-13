@@ -663,6 +663,124 @@ internal static class ModReloadUtils
         return _mod?.GetType().Assembly.ManifestModule.ResolveField(oldFieldDefinition.MetadataToken.ToInt32()) as FieldInfo;
     }
 
+    private static MethodInfo ResolveNewRuntimeMethod(MethodDefinition newMethodDefinition)
+    {
+        return _new_runtime_assembly?.ManifestModule.ResolveMethod(newMethodDefinition.MetadataToken.ToInt32()) as MethodInfo;
+    }
+
+    private static MemberInfo MatchMethodReferenceOnType(MethodReference methodReference,
+        RuntimeGenericContext generic_context, Type declaring_runtime_type)
+    {
+        if (declaring_runtime_type == null) return null;
+        try
+        {
+            if (methodReference.Name == ".ctor" || methodReference.Name == ".cctor")
+            {
+                return ResolveRuntimeMethodCandidate(
+                    methodReference,
+                    declaring_runtime_type.GetConstructors(BindingFlags.Instance | BindingFlags.Static |
+                                                           BindingFlags.Public | BindingFlags.NonPublic)
+                        .Cast<MethodBase>()
+                );
+            }
+
+            return ResolveRuntimeMethodCandidate(
+                methodReference,
+                declaring_runtime_type.GetMethods(BindingFlags.Instance | BindingFlags.Static |
+                                                  BindingFlags.Public | BindingFlags.NonPublic)
+                    .Select(method => CloseRuntimeGenericMethod(methodReference, method, generic_context))
+                    .Cast<MethodBase>()
+            );
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private static FieldInfo MatchFieldReferenceOnType(FieldReference fieldReference, Type declaring_runtime_type)
+    {
+        var current_type = declaring_runtime_type;
+        while (current_type != null)
+        {
+            var runtime_field = current_type
+                .GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public |
+                           BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+                .FirstOrDefault(field => RuntimeFieldMatches(fieldReference, field));
+            if (runtime_field != null)
+            {
+                return runtime_field;
+            }
+
+            current_type = current_type.BaseType;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Attempts a definition-level detour for a changed generic method: the old generic
+    ///     definition is redirected straight to the new assembly's generic definition. Runtime
+    ///     support varies (value-type instantiations JIT'd before the patch keep the old body);
+    ///     failures degrade to the regular "restart required" warning.
+    /// </summary>
+    private static void TryGenericDefinitionDetour(MethodDefinition hotfixable_method)
+    {
+        try
+        {
+            var old_method = ResolveOldRuntimeMethod(hotfixable_method);
+            var new_method = ResolveNewRuntimeMethod(hotfixable_method);
+            if (old_method == null || new_method == null)
+            {
+                LogService.LogWarning(
+                    $"Skip hotfix method {hotfixable_method.FullName}: generic detour could not resolve both definitions.");
+                return;
+            }
+
+            ApplyReplacement(old_method, new_method);
+            LogService.LogInfo(
+                $"[Hotfix] generic definition detoured {old_method.DeclaringType?.Name}::{old_method.Name} -> new assembly " +
+                "(value-type instantiations JIT'd before this patch keep the old body until restart)");
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning(
+                $"Skip hotfix method {hotfixable_method.FullName}: generic detour is not supported by the runtime " +
+                $"({e.Message}); restart required.");
+        }
+    }
+
+    /// <summary>
+    ///     Warns when the changed body of a hotfixable async/iterator method lives only in its
+    ///     compiler-generated state machine and the method stub itself did not change - such
+    ///     changes cannot be hotfixed and silently keeping the old body would be confusing.
+    /// </summary>
+    private static void WarnChangedAsyncStateMachines(List<MethodDefinition> methodDefinitions,
+        List<MethodDefinition> changedRoots)
+    {
+        foreach (var generated in methodDefinitions)
+        {
+            if (!generated.HasBody || !IsCompilerGenerated(generated)) continue;
+            var state_machine_type = generated.DeclaringType;
+            var type_name = state_machine_type?.Name;
+            if (type_name == null || !type_name.StartsWith("<")) continue;
+            var d_index = type_name.IndexOf(">d__", StringComparison.Ordinal);
+            if (d_index <= 1) continue;
+            if (generated.Name != "MoveNext") continue;
+
+            var owner_name = type_name.Substring(1, d_index - 1);
+            var owner = state_machine_type.DeclaringType?.Methods
+                .FirstOrDefault(x => x.Name == owner_name && IsHotfixable(x));
+            if (owner == null || changedRoots.Contains(owner)) continue;
+            if (!TryGetOldMethod(generated, out var oldGenerated)
+                || !HasMethodBodyChanged(oldGenerated, generated)) continue;
+
+            LogService.LogWarning(
+                $"[Hotfix] {owner.FullName} changed but its body lives in a compiler-generated state machine; " +
+                "it cannot be hotfixed this session - restart required.");
+        }
+    }
+
     private static bool TryGetOldMethod(MethodDefinition methodDefinition, out MethodDefinition oldMethodDefinition)
     {
         return _old_method_definitions_by_identity.TryGetValue(GetMethodIdentity(methodDefinition), out oldMethodDefinition);
@@ -778,52 +896,48 @@ internal static class ModReloadUtils
 
                 var is_generic_instance_reference = methodReference.DeclaringType is GenericInstanceType
                                                     || methodReference is GenericInstanceMethod;
-                if (resolvedMethod != null
+                // The compiled mod keeps its assembly name across hot reloads; module identity (not
+                // assembly name) decides whether a metadata token resolves against the loaded old
+                // assembly. Tokens of the freshly compiled assembly belong to the new one.
+                var resolved_in_old_module = resolvedMethod != null
+                                             && resolvedMethod.Module == _old_assembly_definition.MainModule;
+                if (resolved_in_old_module
                     && !is_generic_instance_reference
                     && !resolvedMethod.HasGenericParameters
                     && !resolvedMethod.DeclaringType.HasGenericParameters
-                    && resolvedMethod.Module.Assembly.Name.Name == _old_assembly_definition.MainModule.Assembly.Name.Name)
+                    && TryGetOldMethod(resolvedMethod, out var oldMethodDefinition))
                 {
-                    if (TryGetOldMethod(resolvedMethod, out var oldMethodDefinition))
-                    {
-                        return ResolveOldRuntimeMethod(oldMethodDefinition);
-                    }
+                    var old_runtime_method = ResolveOldRuntimeMethod(oldMethodDefinition);
+                    if (old_runtime_method != null) return old_runtime_method;
                 }
 
+                // Prefer the old assembly's declaring type so static state stays continuous; when
+                // the type is new-only (e.g. a re-numbered closure class) or the old type lacks the
+                // member (same name, changed captured variables), fall back to the new assembly.
                 var declaring_runtime_type = ResolveRuntimeType(methodReference.DeclaringType, generic_context);
-                if (declaring_runtime_type == null) return null;
-
-                try
+                var member = MatchMethodReferenceOnType(methodReference, generic_context, declaring_runtime_type);
+                if (member == null && _new_runtime_assembly != null)
                 {
-                    if (methodReference.Name == ".ctor" || methodReference.Name == ".cctor")
+                    var new_declaring_type = _new_runtime_assembly.GetType(
+                        ToReflectionTypeName(methodReference.DeclaringType.FullName));
+                    if (new_declaring_type != null && new_declaring_type != declaring_runtime_type)
                     {
-                        return ResolveRuntimeMethodCandidate(
-                            methodReference,
-                            declaring_runtime_type.GetConstructors(BindingFlags.Instance | BindingFlags.Static |
-                                                                   BindingFlags.Public | BindingFlags.NonPublic)
-                                .Cast<MethodBase>()
-                        );
+                        member = MatchMethodReferenceOnType(methodReference, generic_context, new_declaring_type);
                     }
+                }
 
-                    return ResolveRuntimeMethodCandidate(
-                        methodReference,
-                        declaring_runtime_type.GetMethods(BindingFlags.Instance | BindingFlags.Static |
-                                                          BindingFlags.Public | BindingFlags.NonPublic)
-                            .Select(method => CloseRuntimeGenericMethod(methodReference, method, generic_context))
-                            .Cast<MethodBase>()
-                    );
-                }
-                catch (Exception)
-                {
-                    if (resolvedMethod == null) return null;
-                }
+                if (member != null) return member;
 
                 try
                 {
                     if (resolvedMethod != null)
                     {
-                        var loaded_assembly = FindLoadedAssembly(resolvedMethod.Module.Assembly.Name.Name);
-                        return loaded_assembly?.ManifestModule.ResolveMethod(resolvedMethod.MetadataToken.ToInt32()) as MemberInfo;
+                        // The fresh assembly shares its name with the old one; route new-module
+                        // tokens to the freshly loaded assembly explicitly.
+                        var target_assembly = resolved_in_old_module
+                            ? FindLoadedAssembly(resolvedMethod.Module.Assembly.Name.Name)
+                            : _new_runtime_assembly ?? FindLoadedAssembly(resolvedMethod.Module.Assembly.Name.Name);
+                        return target_assembly?.ManifestModule.ResolveMethod(resolvedMethod.MetadataToken.ToInt32()) as MemberInfo;
                     }
                 }
                 catch (Exception)
@@ -846,38 +960,37 @@ internal static class ModReloadUtils
                     // ignored
                 }
 
-                if (resolvedField != null
-                    && resolvedField.Module.Assembly.Name.Name == _old_assembly_definition.MainModule.Assembly.Name.Name
+                var resolved_in_old_module = resolvedField != null
+                                             && resolvedField.Module == _old_assembly_definition.MainModule;
+                if (resolved_in_old_module
                     && TryGetOldField(fieldReference, out var oldFieldDefinition))
                 {
-                    return ResolveOldRuntimeField(oldFieldDefinition);
+                    var old_runtime_field = ResolveOldRuntimeField(oldFieldDefinition);
+                    if (old_runtime_field != null) return old_runtime_field;
                 }
 
                 var declaring_runtime_type = ResolveRuntimeType(fieldReference.DeclaringType, generic_context);
-                if (declaring_runtime_type != null)
+                var runtime_field = MatchFieldReferenceOnType(fieldReference, declaring_runtime_type);
+                if (runtime_field == null && _new_runtime_assembly != null)
                 {
-                    var current_type = declaring_runtime_type;
-                    while (current_type != null)
+                    var new_declaring_type = _new_runtime_assembly.GetType(
+                        ToReflectionTypeName(fieldReference.DeclaringType.FullName));
+                    if (new_declaring_type != null && new_declaring_type != declaring_runtime_type)
                     {
-                        var runtime_field = current_type
-                            .GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public |
-                                       BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-                            .FirstOrDefault(field => RuntimeFieldMatches(fieldReference, field));
-                        if (runtime_field != null)
-                        {
-                            return runtime_field;
-                        }
-
-                        current_type = current_type.BaseType;
+                        runtime_field = MatchFieldReferenceOnType(fieldReference, new_declaring_type);
                     }
                 }
+
+                if (runtime_field != null) return runtime_field;
 
                 try
                 {
                     if (resolvedField != null)
                     {
-                        var loaded_assembly = FindLoadedAssembly(resolvedField.Module.Assembly.Name.Name);
-                        return loaded_assembly?.ManifestModule.ResolveField(resolvedField.MetadataToken.ToInt32()) as MemberInfo;
+                        var target_assembly = resolved_in_old_module
+                            ? FindLoadedAssembly(resolvedField.Module.Assembly.Name.Name)
+                            : _new_runtime_assembly ?? FindLoadedAssembly(resolvedField.Module.Assembly.Name.Name);
+                        return target_assembly?.ManifestModule.ResolveField(resolvedField.MetadataToken.ToInt32()) as MemberInfo;
                     }
                 }
                 catch (Exception)
@@ -989,13 +1102,16 @@ internal static class ModReloadUtils
 
             if (IsGenericHotfixUnsupported(hotfixable_method))
             {
-                LogService.LogWarning(
-                    $"Skip hotfix method {hotfixable_method.FullName} because generic hotfix is not supported.");
+                TryGenericDefinitionDetour(hotfixable_method);
                 continue;
             }
 
             changed_hotfix_roots.Add(hotfixable_method);
         }
+
+        LogService.LogInfo($"[Hotfix] changed roots ({changed_hotfix_roots.Count}): " +
+                           string.Join(", ", changed_hotfix_roots.Select(m => m.FullName)));
+        WarnChangedAsyncStateMachines(method_definitions, changed_hotfix_roots);
 
         HashSet<MethodDefinition> methods_to_create = new();
         List<(MethodInfo OldMethod, MethodDefinition NewMethod)> methods_to_replace = new();
@@ -1061,6 +1177,49 @@ internal static class ModReloadUtils
         }
 
         List<MethodInfo> applied_methods = new();
+
+        // Methods that could not be generated (e.g. bodies referencing compiler-generated
+        // closure classes that only exist in the new assembly) are skipped above with a
+        // warning; they need a restart instead of failing the whole reload. Static methods
+        // get a second chance: detour the old method straight into the new assembly's
+        // implementation (no `this` identity is involved).
+        var skipped_methods = methods_to_generate
+            .Where(method => !generated_methods.ContainsKey(method))
+            .ToList();
+        foreach (var skipped_method in skipped_methods)
+        {
+            var skipped_replacement = methods_to_replace.FirstOrDefault(item => item.NewMethod == skipped_method);
+            methods_to_replace.RemoveAll(item => item.NewMethod == skipped_method);
+            if (skipped_replacement.OldMethod == null)
+            {
+                // A freshly introduced compiler-generated helper has no old counterpart to detour.
+                continue;
+            }
+
+            var new_runtime_method = ResolveNewRuntimeMethod(skipped_method);
+            if (skipped_method.IsStatic && new_runtime_method != null)
+            {
+                try
+                {
+                    ApplyReplacement(skipped_replacement.OldMethod, new_runtime_method);
+                    applied_methods.Add(skipped_replacement.OldMethod);
+                    LogService.LogWarning(
+                        $"[Hotfix] {skipped_method.FullName} cannot be re-emitted; detoured it directly into the new assembly. " +
+                        "Static state this method touches lives in the new assembly's copy until restart.");
+                }
+                catch (Exception e)
+                {
+                    LogService.LogWarning(
+                        $"Skip hotfix method {skipped_method.FullName}: direct detour failed ({e.Message}); restart required.");
+                }
+
+                continue;
+            }
+
+            LogService.LogWarning(
+                $"Skip hotfix method {skipped_method.FullName}: cannot be hotfixed this session, restart required.");
+        }
+
         foreach (var (old_method, new_method) in methods_to_replace)
         {
             if (!generated_methods.TryGetValue(new_method, out var replacement_method))
@@ -1096,6 +1255,10 @@ internal static class ModReloadUtils
                 _replacement_methods.Remove(old_method);
             }
         }
+
+        LogService.LogInfo($"[Hotfix] patch done: to_replace={methods_to_replace.Count} " +
+                           $"to_create={methods_to_create.Count} generated={generated_methods.Count} " +
+                           $"applied={applied_methods.Count} success={success}");
 
         assembly_definition.Dispose();
         return success;
@@ -1273,36 +1436,63 @@ internal static class ModReloadUtils
         int method_index = 0;
         foreach (var method_definition in methodDefinitions)
         {
-            var return_type = EnsureClosedRuntimeType(
-                ResolveRuntimeType(method_definition.ReturnType),
-                $"return type of {method_definition.FullName}"
-            );
-            var parameter_types = GetGeneratedParameterTypes(method_definition);
-            var dynamic_method = new DynamicMethod(
-                $"Hotfix_{method_index++}",
-                return_type,
-                parameter_types
-                , ResolveHotfixAccessModule(method_definition)
-                , true
-            );
-            dynamic_method.InitLocals = method_definition.Body.InitLocals;
+            try
+            {
+                var return_type = EnsureClosedRuntimeType(
+                    ResolveRuntimeType(method_definition.ReturnType),
+                    $"return type of {method_definition.FullName}"
+                );
+                var parameter_types = GetGeneratedParameterTypes(method_definition);
+                var dynamic_method = new DynamicMethod(
+                    $"Hotfix_{method_index++}",
+                    return_type,
+                    parameter_types
+                    , ResolveHotfixAccessModule(method_definition)
+                    , true
+                );
+                dynamic_method.InitLocals = method_definition.Body.InitLocals;
 
-            _generated_methods_by_definition[method_definition] = dynamic_method;
+                _generated_methods_by_definition[method_definition] = dynamic_method;
+            }
+            catch (Exception e)
+            {
+                LogService.LogWarning(
+                    $"Skip hotfix method {method_definition.FullName}: failed to prepare signature ({e.Message})");
+            }
         }
 
-        foreach (var generated_method in _generated_methods_by_definition)
+        foreach (var generated_method in _generated_methods_by_definition.ToList())
         {
-            EmitMethodBody(generated_method.Key, ((DynamicMethod)generated_method.Value).GetILGenerator());
+            try
+            {
+                EmitMethodBody(generated_method.Key, ((DynamicMethod)generated_method.Value).GetILGenerator());
+            }
+            catch (Exception e)
+            {
+                LogService.LogWarning(
+                    $"Skip hotfix method {generated_method.Key.FullName}: cannot emit body, a restart is required " +
+                    $"for this method to take effect ({e.InnerException?.Message ?? e.Message})");
+                _generated_methods_by_definition.Remove(generated_method.Key);
+            }
         }
 
         int wrapper_index = 0;
-        foreach (var generated_method in _generated_methods_by_definition)
+        foreach (var generated_method in _generated_methods_by_definition.ToList())
         {
-            generated_methods[generated_method.Key] = CreateHotfixWrapperMethod(
-                generated_method.Key,
-                (DynamicMethod)generated_method.Value,
-                wrapper_index++
-            );
+            try
+            {
+                generated_methods[generated_method.Key] = CreateHotfixWrapperMethod(
+                    generated_method.Key,
+                    (DynamicMethod)generated_method.Value,
+                    wrapper_index++
+                );
+            }
+            catch (Exception e)
+            {
+                LogService.LogWarning(
+                    $"Skip hotfix method {generated_method.Key.FullName}: failed to create wrapper ({e.Message})");
+                _generated_methods_by_definition.Remove(generated_method.Key);
+            }
         }
 
         return generated_methods;
@@ -1323,6 +1513,8 @@ internal static class ModReloadUtils
 
         _replacement_methods[oldMethod] = newMethod;
         _replacement_detours[oldMethod] = new Detour(oldMethod, newMethod);
+        LogService.LogInfo($"[Hotfix] detoured {oldMethod.DeclaringType?.Name}::{oldMethod.Name} " +
+                           $"(token 0x{oldMethod.MetadataToken:X8}) -> {newMethod.DeclaringType?.Assembly.GetName().Name}!{newMethod.Name}");
     }
 
     private static void EmitMethodBody(MethodDefinition methodDefinition, ILGenerator il)
