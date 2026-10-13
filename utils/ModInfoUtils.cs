@@ -1,4 +1,5 @@
 extern alias unixsteamwork;
+using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -23,7 +24,7 @@ internal static class ModInfoUtils
 
     private static Dictionary<string, ModCompilationCache> mod_compilation_caches;
 
-    private static readonly Dictionary<string, long> mod_last_update_timestamps = new();
+    private static readonly ConcurrentDictionary<string, long> mod_last_update_timestamps = new();
 
     public static void InitializeModCompileCache()
     {
@@ -750,7 +751,9 @@ internal static class ModInfoUtils
     private static long getModNewestUpdateTimestamp(string pModFolderPath)
     {
         var dir = new DirectoryInfo(pModFolderPath);
-        if (mod_last_update_timestamps.ContainsKey(dir.FullName)) return mod_last_update_timestamps[dir.FullName];
+        // Mod compilation runs in parallel (one task per node); this cache is read and written
+        // from multiple threads, so duplicate scans on a cold cache are preferable to a race.
+        if (mod_last_update_timestamps.TryGetValue(dir.FullName, out var cached_timestamp)) return cached_timestamp;
         var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
             dirname => !dirname.StartsWith(".") &&
                        !Paths.CompileIgnoreSearchDirectories.Contains(dirname));
