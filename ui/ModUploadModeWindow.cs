@@ -15,6 +15,7 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
     private Text mod_status_text;
     private Button upload_button;
     private Button update_button;
+    private GameObject view_workshop_btn_obj;
     private GameObject clear_id_btn_obj;
 
     protected override void Init()
@@ -89,7 +90,7 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         upload_bg.sprite = SpriteTextureLoader.getSprite("ui/special/button2");
         upload_bg.type = Image.Type.Sliced;
 
-        GameObject upload_txt_obj = new GameObject("Text", typeof(Text));
+        GameObject upload_txt_obj = new GameObject("Text", typeof(Text), typeof(LocalizedText));
         upload_txt_obj.transform.SetParent(upload_btn_obj.transform);
         upload_txt_obj.transform.localScale = Vector3.one;
         upload_txt_obj.transform.localPosition = Vector3.zero;
@@ -97,8 +98,12 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         Text upload_txt = upload_txt_obj.GetComponent<Text>();
         OT.InitializeCommonText(upload_txt);
         upload_txt.alignment = TextAnchor.MiddleCenter;
-        upload_txt.text = "Upload";
+        upload_txt.text = LM.Get("ModUploadMode_Upload");
         upload_txt.fontSize = 10;
+
+        LocalizedText upload_loc = upload_txt_obj.GetComponent<LocalizedText>();
+        upload_loc.key = "ModUploadMode_Upload";
+        LocalizedTextManager.addTextField(upload_loc);
 
         upload_button = upload_btn_obj.GetComponent<Button>();
         upload_button.onClick.AddListener(OnUploadClicked);
@@ -111,7 +116,7 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         update_bg.sprite = SpriteTextureLoader.getSprite("ui/special/button2");
         update_bg.type = Image.Type.Sliced;
 
-        GameObject update_txt_obj = new GameObject("Text", typeof(Text));
+        GameObject update_txt_obj = new GameObject("Text", typeof(Text), typeof(LocalizedText));
         update_txt_obj.transform.SetParent(update_btn_obj.transform);
         update_txt_obj.transform.localScale = Vector3.one;
         update_txt_obj.transform.localPosition = Vector3.zero;
@@ -119,11 +124,40 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         Text update_txt = update_txt_obj.GetComponent<Text>();
         OT.InitializeCommonText(update_txt);
         update_txt.alignment = TextAnchor.MiddleCenter;
-        update_txt.text = "Update";
+        update_txt.text = LM.Get("ModUploadMode_Update");
         update_txt.fontSize = 10;
+
+        LocalizedText update_loc = update_txt_obj.GetComponent<LocalizedText>();
+        update_loc.key = "ModUploadMode_Update";
+        LocalizedTextManager.addTextField(update_loc);
 
         update_button = update_btn_obj.GetComponent<Button>();
         update_button.onClick.AddListener(OnUpdateClicked);
+
+        view_workshop_btn_obj = new GameObject("ViewWorkshopButton", typeof(Image), typeof(Button));
+        view_workshop_btn_obj.transform.SetParent(ContentTransform);
+        view_workshop_btn_obj.transform.localScale = Vector3.one;
+        view_workshop_btn_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(190, 28);
+        Image view_workshop_bg = view_workshop_btn_obj.GetComponent<Image>();
+        view_workshop_bg.sprite = SpriteTextureLoader.getSprite("ui/special/button2");
+        view_workshop_bg.type = Image.Type.Sliced;
+
+        GameObject view_workshop_txt_obj = new GameObject("Text", typeof(Text), typeof(LocalizedText));
+        view_workshop_txt_obj.transform.SetParent(view_workshop_btn_obj.transform);
+        view_workshop_txt_obj.transform.localScale = Vector3.one;
+        view_workshop_txt_obj.transform.localPosition = Vector3.zero;
+        view_workshop_txt_obj.GetComponent<RectTransform>().sizeDelta = new Vector2(190, 28);
+        Text view_workshop_txt = view_workshop_txt_obj.GetComponent<Text>();
+        OT.InitializeCommonText(view_workshop_txt);
+        view_workshop_txt.alignment = TextAnchor.MiddleCenter;
+        view_workshop_txt.text = LM.Get("ModUploadMode_ViewWorkshop");
+        view_workshop_txt.fontSize = 10;
+
+        LocalizedText view_workshop_loc = view_workshop_txt_obj.GetComponent<LocalizedText>();
+        view_workshop_loc.key = "ModUploadMode_ViewWorkshop";
+        LocalizedTextManager.addTextField(view_workshop_loc);
+
+        view_workshop_btn_obj.GetComponent<Button>().onClick.AddListener(OnViewWorkshopClicked);
 
         GameObject back_btn_obj = new GameObject("BackButton", typeof(Image), typeof(Button));
         back_btn_obj.transform.SetParent(ContentTransform);
@@ -133,7 +167,7 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         back_bg.sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonred");
         back_bg.type = Image.Type.Sliced;
 
-        GameObject back_txt_obj = new GameObject("Text", typeof(Text));
+        GameObject back_txt_obj = new GameObject("Text", typeof(Text), typeof(LocalizedText));
         back_txt_obj.transform.SetParent(back_btn_obj.transform);
         back_txt_obj.transform.localScale = Vector3.one;
         back_txt_obj.transform.localPosition = Vector3.zero;
@@ -141,7 +175,11 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         Text back_txt = back_txt_obj.GetComponent<Text>();
         OT.InitializeCommonText(back_txt);
         back_txt.alignment = TextAnchor.MiddleCenter;
-        back_txt.text = "Back";
+        back_txt.text = LM.Get("ModUploadMode_Back");
+
+        LocalizedText back_loc = back_txt_obj.GetComponent<LocalizedText>();
+        back_loc.key = "ModUploadMode_Back";
+        LocalizedTextManager.addTextField(back_loc);
 
         back_btn_obj.GetComponent<Button>().onClick.AddListener(() =>
         {
@@ -177,6 +215,16 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         clear_id_btn_obj.GetComponent<Button>().onClick.AddListener(OnClearIdClicked);
     }
 
+    private void OnViewWorkshopClicked()
+    {
+        if (selected_mod == null) return;
+        var decl = selected_mod.GetDeclaration();
+        if (decl.SteamId > 0)
+        {
+            Application.OpenURL("steam://url/CommunityFilePage/" + decl.SteamId);
+        }
+    }
+
     private void OnUploadClicked()
     {
         if (selected_mod == null) return;
@@ -191,14 +239,14 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         if (decl.SteamId == 0)
         {
             AIConfirmWindow.ShowWindow(
-                "No Steam Workshop ID found for this mod.\n\nPlease enter the Workshop ID in the upload window to update it.",
-                "Enter ID",
+                LM.Get("ModUploadMode_NoSteamIdPrompt"),
+                LM.Get("ModUploadMode_EnterId"),
                 () =>
                 {
                     ScrollWindow.moveAllToLeftAndRemove(false);
                     ModUploadWindow.ShowWindow(selected_mod, true);
                 },
-                "Back",
+                LM.Get("ModUploadMode_Back"),
                 null
             );
             return;
@@ -209,13 +257,13 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
     private void AskIfWantToChange()
     {
         AIConfirmWindow.ShowWindow(
-            "Do you want to change anything?",
-            "Yes",
+            LM.Get("ModUploadMode_WantToChange"),
+            LM.Get("ModUploadMode_Yes"),
             () =>
             {
                 ModUploadWindow.ShowWindow(selected_mod, true);
             },
-            "No",
+            LM.Get("ModUploadMode_No"),
             () =>
             {
                 AskAiDisclaimerWarning();
@@ -226,13 +274,13 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
     private void AskAiDisclaimerWarning()
     {
         AIConfirmWindow.ShowWindow(
-            "Are you sure?\n\nIf you used AI, you need to change the disclaimer before updating.",
-            "Change Disclaimer",
+            LM.Get("ModUploadMode_AiWarning"),
+            LM.Get("ModUploadMode_ChangeDisclaimer"),
             () =>
             {
                 ModUploadWindow.ShowWindow(selected_mod, true);
             },
-            "Update",
+            LM.Get("ModUploadMode_Update"),
             () =>
             {
                 ModUploadWindow.ExecuteDirectUpload(selected_mod);
@@ -247,14 +295,14 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         if (decl.SteamId == 0) return;
         AIConfirmWindow.ShowWindow(
             LM.Get("Clear Steam ID Confirm"),
-            "Yes",
+            LM.Get("ModUploadMode_Yes"),
             () =>
             {
                 decl.SteamId = 0;
                 decl.Save();
                 ShowWindow(selected_mod);
             },
-            "Cancel",
+            LM.Get("ModUploadMode_Cancel"),
             null
         );
     }
@@ -279,12 +327,17 @@ internal class ModUploadModeWindow : AbstractWindow<ModUploadModeWindow>
         }
         else
         {
-            Instance.mod_status_text.text = "New Upload";
+            Instance.mod_status_text.text = LM.Get("ModUploadMode_NewUpload");
         }
 
         if (Instance.clear_id_btn_obj != null)
         {
             Instance.clear_id_btn_obj.SetActive(decl.SteamId > 0);
+        }
+
+        if (Instance.view_workshop_btn_obj != null)
+        {
+            Instance.view_workshop_btn_obj.SetActive(decl.SteamId > 0);
         }
 
         ScrollWindow scrollWindow = Instance.GetComponent<ScrollWindow>();
