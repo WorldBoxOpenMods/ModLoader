@@ -935,10 +935,12 @@ public static class ModCompileLoadService
         }
 
         var syntax_trees = new List<SyntaxTree>();
+        var mod_gitignore_rules = GitIgnoreUtils.GetRuleSet(pModDecl.FolderPath);
         var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
             file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
-            dir_name => !dir_name.StartsWith(".") &&
-                        !Paths.CompileIgnoreSearchDirectories.Contains(dir_name));
+            (relative_path, dir_name) => !dir_name.StartsWith(".") &&
+                                         !Paths.CompileIgnoreSearchDirectories.Contains(dir_name) &&
+                                         !mod_gitignore_rules.IsIgnored(relative_path, true));
         var embeded_resources = new List<ResourceDescription>();
 
         bool is_ncms_mod = false;

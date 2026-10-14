@@ -124,7 +124,9 @@ internal static class ModWorkshopService
     {
         List<string> files_to_upload = SystemUtils.SearchFileRecursive(sourceFolder,
             filename => !filename.StartsWith("."),
-            dirname => !dirname.StartsWith(".") && !Paths.IgnoreSearchDirectories.Contains(dirname));
+            (relative_path, dirname) => !dirname.StartsWith(".") &&
+                                        !Paths.IgnoreSearchDirectories.Contains(dirname) &&
+                                        !GitIgnoreUtils.GetRuleSet(sourceFolder).IsIgnored(relative_path, true));
 
         foreach (string file_full_path in files_to_upload)
         {

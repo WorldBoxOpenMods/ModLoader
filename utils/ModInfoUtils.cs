@@ -754,9 +754,11 @@ internal static class ModInfoUtils
         // Mod compilation runs in parallel (one task per node); this cache is read and written
         // from multiple threads, so duplicate scans on a cold cache are preferable to a race.
         if (mod_last_update_timestamps.TryGetValue(dir.FullName, out var cached_timestamp)) return cached_timestamp;
+        var gitignore_rules = GitIgnoreUtils.GetRuleSet(dir.FullName);
         var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
-            dirname => !dirname.StartsWith(".") &&
-                       !Paths.CompileIgnoreSearchDirectories.Contains(dirname));
+            (relative_path, dirname) => !dirname.StartsWith(".") &&
+                                        !Paths.CompileIgnoreSearchDirectories.Contains(dirname) &&
+                                        !gitignore_rules.IsIgnored(relative_path, true));
         var result = files.Select(filepath => new FileInfo(filepath))
             .Select(file_info =>
                 Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))

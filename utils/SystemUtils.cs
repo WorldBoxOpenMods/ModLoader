@@ -45,12 +45,23 @@ public static class SystemUtils
     public static List<string> SearchFileRecursive(string             path, Func<string, bool> fileNameJudge,
                                                    Func<string, bool> dirNameJudge)
     {
+        return SearchFileRecursive(path, fileNameJudge, (relative_path, dir_name) => dirNameJudge(dir_name));
+    }
+
+    /// <summary>
+    ///     Same as the name based overload, but the directory filter also receives the directory
+    ///     path relative to the search root ('/' separated, without leading or trailing slashes),
+    ///     so rules like .gitignore entries can be evaluated against the full location.
+    /// </summary>
+    public static List<string> SearchFileRecursive(string path, Func<string, bool> fileNameJudge,
+                                                   Func<string, string, bool> dirPathJudge)
+    {
         List<string> result = new List<string>();
-        Queue<DirectoryInfo> queue = new Queue<DirectoryInfo>();
-        queue.Enqueue(new DirectoryInfo(path));
+        Queue<(DirectoryInfo Dir, string RelativePath)> queue = new Queue<(DirectoryInfo, string)>();
+        queue.Enqueue((new DirectoryInfo(path), ""));
         while (queue.Count > 0)
         {
-            DirectoryInfo dir = queue.Dequeue();
+            var (dir, relative_path) = queue.Dequeue();
             foreach (var file in dir.GetFiles())
             {
                 if (fileNameJudge(file.Name))
@@ -61,9 +72,12 @@ public static class SystemUtils
 
             foreach (var subDir in dir.GetDirectories())
             {
-                if (dirNameJudge(subDir.Name))
+                var sub_relative_path = relative_path.Length == 0
+                    ? subDir.Name
+                    : relative_path + "/" + subDir.Name;
+                if (dirPathJudge(sub_relative_path, subDir.Name))
                 {
-                    queue.Enqueue(subDir);
+                    queue.Enqueue((subDir, sub_relative_path));
                 }
             }
         }
