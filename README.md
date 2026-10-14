@@ -16,7 +16,7 @@
 </p>
 
 A new mod loader for [Worldbox](http://www.superworldbox.com/) after [NCMS](https://denq04.github.io/ncms/), with an Android version, called NML
-for short. Detailed introduction look [Gitbook](https://worldboxopenmods.gitbook.io/mod-tutorial-en).
+for short. Detailed introduction look [Gitbook](https://markamibox.github.io/worldbox-modding-box/#/index).
 
 <h2 align="center"> Overview </h2>
 
@@ -63,7 +63,7 @@ If you're trying to play mods that aren't compatible with the latest version of 
 Report BUG</a>
 </h3>
 <h3 align="center">
-<a href="https://worldboxopenmods.gitbook.io/mod-tutorial-en/make-mod/start">Make mod</a>
+<a href="https://markamibox.github.io/worldbox-modding-box/#/index">Make mod</a>
 </h3>
 <p align="center">
     You can contribute to accelerate the <a href="https://github.com/WorldBoxOpenMods/Documentation-en">English Version</a>
