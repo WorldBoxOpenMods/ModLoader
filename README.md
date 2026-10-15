@@ -70,6 +70,8 @@ Report BUG</a>
   </a>
 </h3>
 
+<hr/>
+
 <h3 align="center">
     How to compile NML
 </h3>
