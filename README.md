@@ -70,6 +70,10 @@ Report BUG</a>
   </a>
 </h3>
 
+<h3 align="center">
+    How to compile NML
+</h3>
+
 #### Compile with IDE
 
 1. clone
