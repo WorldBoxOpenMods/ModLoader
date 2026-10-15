@@ -13,7 +13,12 @@ internal enum InstalledModStatus
     MissingDependency,
 
     /// <summary>
-    ///     The saved choice differs from what is loaded now and applies at the next start.
+    ///     Steam has a newer version of this Workshop mod.
+    /// </summary>
+    UpdateAvailable,
+
+    /// <summary>
+    ///     What is loaded now differs from the saved choice or the files on disk, until the next start.
     /// </summary>
     RestartRequired
 }
@@ -66,15 +71,20 @@ internal sealed class InstalledMod
     /// <param name="pState">NML's load state of the mod in this session</param>
     /// <param name="pDisabled">Whether the mod is saved as disabled</param>
     /// <param name="pMissingDependency">Whether a required dependency is not installed</param>
-    public static InstalledModStatus ResolveStatus(ModState pState, bool pDisabled, bool pMissingDependency)
+    /// <param name="pNeedsRestart">Whether its files changed in a way only a restart applies</param>
+    /// <param name="pUpdateAvailable">Whether Steam has a newer version</param>
+    public static InstalledModStatus ResolveStatus(ModState pState, bool pDisabled, bool pMissingDependency,
+        bool pNeedsRestart, bool pUpdateAvailable)
     {
+        if (pNeedsRestart) return InstalledModStatus.RestartRequired;
         if (pState == ModState.LOADED)
         {
-            // NML cannot unload a mod, so disabling a loaded one only takes effect at the next start.
-            return pDisabled ? InstalledModStatus.RestartRequired : InstalledModStatus.Enabled;
+            // NML cannot unload a mod, so disabling a loaded one takes effect at the next start.
+            if (pDisabled) return InstalledModStatus.RestartRequired;
+            return pUpdateAvailable ? InstalledModStatus.UpdateAvailable : InstalledModStatus.Enabled;
         }
 
-        if (pDisabled) return InstalledModStatus.Disabled;
+        if (pDisabled) return pUpdateAvailable ? InstalledModStatus.UpdateAvailable : InstalledModStatus.Disabled;
 
         // Saved as enabled but still DISABLED in this session: it was enabled for the next start (Enable All).
         if (pState == ModState.DISABLED) return InstalledModStatus.RestartRequired;

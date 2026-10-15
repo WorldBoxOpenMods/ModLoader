@@ -9,6 +9,7 @@ using RSG;
 using UnityEngine;
 using winsteamwork::Steamworks;
 using winsteamwork::Steamworks.Ugc;
+using WorkshopItem = winsteamwork::Steamworks.Ugc.Item;
 
 namespace NeoModLoader.services;
 
@@ -291,5 +292,87 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
         }
 
         return subscribedItems;
+    }
+
+    public bool IsSteamOnline()
+    {
+        return SteamClient.IsValid && SteamClient.IsLoggedOn;
+    }
+
+    public async Task<ModListingPage> QueryModsAsync(int pPage, bool pRankedByTrend)
+    {
+        // Query is a struct: every builder method returns a changed copy.
+        Query query = Query.ItemsReadyToUse.WithTag(WorkshopTags.Mod).WithTag(WorkshopTags.UnverifiedMod)
+            .MatchAnyTag().WithoutTag(WorkshopTags.ModLoader);
+        query = pRankedByTrend ? query.RankedByTrend().WithTrendDays(7) : query.RankedByPublicationDate();
+
+        ResultPage? result = await query.GetPageAsync(pPage);
+        if (!result.HasValue) return null;
+
+        // The page holds a Steam query handle until it is disposed.
+        using ResultPage page = result.Value;
+        var listings = new ModListingPage { TotalCount = page.TotalCount };
+        foreach (WorkshopItem item in page.Entries)
+        {
+            listings.Items.Add(new ModListing
+            {
+                Id = item.Id.Value,
+                Title = item.Title ?? "",
+                AuthorId = item.Owner.Id.Value,
+                Tags = item.Tags ?? Array.Empty<string>(),
+                PreviewUrl = item.PreviewImageUrl,
+                Subscriptions = item.NumSubscriptions,
+                VotesUp = item.VotesUp,
+                VotesDown = item.VotesDown,
+                Score = item.Score,
+                Created = item.Created,
+                Updated = item.Updated
+            });
+        }
+
+        return listings;
+    }
+
+    public WorkshopItemState GetItemState(ulong pFileId)
+    {
+        var item = new WorkshopItem(pFileId);
+        bool installed = item.IsInstalled;
+        bool downloading = item.IsDownloading;
+        return new WorkshopItemState
+        {
+            Subscribed = item.IsSubscribed,
+            Installed = installed,
+            NeedsUpdate = item.NeedsUpdate,
+            Downloading = downloading,
+            DownloadPending = item.IsDownloadPending,
+            // DownloadBytesDownloaded reads 0 during a first download; DownloadAmount asks Steam directly.
+            Progress = downloading ? item.DownloadAmount : 0,
+            Directory = installed ? item.Directory : null
+        };
+    }
+
+    public Task<bool> SubscribeAsync(ulong pFileId)
+    {
+        return new WorkshopItem(pFileId).Subscribe();
+    }
+
+    public Task<bool> UnsubscribeAsync(ulong pFileId)
+    {
+        return new WorkshopItem(pFileId).Unsubscribe();
+    }
+
+    public bool StartDownload(ulong pFileId)
+    {
+        return SteamUGC.Download(pFileId, true);
+    }
+
+    public async Task<string> GetPersonaNameAsync(ulong pSteamId)
+    {
+        var friend = new Friend(pSteamId);
+        Task request = friend.RequestInfoAsync();
+        if (await Task.WhenAny(request, Task.Delay(5000)) == request) await request;
+
+        string name = friend.Name;
+        return string.IsNullOrEmpty(name) || name == "[unknown]" ? null : name;
     }
 }

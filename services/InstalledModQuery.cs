@@ -12,7 +12,8 @@ internal enum InstalledModFilter
     /// <summary>
     ///     Failed to load or missing a dependency.
     /// </summary>
-    Problems
+    Problems,
+    Updates
 }
 
 internal enum InstalledModSort
@@ -62,6 +63,7 @@ internal sealed class InstalledModQuery
             InstalledModFilter.Enabled => pMod.Enabled,
             InstalledModFilter.Disabled => !pMod.Enabled,
             InstalledModFilter.Problems => pMod.HasProblem,
+            InstalledModFilter.Updates => pMod.Status == InstalledModStatus.UpdateAvailable,
             _ => true
         };
     }

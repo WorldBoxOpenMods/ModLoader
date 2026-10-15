@@ -21,6 +21,7 @@ internal static class UIManager
         ModUploadModeWindow.CreateAndInit("ModUploadModeWindow");
         ModHubWindow.CreateAndInit("ModHub");
         ModManagerWindow.CreateAndInit("ModManager");
+        ModBrowserWindow.CreateAndInit("ModBrowser");
         ModInfoWindow.CreateAndInit("ModInfo");
         ConfirmWindow.CreateAndInit("NMLConfirm");
         PowerButtonCreator.AddButtonToTab(

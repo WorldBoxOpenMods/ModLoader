@@ -1,4 +1,3 @@
-using System.Collections;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -55,24 +54,12 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
     public override void OnNormalEnable()
     {
         Refresh();
-        StartCoroutine(RestoreScrollPosition());
+        StartCoroutine(ModHubUI.RestoreScrollPosition(ContentTransform, scroll_position));
     }
 
     public override void OnNormalDisable()
     {
         scroll_position = ContentTransform.localPosition.y;
-    }
-
-    /// <summary>
-    ///     The game scrolls every window back to the top when it is shown. Coming back from a mod's info or config
-    ///     page should keep the player's place in a long list, so the position is restored one frame later.
-    /// </summary>
-    private IEnumerator RestoreScrollPosition()
-    {
-        yield return null;
-        Vector3 position = ContentTransform.localPosition;
-        position.y = scroll_position;
-        ContentTransform.localPosition = position;
     }
 
     /// <summary>
@@ -104,11 +91,11 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
     {
         Vector2 size = new(20, 20);
         filter_button = ModHubUI.CreateIconButton(BackgroundTransform, "Filter", null, size, new Vector2(-104, 118),
-            () => ChangeQuery(() => query.Filter = Next(query.Filter)), "mod_hub_filter");
+            () => ChangeQuery(() => query.Filter = ModHubUI.NextValue(query.Filter)), "mod_hub_filter");
         sort_button = ModHubUI.CreateIconButton(BackgroundTransform, "Sort", null, size, new Vector2(-82, 118),
-            () => ChangeQuery(() => query.Sort = Next(query.Sort)), "mod_hub_sort");
+            () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
         search_mode_button = ModHubUI.CreateIconButton(BackgroundTransform, "SearchMode", null, size,
-            new Vector2(-60, 118), () => ChangeQuery(() => query.SearchMode = Next(query.SearchMode)),
+            new Vector2(-60, 118), () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)),
             "mod_hub_search_mode");
 
         TextInput search = TextInput.Instantiate(BackgroundTransform, pName: "Search");
@@ -165,32 +152,22 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
 
     private void UpdateToolbar()
     {
-        ShowChoice(filter_button, ModHubUI.LocaleKey("mod_hub_filter", query.Filter), query.Filter switch
+        ModHubUI.ShowChoice(filter_button, ModHubUI.LocaleKey("mod_hub_filter", query.Filter), query.Filter switch
         {
             InstalledModFilter.Enabled => "iconOn",
             InstalledModFilter.Disabled => "iconOff",
             InstalledModFilter.Problems => "iconWarning",
+            InstalledModFilter.Updates => "iconSaveCloud",
             _ => "iconBooks"
         });
-        ShowChoice(sort_button, ModHubUI.LocaleKey("mod_hub_sort", query.Sort), query.Sort switch
+        ModHubUI.ShowChoice(sort_button, ModHubUI.LocaleKey("mod_hub_sort", query.Sort), query.Sort switch
         {
             InstalledModSort.NameDescending => "iconArrowUP",
             InstalledModSort.RecentlyChanged => "iconClock",
             _ => "iconArrowDOWN"
         });
-        ShowChoice(search_mode_button, ModHubUI.LocaleKey("mod_hub_search_mode", query.SearchMode),
+        ModHubUI.ShowChoice(search_mode_button, ModHubUI.LocaleKey("mod_hub_search_mode", query.SearchMode),
             query.SearchMode == ModSearchMode.Author ? "iconInterestingPeople" : "iconCityName");
     }
 
-    private static void ShowChoice(SimpleButton pButton, string pDescriptionKey, string pIconName)
-    {
-        pButton.Icon.sprite = ModHubUI.GameIcon(pIconName);
-        pButton.TipButton.textOnClickDescription = pDescriptionKey;
-    }
-
-    private static T Next<T>(T pValue) where T : Enum
-    {
-        var values = (T[])Enum.GetValues(typeof(T));
-        return values[(Array.IndexOf(values, pValue) + 1) % values.Length];
-    }
 }

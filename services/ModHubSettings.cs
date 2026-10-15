@@ -15,6 +15,8 @@ internal sealed class ModHubSettings
 {
     private static readonly string default_path = Path.Combine(Paths.NMLPath, "mod_hub_settings.json");
     private static ModHubSettings instance;
+    private List<string> browser_categories = new();
+    private List<ulong> pending_downloads = new();
 
     [JsonProperty("manager_filter")]
     [JsonConverter(typeof(StringEnumConverter))]
@@ -27,6 +29,50 @@ internal sealed class ModHubSettings
     [JsonProperty("manager_search_mode")]
     [JsonConverter(typeof(StringEnumConverter))]
     public ModSearchMode ManagerSearchMode { get; set; } = ModSearchMode.Name;
+
+    [JsonProperty("browser_sort")]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public ListingSort BrowserSort { get; set; } = ListingSort.RecentlyUpdated;
+
+    [JsonProperty("browser_updated_within")]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public UpdatedWithin BrowserUpdatedWithin { get; set; } = UpdatedWithin.Anytime;
+
+    [JsonProperty("browser_install")]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public InstallFilter BrowserInstall { get; set; } = InstallFilter.All;
+
+    [JsonProperty("browser_ai_content")]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public AIContentFilter BrowserAIContent { get; set; } = AIContentFilter.Any;
+
+    [JsonProperty("browser_categories")]
+    public List<string> BrowserCategories
+    {
+        get => browser_categories ??= new List<string>();
+        set => browser_categories = value;
+    }
+
+    [JsonProperty("browser_search_mode")]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public ModSearchMode BrowserSearchMode { get; set; } = ModSearchMode.Name;
+
+    /// <summary>
+    ///     The player confirmed the notice that Workshop mods are unreviewed code.
+    /// </summary>
+    [JsonProperty("security_notice_accepted")]
+    public bool SecurityNoticeAccepted { get; set; }
+
+    /// <summary>
+    ///     Workshop items Download Mods subscribed to that Steam has not installed yet. If Steam finishes one while
+    ///     the game is closed, the startup scan saves it as disabled, as Download Mods would have.
+    /// </summary>
+    [JsonProperty("pending_downloads")]
+    public List<ulong> PendingDownloads
+    {
+        get => pending_downloads ??= new List<ulong>();
+        set => pending_downloads = value;
+    }
 
     /// <summary>
     ///     Settings of this game session, read from disk on first use.

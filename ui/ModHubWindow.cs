@@ -21,7 +21,7 @@ internal class ModHubWindow : AbstractWindow<ModHubWindow>
     private static readonly (string WindowId, Func<Sprite> Icon)[] entries =
     {
         ("ModManager", InternalResourcesGetter.GetIcon),
-        ("WorkshopMods", () => ModHubUI.GameIcon("iconSteam"))
+        ("ModBrowser", () => ModHubUI.GameIcon("iconSteam"))
     };
 
     protected override void Init()

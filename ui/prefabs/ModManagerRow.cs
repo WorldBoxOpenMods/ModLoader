@@ -104,19 +104,24 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
 
     private string StatusTooltip()
     {
-        string tooltip = LM.Get(StatusKey(mod.Status) + "_tip");
+        string click_hint = LM.Get(mod.Enabled ? "mod_hub_click_to_disable" : "mod_hub_click_to_enable");
+        return $"{LM.Get(StatusKey(mod.Status) + "_tip")}{StatusDetails()}\n\n{click_hint}";
+    }
+
+    private string StatusDetails()
+    {
         switch (mod.Status)
         {
             case InstalledModStatus.MissingDependency:
                 IEnumerable<string> missing = mod.Declaration.Dependencies.Where(uid =>
                     ModManagerService.GetDependencyState(uid) == DependencyState.Missing);
-                return tooltip + "\n" + string.Join(", ", missing);
+                return "\n" + string.Join(", ", missing);
             case InstalledModStatus.Failed:
                 string reason = mod.Declaration.FailReason.ToString().Trim();
                 if (reason.Length > max_reason_length) reason = reason.Substring(0, max_reason_length) + "...";
-                return reason.Length == 0 ? tooltip : tooltip + "\n\n" + reason;
+                return reason.Length == 0 ? "" : "\n\n" + reason;
             default:
-                return tooltip;
+                return "";
         }
     }
 
@@ -131,7 +136,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         {
             InstalledModStatus.Enabled => new Color(0.45f, 0.9f, 0.45f),
             InstalledModStatus.Failed => new Color(1f, 0.4f, 0.35f),
-            InstalledModStatus.MissingDependency => new Color(1f, 0.65f, 0.2f),
+            InstalledModStatus.MissingDependency or InstalledModStatus.UpdateAvailable => new Color(1f, 0.65f, 0.2f),
             InstalledModStatus.RestartRequired => new Color(1f, 0.9f, 0.35f),
             _ => ModHubUI.MutedTextColor
         };

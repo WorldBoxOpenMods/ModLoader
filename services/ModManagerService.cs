@@ -45,7 +45,8 @@ internal static class ModManagerService
             Name = pMod.GetDisplayName() ?? "",
             Author = pMod.GetDisplayAuthor() ?? "",
             Enabled = !disabled,
-            Status = InstalledMod.ResolveStatus(pState, disabled, missing_dependency),
+            Status = InstalledMod.ResolveStatus(pState, disabled, missing_dependency,
+                ModDownloadService.NeedsRestart(pMod.UID), ModDownloadService.HasUpdate(pMod)),
             Source = InstalledMod.DetectSource(pMod.ModType, pMod.IsWorkshopLoaded, pMod.FolderPath, Paths.ModsPath,
                 Paths.NativeModsPath),
             LastChanged = GetLastChanged(pMod.FolderPath)

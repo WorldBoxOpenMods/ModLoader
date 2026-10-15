@@ -30,6 +30,7 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
     private Text description;
     private SimpleButton workshop_button;
     private SimpleButton configure_button;
+    private SimpleButton unsubscribe_button;
 
     public static void ShowWindow(ModDeclare pMod)
     {
@@ -62,6 +63,12 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
 
     public override void OnNormalEnable()
     {
+        ShowMod();
+        GetComponent<ScrollWindow>().resetScroll();
+    }
+
+    private void ShowMod()
+    {
         InstalledMod installed = ModManagerService.Describe(mod);
         config = ModManagerService.GetConfig(mod);
         bool from_workshop = InstalledMod.TryGetWorkshopId(mod.FolderPath, CoreConstants.GameId, out workshop_id);
@@ -74,7 +81,8 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
 
         workshop_button.gameObject.SetActive(from_workshop);
         configure_button.gameObject.SetActive(config != null);
-        GetComponent<ScrollWindow>().resetScroll();
+        unsubscribe_button.gameObject.SetActive(from_workshop && !ModDownloadService.NeedsRestart(mod.UID) &&
+                                                ModDownloadService.CheckSteam() == CatalogStatus.Ready);
     }
 
     private string BuildDetails(InstalledMod pMod)
@@ -115,6 +123,24 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
         string text = mod.GetDisplayDesc()?.Trim();
         if (string.IsNullOrEmpty(text)) return LM.Get("mod_hub_info_no_description");
         return text.Length > max_description_length ? text.Substring(0, max_description_length) + "..." : text;
+    }
+
+    private void ConfirmUnsubscribe()
+    {
+        ModDeclare target = mod;
+        string message = string.Format(LM.Get("mod_hub_unsubscribe_confirm"), target.GetDisplayName());
+        ConfirmWindow.ShowWindow(message, () => _ = UnsubscribeAsync(target));
+    }
+
+    private async Task UnsubscribeAsync(ModDeclare pMod)
+    {
+        if (!await ModDownloadService.UnsubscribeAsync(pMod))
+        {
+            InformationWindow.ShowWindow(LM.Get("mod_hub_unsubscribe_failed"));
+            return;
+        }
+
+        if (IsOpened && mod == pMod) ShowMod();
     }
 
     private void OpenWorkshopPage()
@@ -173,12 +199,14 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
         layout.childForceExpandWidth = false;
         layout.spacing = 4;
 
-        Vector2 size = new(72, 16);
+        Vector2 size = new(54, 16);
         workshop_button = ModHubUI.CreateTextButton(bar.transform, "WorkshopPage", "mod_hub_workshop_page", size,
             Vector2.zero, OpenWorkshopPage);
         ModHubUI.CreateTextButton(bar.transform, "OpenFolder", "mod_hub_open_folder", size, Vector2.zero,
             () => ModManagerService.OpenFolder(mod.FolderPath));
         configure_button = ModHubUI.CreateTextButton(bar.transform, "Configure", "mod_hub_configure", size,
             Vector2.zero, () => ModConfigureWindow.ShowWindow(config));
+        unsubscribe_button = ModHubUI.CreateTextButton(bar.transform, "Unsubscribe", "mod_hub_unsubscribe", size,
+            Vector2.zero, ConfirmUnsubscribe);
     }
 }

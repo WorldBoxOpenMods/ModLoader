@@ -1,3 +1,4 @@
+using System.Collections;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using UnityEngine;
@@ -135,5 +136,35 @@ internal static class ModHubUI
             tip_name = tooltip_title_key,
             tip_description = string.IsNullOrEmpty(pText) ? null : tooltip_text_key
         });
+    }
+
+    /// <summary>
+    ///     Show the current choice of a toolbar button: its icon, and the tooltip line under its title.
+    /// </summary>
+    public static void ShowChoice(SimpleButton pButton, string pDescriptionKey, string pIconName)
+    {
+        pButton.Icon.sprite = GameIcon(pIconName);
+        pButton.TipButton.textOnClickDescription = pDescriptionKey;
+    }
+
+    /// <summary>
+    ///     The next value of an enum, back to the first after the last. For buttons that cycle through choices.
+    /// </summary>
+    public static T NextValue<T>(T pValue) where T : Enum
+    {
+        var values = (T[])Enum.GetValues(typeof(T));
+        return values[(Array.IndexOf(values, pValue) + 1) % values.Length];
+    }
+
+    /// <summary>
+    ///     The game scrolls every window back to the top when it is shown. Coming back from a mod's page should
+    ///     keep the player's place in a long list, so the list windows restore their position one frame later.
+    /// </summary>
+    public static IEnumerator RestoreScrollPosition(Transform pContent, float pY)
+    {
+        yield return null;
+        Vector3 position = pContent.localPosition;
+        position.y = pY;
+        pContent.localPosition = position;
     }
 }
