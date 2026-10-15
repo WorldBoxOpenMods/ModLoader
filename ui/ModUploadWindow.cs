@@ -257,7 +257,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             btn_txt.resizeTextForBestFit = true;
             btn_txt.resizeTextMinSize = 6;
             btn_txt.resizeTextMaxSize = 9;
-            btn_txt.text = currentTag;
+            btn_txt.text = LM.Get("ModTag_" + currentTag);
 
             btn_obj.GetComponent<Button>().onClick.AddListener(() =>
             {
@@ -443,12 +443,12 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             if (active)
             {
                 bg.color = new Color(0.2f, 0.65f, 0.25f, 0.85f);
-                txt.text = $"<color=#A0FFA0>✓</color> {tag}";
+                txt.text = $"<color=#A0FFA0>✓</color> {LM.Get("ModTag_" + tag)}";
             }
             else
             {
                 bg.color = new Color(0.18f, 0.18f, 0.18f, 0.7f);
-                txt.text = $"<color=#888888>{tag}</color>";
+                txt.text = $"<color=#888888>{LM.Get("ModTag_" + tag)}</color>";
             }
         }
     }
