@@ -79,7 +79,8 @@ internal sealed class InstalledModQuery
     {
         return Sort switch
         {
-            InstalledModSort.NameDescending => pMods.OrderByDescending(mod => mod.Name, StringComparer.OrdinalIgnoreCase),
+            InstalledModSort.NameDescending =>
+                pMods.OrderByDescending(mod => mod.Name, StringComparer.OrdinalIgnoreCase),
             InstalledModSort.RecentlyChanged => pMods.OrderByDescending(mod => mod.LastChanged)
                 .ThenBy(mod => mod.Name, StringComparer.OrdinalIgnoreCase),
             _ => pMods.OrderBy(mod => mod.Name, StringComparer.OrdinalIgnoreCase)

@@ -80,13 +80,18 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
     private string BuildDetails(InstalledMod pMod)
     {
         var text = new StringBuilder();
-        text.AppendLine(string.Format(LM.Get("mod_hub_info_status"), LM.Get(ModHubUI.LocaleKey("mod_hub_status", pMod.Status))));
+        string status = LM.Get(ModHubUI.LocaleKey("mod_hub_status", pMod.Status));
+        text.AppendLine(string.Format(LM.Get("mod_hub_info_status"), status));
         string fail_reason = mod.FailReason.ToString().Trim();
         if (pMod.HasProblem && fail_reason.Length > 0) text.AppendLine(fail_reason);
 
-        text.AppendLine(string.Format(LM.Get("mod_hub_info_source"), LM.Get(ModHubUI.LocaleKey("mod_hub_source", pMod.Source))));
+        string source = LM.Get(ModHubUI.LocaleKey("mod_hub_source", pMod.Source));
+        text.AppendLine(string.Format(LM.Get("mod_hub_info_source"), source));
         text.AppendLine(string.Format(LM.Get("mod_hub_info_folder"), mod.FolderPath));
-        if (mod.Tags.Count > 0) text.AppendLine(string.Format(LM.Get("mod_hub_info_tags"), string.Join(", ", mod.Tags)));
+        if (mod.Tags.Count > 0)
+        {
+            text.AppendLine(string.Format(LM.Get("mod_hub_info_tags"), string.Join(", ", mod.Tags)));
+        }
 
         AppendDependencies(text, "mod_hub_info_dependencies", mod.Dependencies);
         AppendDependencies(text, "mod_hub_info_optional_dependencies", mod.OptionalDependencies);
