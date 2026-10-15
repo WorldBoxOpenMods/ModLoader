@@ -62,14 +62,12 @@ If you're trying to play mods that aren't compatible with the latest version of 
 <a href="https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-en.yaml&title=%5BBug%5D%3A+">
 Report BUG</a>
 </h3>
+
+<h2 align="center">New to Modding?</h2>
 <h3 align="center">
-<a href="https://markamibox.github.io/worldbox-modding-box/#/index">Make mod</a>
-</h3>
-<p align="center">
-    You can contribute to accelerate the <a href="https://github.com/WorldBoxOpenMods/Documentation-en">English Version</a>
-</p>
-<h3 align="center">
-    How to compile NML
+  <a href="https://markamibox.github.io/worldbox-modding-box/#/index">
+    Check out the Modding Documentation
+  </a>
 </h3>
 
 #### Compile with IDE
