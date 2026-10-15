@@ -9,7 +9,10 @@ namespace NeoModLoader.ui;
 internal class AIConfirmWindow : AbstractWindow<AIConfirmWindow>
 {
     private Action onConfirmAction;
+    private Action onBackAction;
     private Text messageText;
+    private Text backText;
+    private Text continueText;
 
     protected override void Init()
     {
@@ -57,7 +60,7 @@ internal class AIConfirmWindow : AbstractWindow<AIConfirmWindow>
         backBg.sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonred");
         backBg.type = Image.Type.Sliced;
 
-        Text backText = new GameObject("Text", typeof(Text)).GetComponent<Text>();
+        backText = new GameObject("Text", typeof(Text)).GetComponent<Text>();
         backText.transform.SetParent(backButtonObj.transform);
         backText.transform.localScale = Vector3.one;
         backText.GetComponent<RectTransform>().sizeDelta = new Vector2(85, 25);
@@ -67,7 +70,15 @@ internal class AIConfirmWindow : AbstractWindow<AIConfirmWindow>
 
         backButtonObj.GetComponent<Button>().onClick.AddListener(() =>
         {
-            GetComponent<ScrollWindow>().clickHide();
+            ScrollWindow.moveAllToLeftAndRemove(false);
+            if (onBackAction != null)
+            {
+                onBackAction.Invoke();
+            }
+            else
+            {
+                GetComponent<ScrollWindow>().clickHide();
+            }
         });
 
         GameObject continueButtonObj = new GameObject("ContinueButton", typeof(Image), typeof(Button));
@@ -78,7 +89,7 @@ internal class AIConfirmWindow : AbstractWindow<AIConfirmWindow>
         continueBg.sprite = SpriteTextureLoader.getSprite("ui/special/button2");
         continueBg.type = Image.Type.Sliced;
 
-        Text continueText = new GameObject("Text", typeof(Text)).GetComponent<Text>();
+        continueText = new GameObject("Text", typeof(Text)).GetComponent<Text>();
         continueText.transform.SetParent(continueButtonObj.transform);
         continueText.transform.localScale = Vector3.one;
         continueText.GetComponent<RectTransform>().sizeDelta = new Vector2(85, 25);
@@ -95,8 +106,16 @@ internal class AIConfirmWindow : AbstractWindow<AIConfirmWindow>
 
     public static void ShowWindow(string pMessage, Action pOnConfirm)
     {
+        ShowWindow(pMessage, "Continue", pOnConfirm, "Back", null);
+    }
+
+    public static void ShowWindow(string pMessage, string pConfirmText, Action pOnConfirm, string pBackText = "Back", Action pOnBack = null)
+    {
         Instance.messageText.text = pMessage;
+        Instance.continueText.text = pConfirmText;
+        Instance.backText.text = pBackText;
         Instance.onConfirmAction = pOnConfirm;
+        Instance.onBackAction = pOnBack;
         ScrollWindow.showWindow(WindowId);
     }
 }

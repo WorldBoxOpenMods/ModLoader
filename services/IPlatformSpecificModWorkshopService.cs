@@ -10,8 +10,7 @@ internal interface IPlatformSpecificModWorkshopService
     Promise UploadMod(string name, string description, string previewImagePath, string workshopPath, string changelog,
         bool verified, string aiTag = null, List<string> extraTags = null);
 
-    Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog,
-        string aiTag = null, List<string> extraTags = null);
+    Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog, ModDeclare mod_decl);
     void FindSubscribedMods();
     ModDeclare GetNextModFromWorkshopItem();
 }

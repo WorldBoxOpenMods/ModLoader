@@ -1,5 +1,6 @@
 extern alias winsteamwork;
 using System.Reflection;
+using System.Threading.Tasks;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.ui;
@@ -128,23 +129,62 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
         return promise;
     }
 
-    public Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog,
-        string aiTag = null, List<string> extraTags = null)
+    public Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog, ModDeclare mod_decl)
     {
         Promise promise = new();
-        // Create Upload Files Descriptor
+        var progress = ModUploadingProgressWindow.ShowWindow();
+        ExecuteEditMod(fileID, previewImagePath, workshopPath, changelog, mod_decl, promise, progress);
+        return promise;
+    }
+
+    private async Task<string> FetchUpdatedDescriptionAsync(ulong fileID, ModDeclare mod_decl)
+    {
+        try
+        {
+            Query q = Query.Items.WithFileId(fileID).WithLongDescription(true);
+            ResultPage? resultPage = await q.GetPageAsync(1);
+            if (resultPage.HasValue)
+            {
+                foreach (var entry in resultPage.Value.Entries)
+                {
+                    if (!string.IsNullOrEmpty(entry.Description))
+                    {
+                        return ModWorkshopService.UpdateDescriptionDisclaimer(entry.Description, mod_decl);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning($"Failed to get existing description: {e.Message}");
+        }
+
+        return ModWorkshopService.BuildModDescription(mod_decl);
+    }
+
+    private Editor ConfigureEditor(ulong fileID, string previewImagePath, string workshopPath, string changelog,
+        string desc, ModDeclare mod_decl)
+    {
         Editor editor = new Editor(fileID)
             .WithPreviewFile(previewImagePath)
-            .WithContent(workshopPath).WithChangeLog(changelog)
+            .WithContent(workshopPath)
+            .WithChangeLog(changelog)
             .WithTag("Mod");
 
+        if (!string.IsNullOrEmpty(desc))
+        {
+            editor = editor.WithDescription(desc);
+        }
+
+        string aiTag = mod_decl.GetAIAttributionDisplay();
         if (!string.IsNullOrEmpty(aiTag))
         {
             editor = editor.WithTag(aiTag);
         }
-        if (extraTags != null)
+
+        if (mod_decl.Tags != null)
         {
-            foreach (string tag in extraTags)
+            foreach (string tag in mod_decl.Tags)
             {
                 if (!string.IsNullOrEmpty(tag))
                 {
@@ -153,34 +193,36 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
             }
         }
 
-        editor.SubmitAsync(ModUploadingProgressWindow.ShowWindow()).ContinueWith(
-            delegate(Task<PublishResult> taskResult)
+        return editor;
+    }
+
+    private async void ExecuteEditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog,
+        ModDeclare mod_decl, Promise promise, ModUploadingProgressWindow.UploadProgress progress)
+    {
+        try
+        {
+            string desc = await FetchUpdatedDescriptionAsync(fileID, mod_decl);
+            Editor editor = ConfigureEditor(fileID, previewImagePath, workshopPath, changelog, desc, mod_decl);
+
+            PublishResult result = await editor.SubmitAsync(progress);
+            if (result.NeedsWorkshopAgreement)
             {
-                if (taskResult.Status != TaskStatus.RanToCompletion)
-                {
-                    promise.Reject(taskResult.Exception.GetBaseException());
-                    return;
-                }
+                Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
+            }
 
-                PublishResult result = taskResult.Result;
-                // Result process refer to: https://partner.steamgames.com/doc/api/steam_api#EResult
-                if (result.NeedsWorkshopAgreement)
-                {
-                    LogService.LogWarning("Needs Workshop Agreement");
-                    // TODO: Open Workshop Agreement
-                    Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
-                }
+            if (result.Result != Result.OK)
+            {
+                promise.Reject(new Exception(result.Result.ToString()));
+                return;
+            }
 
-                if (result.Result != Result.OK)
-                {
-                    promise.Reject(new Exception(result.Result.ToString()));
-                    return;
-                }
-
-                // result.FileId;
-                promise.Resolve();
-            }, TaskScheduler.FromCurrentSynchronizationContext());
-        return promise;
+            ModUploadingProgressWindow.Instance.fileId = fileID;
+            promise.Resolve();
+        }
+        catch (Exception ex)
+        {
+            promise.Reject(ex);
+        }
     }
 
     public ModDeclare GetNextModFromWorkshopItem()
