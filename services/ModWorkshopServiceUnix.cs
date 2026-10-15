@@ -176,7 +176,7 @@ internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
             editor = editor.WithDescription(desc);
         }
 
-        string aiTag = mod_decl.GetAIAttributionDisplay();
+        string aiTag = ModWorkshopService.GetAISteamTag(mod_decl);
         if (!string.IsNullOrEmpty(aiTag))
         {
             editor = editor.WithTag(aiTag);
