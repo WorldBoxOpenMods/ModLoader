@@ -98,7 +98,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         yield return new WaitForSeconds(3f);
         if (icon_clicks == upload_click_count && mod.Declaration == pMod.GetDeclaration())
         {
-            ModUploadWindow.ShowWindow(pMod);
+            ModUploadModeWindow.ShowWindow(pMod);
         }
     }
 
