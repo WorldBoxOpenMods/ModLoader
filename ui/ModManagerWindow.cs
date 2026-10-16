@@ -14,7 +14,7 @@ namespace NeoModLoader.ui;
 /// </summary>
 internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, InstalledMod>
 {
-    private const float list_height = 230;
+    private const float search_width = 136;
 
     /// <summary>
     ///     Kept for this game session only, see <see cref="ModHubSettings" />.
@@ -37,18 +37,11 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         query.Sort = settings.ManagerSort;
         query.SearchMode = settings.ManagerSearchMode;
 
-        // Make room for the toolbar above the list and the buttons below it.
-        Transform scroll_view = BackgroundTransform.Find("Scroll View");
-        scroll_view.GetComponent<RectTransform>().sizeDelta = new Vector2(232, list_height);
-        scroll_view.localPosition = new Vector3(0, -11);
-        scroll_view.Find("Viewport").localPosition = new Vector3(-131, list_height / 2);
-
-        CreateToolbar();
-        CreateBottomButtons();
-        empty_label = ModHubUI.CreateText(BackgroundTransform, "NoMatch", new Vector2(200, 30), new Vector2(0, 60), 8,
-            TextAnchor.MiddleCenter);
-        empty_label.color = ModHubUI.MutedTextColor;
-        ModHubUI.SetLocaleKey(empty_label, "mod_hub_no_match");
+        ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header, out Transform footer);
+        ModHubStyle.StyleList(ContentTransform);
+        CreateToolbar(header);
+        CreateBottomButtons(footer);
+        empty_label = ModHubStyle.EmptyListLabel(ContentTransform, "mod_hub_no_match");
     }
 
     public override void OnNormalEnable()
@@ -87,26 +80,18 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         return ModManagerRow.CreatePrefab();
     }
 
-    private void CreateToolbar()
+    private void CreateToolbar(Transform pHeader)
     {
-        Vector2 size = new(20, 20);
-        filter_button = ModHubUI.CreateIconButton(BackgroundTransform, "Filter", null, size, new Vector2(-104, 118),
+        filter_button = ModHubStyle.IconButton(pHeader, "Filter", null,
             () => ChangeQuery(() => query.Filter = ModHubUI.NextValue(query.Filter)), "mod_hub_filter");
-        sort_button = ModHubUI.CreateIconButton(BackgroundTransform, "Sort", null, size, new Vector2(-82, 118),
+        sort_button = ModHubStyle.IconButton(pHeader, "Sort", null,
             () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
-        search_mode_button = ModHubUI.CreateIconButton(BackgroundTransform, "SearchMode", null, size,
-            new Vector2(-60, 118), () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)),
-            "mod_hub_search_mode");
+        search_mode_button = ModHubStyle.IconButton(pHeader, "SearchMode", null,
+            () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
 
-        TextInput search = TextInput.Instantiate(BackgroundTransform, pName: "Search");
-        search.Setup(search_text, SetSearchText);
-        search.SetSize(new Vector2(140, 18));
-        search.transform.localPosition = new Vector3(23, 118);
-        // Filter while typing, not only when the edit ends.
-        search.input.onValueChanged.AddListener(SetSearchText);
-
-        ModHubUI.CreateIconButton(BackgroundTransform, "ClearSearch", ModHubUI.GameIcon("iconClose"),
-            new Vector2(16, 16), new Vector2(105, 118), () => search.input.text = "", "mod_hub_clear_search");
+        TextInput search = ModHubStyle.SearchBox(pHeader, search_text, search_width, SetSearchText);
+        ModHubStyle.IconButton(pHeader, "ClearSearch", ModHubUI.GameIcon("iconClose"), () => search.input.text = "",
+            "mod_hub_clear_search");
     }
 
     private void SetSearchText(string pText)
@@ -116,15 +101,12 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         Refresh();
     }
 
-    private void CreateBottomButtons()
+    private void CreateBottomButtons(Transform pFooter)
     {
-        Vector2 size = new(72, 16);
-        enable_all_button = ModHubUI.CreateTextButton(BackgroundTransform, "EnableAll", "mod_hub_enable_all", size,
-            new Vector2(-76, -138), ConfirmEnableAll);
-        disable_all_button = ModHubUI.CreateTextButton(BackgroundTransform, "DisableAll", "mod_hub_disable_all",
-            size, new Vector2(0, -138), ConfirmDisableAll);
-        ModHubUI.CreateTextButton(BackgroundTransform, "OpenModsFolder", "mod_hub_open_mods_folder", size,
-            new Vector2(76, -138), () => ModManagerService.OpenFolder(Paths.ModsPath));
+        enable_all_button = ModHubStyle.TextButton(pFooter, "EnableAll", "mod_hub_enable_all", ConfirmEnableAll);
+        disable_all_button = ModHubStyle.TextButton(pFooter, "DisableAll", "mod_hub_disable_all", ConfirmDisableAll);
+        ModHubStyle.TextButton(pFooter, "OpenModsFolder", "mod_hub_open_mods_folder",
+            () => ModManagerService.OpenFolder(Paths.ModsPath));
     }
 
     private void ConfirmEnableAll()

@@ -117,8 +117,24 @@ internal static class ModHubUI
     /// </summary>
     public static void SetTextTooltip(SimpleButton pButton, Func<string> pTitle, Func<string> pText)
     {
-        pButton.TipButton.enabled = true;
-        pButton.TipButton.setHoverAction(() => ShowTextTooltip(pButton.gameObject, pTitle(), pText()));
+        SetTextTooltip(pButton.TipButton, pTitle, pText);
+    }
+
+    /// <inheritdoc cref="SetTextTooltip(SimpleButton, Func{string}, Func{string})" />
+    public static void SetTextTooltip(TipButton pTip, Func<string> pTitle, Func<string> pText)
+    {
+        pTip.enabled = true;
+        pTip.setHoverAction(() => ShowTextTooltip(pTip.gameObject, pTitle(), pText()));
+    }
+
+    /// <summary>
+    ///     "v1.0.0" for "1.0.0"; a version that already starts with "v" is kept as it is.
+    /// </summary>
+    public static string FormatVersion(string pVersion)
+    {
+        if (string.IsNullOrWhiteSpace(pVersion)) return "";
+        pVersion = pVersion.Trim();
+        return pVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? pVersion : "v" + pVersion;
     }
 
     /// <summary>

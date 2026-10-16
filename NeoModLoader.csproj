@@ -217,7 +217,6 @@
         <EmbeddedResource Include="resources\i_ast.png" />
         <None Remove="resources\i_made.png" />
         <EmbeddedResource Include="resources\i_made.png" />
-        <EmbeddedResource Include="resources\mod_hub\*.png" />
     </ItemGroup>
   
     <ItemGroup>

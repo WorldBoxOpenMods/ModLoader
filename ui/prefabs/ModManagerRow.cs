@@ -10,7 +10,8 @@ using UnityEngine.UI;
 namespace NeoModLoader.ui.prefabs;
 
 /// <summary>
-///     One mod in <see cref="ModManagerWindow" />.
+///     One mod in <see cref="ModManagerWindow" />: icon, title with the author on hover, a status pill that
+///     toggles the mod, and its buttons.
 /// </summary>
 /// <remarks>
 ///     <see cref="CreatePrefab" /> builds the visuals only. Click and hover handlers are added in
@@ -18,13 +19,13 @@ namespace NeoModLoader.ui.prefabs;
 /// </remarks>
 internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
 {
+    private const float height = 44;
     private const int upload_click_count = 8;
     private const int max_reason_length = 600;
 
     [SerializeField] private Image icon;
     [SerializeField] private Button icon_button;
     [SerializeField] private Text title;
-    [SerializeField] private Text author;
     [SerializeField] private SimpleButton status;
     [SerializeField] private SimpleButton source;
     [SerializeField] private SimpleButton info;
@@ -43,6 +44,8 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         info.Button.onClick.AddListener(() => ModInfoWindow.ShowWindow(mod.Declaration));
         configure.Button.onClick.AddListener(() => ModConfigureWindow.ShowWindow(config));
         reload.Button.onClick.AddListener(Reload);
+        ModHubUI.SetTextTooltip(title.GetComponent<TipButton>(), () => mod.Name,
+            () => string.Format(LM.Get("mod_hub_by_author"), mod.Author));
         ModHubUI.SetTextTooltip(status, () => status.Text.text, StatusTooltip);
         ModHubUI.SetTextTooltip(source, () => LM.Get(ModHubUI.LocaleKey("mod_hub_source", mod.Source)),
             () => mod.Declaration.FolderPath);
@@ -55,8 +58,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         ModDeclare declaration = pMod.Declaration;
 
         icon.sprite = ModManagerService.GetIcon(declaration);
-        title.text = string.IsNullOrEmpty(declaration.Version) ? pMod.Name : $"{pMod.Name}  {declaration.Version}";
-        author.text = pMod.Author;
+        title.text = $"{pMod.Name}  {ModHubUI.FormatVersion(declaration.Version)}".TrimEnd();
         status.Text.text = LM.Get(StatusKey(pMod.Status));
         status.Text.color = StatusColor(pMod.Status);
         source.Icon.sprite = SourceIcon(pMod.Source);
@@ -134,11 +136,9 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
     {
         return pStatus switch
         {
-            InstalledModStatus.Enabled => new Color(0.45f, 0.9f, 0.45f),
-            InstalledModStatus.Failed => new Color(1f, 0.4f, 0.35f),
-            InstalledModStatus.MissingDependency or InstalledModStatus.UpdateAvailable => new Color(1f, 0.65f, 0.2f),
-            InstalledModStatus.RestartRequired => new Color(1f, 0.9f, 0.35f),
-            _ => ModHubUI.MutedTextColor
+            InstalledModStatus.Enabled => ModHubStyle.Positive,
+            InstalledModStatus.Disabled or InstalledModStatus.Failed => ModHubStyle.Negative,
+            _ => ModHubStyle.Warning
         };
     }
 
@@ -157,60 +157,65 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
     /// </summary>
     internal static ModManagerRow CreatePrefab()
     {
-        var obj = new GameObject(nameof(ModManagerRow), typeof(Image));
+        GameObject obj = ModHubStyle.Box(WorldBoxMod.Transform, nameof(ModManagerRow), ModHubStyle.Card);
         obj.SetActive(false);
-        obj.transform.SetParent(WorldBoxMod.Transform);
-        obj.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 50);
-        Image background = obj.GetComponent<Image>();
-        background.sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
-        background.type = Image.Type.Sliced;
+        obj.GetComponent<RectTransform>().sizeDelta = new Vector2(0, height);
+        ModHubStyle.Horizontal(obj, ModHubStyle.SpaceM, ModHubStyle.SpaceS).padding.left = ModHubStyle.SpaceM;
 
         ModManagerRow row = obj.AddComponent<ModManagerRow>();
-        CreateIcon(row);
-        row.title = ModHubUI.CreateText(obj.transform, "Title", new Vector2(130, 12), new Vector2(12, 15), 7,
-            TextAnchor.MiddleLeft);
-        row.author = ModHubUI.CreateText(obj.transform, "Author", new Vector2(130, 10), new Vector2(12, 4), 6,
-            TextAnchor.MiddleLeft);
-        row.author.color = ModHubUI.MutedTextColor;
+        row.icon = ModHubStyle.Icon(obj.transform, "Icon", null, 32);
+        row.icon_button = row.icon.gameObject.AddComponent<Button>();
 
-        row.status = SimpleButton.Instantiate(obj.transform, pName: "Status");
-        row.status.Setup(null, null, " ", new Vector2(80, 15));
-        row.status.transform.localPosition = new Vector3(-11, -12);
-        row.status.Background.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
-        row.status.Text.resizeTextForBestFit = false;
-        row.status.Text.fontSize = 8;
-        row.status.Text.horizontalOverflow = HorizontalWrapMode.Overflow;
-
-        row.source = ModHubUI.CreateIconButton(obj.transform, "Source", null, new Vector2(14, 14),
-            new Vector2(89, 15), null, null);
-        row.source.Background.enabled = false;
-
-        Vector2 button_size = new(19, 19);
-        row.info = ModHubUI.CreateIconButton(obj.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"),
-            button_size, new Vector2(88, -11), null, "mod_hub_info");
-        row.configure = ModHubUI.CreateIconButton(obj.transform, "Configure", ModHubUI.GameIcon("iconOptions"),
-            button_size, new Vector2(66, -11), null, "mod_hub_configure");
-        row.reload = ModHubUI.CreateIconButton(obj.transform, "Reload", InternalResourcesGetter.GetReloadIcon(),
-            button_size, new Vector2(44, -11), null, "mod_hub_reload");
-
+        var body = new GameObject("Body", typeof(RectTransform));
+        body.transform.SetParent(obj.transform, false);
+        ModHubStyle.Vertical(body, 2).childForceExpandWidth = true;
+        ModHubStyle.Size(body, pFlexibleWidth: 1);
+        CreateTitleLine(row, body.transform);
+        ModHubStyle.Divider(body.transform);
+        CreateControlLine(row, body.transform);
         return row;
     }
 
-    private static void CreateIcon(ModManagerRow pRow)
+    private static void CreateTitleLine(ModManagerRow pRow, Transform pBody)
     {
-        var icon = new GameObject("Icon", typeof(Image), typeof(Button));
-        icon.transform.SetParent(pRow.transform, false);
-        icon.transform.localPosition = new Vector3(-75, 0);
-        icon.GetComponent<RectTransform>().sizeDelta = new Vector2(40, 40);
-        pRow.icon = icon.GetComponent<Image>();
-        pRow.icon_button = icon.GetComponent<Button>();
+        var line = new GameObject("TitleLine", typeof(RectTransform));
+        line.transform.SetParent(pBody, false);
+        ModHubStyle.Horizontal(line, ModHubStyle.SpaceS);
+        ModHubStyle.Size(line, pHeight: 12);
 
-        var frame = new GameObject("IconFrame", typeof(Image));
-        frame.transform.SetParent(icon.transform, false);
-        frame.GetComponent<RectTransform>().sizeDelta = new Vector2(45, 45);
-        Image frame_image = frame.GetComponent<Image>();
-        frame_image.sprite = InternalResourcesGetter.GetIconFrame();
-        frame_image.type = Image.Type.Sliced;
-        frame_image.raycastTarget = false;
+        pRow.title = ModHubStyle.Label(line.transform, "Title", ModHubStyle.FontBody, ModHubStyle.TextBright);
+        // Hovering the title shows the author.
+        pRow.title.raycastTarget = true;
+        pRow.title.gameObject.AddComponent<Button>();
+        pRow.title.gameObject.AddComponent<TipButton>().type = "normal";
+        ModHubStyle.Size(pRow.title.gameObject, pFlexibleWidth: 1);
+
+        pRow.source = ModHubStyle.IconButton(line.transform, "Source", null, null, null);
+        pRow.source.Background.enabled = false;
+        ModHubStyle.Size(pRow.source.gameObject, 10, 10);
+    }
+
+    private static void CreateControlLine(ModManagerRow pRow, Transform pBody)
+    {
+        var line = new GameObject("ControlLine", typeof(RectTransform));
+        line.transform.SetParent(pBody, false);
+        ModHubStyle.Horizontal(line, ModHubStyle.SpaceS);
+        ModHubStyle.Size(line, pHeight: ModHubStyle.IconButtonSize);
+
+        pRow.status = SimpleButton.Instantiate(line.transform, pName: "Status");
+        pRow.status.Setup(null, null, " ", new Vector2(72, ModHubStyle.IconButtonSize));
+        pRow.status.Background.sprite = ModHubStyle.Pill;
+        pRow.status.Text.resizeTextForBestFit = false;
+        pRow.status.Text.fontSize = ModHubStyle.FontBody;
+        pRow.status.Text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        ModHubStyle.Size(pRow.status.gameObject, 72, ModHubStyle.IconButtonSize);
+
+        ModHubStyle.Spacer(line.transform);
+        pRow.configure = ModHubStyle.IconButton(line.transform, "Configure", ModHubUI.GameIcon("iconOptions"), null,
+            "mod_hub_configure");
+        pRow.reload = ModHubStyle.IconButton(line.transform, "Reload", InternalResourcesGetter.GetReloadIcon(), null,
+            "mod_hub_reload");
+        pRow.info = ModHubStyle.IconButton(line.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"), null,
+            "mod_hub_info");
     }
 }
