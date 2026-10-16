@@ -27,7 +27,7 @@ internal class ModHubWindow : AbstractWindow<ModHubWindow>
     protected override void Init()
     {
         float content_height = entries.Length * (card_height + ModHubStyle.SpaceM) + footer_height;
-        RectTransform content = ModHubStyle.SetUpWindow(BackgroundTransform, content_height);
+        RectTransform content = ModHubStyle.SetUpWindow(BackgroundTransform, content_height, ModHubStyle.SpaceS);
         ModHubStyle.Vertical(content.gameObject, ModHubStyle.SpaceM);
 
         foreach ((string window_id, Func<Sprite> icon) in entries) CreateCard(content, window_id, icon());
@@ -44,11 +44,14 @@ internal class ModHubWindow : AbstractWindow<ModHubWindow>
 
         var texts = new GameObject("Texts", typeof(RectTransform));
         texts.transform.SetParent(card.transform, false);
-        ModHubStyle.Vertical(texts, 2).childAlignment = TextAnchor.MiddleLeft;
+        VerticalLayoutGroup text_layout = ModHubStyle.Vertical(texts, 2);
+        text_layout.childAlignment = TextAnchor.MiddleLeft;
+        text_layout.childForceExpandWidth = true;
         ModHubStyle.Size(texts, pFlexibleWidth: 1);
 
         Text title = ModHubStyle.Label(texts.transform, "Title", ModHubStyle.FontTitle, ModHubStyle.TextBright);
         ModHubUI.SetLocaleKey(title, pWindowId + " Title");
+        ModHubStyle.Divider(texts.transform);
         Text description = ModHubStyle.Label(texts.transform, "Description", ModHubStyle.FontSmall,
             ModHubStyle.TextMuted);
         ModHubUI.SetLocaleKey(description, pWindowId + " Description");

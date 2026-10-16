@@ -45,11 +45,14 @@ internal static class ModHubStyle
     /// <summary>
     ///     Resize a stock window to fit <paramref name="pContentHeight" /> and return its content area.
     /// </summary>
-    public static RectTransform SetUpWindow(Transform pBackground, float pContentHeight)
+    /// <param name="pBackground">The window's background</param>
+    /// <param name="pContentHeight">Height of what the window shows</param>
+    /// <param name="pTopMargin">Space between the title and the content</param>
+    public static RectTransform SetUpWindow(Transform pBackground, float pContentHeight, float pTopMargin = SpaceL)
     {
         pBackground.Find("Scroll View").gameObject.SetActive(false);
-        ResizeFrame(pBackground, frame_top + frame_bottom + 2 * SpaceL + pContentHeight);
-        return ContentArea(pBackground);
+        ResizeFrame(pBackground, frame_top + frame_bottom + pTopMargin + SpaceL + pContentHeight);
+        return ContentArea(pBackground, pTopMargin);
     }
 
     /// <summary>
@@ -251,7 +254,7 @@ internal static class ModHubStyle
         return button;
     }
 
-    private static RectTransform ContentArea(Transform pBackground)
+    private static RectTransform ContentArea(Transform pBackground, float pTopMargin = SpaceL)
     {
         var content = new GameObject("Content", typeof(RectTransform));
         content.transform.SetParent(pBackground, false);
@@ -259,7 +262,7 @@ internal static class ModHubStyle
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
         rect.offsetMin = new Vector2(SpaceL, frame_bottom + SpaceL);
-        rect.offsetMax = new Vector2(-SpaceL, -(frame_top + SpaceL));
+        rect.offsetMax = new Vector2(-SpaceL, -(frame_top + pTopMargin));
         return rect;
     }
 
@@ -310,28 +313,39 @@ internal static class ModHubStyle
     }
 
     /// <summary>
-    ///     Change the height of a stock window. Parts placed from the window's centre (title, close and back
-    ///     buttons) move with the top or bottom edge they belong to.
+    ///     Change the height of a stock window. Its parts (title, close and back buttons) keep their distance to the
+    ///     top or bottom edge they are nearest to.
     /// </summary>
     private static void ResizeFrame(Transform pBackground, float pHeight)
     {
-        var rect = pBackground.GetComponent<RectTransform>();
-        float shift = (pHeight - rect.sizeDelta.y) / 2;
-        rect.sizeDelta = new Vector2(window_width, pHeight);
-
-        foreach (Transform part in pBackground) MoveWithEdge(part, shift, true);
-        foreach (Transform part in pBackground.parent)
+        var rect = (RectTransform)pBackground;
+        float old_half = rect.sizeDelta.y / 2;
+        var parts = new List<(Transform Part, float FromEdge, bool Top)>();
+        foreach (Transform part in FrameParts(pBackground))
         {
-            if (part != pBackground) MoveWithEdge(part, shift, false);
+            float y = pBackground.InverseTransformPoint(part.position).y;
+            parts.Add((part, old_half - Mathf.Abs(y), y >= 0));
+        }
+
+        rect.sizeDelta = new Vector2(window_width, pHeight);
+        float half = pHeight / 2;
+        foreach ((Transform part, float from_edge, bool top) in parts)
+        {
+            Vector3 local = pBackground.InverseTransformPoint(part.position);
+            local.y = top ? half - from_edge : from_edge - half;
+            part.position = pBackground.TransformPoint(local);
         }
     }
 
-    private static void MoveWithEdge(Transform pPart, float pShift, bool pInsideBackground)
+    private static IEnumerable<Transform> FrameParts(Transform pBackground)
     {
-        var rect = pPart as RectTransform;
-        if (rect == null) return;
-        // Inside the background, parts anchored to an edge follow it already.
-        if (pInsideBackground && !Mathf.Approximately(rect.anchorMin.y, 0.5f)) return;
-        rect.anchoredPosition += new Vector2(0, rect.anchoredPosition.y >= 0 ? pShift : -pShift);
+        foreach (Transform part in pBackground) yield return part;
+        foreach (Transform part in pBackground.parent)
+        {
+            if (part != pBackground) yield return part;
+        }
+
+        // The title may sit deeper in the frame; set last, after any parent it has.
+        yield return pBackground.parent.GetComponent<ScrollWindow>().titleText.transform;
     }
 }
