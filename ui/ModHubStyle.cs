@@ -23,6 +23,7 @@ internal static class ModHubStyle
 
     public const float ButtonHeight = 16;
     public const float IconButtonSize = 16;
+    public const float ToolbarButtonSize = 20;
 
     public static readonly Color TextBright = new(0.96f, 0.96f, 0.92f);
     public static readonly Color TextMuted = new(0.7f, 0.72f, 0.66f);
@@ -53,12 +54,12 @@ internal static class ModHubStyle
         RectTransform content = ContentArea(pBackground);
         Vertical(content.gameObject, SpaceM).childForceExpandWidth = true;
 
-        pHeader = Strip(content, "Header");
+        pHeader = Strip(content, "Header", ToolbarButtonSize);
         Transform scroll_view = pBackground.Find("Scroll View");
         scroll_view.SetParent(content, false);
         Size(scroll_view.gameObject, pFlexibleHeight: 1);
         FitScrollParts(scroll_view);
-        pFooter = Strip(content, "Footer");
+        pFooter = Strip(content, "Footer", ButtonHeight);
         return content;
     }
 
@@ -88,12 +89,12 @@ internal static class ModHubStyle
     }
 
     /// <summary>
-    ///     One more strip like the header, at <paramref name="pIndex" /> in the content of
+    ///     One more toolbar strip like the header, at <paramref name="pIndex" /> in the content of
     ///     <see cref="SetUpListWindow" />.
     /// </summary>
     public static Transform InsertStrip(Transform pContent, int pIndex, string pName)
     {
-        Transform strip = Strip(pContent, pName);
+        Transform strip = Strip(pContent, pName, ToolbarButtonSize);
         strip.SetSiblingIndex(pIndex);
         return strip;
     }
@@ -135,9 +136,9 @@ internal static class ModHubStyle
     {
         TextInput search = TextInput.Instantiate(pParent, pName: "Search");
         search.Setup(pText, pOnChanged);
-        search.SetSize(new Vector2(pWidth, IconButtonSize));
+        search.SetSize(new Vector2(pWidth, ToolbarButtonSize));
         search.input.onValueChanged.AddListener(pOnChanged);
-        Size(search.gameObject, pWidth, IconButtonSize);
+        Size(search.gameObject, pWidth, ToolbarButtonSize);
         return search;
     }
 
@@ -293,13 +294,22 @@ internal static class ModHubStyle
     /// </summary>
     /// <remarks>Pass a null click action when building a prefab: Unity does not copy listeners to clones.</remarks>
     public static SimpleButton IconButton(Transform pParent, string pName, Sprite pIcon, UnityAction pOnClick,
+        string pTooltipKey, float pSize = IconButtonSize)
+    {
+        SimpleButton button = ModHubUI.CreateIconButton(pParent, pName, pIcon, new Vector2(pSize, pSize),
+            Vector2.zero, pOnClick, pTooltipKey);
+        button.Background.sprite = Button;
+        Size(button.gameObject, pSize, pSize);
+        return button;
+    }
+
+    /// <summary>
+    ///     A slightly larger <see cref="IconButton" /> for the strips above a list.
+    /// </summary>
+    public static SimpleButton ToolbarButton(Transform pParent, string pName, Sprite pIcon, UnityAction pOnClick,
         string pTooltipKey)
     {
-        SimpleButton button = ModHubUI.CreateIconButton(pParent, pName, pIcon,
-            new Vector2(IconButtonSize, IconButtonSize), Vector2.zero, pOnClick, pTooltipKey);
-        button.Background.sprite = Button;
-        Size(button.gameObject, IconButtonSize, IconButtonSize);
-        return button;
+        return IconButton(pParent, pName, pIcon, pOnClick, pTooltipKey, ToolbarButtonSize);
     }
 
     /// <summary>
@@ -337,12 +347,12 @@ internal static class ModHubStyle
         return rect;
     }
 
-    private static Transform Strip(Transform pParent, string pName)
+    private static Transform Strip(Transform pParent, string pName, float pHeight)
     {
         var strip = new GameObject(pName, typeof(RectTransform));
         strip.transform.SetParent(pParent, false);
         Horizontal(strip, SpaceS);
-        Size(strip, pHeight: ButtonHeight);
+        Size(strip, pHeight: pHeight);
         return strip.transform;
     }
 

@@ -16,7 +16,8 @@ namespace NeoModLoader.ui;
 /// </summary>
 internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListing>
 {
-    private const float search_width = 172;
+    // Fills the search line, so its clear button lines up with the end of the strip.
+    private const float search_width = 168;
     private const float footer_button_width = 56;
 
     /// <summary>
@@ -220,25 +221,25 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
 
     private void CreateToolbar(Transform pFilters, Transform pSearchLine)
     {
-        sort_button = ModHubStyle.IconButton(pFilters, "Sort", null,
+        sort_button = ModHubStyle.ToolbarButton(pFilters, "Sort", null,
             () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
-        updated_button = ModHubStyle.IconButton(pFilters, "Updated", ModHubUI.GameIcon("iconClock"),
+        updated_button = ModHubStyle.ToolbarButton(pFilters, "Updated", ModHubUI.GameIcon("iconClock"),
             () => ChangeQuery(() => query.UpdatedWithin = ModHubUI.NextValue(query.UpdatedWithin)),
             "mod_hub_updated_within");
-        install_button = ModHubStyle.IconButton(pFilters, "Install", null,
+        install_button = ModHubStyle.ToolbarButton(pFilters, "Install", null,
             () => ChangeQuery(() => query.Install = ModHubUI.NextValue(query.Install)), "mod_hub_install");
-        category_button = ModHubStyle.IconButton(pFilters, "Category", null,
+        category_button = ModHubStyle.ToolbarButton(pFilters, "Category", null,
             () => category_panel.gameObject.SetActive(!category_panel.gameObject.activeSelf), "mod_hub_category");
-        ai_button = ModHubStyle.IconButton(pFilters, "AIContent", null,
+        ai_button = ModHubStyle.ToolbarButton(pFilters, "AIContent", null,
             () => ChangeQuery(() => query.AIContent = ModHubUI.NextValue(query.AIContent)), "mod_hub_ai");
         ModHubStyle.Spacer(pFilters);
-        ModHubStyle.IconButton(pFilters, "Refresh", InternalResourcesGetter.GetReloadIcon(), StartLoading,
+        ModHubStyle.ToolbarButton(pFilters, "Refresh", InternalResourcesGetter.GetReloadIcon(), StartLoading,
             "mod_hub_refresh");
 
-        search_mode_button = ModHubStyle.IconButton(pSearchLine, "SearchMode", null,
+        search_mode_button = ModHubStyle.ToolbarButton(pSearchLine, "SearchMode", null,
             () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
         TextInput search = ModHubStyle.SearchBox(pSearchLine, search_text, search_width, SetSearchText);
-        ModHubStyle.IconButton(pSearchLine, "ClearSearch", ModHubUI.GameIcon("iconClose"),
+        ModHubStyle.ToolbarButton(pSearchLine, "ClearSearch", ModHubUI.GameIcon("iconClose"),
             () => search.input.text = "", "mod_hub_clear_search");
     }
 

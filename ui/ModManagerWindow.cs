@@ -15,7 +15,8 @@ namespace NeoModLoader.ui;
 /// </summary>
 internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, InstalledMod>
 {
-    private const float search_width = 136;
+    // Fills the search line, so its clear button lines up with the end of the strip.
+    private const float search_width = 120;
     private const float version_line_height = 10;
 
     /// <summary>
@@ -87,15 +88,15 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
 
     private void CreateToolbar(Transform pHeader)
     {
-        filter_button = ModHubStyle.IconButton(pHeader, "Filter", null,
+        filter_button = ModHubStyle.ToolbarButton(pHeader, "Filter", null,
             () => ChangeQuery(() => query.Filter = ModHubUI.NextValue(query.Filter)), "mod_hub_filter");
-        sort_button = ModHubStyle.IconButton(pHeader, "Sort", null,
+        sort_button = ModHubStyle.ToolbarButton(pHeader, "Sort", null,
             () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
-        search_mode_button = ModHubStyle.IconButton(pHeader, "SearchMode", null,
+        search_mode_button = ModHubStyle.ToolbarButton(pHeader, "SearchMode", null,
             () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
 
         TextInput search = ModHubStyle.SearchBox(pHeader, search_text, search_width, SetSearchText);
-        ModHubStyle.IconButton(pHeader, "ClearSearch", ModHubUI.GameIcon("iconClose"), () => search.input.text = "",
+        ModHubStyle.ToolbarButton(pHeader, "ClearSearch", ModHubUI.GameIcon("iconClose"), () => search.input.text = "",
             "mod_hub_clear_search");
     }
 

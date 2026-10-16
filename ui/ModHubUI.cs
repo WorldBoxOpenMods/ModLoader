@@ -36,10 +36,25 @@ internal static class ModHubUI
             bool current = window_id == pCurrentId;
             TipButton tip = ModHubStyle.SideTab(pWindow, window_id + "Tab", icon(), current, () =>
             {
-                if (!current) ScrollWindow.showWindow(window_id);
+                if (!current) SwitchTo(window_id);
             });
             SetTextTooltip(tip, () => LM.Get(window_id + " Title"), () => LM.Get(window_id + " Description"));
         }
+    }
+
+    /// <summary>
+    ///     Show another Hub window in place of the current one. The back button keeps going to the window before
+    ///     the Hub, instead of through every tab clicked.
+    /// </summary>
+    private static void SwitchTo(string pWindowId)
+    {
+        List<WindowHistoryData> history = WindowHistory.list;
+        if (history.Count > 0 && history[history.Count - 1].window == ScrollWindow.getCurrentWindow())
+        {
+            history.RemoveAt(history.Count - 1);
+        }
+
+        ScrollWindow.showWindow(pWindowId);
     }
 
     public static Sprite GameIcon(string pName)
