@@ -266,6 +266,15 @@ internal static class ModHubStyle
     }
 
     /// <summary>
+    ///     Let the mouse wheel and drags over <paramref name="pObject" /> scroll the list it is in. The game's
+    ///     tooltip buttons catch these events otherwise.
+    /// </summary>
+    public static void PassScroll(GameObject pObject)
+    {
+        pObject.AddComponent<ScrollableButton>();
+    }
+
+    /// <summary>
     ///     A tooltip on hover. The game's click animation keeps its normal size (1), so text in a list does not
     ///     jump or blink.
     /// </summary>

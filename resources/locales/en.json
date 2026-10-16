@@ -216,5 +216,8 @@
   "mod_hub_download_error_not_mod": "Not a NeoModLoader mod (no mod.json).",
   "mod_hub_unsubscribe": "Unsubscribe",
   "mod_hub_unsubscribe_confirm": "Unsubscribe from {0}?\n\nSteam deletes its files. It leaves this list when you restart the game.",
-  "mod_hub_unsubscribe_failed": "Steam refused to unsubscribe. You can unsubscribe on the mod's Workshop page."
+  "mod_hub_unsubscribe_failed": "Steam refused to unsubscribe. You can unsubscribe on the mod's Workshop page.",
+  "mod_hub_delete": "Delete mod",
+  "mod_hub_delete_confirm": "Delete {0}?\n\nIts folder is removed from the Mods folder. This cannot be undone.",
+  "mod_hub_delete_failed": "The mod could not be deleted. Close any program using its files and try again."
 }

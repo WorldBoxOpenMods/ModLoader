@@ -216,5 +216,8 @@
   "mod_hub_download_error_not_mod": "不是 NeoModLoader 模组（没有 mod.json）。",
   "mod_hub_unsubscribe": "取消订阅",
   "mod_hub_unsubscribe_confirm": "取消订阅 {0}？\n\nSteam 会删除它的文件。重启游戏后它会从此列表中消失。",
-  "mod_hub_unsubscribe_failed": "Steam 拒绝取消订阅。你可以在该模组的创意工坊页面取消订阅。"
+  "mod_hub_unsubscribe_failed": "Steam 拒绝取消订阅。你可以在该模组的创意工坊页面取消订阅。",
+  "mod_hub_delete": "删除模组",
+  "mod_hub_delete_confirm": "删除 {0}？\n\n它的文件夹会从 Mods 文件夹中删除。此操作无法撤销。",
+  "mod_hub_delete_failed": "无法删除该模组。请关闭正在使用其文件的程序后重试。"
 }

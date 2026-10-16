@@ -158,6 +158,7 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
         row.title.raycastTarget = true;
         row.title.gameObject.AddComponent<Button>();
         ModHubStyle.HoverTip(row.title.gameObject);
+        ModHubStyle.PassScroll(row.title.gameObject);
         ModHubStyle.Size(row.title.gameObject, pHeight: 12);
         ModHubStyle.Divider(body.transform);
         CreateControlLine(row, body.transform);
@@ -178,5 +179,7 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
             "mod_hub_download");
         pRow.info = ModHubStyle.IconButton(line.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"), null,
             "mod_hub_workshop_page");
+        ModHubStyle.PassScroll(pRow.download.gameObject);
+        ModHubStyle.PassScroll(pRow.info.gameObject);
     }
 }

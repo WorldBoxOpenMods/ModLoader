@@ -145,6 +145,57 @@ internal static class ModManagerService
         return Config.isEditor && ModReloadService.CanReload(pMod);
     }
 
+    /// <summary>
+    ///     Whether Manage Mods offers to delete a mod: it is not loaded, and either sits in the Mods folder or
+    ///     comes from the Steam Workshop. BepInEx plugins and mods in other folders are left alone.
+    /// </summary>
+    public static bool CanDelete(InstalledMod pMod)
+    {
+        if (pMod.Status is not (InstalledModStatus.Disabled or InstalledModStatus.Failed)) return false;
+        return pMod.Source switch
+        {
+            ModSource.ModsFolder => IsModsFolderEntry(pMod.Declaration.FolderPath),
+            ModSource.Workshop => ModDownloadService.CheckSteam() == CatalogStatus.Ready,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    ///     Delete a mod's folder from the Mods folder, or unsubscribe from a Workshop mod so Steam deletes it.
+    /// </summary>
+    /// <returns>False when the files could not be deleted or Steam refused</returns>
+    public static async Task<bool> DeleteAsync(InstalledMod pMod)
+    {
+        ModDeclare declaration = pMod.Declaration;
+        if (pMod.Source == ModSource.Workshop) return await ModDownloadService.UnsubscribeAsync(declaration);
+        if (!IsModsFolderEntry(declaration.FolderPath)) return false;
+
+        try
+        {
+            Directory.Delete(declaration.FolderPath, true);
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning($"Failed to delete mod {declaration.Name} at {declaration.FolderPath}: {e.Message}");
+            return false;
+        }
+
+        WorldBoxMod.AllRecognizedMods.Remove(declaration);
+        return true;
+    }
+
+    /// <summary>
+    ///     Only a folder directly inside the Mods folder is ever deleted.
+    /// </summary>
+    private static bool IsModsFolderEntry(string pFolderPath)
+    {
+        if (string.IsNullOrEmpty(pFolderPath) || !Directory.Exists(pFolderPath)) return false;
+        char[] separators = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        string parent = Path.GetDirectoryName(Path.GetFullPath(pFolderPath).TrimEnd(separators));
+        return string.Equals(parent, Path.GetFullPath(Paths.ModsPath).TrimEnd(separators),
+            StringComparison.OrdinalIgnoreCase);
+    }
+
     public static void OpenFolder(string pFolderPath)
     {
         if (!Directory.Exists(pFolderPath))

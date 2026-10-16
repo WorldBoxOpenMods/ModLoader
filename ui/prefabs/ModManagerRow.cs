@@ -31,6 +31,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
     [SerializeField] private SimpleButton info;
     [SerializeField] private SimpleButton configure;
     [SerializeField] private SimpleButton reload;
+    [SerializeField] private SimpleButton delete;
 
     private InstalledMod mod;
     private ModConfig config;
@@ -44,6 +45,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         info.Button.onClick.AddListener(() => ModInfoWindow.ShowWindow(mod.Declaration));
         configure.Button.onClick.AddListener(() => ModConfigureWindow.ShowWindow(config));
         reload.Button.onClick.AddListener(Reload);
+        delete.Button.onClick.AddListener(ConfirmDelete);
         ModHubUI.SetTextTooltip(title.GetComponent<TipButton>(), () => mod.Name,
             () => string.Format(LM.Get("mod_hub_by_author"), mod.Author));
         ModHubUI.SetTextTooltip(status, () => status.Text.text, StatusTooltip);
@@ -66,6 +68,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         config = ModManagerService.GetConfig(declaration);
         configure.gameObject.SetActive(config != null);
         reload.gameObject.SetActive(ModManagerService.CanReload(declaration));
+        delete.gameObject.SetActive(ModManagerService.CanDelete(pMod));
     }
 
     private void Toggle()
@@ -80,6 +83,26 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         {
             LogService.LogWarning($"Failed to reload mod {mod.Declaration.Name}.");
         }
+    }
+
+    private void ConfirmDelete()
+    {
+        InstalledMod target = mod;
+        bool workshop = target.Source == ModSource.Workshop;
+        string message = string.Format(LM.Get(workshop ? "mod_hub_unsubscribe_confirm" : "mod_hub_delete_confirm"),
+            target.Name);
+        ConfirmWindow.ShowWindow(message, () => _ = DeleteAsync(target, workshop));
+    }
+
+    private static async Task DeleteAsync(InstalledMod pMod, bool pWorkshop)
+    {
+        if (!await ModManagerService.DeleteAsync(pMod))
+        {
+            InformationWindow.ShowWindow(LM.Get(pWorkshop ? "mod_hub_unsubscribe_failed" : "mod_hub_delete_failed"));
+            return;
+        }
+
+        ModManagerWindow.Instance.Refresh();
     }
 
     /// <summary>
@@ -188,11 +211,13 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         pRow.title.raycastTarget = true;
         pRow.title.gameObject.AddComponent<Button>();
         ModHubStyle.HoverTip(pRow.title.gameObject);
+        ModHubStyle.PassScroll(pRow.title.gameObject);
         ModHubStyle.Size(pRow.title.gameObject, pFlexibleWidth: 1);
 
         pRow.source = ModHubStyle.IconButton(line.transform, "Source", null, null, null);
         pRow.source.Background.enabled = false;
         ModHubStyle.Size(pRow.source.gameObject, 10, 10);
+        ModHubStyle.PassScroll(pRow.source.gameObject);
     }
 
     private static void CreateControlLine(ModManagerRow pRow, Transform pBody)
@@ -209,13 +234,20 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         pRow.status.Text.fontSize = ModHubStyle.FontBody;
         pRow.status.Text.horizontalOverflow = HorizontalWrapMode.Overflow;
         ModHubStyle.Size(pRow.status.gameObject, 72, ModHubStyle.IconButtonSize);
+        ModHubStyle.PassScroll(pRow.status.gameObject);
 
         ModHubStyle.Spacer(line.transform);
         pRow.configure = ModHubStyle.IconButton(line.transform, "Configure", ModHubUI.GameIcon("iconOptions"), null,
             "mod_hub_configure");
         pRow.reload = ModHubStyle.IconButton(line.transform, "Reload", InternalResourcesGetter.GetReloadIcon(), null,
             "mod_hub_reload");
+        pRow.delete = ModHubStyle.IconButton(line.transform, "Delete", InternalResourcesGetter.GetTrashIcon(), null,
+            "mod_hub_delete");
         pRow.info = ModHubStyle.IconButton(line.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"), null,
             "mod_hub_info");
+        foreach (SimpleButton button in new[] { pRow.configure, pRow.reload, pRow.delete, pRow.info })
+        {
+            ModHubStyle.PassScroll(button.gameObject);
+        }
     }
 }
