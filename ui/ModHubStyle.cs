@@ -31,8 +31,7 @@ internal static class ModHubStyle
     public static readonly Color Warning = new(1f, 0.72f, 0.25f);
     public static readonly Color DividerColor = new(0f, 0f, 0f, 0.35f);
 
-    // The stock window frame: its width, and the room its title and lower edge take inside the background.
-    private const float window_width = 240;
+    // The room the stock frame's title and lower edge take inside the background.
     private const float frame_top = 32;
     private const float frame_bottom = 10;
     private const float side_tab_icon_size = 18;
@@ -42,19 +41,6 @@ internal static class ModHubStyle
     public static Sprite Button => SpriteTextureLoader.getSprite("ui/special/special_buttonGray");
     public static Sprite PrimaryButton => SpriteTextureLoader.getSprite("ui/special/special_buttonRed");
     public static Sprite Pill => SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
-
-    /// <summary>
-    ///     Resize a stock window to fit <paramref name="pContentHeight" /> and return its content area.
-    /// </summary>
-    /// <param name="pBackground">The window's background</param>
-    /// <param name="pContentHeight">Height of what the window shows</param>
-    /// <param name="pTopMargin">Space between the title and the content</param>
-    public static RectTransform SetUpWindow(Transform pBackground, float pContentHeight, float pTopMargin = SpaceL)
-    {
-        pBackground.Find("Scroll View").gameObject.SetActive(false);
-        ResizeFrame(pBackground, frame_top + frame_bottom + pTopMargin + SpaceL + pContentHeight);
-        return ContentArea(pBackground, pTopMargin);
-    }
 
     /// <summary>
     ///     Lay out a stock window as a header strip, the window's scroll list, and a footer strip.
@@ -221,22 +207,6 @@ internal static class ModHubStyle
     }
 
     /// <summary>
-    ///     A box that brightens on hover and runs <paramref name="pOnClick" />.
-    /// </summary>
-    public static Button Clickable(GameObject pBox, Action pOnClick)
-    {
-        Button button = pBox.AddComponent<Button>();
-        button.targetGraphic = pBox.GetComponent<Image>();
-        ColorBlock colors = button.colors;
-        colors.normalColor = new Color(0.9f, 0.9f, 0.9f);
-        colors.highlightedColor = Color.white;
-        colors.pressedColor = new Color(0.75f, 0.75f, 0.75f);
-        button.colors = colors;
-        if (pOnClick != null) button.onClick.AddListener(() => pOnClick());
-        return button;
-    }
-
-    /// <summary>
     ///     A plain text sized by its layout group. Rich text is off: names and descriptions come from mods.
     /// </summary>
     public static Text Label(Transform pParent, string pName, int pFontSize, Color pColor,
@@ -354,7 +324,7 @@ internal static class ModHubStyle
         pRect.offsetMax = new Vector2(-pMargin, 0);
     }
 
-    private static RectTransform ContentArea(Transform pBackground, float pTopMargin = SpaceL)
+    private static RectTransform ContentArea(Transform pBackground)
     {
         var content = new GameObject("Content", typeof(RectTransform));
         content.transform.SetParent(pBackground, false);
@@ -362,7 +332,7 @@ internal static class ModHubStyle
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
         rect.offsetMin = new Vector2(SpaceL, frame_bottom + SpaceL);
-        rect.offsetMax = new Vector2(-SpaceL, -(frame_top + pTopMargin));
+        rect.offsetMax = new Vector2(-SpaceL, -(frame_top + SpaceL));
         return rect;
     }
 
@@ -410,42 +380,5 @@ internal static class ModHubStyle
         pLayout.childControlHeight = true;
         pLayout.childForceExpandWidth = false;
         pLayout.childForceExpandHeight = false;
-    }
-
-    /// <summary>
-    ///     Change the height of a stock window. Its parts (title, close and back buttons) keep their distance to the
-    ///     top or bottom edge they are nearest to.
-    /// </summary>
-    private static void ResizeFrame(Transform pBackground, float pHeight)
-    {
-        var rect = (RectTransform)pBackground;
-        float old_half = rect.sizeDelta.y / 2;
-        var parts = new List<(Transform Part, float FromEdge, bool Top)>();
-        foreach (Transform part in FrameParts(pBackground))
-        {
-            float y = pBackground.InverseTransformPoint(part.position).y;
-            parts.Add((part, old_half - Mathf.Abs(y), y >= 0));
-        }
-
-        rect.sizeDelta = new Vector2(window_width, pHeight);
-        float half = pHeight / 2;
-        foreach ((Transform part, float from_edge, bool top) in parts)
-        {
-            Vector3 local = pBackground.InverseTransformPoint(part.position);
-            local.y = top ? half - from_edge : from_edge - half;
-            part.position = pBackground.TransformPoint(local);
-        }
-    }
-
-    private static IEnumerable<Transform> FrameParts(Transform pBackground)
-    {
-        foreach (Transform part in pBackground) yield return part;
-        foreach (Transform part in pBackground.parent)
-        {
-            if (part != pBackground) yield return part;
-        }
-
-        // The title may sit deeper in the frame; set last, after any parent it has.
-        yield return pBackground.parent.GetComponent<ScrollWindow>().titleText.transform;
     }
 }

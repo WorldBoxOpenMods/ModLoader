@@ -9,7 +9,6 @@ internal static class UIManager
     public static void init()
     {
         InformationWindow.CreateWindow("Information", "Information Title");
-        WorkshopModListWindow.CreateAndInit("WorkshopMods");
         ModUploadWindow.CreateAndInit("ModUpload");
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
         ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
