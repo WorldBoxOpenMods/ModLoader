@@ -194,8 +194,6 @@
       <EmbeddedResource Include="resources\assemblies\Gameloop.Vdf.dll" />
       <None Remove="resources\reload.png" />
       <EmbeddedResource Include="resources\reload.png" />
-      <None Remove="resources\trash.png" />
-      <EmbeddedResource Include="resources\trash.png" />
       <None Remove="resources\assemblies\Assembly-CSharp-Publicized" />
         <None Remove="resources\window_empty_frame.png" />
         <EmbeddedResource Include="resources\window_empty_frame.png" />

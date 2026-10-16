@@ -11,7 +11,6 @@ internal static class InternalResourcesGetter
     private static Sprite mod_icon;
     private static Sprite icon_frame;
     private static Sprite icon_reload;
-    private static Sprite icon_trash;
     private static Sprite github_icon;
     private static Sprite window_empty_frame;
     private static Sprite window_big_close;
@@ -108,18 +107,6 @@ internal static class InternalResourcesGetter
                                     0, SpriteMeshType.Tight, new Vector4(0, 0, 0, 0));
 
         return icon_reload;
-    }
-
-    /// <summary>
-    ///     Trash can for deleting a mod, drawn in the colours of the game's question mark icon.
-    /// </summary>
-    public static Sprite GetTrashIcon()
-    {
-        if (icon_trash != null) return icon_trash;
-
-        Texture2D texture = LoadManifestTexture("trash.png");
-        icon_trash = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 1);
-        return icon_trash;
     }
 
     public static Sprite GetWindowEmptyFrame()

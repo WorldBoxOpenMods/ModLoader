@@ -241,7 +241,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
             "mod_hub_configure");
         pRow.reload = ModHubStyle.IconButton(line.transform, "Reload", InternalResourcesGetter.GetReloadIcon(), null,
             "mod_hub_reload");
-        pRow.delete = ModHubStyle.IconButton(line.transform, "Delete", InternalResourcesGetter.GetTrashIcon(), null,
+        pRow.delete = ModHubStyle.IconButton(line.transform, "Delete", ModHubUI.GameIcon("iconDeleteWorld"), null,
             "mod_hub_delete");
         pRow.info = ModHubStyle.IconButton(line.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"), null,
             "mod_hub_info");
