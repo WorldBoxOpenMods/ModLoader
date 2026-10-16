@@ -10,18 +10,20 @@ using UnityEngine.UI;
 namespace NeoModLoader.ui.prefabs;
 
 /// <summary>
-///     One Workshop mod in <see cref="ModBrowserWindow" />.
+///     One Workshop mod in <see cref="ModBrowserWindow" />: thumbnail, title with details on hover, status,
+///     when it was updated, and its buttons.
 /// </summary>
 /// <remarks>
 ///     Like <see cref="ModManagerRow" />, the prefab holds the visuals and <see cref="Awake" /> adds the handlers.
 /// </remarks>
 internal class ModBrowserRow : AbstractListWindowItem<ModListing>
 {
+    private const float height = 44;
+
     [SerializeField] private Image thumbnail;
     [SerializeField] private Text title;
-    [SerializeField] private Text details;
     [SerializeField] private Text status;
-    [SerializeField] private SimpleButton about;
+    [SerializeField] private Text age;
     [SerializeField] private SimpleButton info;
     [SerializeField] private SimpleButton download;
 
@@ -31,30 +33,21 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
     {
         info.Button.onClick.AddListener(() => Application.OpenURL($"steam://url/CommunityFilePage/{listing.Id}"));
         download.Button.onClick.AddListener(OnDownloadClicked);
-        ModHubUI.SetTextTooltip(about, () => listing.Title, DescribeListing);
+        ModHubUI.SetTextTooltip(title.GetComponent<TipButton>(), () => listing.Title, DescribeListing);
     }
 
     public override void Setup(ModListing pListing)
     {
         listing = pListing;
         title.text = pListing.Title;
+        age.text = DescribeAge(DateTime.UtcNow - pListing.Updated);
         thumbnail.sprite = InternalResourcesGetter.GetIcon();
         WorkshopThumbnails.Request(pListing.PreviewUrl, sprite =>
         {
             // The pooled row may show another listing by the time the image arrives.
             if (listing == pListing) thumbnail.sprite = sprite;
         });
-        UpdateAuthor();
         UpdateStatus();
-    }
-
-    /// <summary>
-    ///     Show the author's name once Steam has sent it.
-    /// </summary>
-    public void UpdateAuthor()
-    {
-        string author = ModDownloadService.Authors.Get(listing.AuthorId) ?? "...";
-        details.text = $"{author}  -  {DescribeAge(DateTime.UtcNow - listing.Updated)}";
     }
 
     public void UpdateStatus()
@@ -134,11 +127,11 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
     {
         return pStatus switch
         {
-            ListingStatus.Installed => new Color(0.45f, 0.9f, 0.45f),
-            ListingStatus.UpdateAvailable => new Color(1f, 0.65f, 0.2f),
+            ListingStatus.Installed => ModHubStyle.Positive,
+            ListingStatus.UpdateAvailable => ModHubStyle.Warning,
             ListingStatus.Queued or ListingStatus.Downloading => new Color(0.35f, 0.85f, 1f),
-            ListingStatus.Failed => new Color(1f, 0.4f, 0.35f),
-            _ => ModHubUI.MutedTextColor
+            ListingStatus.Failed => ModHubStyle.Negative,
+            _ => ModHubStyle.TextMuted
         };
     }
 
@@ -147,41 +140,43 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
     /// </summary>
     internal static ModBrowserRow CreatePrefab()
     {
-        var obj = new GameObject(nameof(ModBrowserRow), typeof(Image));
+        GameObject obj = ModHubStyle.Box(WorldBoxMod.Transform, nameof(ModBrowserRow), ModHubStyle.Card);
         obj.SetActive(false);
-        obj.transform.SetParent(WorldBoxMod.Transform);
-        obj.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 50);
-        Image background = obj.GetComponent<Image>();
-        background.sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
-        background.type = Image.Type.Sliced;
+        obj.GetComponent<RectTransform>().sizeDelta = new Vector2(0, height);
+        ModHubStyle.Horizontal(obj, ModHubStyle.SpaceM, ModHubStyle.SpaceS).padding.left = ModHubStyle.SpaceM;
 
         ModBrowserRow row = obj.AddComponent<ModBrowserRow>();
-        var picture = new GameObject("Thumbnail", typeof(Image));
-        picture.transform.SetParent(obj.transform, false);
-        picture.transform.localPosition = new Vector3(-75, 0);
-        picture.GetComponent<RectTransform>().sizeDelta = new Vector2(40, 40);
-        row.thumbnail = picture.GetComponent<Image>();
-        row.thumbnail.preserveAspect = true;
+        row.thumbnail = ModHubStyle.Icon(obj.transform, "Thumbnail", null, 32);
 
-        // An invisible button over the texts, for the details tooltip.
-        row.about = ModHubUI.CreateIconButton(obj.transform, "About", null, new Vector2(130, 24),
-            new Vector2(12, 10), null, null);
-        row.about.Background.color = Color.clear;
-        row.about.Icon.enabled = false;
+        var body = new GameObject("Body", typeof(RectTransform));
+        body.transform.SetParent(obj.transform, false);
+        ModHubStyle.Vertical(body, 2).childForceExpandWidth = true;
+        ModHubStyle.Size(body, pFlexibleWidth: 1);
 
-        row.title = ModHubUI.CreateText(obj.transform, "Title", new Vector2(130, 12), new Vector2(12, 15), 7,
-            TextAnchor.MiddleLeft);
-        row.details = ModHubUI.CreateText(obj.transform, "Details", new Vector2(130, 10), new Vector2(12, 4), 6,
-            TextAnchor.MiddleLeft);
-        row.details.color = ModHubUI.MutedTextColor;
-        row.status = ModHubUI.CreateText(obj.transform, "Status", new Vector2(100, 12), new Vector2(-3, -12), 7,
-            TextAnchor.MiddleLeft);
-
-        Vector2 button_size = new(19, 19);
-        row.info = ModHubUI.CreateIconButton(obj.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"),
-            button_size, new Vector2(88, -11), null, "mod_hub_workshop_page");
-        row.download = ModHubUI.CreateIconButton(obj.transform, "Download", ModHubUI.GameIcon("iconArrowDOWN"),
-            button_size, new Vector2(66, -11), null, "mod_hub_download");
+        row.title = ModHubStyle.Label(body.transform, "Title", ModHubStyle.FontBody, ModHubStyle.TextBright);
+        // Hovering the title shows the author and the item's details.
+        row.title.raycastTarget = true;
+        row.title.gameObject.AddComponent<Button>();
+        row.title.gameObject.AddComponent<TipButton>().type = "normal";
+        ModHubStyle.Size(row.title.gameObject, pHeight: 12);
+        ModHubStyle.Divider(body.transform);
+        CreateControlLine(row, body.transform);
         return row;
+    }
+
+    private static void CreateControlLine(ModBrowserRow pRow, Transform pBody)
+    {
+        var line = new GameObject("ControlLine", typeof(RectTransform));
+        line.transform.SetParent(pBody, false);
+        ModHubStyle.Horizontal(line, ModHubStyle.SpaceS);
+        ModHubStyle.Size(line, pHeight: ModHubStyle.IconButtonSize);
+
+        pRow.status = ModHubStyle.Label(line.transform, "Status", ModHubStyle.FontSmall, ModHubStyle.TextMuted);
+        ModHubStyle.Size(pRow.status.gameObject, 0, pFlexibleWidth: 1);
+        pRow.age = ModHubStyle.PillLabel(line.transform, "Age", 48);
+        pRow.download = ModHubStyle.IconButton(line.transform, "Download", ModHubUI.GameIcon("iconArrowDOWN"), null,
+            "mod_hub_download");
+        pRow.info = ModHubStyle.IconButton(line.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"), null,
+            "mod_hub_workshop_page");
     }
 }

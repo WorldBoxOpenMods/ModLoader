@@ -89,15 +89,56 @@ internal static class ModHubStyle
     /// <summary>
     ///     A muted message centred over a list, shown when it is empty.
     /// </summary>
+    /// <param name="pListContent">The list window's content</param>
+    /// <param name="pTextKey">Locale key of the message, or null to set the text in code</param>
     public static Text EmptyListLabel(Transform pListContent, string pTextKey)
     {
         Transform scroll_view = pListContent.parent.parent;
         Text label = Label(scroll_view, "EmptyMessage", FontBody, TextMuted, TextAnchor.MiddleCenter);
-        label.rectTransform.anchorMin = Vector2.zero;
-        label.rectTransform.anchorMax = Vector2.one;
-        label.rectTransform.sizeDelta = Vector2.zero;
-        ModHubUI.SetLocaleKey(label, pTextKey);
+        Stretch(label.rectTransform, SpaceL);
+        if (pTextKey != null) ModHubUI.SetLocaleKey(label, pTextKey);
         return label;
+    }
+
+    /// <summary>
+    ///     One more strip like the header, at <paramref name="pIndex" /> in the content of
+    ///     <see cref="SetUpListWindow" />.
+    /// </summary>
+    public static Transform InsertStrip(Transform pContent, int pIndex, string pName)
+    {
+        Transform strip = Strip(pContent, pName);
+        strip.SetSiblingIndex(pIndex);
+        return strip;
+    }
+
+    /// <summary>
+    ///     A slim bar along the bottom edge of <paramref name="pParent" />. Returns the fill for
+    ///     <see cref="SetProgress" />.
+    /// </summary>
+    public static RectTransform ProgressBar(Transform pParent)
+    {
+        var bar = new GameObject("Progress", typeof(Image));
+        bar.transform.SetParent(pParent, false);
+        bar.GetComponent<Image>().color = DividerColor;
+        bar.GetComponent<Image>().raycastTarget = false;
+        var rect = bar.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = new Vector2(1, 0);
+        rect.pivot = new Vector2(0.5f, 0);
+        rect.sizeDelta = new Vector2(0, 2);
+
+        var fill = new GameObject("Fill", typeof(Image));
+        fill.transform.SetParent(bar.transform, false);
+        fill.GetComponent<Image>().color = Positive;
+        fill.GetComponent<Image>().raycastTarget = false;
+        var fill_rect = fill.GetComponent<RectTransform>();
+        Stretch(fill_rect, 0);
+        return fill_rect;
+    }
+
+    public static void SetProgress(RectTransform pFill, float pProgress)
+    {
+        pFill.anchorMax = new Vector2(Mathf.Clamp01(pProgress), 1);
     }
 
     /// <summary>
@@ -214,6 +255,19 @@ internal static class ModHubStyle
         return text;
     }
 
+    /// <summary>
+    ///     A short muted text in a dark pill, such as how long ago a mod was updated.
+    /// </summary>
+    public static Text PillLabel(Transform pParent, string pName, float pWidth)
+    {
+        GameObject pill = Box(pParent, pName, Pill);
+        pill.GetComponent<Image>().raycastTarget = false;
+        Size(pill, pWidth, IconButtonSize);
+        Text text = Label(pill.transform, "Text", FontSmall, TextMuted, TextAnchor.MiddleCenter);
+        Stretch(text.rectTransform, 0);
+        return text;
+    }
+
     public static Image Icon(Transform pParent, string pName, Sprite pSprite, float pSize)
     {
         var obj = new GameObject(pName, typeof(Image));
@@ -252,6 +306,14 @@ internal static class ModHubStyle
         button.Text.fontSize = FontBody;
         Size(button.gameObject, pHeight: ButtonHeight, pFlexibleWidth: 1);
         return button;
+    }
+
+    private static void Stretch(RectTransform pRect, float pMargin)
+    {
+        pRect.anchorMin = Vector2.zero;
+        pRect.anchorMax = Vector2.one;
+        pRect.offsetMin = new Vector2(pMargin, 0);
+        pRect.offsetMax = new Vector2(-pMargin, 0);
     }
 
     private static RectTransform ContentArea(Transform pBackground, float pTopMargin = SpaceL)

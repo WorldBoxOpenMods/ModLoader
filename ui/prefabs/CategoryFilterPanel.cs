@@ -14,40 +14,63 @@ internal class CategoryFilterPanel : MonoBehaviour
     private readonly Dictionary<string, SimpleButton> toggles = new();
     private Action on_changed;
     private HashSet<string> selected;
+    private GridLayoutGroup grid;
 
-    /// <param name="pParent">Window background</param>
+    /// <param name="pParent">The list's scroll view; the panel covers the top of it</param>
     /// <param name="pSelected">Selected categories, changed in place</param>
     /// <param name="pOnChanged">Called after every change</param>
     public static CategoryFilterPanel Create(Transform pParent, HashSet<string> pSelected, Action pOnChanged)
     {
-        var obj = new GameObject(nameof(CategoryFilterPanel), typeof(Image));
-        obj.transform.SetParent(pParent, false);
-        obj.transform.localPosition = new Vector3(0, 22);
-        obj.GetComponent<RectTransform>().sizeDelta = new Vector2(216, 126);
-        Image background = obj.GetComponent<Image>();
-        background.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
-        background.type = Image.Type.Sliced;
+        GameObject obj = ModHubStyle.Box(pParent, nameof(CategoryFilterPanel), ModHubStyle.Card);
+        var rect = obj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0, 1);
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 1);
+        rect.sizeDelta = Vector2.zero;
+        ModHubStyle.Vertical(obj, ModHubStyle.SpaceS, ModHubStyle.SpaceM).childForceExpandWidth = true;
+        obj.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         CategoryFilterPanel panel = obj.AddComponent<CategoryFilterPanel>();
         panel.selected = pSelected;
         panel.on_changed = pOnChanged;
 
-        string[] categories = CoreConstants.ModCategories;
-        for (int i = 0; i < categories.Length; i++)
+        var grid = new GameObject("Grid", typeof(GridLayoutGroup));
+        grid.transform.SetParent(obj.transform, false);
+        panel.grid = grid.GetComponent<GridLayoutGroup>();
+        panel.grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        panel.grid.constraintCount = 2;
+        panel.grid.spacing = new Vector2(ModHubStyle.SpaceS, ModHubStyle.SpaceS);
+        panel.grid.cellSize = new Vector2(0, ModHubStyle.ButtonHeight);
+
+        foreach (string category in CoreConstants.ModCategories)
         {
-            string category = categories[i];
-            SimpleButton toggle = SimpleButton.Instantiate(obj.transform, pName: category);
+            SimpleButton toggle = SimpleButton.Instantiate(grid.transform, pName: category);
             // Category names are Workshop tags, shown as uploaders chose them.
-            toggle.Setup(() => panel.Toggle(category), null, category, new Vector2(100, 16));
-            toggle.transform.localPosition = new Vector3(i % 2 == 0 ? -52 : 52, 48 - i / 2 * 20);
+            toggle.Setup(() => panel.Toggle(category), null, category);
+            toggle.Background.sprite = ModHubStyle.Button;
+            toggle.Text.resizeTextForBestFit = false;
+            toggle.Text.fontSize = ModHubStyle.FontBody;
+            // The grid sizes the button; the text keeps the size Setup gave it unless stretched.
+            RectTransform text_rect = toggle.Text.rectTransform;
+            text_rect.anchorMin = Vector2.zero;
+            text_rect.anchorMax = Vector2.one;
+            text_rect.offsetMin = new Vector2(ModHubStyle.SpaceS, 0);
+            text_rect.offsetMax = new Vector2(-ModHubStyle.SpaceS, 0);
             panel.toggles[category] = toggle;
         }
 
-        ModHubUI.CreateTextButton(obj.transform, "Any", "mod_hub_category_any", new Vector2(100, 16),
-            new Vector2(0, -50), panel.Clear);
+        ModHubStyle.TextButton(obj.transform, "Any", "mod_hub_category_any", panel.Clear);
         panel.ShowSelection();
         obj.SetActive(false);
         return panel;
+    }
+
+    private void OnEnable()
+    {
+        // Two columns across the panel. Its width is only known once the window's layout has run.
+        if (grid == null) return;
+        float width = ((RectTransform)transform).rect.width - 2 * ModHubStyle.SpaceM;
+        grid.cellSize = new Vector2((width - ModHubStyle.SpaceS) / 2, ModHubStyle.ButtonHeight);
     }
 
     private void Toggle(string pCategory)
@@ -68,7 +91,9 @@ internal class CategoryFilterPanel : MonoBehaviour
     {
         foreach (KeyValuePair<string, SimpleButton> toggle in toggles)
         {
-            toggle.Value.Background.color = selected.Contains(toggle.Key) ? Color.white : Color.gray;
+            bool on = selected.Contains(toggle.Key);
+            toggle.Value.Background.color = on ? Color.white : Color.gray;
+            toggle.Value.Text.color = on ? ModHubStyle.Positive : ModHubStyle.TextMuted;
         }
     }
 }

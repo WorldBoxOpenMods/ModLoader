@@ -6,6 +6,7 @@ using NeoModLoader.services;
 using NeoModLoader.ui.prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
@@ -15,7 +16,8 @@ namespace NeoModLoader.ui;
 /// </summary>
 internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListing>
 {
-    private const float list_height = 210;
+    private const float search_width = 172;
+    private const float footer_button_width = 56;
 
     /// <summary>
     ///     Kept for this game session only, see <see cref="ModHubSettings" />.
@@ -35,6 +37,7 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
     private CategoryFilterPanel category_panel;
     private Text status_label;
     private Text message_label;
+    private RectTransform progress;
     private float scroll_position;
     private int shown_count;
 
@@ -52,18 +55,17 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
     {
         LoadSettings();
 
-        Transform scroll_view = BackgroundTransform.Find("Scroll View");
-        scroll_view.GetComponent<RectTransform>().sizeDelta = new Vector2(232, list_height);
-        scroll_view.localPosition = new Vector3(0, -20);
-        scroll_view.Find("Viewport").localPosition = new Vector3(-131, list_height / 2);
+        RectTransform content = ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header,
+            out Transform footer);
+        ModHubStyle.StyleList(ContentTransform);
+        CreateToolbar(header, ModHubStyle.InsertStrip(content, 1, "SearchLine"));
+        CreateBottomBar(footer);
 
-        CreateToolbar();
-        CreateBottomBar();
-        message_label = ModHubUI.CreateText(BackgroundTransform, "Message", new Vector2(200, 60), new Vector2(0, 30),
-            8, TextAnchor.MiddleCenter);
-        retry_button = ModHubUI.CreateTextButton(BackgroundTransform, "Retry", "mod_hub_retry", new Vector2(60, 16),
-            new Vector2(0, -15), StartLoading);
-        category_panel = CategoryFilterPanel.Create(BackgroundTransform, query.Categories, OnCategoriesChanged);
+        // Drawn over the list, in this order.
+        Transform scroll_view = ContentTransform.parent.parent;
+        message_label = ModHubStyle.EmptyListLabel(ContentTransform, null);
+        progress = ModHubStyle.ProgressBar(scroll_view);
+        category_panel = CategoryFilterPanel.Create(scroll_view, query.Categories, OnCategoriesChanged);
 
         ModDownloadService.Catalog.Changed += () => needs_refresh = true;
         ModDownloadService.Authors.Changed += OnAuthorsChanged;
@@ -184,8 +186,13 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         if (catalog.ReachedPageCap) text += "\n" + LM.Get("mod_hub_page_cap");
         status_label.text = text;
 
+        progress.parent.gameObject.SetActive(catalog.IsLoading && catalog.TotalCount > 0);
+        if (catalog.TotalCount > 0) ModHubStyle.SetProgress(progress, (float)catalog.Items.Count / catalog.TotalCount);
+
         ModHubUI.SetInteractable(update_all_button, catalog.Status == CatalogStatus.Ready);
         ModHubUI.SetInteractable(cancel_button, catalog.IsLoading);
+        // Retry takes the place of Cancel loading, which has nothing to stop after an error.
+        cancel_button.gameObject.SetActive(!retry_button.gameObject.activeSelf);
     }
 
     private void OnDownloadChanged(DownloadEntry pEntry)
@@ -200,13 +207,8 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
 
     private void OnAuthorsChanged()
     {
-        if (query.SearchMode == ModSearchMode.Author && !string.IsNullOrWhiteSpace(search_text))
-        {
-            needs_refresh = true;
-            return;
-        }
-
-        foreach (AbstractListWindowItem<ModListing> row in ItemMap.Values) ((ModBrowserRow)row).UpdateAuthor();
+        // Rows read author names when hovered; only a search by author has to filter again.
+        if (query.SearchMode == ModSearchMode.Author && !string.IsNullOrWhiteSpace(search_text)) needs_refresh = true;
     }
 
     private void OnCategoriesChanged()
@@ -215,50 +217,49 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         Refresh();
     }
 
-    private void CreateToolbar()
+    private void CreateToolbar(Transform pFilters, Transform pSearchLine)
     {
-        Vector2 size = new(20, 20);
-        sort_button = ToolbarButton("Sort", -104, 118, () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)),
-            "mod_hub_sort");
-        updated_button = ToolbarButton("Updated", -82, 118,
-            () => ChangeQuery(() => query.UpdatedWithin = ModHubUI.NextValue(query.UpdatedWithin)), "mod_hub_updated_within");
-        install_button = ToolbarButton("Install", -60, 118,
+        sort_button = ModHubStyle.IconButton(pFilters, "Sort", null,
+            () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
+        updated_button = ModHubStyle.IconButton(pFilters, "Updated", ModHubUI.GameIcon("iconClock"),
+            () => ChangeQuery(() => query.UpdatedWithin = ModHubUI.NextValue(query.UpdatedWithin)),
+            "mod_hub_updated_within");
+        install_button = ModHubStyle.IconButton(pFilters, "Install", null,
             () => ChangeQuery(() => query.Install = ModHubUI.NextValue(query.Install)), "mod_hub_install");
-        category_button = ToolbarButton("Category", -38, 118,
+        category_button = ModHubStyle.IconButton(pFilters, "Category", null,
             () => category_panel.gameObject.SetActive(!category_panel.gameObject.activeSelf), "mod_hub_category");
-        ai_button = ToolbarButton("AIContent", -16, 118,
+        ai_button = ModHubStyle.IconButton(pFilters, "AIContent", null,
             () => ChangeQuery(() => query.AIContent = ModHubUI.NextValue(query.AIContent)), "mod_hub_ai");
-        ToolbarButton("Refresh", 105, 118, StartLoading, "mod_hub_refresh").Icon.sprite =
-            InternalResourcesGetter.GetReloadIcon();
-        search_mode_button = ToolbarButton("SearchMode", -104, 96,
+        ModHubStyle.Spacer(pFilters);
+        ModHubStyle.IconButton(pFilters, "Refresh", InternalResourcesGetter.GetReloadIcon(), StartLoading,
+            "mod_hub_refresh");
+
+        search_mode_button = ModHubStyle.IconButton(pSearchLine, "SearchMode", null,
             () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
-
-        TextInput search = TextInput.Instantiate(BackgroundTransform, pName: "Search");
-        search.Setup(search_text, SetSearchText);
-        search.SetSize(new Vector2(184, 18));
-        search.transform.localPosition = new Vector3(1, 96);
-        // Filter while typing, not only when the edit ends.
-        search.input.onValueChanged.AddListener(SetSearchText);
-        ModHubUI.CreateIconButton(BackgroundTransform, "ClearSearch", ModHubUI.GameIcon("iconClose"),
-            new Vector2(16, 16), new Vector2(105, 96), () => search.input.text = "", "mod_hub_clear_search");
-
-        SimpleButton ToolbarButton(string pName, float pX, float pY, Action pOnClick, string pTooltipKey)
-        {
-            return ModHubUI.CreateIconButton(BackgroundTransform, pName, null, size, new Vector2(pX, pY),
-                () => pOnClick(), pTooltipKey);
-        }
+        TextInput search = ModHubStyle.SearchBox(pSearchLine, search_text, search_width, SetSearchText);
+        ModHubStyle.IconButton(pSearchLine, "ClearSearch", ModHubUI.GameIcon("iconClose"),
+            () => search.input.text = "", "mod_hub_clear_search");
     }
 
-    private void CreateBottomBar()
+    private void CreateBottomBar(Transform pFooter)
     {
-        status_label = ModHubUI.CreateText(BackgroundTransform, "Status", new Vector2(112, 24),
-            new Vector2(-59, -138), 6, TextAnchor.MiddleLeft);
-        status_label.color = ModHubUI.MutedTextColor;
-        Vector2 size = new(54, 16);
-        update_all_button = ModHubUI.CreateTextButton(BackgroundTransform, "UpdateAll", "mod_hub_update_all", size,
-            new Vector2(30, -138), UpdateAll);
-        cancel_button = ModHubUI.CreateTextButton(BackgroundTransform, "CancelLoading", "mod_hub_cancel_loading",
-            size, new Vector2(88, -138), ModDownloadService.Catalog.Cancel);
+        status_label = ModHubStyle.Label(pFooter, "Status", ModHubStyle.FontSmall, ModHubStyle.TextMuted);
+        // Up to three short lines: the count, waiting downloads and the page limit.
+        status_label.resizeTextForBestFit = true;
+        status_label.resizeTextMinSize = 4;
+        status_label.resizeTextMaxSize = ModHubStyle.FontSmall;
+        ModHubStyle.Size(status_label.gameObject, 0, ModHubStyle.ButtonHeight, 1);
+
+        retry_button = FooterButton("Retry", "mod_hub_retry", StartLoading);
+        update_all_button = FooterButton("UpdateAll", "mod_hub_update_all", UpdateAll, true);
+        cancel_button = FooterButton("CancelLoading", "mod_hub_cancel_loading", ModDownloadService.Catalog.Cancel);
+
+        SimpleButton FooterButton(string pName, string pTextKey, UnityAction pOnClick, bool pPrimary = false)
+        {
+            SimpleButton button = ModHubStyle.TextButton(pFooter, pName, pTextKey, pOnClick, pPrimary);
+            ModHubStyle.Size(button.gameObject, footer_button_width, ModHubStyle.ButtonHeight);
+            return button;
+        }
     }
 
     private void UpdateAll()
@@ -319,10 +320,10 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
             ListingSort.TopRated => "iconRenown",
             ListingSort.Newest => "iconNewWorld",
             ListingSort.Name => "iconArrowDOWN",
-            _ => "iconClock"
+            _ => "iconAges"
         });
-        ModHubUI.ShowChoice(updated_button, ModHubUI.LocaleKey("mod_hub_updated_within", query.UpdatedWithin),
-            query.UpdatedWithin == UpdatedWithin.Anytime ? "iconClockX1" : "iconClockX3");
+        updated_button.TipButton.textOnClickDescription =
+            ModHubUI.LocaleKey("mod_hub_updated_within", query.UpdatedWithin);
         ModHubUI.ShowChoice(install_button, ModHubUI.LocaleKey("mod_hub_install", query.Install), query.Install switch
         {
             InstallFilter.NotInstalled => "iconArrowDOWN",

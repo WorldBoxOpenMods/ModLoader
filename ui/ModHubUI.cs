@@ -15,8 +15,6 @@ internal static class ModHubUI
     private const string tooltip_title_key = "mod_hub_tooltip_title";
     private const string tooltip_text_key = "mod_hub_tooltip_text";
 
-    public static readonly Color MutedTextColor = new(0.75f, 0.75f, 0.75f);
-
     public static Sprite GameIcon(string pName)
     {
         return SpriteTextureLoader.getSprite("ui/icons/" + pName);
