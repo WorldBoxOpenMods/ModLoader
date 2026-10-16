@@ -265,14 +265,15 @@ internal static class ModHubStyle
     }
 
     /// <summary>
-    ///     A tooltip on hover only. Without the game's click animation, which makes text in a list jump.
+    ///     A tooltip on hover. The game's click animation keeps its normal size (1), so text in a list does not
+    ///     jump or blink.
     /// </summary>
     public static TipButton HoverTip(GameObject pObject)
     {
         var tip = pObject.AddComponent<TipButton>();
         tip.type = "normal";
         tip.override_click_scale_animation = true;
-        tip.overridden_click_scale_animation = 0;
+        tip.overridden_click_scale_animation = 1;
         return tip;
     }
 
