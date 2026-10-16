@@ -1,7 +1,6 @@
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
-using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +12,8 @@ namespace NeoModLoader.ui;
 /// </summary>
 internal class ModHubWindow : AbstractWindow<ModHubWindow>
 {
-    private static readonly Vector2 entry_size = new(200, 50);
+    private const float card_height = 44;
+    private const float footer_height = 14;
 
     /// <summary>
     ///     One entry per window. Its title and description are the locale keys "{id} Title" and "{id} Description".
@@ -26,57 +26,50 @@ internal class ModHubWindow : AbstractWindow<ModHubWindow>
 
     protected override void Init()
     {
-        BackgroundTransform.Find("Scroll View").gameObject.SetActive(false);
-        for (int i = 0; i < entries.Length; i++)
-        {
-            CreateEntry(entries[i].WindowId, entries[i].Icon(), new Vector2(0, 95 - i * (entry_size.y + 8)));
-        }
+        float content_height = entries.Length * (card_height + ModHubStyle.SpaceM) + footer_height;
+        RectTransform content = ModHubStyle.SetUpWindow(BackgroundTransform, content_height);
+        ModHubStyle.Vertical(content.gameObject, ModHubStyle.SpaceM);
 
-        CreateVersionFooter();
+        foreach ((string window_id, Func<Sprite> icon) in entries) CreateCard(content, window_id, icon());
+        CreateVersionFooter(content);
     }
 
-    private void CreateEntry(string pWindowId, Sprite pIcon, Vector2 pPosition)
+    private static void CreateCard(Transform pParent, string pWindowId, Sprite pIcon)
     {
-        var entry = new GameObject(pWindowId, typeof(Image), typeof(Button));
-        entry.transform.SetParent(BackgroundTransform, false);
-        entry.transform.localPosition = pPosition;
-        entry.GetComponent<RectTransform>().sizeDelta = entry_size;
-        Image background = entry.GetComponent<Image>();
-        background.sprite = SpriteTextureLoader.getSprite("ui/special/windowInnerSliced");
-        background.type = Image.Type.Sliced;
-        entry.GetComponent<Button>().onClick.AddListener(() => ScrollWindow.showWindow(pWindowId));
+        GameObject card = ModHubStyle.Box(pParent, pWindowId, ModHubStyle.Card);
+        ModHubStyle.Clickable(card, () => ScrollWindow.showWindow(pWindowId));
+        ModHubStyle.Size(card, pHeight: card_height);
+        ModHubStyle.Horizontal(card, ModHubStyle.SpaceM, ModHubStyle.SpaceM);
+        ModHubStyle.Icon(card.transform, "Icon", pIcon, 28);
 
-        var icon = new GameObject("Icon", typeof(Image));
-        icon.transform.SetParent(entry.transform, false);
-        icon.transform.localPosition = new Vector3(-75, 0);
-        icon.GetComponent<RectTransform>().sizeDelta = new Vector2(36, 36);
-        icon.GetComponent<Image>().sprite = pIcon;
+        var texts = new GameObject("Texts", typeof(RectTransform));
+        texts.transform.SetParent(card.transform, false);
+        ModHubStyle.Vertical(texts, 2).childAlignment = TextAnchor.MiddleLeft;
+        ModHubStyle.Size(texts, pFlexibleWidth: 1);
 
-        Text title = ModHubUI.CreateText(entry.transform, "Title", new Vector2(140, 16), new Vector2(23, 10), 10,
-            TextAnchor.MiddleLeft);
+        Text title = ModHubStyle.Label(texts.transform, "Title", ModHubStyle.FontTitle, ModHubStyle.TextBright);
         ModHubUI.SetLocaleKey(title, pWindowId + " Title");
-        Text description = ModHubUI.CreateText(entry.transform, "Description", new Vector2(140, 22),
-            new Vector2(23, -9), 6, TextAnchor.UpperLeft);
-        description.color = ModHubUI.MutedTextColor;
+        Text description = ModHubStyle.Label(texts.transform, "Description", ModHubStyle.FontSmall,
+            ModHubStyle.TextMuted);
         ModHubUI.SetLocaleKey(description, pWindowId + " Description");
     }
 
     /// <summary>
-    ///     NML's version and commit, like the old mod list. Clicking opens NML's repository to report bugs.
+    ///     NML's version; hovering shows the commit, clicking opens NML's repository to report bugs.
     /// </summary>
-    private void CreateVersionFooter()
+    private static void CreateVersionFooter(Transform pParent)
     {
         string version = "NeoModLoader " + WorldBoxMod.NeoModLoaderAssembly.GetName().Version;
-        SimpleButton button = ModHubUI.CreateIconButton(BackgroundTransform, "NeoModLoader",
-            InternalResourcesGetter.GetIcon(), new Vector2(18, 18), new Vector2(-82, -118),
-            () => Application.OpenURL(CoreConstants.RepoURL), pTooltipKey: null);
-        button.Background.enabled = false;
-        ModHubUI.SetTextTooltip(button, () => version,
-            () => $"commit {InternalResourcesGetter.GetCommit()}\n{LM.Get("NeoModLoader Report")}");
+        var footer = new GameObject("Version", typeof(Image), typeof(Button), typeof(TipButton));
+        footer.transform.SetParent(pParent, false);
+        footer.GetComponent<Image>().color = Color.clear;
+        footer.GetComponent<Button>().onClick.AddListener(() => Application.OpenURL(CoreConstants.RepoURL));
+        footer.GetComponent<TipButton>().setHoverAction(() => ModHubUI.ShowTextTooltip(footer, version,
+            $"commit {InternalResourcesGetter.GetCommit()}\n{LM.Get("NeoModLoader Report")}"));
+        ModHubStyle.Size(footer, pHeight: footer_height);
+        ModHubStyle.Horizontal(footer, ModHubStyle.SpaceS);
 
-        Text label = ModHubUI.CreateText(BackgroundTransform, "Version", new Vector2(160, 14), new Vector2(12, -118),
-            7, TextAnchor.MiddleLeft);
-        label.color = ModHubUI.MutedTextColor;
-        label.text = version;
+        ModHubStyle.Icon(footer.transform, "Icon", InternalResourcesGetter.GetIcon(), 12);
+        ModHubStyle.Label(footer.transform, "Text", ModHubStyle.FontSmall, ModHubStyle.TextMuted).text = version;
     }
 }
