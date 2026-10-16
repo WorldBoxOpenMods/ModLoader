@@ -61,6 +61,7 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
         notice.gameObject.SetActive(installed.HasProblem && fail_reason.Length > 0);
         notice.text = fail_reason;
         description.text = BuildDescription();
+        if (from_workshop) _ = ShowWorkshopDescriptionAsync(mod, workshop_id);
 
         workshop_button.gameObject.SetActive(from_workshop);
         unsubscribe_button.gameObject.SetActive(from_workshop && !ModDownloadService.NeedsRestart(mod.UID) &&
@@ -70,8 +71,21 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
     private string BuildDescription()
     {
         string text = mod.GetDisplayDesc()?.Trim();
-        if (string.IsNullOrEmpty(text)) return LM.Get("mod_hub_info_no_description");
-        return text.Length > max_description_length ? text.Substring(0, max_description_length) + "..." : text;
+        return string.IsNullOrEmpty(text) ? LM.Get("mod_hub_info_no_description") : Truncate(text);
+    }
+
+    /// <summary>
+    ///     Replace the mod.json description with the Workshop page's once Steam sends it.
+    /// </summary>
+    private async Task ShowWorkshopDescriptionAsync(ModDeclare pMod, ulong pFileId)
+    {
+        string text = (await ModDownloadService.GetDescriptionAsync(pFileId))?.Trim();
+        if (!string.IsNullOrEmpty(text) && IsOpened && mod == pMod) description.text = Truncate(text);
+    }
+
+    private static string Truncate(string pText)
+    {
+        return pText.Length > max_description_length ? pText.Substring(0, max_description_length) + "..." : pText;
     }
 
     private void ConfirmUnsubscribe()

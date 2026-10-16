@@ -375,4 +375,10 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
         string name = friend.Name;
         return string.IsNullOrEmpty(name) || name == "[unknown]" ? null : name;
     }
+
+    public async Task<string> GetDescriptionAsync(ulong pFileId)
+    {
+        ResultPage? page = await Query.Items.WithFileId(pFileId).WithLongDescription(true).GetPageAsync(1);
+        return page?.Entries.Select(item => item.Description).FirstOrDefault();
+    }
 }

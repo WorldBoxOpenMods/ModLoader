@@ -1,6 +1,7 @@
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.utils;
+using System.Text.RegularExpressions;
 using RSG;
 
 namespace NeoModLoader.services;
@@ -19,6 +20,7 @@ internal static class ModDownloadService
 
     // Mods whose files changed on disk this session in a way only a restart applies.
     private static readonly HashSet<string> restart_pending = new();
+    private static readonly Dictionary<ulong, string> descriptions = new();
     private static WorkshopCatalog catalog;
     private static WorkshopDownloadQueue queue;
     private static WorkshopAuthorNames authors;
@@ -103,6 +105,42 @@ internal static class ModDownloadService
         if (unsubscribed) restart_pending.Add(pMod.UID);
         else LogService.LogWarning($"Steam refused to unsubscribe Workshop item {file_id} ({pMod.Name})");
         return unsubscribed;
+    }
+
+    /// <summary>
+    ///     Workshop description of an item as plain text, or null when Steam is unavailable. Kept for the game
+    ///     session.
+    /// </summary>
+    public static async Task<string> GetDescriptionAsync(ulong pFileId)
+    {
+        if (descriptions.TryGetValue(pFileId, out string cached)) return cached;
+        if (CheckSteam() != CatalogStatus.Ready) return null;
+
+        string text;
+        try
+        {
+            text = await Steam.GetDescriptionAsync(pFileId);
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning($"Failed to get the Workshop description of {pFileId}: {e.Message}");
+            return null;
+        }
+
+        if (text == null) return null;
+        return descriptions[pFileId] = StripBBCode(text);
+    }
+
+    /// <summary>
+    ///     Plain text from Steam's BBCode: list items become dashes, images are dropped and other tags removed.
+    /// </summary>
+    internal static string StripBBCode(string pText)
+    {
+        string text = Regex.Replace(pText, @"\[img\].*?\[/img\]", "",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        text = text.Replace("[*]", "- ");
+        text = Regex.Replace(text, @"\[/?[a-z0-9*]+(=[^\]]*)?\]", "", RegexOptions.IgnoreCase);
+        return Regex.Replace(text, @"(\r?\n){3,}", "\n\n");
     }
 
     private static WorkshopDownloadQueue CreateQueue()

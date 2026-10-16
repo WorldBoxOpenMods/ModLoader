@@ -30,4 +30,9 @@ internal interface IPlatformSpecificModWorkshopService : IWorkshopItemActions
     ///     Steam display name of a user, or null when Steam does not answer in time.
     /// </summary>
     Task<string> GetPersonaNameAsync(ulong pSteamId);
+
+    /// <summary>
+    ///     Workshop description of an item as its author wrote it, with BBCode, or null when Steam returns nothing.
+    /// </summary>
+    Task<string> GetDescriptionAsync(ulong pFileId);
 }
