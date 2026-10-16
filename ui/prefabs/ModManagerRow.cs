@@ -47,8 +47,8 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         ModHubUI.SetTextTooltip(title.GetComponent<TipButton>(), () => mod.Name,
             () => string.Format(LM.Get("mod_hub_by_author"), mod.Author));
         ModHubUI.SetTextTooltip(status, () => status.Text.text, StatusTooltip);
-        ModHubUI.SetTextTooltip(source, () => LM.Get(ModHubUI.LocaleKey("mod_hub_source", mod.Source)),
-            () => mod.Declaration.FolderPath);
+        ModHubUI.SetTextTooltip(source, () => string.Format(LM.Get("mod_hub_loaded_from"),
+            LM.Get(ModHubUI.LocaleKey("mod_hub_source", mod.Source))), () => null);
     }
 
     public override void Setup(InstalledMod pMod)
@@ -187,7 +187,7 @@ internal class ModManagerRow : AbstractListWindowItem<InstalledMod>
         // Hovering the title shows the author.
         pRow.title.raycastTarget = true;
         pRow.title.gameObject.AddComponent<Button>();
-        pRow.title.gameObject.AddComponent<TipButton>().type = "normal";
+        ModHubStyle.HoverTip(pRow.title.gameObject);
         ModHubStyle.Size(pRow.title.gameObject, pFlexibleWidth: 1);
 
         pRow.source = ModHubStyle.IconButton(line.transform, "Source", null, null, null);

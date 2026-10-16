@@ -58,6 +58,7 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         RectTransform content = ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header,
             out Transform footer);
         ModHubStyle.StyleList(ContentTransform);
+        ModHubUI.AddHubTabs(BackgroundTransform.parent, WindowId);
         CreateToolbar(header, ModHubStyle.InsertStrip(content, 1, "SearchLine"));
         CreateBottomBar(footer);
 

@@ -4,6 +4,7 @@ using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.services;
 using NeoModLoader.ui.prefabs;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +16,7 @@ namespace NeoModLoader.ui;
 internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, InstalledMod>
 {
     private const float search_width = 136;
+    private const float version_line_height = 10;
 
     /// <summary>
     ///     Kept for this game session only, see <see cref="ModHubSettings" />.
@@ -37,10 +39,13 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         query.Sort = settings.ManagerSort;
         query.SearchMode = settings.ManagerSearchMode;
 
-        ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header, out Transform footer);
+        RectTransform content = ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header,
+            out Transform footer);
         ModHubStyle.StyleList(ContentTransform);
+        ModHubUI.AddHubTabs(BackgroundTransform.parent, WindowId);
         CreateToolbar(header);
         CreateBottomButtons(footer);
+        CreateVersionLine(content);
         empty_label = ModHubStyle.EmptyListLabel(ContentTransform, "mod_hub_no_match");
     }
 
@@ -107,6 +112,25 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         disable_all_button = ModHubStyle.TextButton(pFooter, "DisableAll", "mod_hub_disable_all", ConfirmDisableAll);
         ModHubStyle.TextButton(pFooter, "OpenModsFolder", "mod_hub_open_mods_folder",
             () => ModManagerService.OpenFolder(Paths.ModsPath));
+    }
+
+    /// <summary>
+    ///     NML's version under the buttons. Clicking it opens NML's repository to report bugs.
+    /// </summary>
+    private static void CreateVersionLine(Transform pContent)
+    {
+        string version = "NeoModLoader " + WorldBoxMod.NeoModLoaderAssembly.GetName().Version;
+        var line = new GameObject("Version", typeof(Image), typeof(Button));
+        line.transform.SetParent(pContent, false);
+        line.GetComponent<Image>().color = Color.clear;
+        line.GetComponent<Button>().onClick.AddListener(() => Application.OpenURL(CoreConstants.RepoURL));
+        ModHubStyle.HoverTip(line).setHoverAction(() =>
+            ModHubUI.ShowTextTooltip(line, version, LM.Get("NeoModLoader Report")));
+        ModHubStyle.Size(line, pHeight: version_line_height);
+        ModHubStyle.Horizontal(line, ModHubStyle.SpaceS).childAlignment = TextAnchor.MiddleCenter;
+
+        ModHubStyle.Icon(line.transform, "Icon", InternalResourcesGetter.GetIcon(), version_line_height);
+        ModHubStyle.Label(line.transform, "Text", ModHubStyle.FontSmall, ModHubStyle.TextMuted).text = version;
     }
 
     private void ConfirmEnableAll()

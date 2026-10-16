@@ -1,6 +1,7 @@
 using System.Collections;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -14,6 +15,32 @@ internal static class ModHubUI
 {
     private const string tooltip_title_key = "mod_hub_tooltip_title";
     private const string tooltip_text_key = "mod_hub_tooltip_text";
+
+    /// <summary>
+    ///     The Mod Hub's windows, shown as tabs on the side of each of them. The title and description are the
+    ///     locale keys "{id} Title" and "{id} Description".
+    /// </summary>
+    private static readonly (string WindowId, Func<Sprite> Icon)[] hub_windows =
+    {
+        ("ModManager", InternalResourcesGetter.GetIcon),
+        ("ModBrowser", () => GameIcon("iconSteam"))
+    };
+
+    /// <summary>
+    ///     Add a tab for each Mod Hub window to the side of <paramref name="pWindow" />.
+    /// </summary>
+    public static void AddHubTabs(Transform pWindow, string pCurrentId)
+    {
+        foreach ((string window_id, Func<Sprite> icon) in hub_windows)
+        {
+            bool current = window_id == pCurrentId;
+            TipButton tip = ModHubStyle.SideTab(pWindow, window_id + "Tab", icon(), current, () =>
+            {
+                if (!current) ScrollWindow.showWindow(window_id);
+            });
+            SetTextTooltip(tip, () => LM.Get(window_id + " Title"), () => LM.Get(window_id + " Description"));
+        }
+    }
 
     public static Sprite GameIcon(string pName)
     {

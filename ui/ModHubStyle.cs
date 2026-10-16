@@ -35,6 +35,7 @@ internal static class ModHubStyle
     private const float window_width = 240;
     private const float frame_top = 32;
     private const float frame_bottom = 10;
+    private const float side_tab_icon_size = 18;
 
     // The game's own sprites, so the Hub matches the window frame around it.
     public static Sprite Card => SpriteTextureLoader.getSprite("ui/special/windowInnerSlicedRound");
@@ -256,6 +257,31 @@ internal static class ModHubStyle
     }
 
     /// <summary>
+    ///     A tab on the left edge of a stock window, in the container the game uses for its own window tabs.
+    /// </summary>
+    /// <param name="pWindow">The window, parent of its background</param>
+    /// <param name="pName">Name of the tab object</param>
+    /// <param name="pIcon">Icon shown on the tab</param>
+    /// <param name="pCurrent">Whether the tab is the window it is on; the others are dimmed</param>
+    /// <param name="pOnClick">Run on click</param>
+    public static TipButton SideTab(Transform pWindow, string pName, Sprite pIcon, bool pCurrent, Action pOnClick)
+    {
+        // The back button's tab, so these match the frame.
+        Sprite sprite = pWindow.Find("BackButtonContainer/BackButtonBackground").GetComponent<Image>().sprite;
+        GameObject tab = Box(pWindow.Find("Background/Tabs"), pName, sprite);
+        tab.GetComponent<Image>().color = pCurrent ? Color.white : new Color(0.6f, 0.6f, 0.6f);
+        tab.AddComponent<Button>().onClick.AddListener(() => pOnClick());
+        var tip = tab.AddComponent<TipButton>();
+        tip.type = "normal";
+
+        Image icon = Icon(tab.transform, "Icon", pIcon, side_tab_icon_size);
+        var icon_rect = icon.rectTransform;
+        icon_rect.anchorMin = icon_rect.anchorMax = new Vector2(0.5f, 0.5f);
+        icon_rect.sizeDelta = new Vector2(side_tab_icon_size, side_tab_icon_size);
+        return tip;
+    }
+
+    /// <summary>
     ///     A short muted text in a dark pill, such as how long ago a mod was updated.
     /// </summary>
     public static Text PillLabel(Transform pParent, string pName, float pWidth)
@@ -266,6 +292,18 @@ internal static class ModHubStyle
         Text text = Label(pill.transform, "Text", FontSmall, TextMuted, TextAnchor.MiddleCenter);
         Stretch(text.rectTransform, 0);
         return text;
+    }
+
+    /// <summary>
+    ///     A tooltip on hover only. Without the game's click animation, which makes text in a list jump.
+    /// </summary>
+    public static TipButton HoverTip(GameObject pObject)
+    {
+        var tip = pObject.AddComponent<TipButton>();
+        tip.type = "normal";
+        tip.override_click_scale_animation = true;
+        tip.overridden_click_scale_animation = 0;
+        return tip;
     }
 
     public static Image Icon(Transform pParent, string pName, Sprite pSprite, float pSize)

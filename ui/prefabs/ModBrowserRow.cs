@@ -157,7 +157,7 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
         // Hovering the title shows the author and the item's details.
         row.title.raycastTarget = true;
         row.title.gameObject.AddComponent<Button>();
-        row.title.gameObject.AddComponent<TipButton>().type = "normal";
+        ModHubStyle.HoverTip(row.title.gameObject);
         ModHubStyle.Size(row.title.gameObject, pHeight: 12);
         ModHubStyle.Divider(body.transform);
         CreateControlLine(row, body.transform);
