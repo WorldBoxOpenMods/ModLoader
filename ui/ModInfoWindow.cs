@@ -80,7 +80,7 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
     private async Task ShowWorkshopDescriptionAsync(ModDeclare pMod, ulong pFileId)
     {
         string text = (await ModDownloadService.GetDescriptionAsync(pFileId))?.Trim();
-        if (!string.IsNullOrEmpty(text) && IsOpened && mod == pMod) description.text = Truncate(text);
+        if (!string.IsNullOrEmpty(text) && isActiveAndEnabled && mod == pMod) description.text = Truncate(text);
     }
 
     private static string Truncate(string pText)
