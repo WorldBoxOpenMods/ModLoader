@@ -26,6 +26,8 @@ internal static class WorkshopThumbnails
     private static readonly Dictionary<string, Sprite> sprites = new();
     private static readonly Queue<string> load_order = new();
     private static readonly Dictionary<string, List<Action<Sprite>>> waiting = new();
+    private static readonly Dictionary<string, HashSet<object>> owners_by_key = new();
+    private static readonly Dictionary<object, string> key_by_owner = new();
     private static readonly SemaphoreSlim download_slots = new(max_parallel_downloads);
     private static HttpClient http_client;
 
@@ -35,8 +37,9 @@ internal static class WorkshopThumbnails
     ///     Call <paramref name="pOnLoaded" /> with the preview at <paramref name="pUrl" />: at once when it is
     ///     cached, otherwise once it has loaded. It is not called when the image cannot be loaded.
     /// </summary>
-    public static void Request(string pUrl, Action<Sprite> pOnLoaded)
+    public static void Request(string pUrl, object pOwner, Action<Sprite> pOnLoaded)
     {
+        if (pOwner != null) AssignOwner(pOwner, pUrl == null ? null : UrlKey(pUrl));
         if (string.IsNullOrEmpty(pUrl)) return;
 
         string key = UrlKey(pUrl);
@@ -153,12 +156,28 @@ internal static class WorkshopThumbnails
     {
         sprites[pKey] = pSprite;
         load_order.Enqueue(pKey);
-        if (load_order.Count <= memory_limit) return;
+        int inspected = 0;
+        while (load_order.Count > memory_limit && inspected < load_order.Count)
+        {
+            string oldest = load_order.Dequeue();
+            if (!sprites.TryGetValue(oldest, out Sprite oldest_sprite))
+            {
+                continue;
+            }
 
-        string oldest = load_order.Dequeue();
-        UnityEngine.Object.Destroy(sprites[oldest].texture);
-        UnityEngine.Object.Destroy(sprites[oldest]);
-        sprites.Remove(oldest);
+            if (owners_by_key.TryGetValue(oldest, out HashSet<object> owners) && owners.Count > 0)
+            {
+                load_order.Enqueue(oldest);
+                inspected++;
+                continue;
+            }
+
+            UnityEngine.Object.Destroy(oldest_sprite.texture);
+            UnityEngine.Object.Destroy(oldest_sprite);
+            sprites.Remove(oldest);
+            owners_by_key.Remove(oldest);
+            inspected = 0;
+        }
     }
 
     /// <summary>
@@ -175,5 +194,33 @@ internal static class WorkshopThumbnails
         }
 
         return hash.ToString("x16");
+    }
+    
+    private static void AssignOwner(object pOwner, string pKey)
+    {
+        if (key_by_owner.TryGetValue(pOwner, out string current))
+        {
+            if (current == pKey) return;
+
+            if (owners_by_key.TryGetValue(current, out HashSet<object> current_owners))
+            {
+                current_owners.Remove(pOwner);
+            }
+        }
+
+        if (pKey == null)
+        {
+            key_by_owner.Remove(pOwner);
+            return;
+        }
+
+        key_by_owner[pOwner] = pKey;
+        if (!owners_by_key.TryGetValue(pKey, out HashSet<object> owners))
+        {
+            owners = new HashSet<object>();
+            owners_by_key[pKey] = owners;
+        }
+
+        owners.Add(pOwner);
     }
 }

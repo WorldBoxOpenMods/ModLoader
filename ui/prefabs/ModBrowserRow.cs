@@ -42,7 +42,7 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
         title.text = pListing.Title;
         age.text = DescribeAge(DateTime.UtcNow - pListing.Updated);
         thumbnail.sprite = InternalResourcesGetter.GetIcon();
-        WorkshopThumbnails.Request(pListing.PreviewUrl, sprite =>
+        WorkshopThumbnails.Request(pListing.PreviewUrl, this, sprite =>
         {
             // The pooled row may show another listing by the time the image arrives.
             if (listing == pListing) thumbnail.sprite = sprite;

@@ -128,7 +128,7 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
     {
         WorkshopCatalog catalog = ModDownloadService.Catalog;
         await catalog.LoadAsync();
-        if (query.Sort == ListingSort.Trending) await catalog.LoadTrendingAsync();
+        if (catalog.Status == CatalogStatus.Ready && query.Sort == ListingSort.Trending) await catalog.LoadTrendingAsync();
         await ModDownloadService.Authors.RequestAsync(catalog.Items.Select(listing => listing.AuthorId));
     }
 
@@ -199,9 +199,22 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
 
     private void OnDownloadChanged(DownloadEntry pEntry)
     {
-        if (ItemMap.TryGetValue(pEntry.Listing, out AbstractListWindowItem<ModListing> row))
+        AbstractListWindowItem<ModListing> row = null;
+        if (!ItemMap.TryGetValue(pEntry.Listing, out row))
+        {
+            row = ItemMap.Where(pair => pair.Key.Id == pEntry.Listing.Id).Select(pair => pair.Value).FirstOrDefault();
+        }
+
+        if (row != null)
         {
             ((ModBrowserRow)row).UpdateStatus();
+        }
+
+        vb if (pEntry.State is DownloadState.Completed or DownloadState.Failed or DownloadState.Cancelled &&
+            query.Install != InstallFilter.All)
+        {
+            if (IsOpened) Refresh();
+            else needs_refresh = true;
         }
 
         if (IsOpened) UpdateBottomBar();

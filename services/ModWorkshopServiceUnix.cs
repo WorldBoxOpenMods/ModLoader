@@ -379,6 +379,8 @@ internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
     public async Task<string> GetDescriptionAsync(ulong pFileId)
     {
         ResultPage? page = await Query.Items.WithFileId(pFileId).WithLongDescription(true).GetPageAsync(1);
-        return page?.Entries.Select(item => item.Description).FirstOrDefault();
+        if (!page.HasValue) return null;
+        using ResultPage result_page = page.Value;
+        return result_page.Entries.Select(item => item.Description).FirstOrDefault();
     }
 }

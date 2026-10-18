@@ -98,6 +98,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
     /// <returns></returns>
     public static new T CreateAndInit(string pWindowId)
     {
+        WindowId = pWindowId;
         ScrollWindow scroll_window = WindowCreator.CreateEmptyWindow(pWindowId, pWindowId + " Title");
 
         GameObject window_object = scroll_window.gameObject;

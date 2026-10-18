@@ -146,10 +146,6 @@ internal static class ModDownloadService
     private static WorkshopDownloadQueue CreateQueue()
     {
         var download_queue = new WorkshopDownloadQueue(Steam, Install, Task.Delay, () => DateTime.UtcNow);
-        download_queue.Changed += entry =>
-        {
-            if (entry.State is DownloadState.Cancelled or DownloadState.Failed) SetPending(entry.Listing.Id, false);
-        };
         return download_queue;
     }
 
@@ -169,23 +165,37 @@ internal static class ModDownloadService
     /// </summary>
     private static string Install(string pDirectory)
     {
-        if (ulong.TryParse(Path.GetFileName(pDirectory), out ulong file_id)) SetPending(file_id, false);
+        ulong.TryParse(Path.GetFileName(pDirectory), out ulong file_id);
         ModDeclare mod = ModInfoUtils.recogMod(pDirectory, false);
         if (mod == null) return ErrorNotAMod;
+        
+        if (mod.ModType != ModTypeEnum.NEOMOD) return ErrorNotAMod;
 
-        if (ModInfoUtils.TryGetRecognizedMod(mod.UID, out _))
+        if (ModInfoUtils.TryGetRecognizedMod(mod.UID, out ModDeclare recognized))
         {
-            if (ModCompileLoadService.IsModLoaded(mod.UID)) restart_pending.Add(mod.UID);
+            if (ModCompileLoadService.IsModLoaded(mod.UID))
+            {
+                restart_pending.Add(mod.UID);
+            }
+            else
+            {
+                ModState state = WorldBoxMod.AllRecognizedMods.TryGetValue(recognized, out ModState current)
+                    ? current
+                    : ModState.FAILED;
+                WorldBoxMod.AllRecognizedMods.Remove(recognized);
+                WorldBoxMod.AllRecognizedMods[mod] = ModInfoUtils.isModDisabled(mod.UID) ? ModState.DISABLED : state;
+                ModDepenSolveService.EnsureNode(mod);
+            }
+
+            if (file_id != 0) SetPending(file_id, false);
             return null;
         }
 
         // New to this computer: saved as disabled, so neither this session nor the next start loads it.
         ModInfoUtils.setModDisabled(mod.UID, true);
-
-        // The startup scan only lists NeoModLoader-type Workshop mods; do the same here.
-        if (mod.ModType != ModTypeEnum.NEOMOD) return null;
         if (string.IsNullOrEmpty(mod.RepoUrl)) mod.SetRepoUrlToWorkshopPage(Path.GetFileName(pDirectory));
         ModInfoUtils.EnsureRecognizedMod(mod);
+        if (file_id != 0) SetPending(file_id, false);
         return null;
     }
 }

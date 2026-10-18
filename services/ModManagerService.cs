@@ -181,6 +181,7 @@ internal static class ModManagerService
         }
 
         WorldBoxMod.AllRecognizedMods.Remove(declaration);
+        ModDepenSolveService.InitializeGraph(WorldBoxMod.AllRecognizedMods.Keys);
         return true;
     }
 
