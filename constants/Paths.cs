@@ -46,7 +46,8 @@ public static class Paths
     public static readonly string NMLCommitPath = Combine(NMLPath, "commit");
 
     /// <summary>
-    ///     Path to file of auto update module
+    ///     Path to the legacy auto update module. The updater has been removed;
+    ///     NML only deletes this file on startup if an older install left it behind.
     /// </summary>
     public static readonly string NMLAutoUpdateModulePath =
         Combine(NativeModsPath, "NeoModLoader.AutoUpdate_memload.dll");

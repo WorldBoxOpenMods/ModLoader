@@ -12,7 +12,7 @@
 </p>
 
 为[Worldbox](http://www.superworldbox.com/)提供继[NCMS](https://denq04.github.io/ncms/)后的新模组加载器, 简称NML.
-详细介绍见[Gitbook](https://worldboxopenmods.gitbook.io/mod-tutorial-zh/)
+详细介绍见[Gitbook](https://markamibox.github.io/worldbox-modding-box/#/index)
 
 <h2 align="center"> 预览 </h2>
 
@@ -39,7 +39,7 @@
 反馈BUG</a>
 </h3>
 <h3 align="center">
-<a href="https://worldboxopenmods.gitbook.io/mod-tutorial-zh/mo-zu-zhi-zuo-jiao-cheng/start">制作模组</a>
+<a href="https://markamibox.github.io/worldbox-modding-box/#/index">制作模组</a>
 </h3>
 <h3 align="center">
 自行编译NML

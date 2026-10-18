@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using NeoModLoader.constants;
 using UnityEngine;
@@ -6,6 +7,7 @@ namespace NeoModLoader.utils;
 
 internal static class InternalResourcesGetter
 {
+    private static readonly Dictionary<string, Sprite> badge_sprites = new();
     private static Sprite mod_icon;
     private static Sprite icon_frame;
     private static Sprite icon_reload;
@@ -147,5 +149,20 @@ internal static class InternalResourcesGetter
         SpriteTextureLoader._cached_sprites[$"ui/special/{window_vert_name_plate.name}"] = window_vert_name_plate;
 
         return window_vert_name_plate;
+    }
+
+    public static Sprite GetBadgeSprite(string path_under_resources)
+    {
+        if (badge_sprites.TryGetValue(path_under_resources, out var s) && s != null)
+        {
+            return s;
+        }
+
+        Texture2D texture = LoadManifestTexture(path_under_resources);
+        if (texture == null) return null;
+
+        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        badge_sprites[path_under_resources] = sprite;
+        return sprite;
     }
 }

@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using NeoModLoader.General;
+using NeoModLoader.services;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -118,6 +119,14 @@ public class ModDeclare
         ModType = modDeclare.ModType;
         UsePublicizedAssembly = modDeclare.UsePublicizedAssembly;
         RepoUrl = modDeclare.RepoUrl;
+        AIAttribution = modDeclare.AIAttribution ?? "not_ai";
+        AIBadgeCorner = modDeclare.AIBadgeCorner ?? "bottom_right";
+        AIBadgeStyle = modDeclare.AIBadgeStyle ?? "standard";
+        AICheckCode = modDeclare.AICheckCode;
+        AICheckArt = modDeclare.AICheckArt;
+        AICheckTranslation = modDeclare.AICheckTranslation;
+        AICheckAudio = modDeclare.AICheckAudio;
+        Tags = modDeclare.Tags ?? new List<string>();
 
         Dependencies ??= Array.Empty<string>();
         OptionalDependencies ??= Array.Empty<string>();
@@ -292,6 +301,90 @@ public class ModDeclare
         var multilang_mod_desc_key = $"{Description}_{LocalizedTextManager.instance.language}";
         if (LocalizedTextManager.stringExists(multilang_mod_desc_key)) display_desc = LM.Get(multilang_mod_desc_key);
         return display_desc;
+    }
+
+    [JsonProperty("ai_attribution")]
+    public string AIAttribution { get; internal set; } = "not_ai";
+
+    [JsonProperty("ai_badge_corner")]
+    public string AIBadgeCorner { get; internal set; } = "bottom_right";
+
+    [JsonProperty("ai_badge_style")]
+    public string AIBadgeStyle { get; internal set; } = "standard";
+
+    [JsonProperty("ai_check_code")]
+    public bool AICheckCode { get; internal set; }
+
+    [JsonProperty("ai_check_art")]
+    public bool AICheckArt { get; internal set; }
+
+    [JsonProperty("ai_check_translation")]
+    public bool AICheckTranslation { get; internal set; }
+
+    [JsonProperty("ai_check_audio")]
+    public bool AICheckAudio { get; internal set; }
+
+    public List<string> GetAIChecklistItems()
+    {
+        List<string> items = new List<string>();
+        if (AICheckCode) items.Add("Code / Logic");
+        if (AICheckArt) items.Add("Textures / Sprites");
+        if (AICheckTranslation) items.Add("Translations / Text");
+        if (AICheckAudio) items.Add("Audio / Music");
+        return items;
+    }
+
+    public string GetAIAttributionDisplay()
+    {
+        return AIAttribution?.ToLower() switch
+        {
+            "ai_made" => "AI-Made",
+            "ai_assisted" => "AI-Assisted",
+            "not_ai" => "Human Authored",
+            _ => "Unspecified"
+        };
+    }
+
+    private List<string> _tags = new();
+
+    [JsonProperty("tags")]
+    public List<string> Tags
+    {
+        get => _tags ??= new List<string>();
+        internal set => _tags = value ?? new List<string>();
+    }
+
+    public bool HasTag(string tag)
+    {
+        return Tags.Any(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void ToggleTag(string tag)
+    {
+        if (HasTag(tag))
+        {
+            Tags.RemoveAll(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase));
+        }
+        else
+        {
+            Tags.Add(tag);
+        }
+    }
+
+    public void Save()
+    {
+        try
+        {
+            string jsonPath = Path.Combine(FolderPath, "mod.json");
+            if (File.Exists(jsonPath))
+            {
+                File.WriteAllText(jsonPath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            }
+        }
+        catch (Exception e)
+        {
+            LogService.LogWarning($"Failed to save mod.json: {e.Message}");
+        }
     }
 }
 

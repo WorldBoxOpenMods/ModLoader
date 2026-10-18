@@ -1,4 +1,5 @@
 extern alias unixsteamwork;
+using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -23,7 +24,7 @@ internal static class ModInfoUtils
 
     private static Dictionary<string, ModCompilationCache> mod_compilation_caches;
 
-    private static readonly Dictionary<string, long> mod_last_update_timestamps = new();
+    private static readonly ConcurrentDictionary<string, long> mod_last_update_timestamps = new();
 
     public static void InitializeModCompileCache()
     {
@@ -682,6 +683,8 @@ internal static class ModInfoUtils
 
         cache.disabled = pDisabled;
         cache.timestamp = getModNewestUpdateTimestamp(pModDeclare.FolderPath);
+        cache.compile_timestamp = DateTime.UtcNow.Ticks;
+        cache.compile_environment = ModCompileLoadService.GetCompileEnvironmentSignature();
 
         mod_compilation_caches[pModDeclare.UID] = cache;
         if (pSave)
@@ -694,6 +697,8 @@ internal static class ModInfoUtils
     {
         if (!mod_compilation_caches.TryGetValue(pModDeclare.UID, out ModCompilationCache cache)) return true;
         if (!File.Exists(Path.Combine(Paths.CompiledModsPath, $"{pModDeclare.UID}.dll"))) return true;
+        if (cache.compile_timestamp <= 0) return true;
+        if (cache.compile_environment != ModCompileLoadService.GetCompileEnvironmentSignature()) return true;
         var curr = new HashSet<string>(pDependencies);
         var last = new HashSet<string>(cache.dependencies);
 
@@ -701,21 +706,21 @@ internal static class ModInfoUtils
         curr = new HashSet<string>(pOptionalDependencies);
         last = new HashSet<string>(cache.optional_dependencies);
         if (!curr.SetEquals(last)) return true;
-        var last_compile_time = cache.timestamp;
-        bool need_recompile = last_compile_time <
+        var last_source_update_time = cache.timestamp;
+        bool need_recompile = last_source_update_time <
                               getModNewestUpdateTimestamp(pModDeclare.FolderPath);
         if (need_recompile) return true;
 
         foreach (var depen in pDependencies)
         {
-            need_recompile |= last_compile_time < getModLastCompileTimestamp(depen);
-            if (need_recompile) return true;
+            long dependency_compile_time = getModLastCompileTimestamp(depen);
+            if (dependency_compile_time > 0 && cache.compile_timestamp < dependency_compile_time) return true;
         }
 
         foreach (var depen in pOptionalDependencies)
         {
-            need_recompile |= last_compile_time < getModLastCompileTimestamp(depen);
-            if (need_recompile) return true;
+            long dependency_compile_time = getModLastCompileTimestamp(depen);
+            if (dependency_compile_time > 0 && cache.compile_timestamp < dependency_compile_time) return true;
         }
 
         return false;
@@ -726,13 +731,11 @@ internal static class ModInfoUtils
         if (!mod_compilation_caches.TryGetValue(pModUUID, out ModCompilationCache cache))
         {
             cache = new ModCompilationCache(pModUUID);
-            cache.disabled = false;
-            cache.timestamp = 0;
             mod_compilation_caches[pModUUID] = cache;
-            return;
         }
 
         cache.timestamp = 0;
+        cache.compile_timestamp = 0;
         if (pSave)
             SaveModRecords();
     }
@@ -740,16 +743,22 @@ internal static class ModInfoUtils
     // ReSharper disable once InconsistentNaming
     private static long getModLastCompileTimestamp(string pModUID)
     {
-        return mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache) ? cache.timestamp : 0;
+        return mod_compilation_caches.TryGetValue(pModUID, out ModCompilationCache cache)
+            ? cache.compile_timestamp
+            : 0;
     }
 
     private static long getModNewestUpdateTimestamp(string pModFolderPath)
     {
         var dir = new DirectoryInfo(pModFolderPath);
-        if (mod_last_update_timestamps.ContainsKey(dir.FullName)) return mod_last_update_timestamps[dir.FullName];
+        // Mod compilation runs in parallel (one task per node); this cache is read and written
+        // from multiple threads, so duplicate scans on a cold cache are preferable to a race.
+        if (mod_last_update_timestamps.TryGetValue(dir.FullName, out var cached_timestamp)) return cached_timestamp;
+        var gitignore_rules = GitIgnoreUtils.GetRuleSet(dir.FullName);
         var files = SystemUtils.SearchFileRecursive(dir.FullName, (filename) => !filename.StartsWith("."),
-            dirname => !dirname.StartsWith(".") &&
-                       !Paths.CompileIgnoreSearchDirectories.Contains(dirname));
+            (relative_path, dirname) => !dirname.StartsWith(".") &&
+                                        !Paths.CompileIgnoreSearchDirectories.Contains(dirname) &&
+                                        !gitignore_rules.IsIgnored(relative_path, true));
         var result = files.Select(filepath => new FileInfo(filepath))
             .Select(file_info =>
                 Math.Max(file_info.CreationTimeUtc.Ticks, file_info.LastWriteTimeUtc.Ticks))

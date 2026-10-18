@@ -598,7 +598,7 @@ public static class ModCompileLoadService
         List<List<ModDependencyNode>> stages =
             ModDependencyUtils.PartitionModsCompileStagesFromDependencyTopology(nodes);
         Dictionary<string, CompileNodeResult> completed_results = new();
-        bool should_clear_compile_records = false;
+        bool has_compile_failures = false;
 
         foreach (List<ModDependencyNode> stage in stages)
         {
@@ -631,7 +631,8 @@ public static class ModCompileLoadService
                     if (result.ShouldRecordCompileCache)
                     {
                         ModInfoUtils.RecordMod(node.mod_decl, result.AvailableDependencies.ToList(),
-                            result.AvailableOptionalDependencies.ToList(), false, false);
+                            result.AvailableOptionalDependencies.ToList(), ModInfoUtils.isModDisabled(node.mod_decl.UID),
+                            false);
                     }
 
                     if (result.UsedOptionalDependencyFallback)
@@ -643,14 +644,15 @@ public static class ModCompileLoadService
                     continue;
                 }
 
-                should_clear_compile_records = true;
+                has_compile_failures = true;
+                ModInfoUtils.clearModCompileTimestamp(node.mod_decl.UID, false);
                 ApplyCompileFailure(result);
             }
         }
 
-        if (should_clear_compile_records)
+        if (has_compile_failures)
         {
-            File.WriteAllText(Paths.ModCompileRecordPath, "");
+            ModInfoUtils.SaveModRecords();
         }
 
         LogService.PullAllConcurrentLogToCurrentThread();
@@ -729,7 +731,11 @@ public static class ModCompileLoadService
             return CreateFailedResult(pNode, BuildFailedDependencyCompileMessage(pNode.mod_decl, failed_dependencies));
         }
 
-        if (pNode.Loaded)
+        // A force compile of a source mod (hot reload) must recompile even though the mod is
+        // already loaded; returning the stale assembly reference here used to make every
+        // reload a silent no-op (no source change was ever detected or patched).
+        bool force_recompile = pForce && pNode.mod_decl.ModType == ModTypeEnum.NEOMOD;
+        if (pNode.Loaded && !force_recompile)
         {
             if (TryCreateMetadataReference(pNode.mod_decl, out MetadataReference reference))
             {
@@ -800,6 +806,73 @@ public static class ModCompileLoadService
         };
     }
 
+    private static List<string> GetCompileEnvironmentPreprocessorSymbols()
+    {
+        List<string> symbols = new();
+        switch (Application.platform)
+        {
+            case RuntimePlatform.WindowsPlayer:
+            case RuntimePlatform.WindowsEditor:
+                symbols.Add("NML_WINDOWS");
+                break;
+            case RuntimePlatform.LinuxPlayer:
+            case RuntimePlatform.LinuxEditor:
+                symbols.Add("NML_LINUX");
+                symbols.Add("NML_UNIX");
+                break;
+            case RuntimePlatform.OSXPlayer:
+            case RuntimePlatform.OSXEditor:
+                symbols.Add("NML_MACOS");
+                symbols.Add("NML_UNIX");
+                break;
+            case RuntimePlatform.Android:
+                symbols.Add("NML_ANDROID");
+                break;
+            case RuntimePlatform.IPhonePlayer:
+                symbols.Add("NML_IOS");
+                break;
+            default:
+                symbols.Add($"NML_PLATFORM_{Application.platform.ToString().ToUpperInvariant()}");
+                break;
+        }
+
+        string game_version = NormalizeGameVersion(Application.version);
+        if (!string.IsNullOrEmpty(game_version))
+        {
+            symbols.Add($"NML_GAME_VERSION_{game_version}");
+        }
+
+        return symbols;
+    }
+
+    private static string NormalizeGameVersion(string pVersion)
+    {
+        if (string.IsNullOrWhiteSpace(pVersion)) return null;
+
+        StringBuilder normalized = new();
+        bool previous_was_separator = true;
+        foreach (char character in pVersion.Trim())
+        {
+            if (char.IsLetterOrDigit(character))
+            {
+                normalized.Append(char.ToUpperInvariant(character));
+                previous_was_separator = false;
+            }
+            else if (!previous_was_separator)
+            {
+                normalized.Append('_');
+                previous_was_separator = true;
+            }
+        }
+
+        return normalized.ToString().Trim('_');
+    }
+
+    internal static string GetCompileEnvironmentSignature()
+    {
+        return string.Join(";", GetCompileEnvironmentPreprocessorSymbols());
+    }
+
     private static CompileNodeResult CompileModFromSource(ModDependencyNode pNode, string[] pAddInc,
         IReadOnlyDictionary<string, MetadataReference> pAvailableModReferences, CompileSessionContext pContext,
         bool pForce = false, bool pDisableOptionalDepen = false)
@@ -828,7 +901,7 @@ public static class ModCompileLoadService
             };
         }
 
-        var preprocessor_symbols = new List<string>();
+        var preprocessor_symbols = GetCompileEnvironmentPreprocessorSymbols();
         List<MetadataReference> references = pContext.DefaultReferences.ToList();
         references.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
         LoadAdditionalReferences(pContext, pAddInc, pModDecl.UID);
@@ -862,10 +935,12 @@ public static class ModCompileLoadService
         }
 
         var syntax_trees = new List<SyntaxTree>();
+        var mod_gitignore_rules = GitIgnoreUtils.GetRuleSet(pModDecl.FolderPath);
         var code_files = SystemUtils.SearchFileRecursive(pModDecl.FolderPath,
             file_name => file_name.EndsWith(".cs") && !file_name.StartsWith("."),
-            dir_name => !dir_name.StartsWith(".") &&
-                        !Paths.CompileIgnoreSearchDirectories.Contains(dir_name));
+            (relative_path, dir_name) => !dir_name.StartsWith(".") &&
+                                         !Paths.CompileIgnoreSearchDirectories.Contains(dir_name) &&
+                                         !mod_gitignore_rules.IsIgnored(relative_path, true));
         var embeded_resources = new List<ResourceDescription>();
 
         bool is_ncms_mod = false;
