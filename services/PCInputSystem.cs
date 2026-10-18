@@ -87,13 +87,13 @@ static class PCInputPatches
         __result = PCInputSystem.GetState(name) == KeyState.LetGo;
         return false;
     }
-    /* MOUSE UNUSUBLE DUE TO ICALLS
+   
     [HarmonyPatch(typeof(MoveCamera), nameof(MoveCamera.updateMobileCamera))]
     [HarmonyPrefix]
     public static bool CanMoveCamera()
     {
         return PCInputSystem.CurrentMode == PCInputSystem.Mode.None;
-    }
+    }/*  MOUSE UNUSUBLE DUE TO ICALLS
     [HarmonyPatch(typeof(Input), "get_touchCount")]
     [HarmonyPostfix] //prevent anything using touches during mouse mode
     public static void GetTouchCount(ref int __result)
@@ -583,16 +583,17 @@ public class PCInputSystem : MonoBehaviour
         Config = PCButtonSettings.LoadFromPath(Paths.PCInputConfigPath).FromSettings();
         Instance = new GameObject("PCInputSystem").AddComponent<PCInputSystem>();
         Object.DontDestroyOnLoad(Instance.gameObject);
-        InitGUI();
     }
 
     static void InitGUI()
     {
+        BoxStyle = GUI.skin.box;
         MainWindowFunction = ManagePCInputs;
         MouseWindowFunction = ManageMouse;
-        MainButton = new Rect(0, 0,60, 30);
-        MainWindow = new Rect(0, 0, Screen.width/2.5f, Screen.height/4.5f);
-        MouseButton = new Rect(60, 0,85, 30);
+        var Size = Helper.GetButtonSize("PCInput")*1.5f;
+        MainButton = new Rect(0, 0,Size.x, Size.y);
+        MainWindow = new Rect(0, 0, 300, 350);
+        //MouseButton = new Rect(Size.x, 0,Screen.width/10f, Screen.height/48f);
     }
 
     public static void SaveConfig(string Path)
@@ -633,7 +634,10 @@ public class PCInputSystem : MonoBehaviour
     internal static GUIStyle BoxStyle;
     private void OnGUI()
     {
-        BoxStyle ??= GUI.skin.box;
+        if (BoxStyle == null)
+        {
+            InitGUI();
+        }
         DrawButtons();
         if (CurrentMode == Mode.Editing)
         {
@@ -929,10 +933,9 @@ public class PCInputSystem : MonoBehaviour
         }
         else
         {
-           string Name = GUILayout.TextField("New Button Name");
            if (GUILayout.Button("Create New Button") && pendingKey != KeyCode.None)
            {
-               SelectedInput = CreateNewButton(Name, pendingKey, GetNextButtonRect(new Vector2(currentX, currentY)));
+               SelectedInput = CreateNewButton(pendingKey.ToString(), pendingKey, GetNextButtonRect(new Vector2(currentX, currentY)));
                pendingKey = KeyCode.None;
            }
         }
