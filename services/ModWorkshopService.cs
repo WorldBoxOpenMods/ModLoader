@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
 using NeoModLoader.constants;
@@ -16,6 +17,11 @@ internal static class ModWorkshopService
 {
     internal static Promise steamWorkshopPromise;
     private static IPlatformSpecificModWorkshopService workshopServiceBackend;
+
+    /// <summary>
+    ///     The platform backend, used to browse and download mods.
+    /// </summary>
+    internal static IPlatformSpecificModWorkshopService Backend => workshopServiceBackend;
 
     public static void Init()
     {
@@ -38,10 +44,10 @@ internal static class ModWorkshopService
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
     /// </summary>
-    public static Promise UploadMod(IMod mod, string changelog, bool verified = false)
+    public static Promise UploadMod(IMod mod, string changelog, bool verified = false, string uploadName = null)
     {
         ModDeclare mod_decl = mod.GetDeclaration();
-        string name = mod_decl.Name;
+        string name = string.IsNullOrEmpty(uploadName) ? mod_decl.Name : uploadName;
         string description = BuildModDescription(mod_decl);
         string workshopPath = Path.Combine(SaveManager.generateMainPath("workshop_upload_mod") + mod_decl.UID);
 
@@ -50,10 +56,9 @@ internal static class ModWorkshopService
 
         string previewImagePath = PreparePreviewImage(mod_decl, workshopPath);
 
-        // This works for BepInEx mods
         File.WriteAllText(Path.Combine(workshopPath, "mod.json"), JsonConvert.SerializeObject(mod_decl, Formatting.Indented));
 
-        return workshopServiceBackend.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified, mod_decl.GetAIAttributionDisplay(), mod_decl.Tags);
+        return workshopServiceBackend.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified, GetAISteamTag(mod_decl), mod_decl.Tags);
     }
 
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)
@@ -68,23 +73,84 @@ internal static class ModWorkshopService
 
         File.WriteAllText(Path.Combine(workshopPath, "mod.json"), JsonConvert.SerializeObject(mod_decl, Formatting.Indented));
 
-        return workshopServiceBackend.EditMod(fileID, previewImagePath, workshopPath, changelog, mod_decl.GetAIAttributionDisplay(), mod_decl.Tags);
+        return workshopServiceBackend.EditMod(fileID, previewImagePath, workshopPath, changelog, mod_decl);
     }
 
-    private static string BuildModDescription(ModDeclare mod_decl)
+    public static string UpdateDescriptionDisclaimer(string steamDescription, ModDeclare mod_decl)
+    {
+        string newDisclaimer = BuildAIDisclaimer(mod_decl);
+        if (string.IsNullOrEmpty(steamDescription))
+        {
+            return BuildModDescription(mod_decl);
+        }
+
+        // No AI involvement: strip any legacy AI disclosure section entirely instead of replacing it.
+        if (string.IsNullOrEmpty(newDisclaimer))
+        {
+            var stripped = FullDisclaimerRegex.Replace(steamDescription, "");
+            stripped = PartialDisclaimerRegex.Replace(stripped, "");
+            return Regex.Replace(stripped, @"\n{3,}", "\n\n").TrimEnd() + "\n";
+        }
+
+        if (FullDisclaimerRegex.IsMatch(steamDescription))
+        {
+            return FullDisclaimerRegex.Replace(steamDescription, newDisclaimer);
+        }
+
+        if (PartialDisclaimerRegex.IsMatch(steamDescription))
+        {
+            return PartialDisclaimerRegex.Replace(steamDescription, newDisclaimer);
+        }
+
+        string footerPattern = @"(?:\r?\n)+(?:ModLoader:\s*https?:\S+|模组加载器:\s*https?:\S+)[\s\S]*$";
+        Match footerMatch = Regex.Match(steamDescription, footerPattern, RegexOptions.IgnoreCase);
+        if (footerMatch.Success)
+        {
+            string beforeFooter = steamDescription.Substring(0, footerMatch.Index).TrimEnd();
+            string footer = steamDescription.Substring(footerMatch.Index).TrimStart();
+            return beforeFooter + "\n\n" + newDisclaimer + "\n\n" + footer;
+        }
+
+        return steamDescription.TrimEnd() + "\n\n" + newDisclaimer;
+    }
+
+    private static readonly Regex FullDisclaimerRegex = new(
+        @"\[hr\]\[\/hr\](?:(?!\[hr\]\[\/hr\])[\s\S])*?(?:AI Content Disclosure|Authorship:|generative AI|AI Content)[\s\S]*?\[hr\]\[\/hr\]",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex PartialDisclaimerRegex = new(
+        @"(?:\[hr\]\[\/hr\]\s*)?(?:\[b\])?(?:AI Content Disclosure|Authorship:)[\s\S]*?(?:\[hr\]\[\/hr\]|(?=(?:ModLoader:|模组加载器:|\z)))",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    ///     The AI tag to publish on the workshop item, or null when no tag should be attached:
+    ///     AI-made and AI-assisted mods always carry their disclosure tag, while Human Authored
+    ///     mods carry their tag unless the author picked the None badge style.
+    /// </summary>
+    public static string GetAISteamTag(ModDeclare mod_decl)
+    {
+        if (mod_decl.AIAttribution is "ai_made" or "ai_assisted") return mod_decl.GetAIAttributionDisplay();
+        if (string.Equals(mod_decl.AIBadgeStyle, "none", StringComparison.OrdinalIgnoreCase)) return null;
+        return "Human Authored";
+    }
+
+    public static string BuildModDescription(ModDeclare mod_decl)
     {
         string name = mod_decl.Name;
         string aiDisclaimer = BuildAIDisclaimer(mod_decl);
 
+        var body = string.IsNullOrEmpty(aiDisclaimer)
+            ? $"{mod_decl.Description}\n\n"
+            : $"{mod_decl.Description}\n\n{aiDisclaimer}\n\n";
+
         return $"{name} Uploaded by NeoModLoader\n" +
                $"{name} 由NeoModLoader上传\n\n" +
-               $"{mod_decl.Description}\n\n" +
-               $"{aiDisclaimer}\n\n" +
+               body +
                $"ModLoader: {CoreConstants.RepoURL}\n\n" +
                $"模组加载器: {CoreConstants.RepoURL}";
     }
 
-    private static string BuildAIDisclaimer(ModDeclare mod_decl)
+    public static string BuildAIDisclaimer(ModDeclare mod_decl)
     {
         if (mod_decl.AIAttribution == "ai_made" || mod_decl.AIAttribution == "ai_assisted")
         {
@@ -100,6 +166,9 @@ internal static class ModWorkshopService
                    $"(in compliance with Steam Workshop guidelines)\n" +
                    $"[hr][/hr]";
         }
+
+        // The None badge style (exclusive to Human Authored mods) omits the badge entirely.
+        if (string.Equals(mod_decl.AIBadgeStyle, "none", StringComparison.OrdinalIgnoreCase)) return "";
 
         return "[hr][/hr][b]Authorship:[/b] Handcrafted / Human Authored (No generative AI content)\n[hr][/hr]";
     }
@@ -146,7 +215,8 @@ internal static class ModWorkshopService
     private static string PreparePreviewImage(ModDeclare mod_decl, string workshopPath)
     {
         string previewImagePath;
-        if (string.IsNullOrEmpty(mod_decl.IconPath))
+        if (string.IsNullOrEmpty(mod_decl.IconPath) ||
+            !File.Exists(Path.Combine(mod_decl.FolderPath, mod_decl.IconPath)))
         {
             using Stream icon_stream = Assembly.GetExecutingAssembly()
                 .GetManifestResourceStream("NeoModLoader.resources.logo.png");
@@ -166,6 +236,12 @@ internal static class ModWorkshopService
     private static string ApplyAIBadgeToThumbnail(string originalPreviewPath, string attribution, string corner, string style, string workshopPath)
     {
         if (!CoreConstants.EnableBadges || string.IsNullOrEmpty(originalPreviewPath) || !File.Exists(originalPreviewPath))
+        {
+            return originalPreviewPath;
+        }
+
+        // The None style (Human Authored only) publishes the untouched preview.
+        if (string.Equals(style, "none", StringComparison.OrdinalIgnoreCase))
         {
             return originalPreviewPath;
         }

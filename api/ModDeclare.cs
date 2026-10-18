@@ -127,6 +127,7 @@ public class ModDeclare
         AICheckTranslation = modDeclare.AICheckTranslation;
         AICheckAudio = modDeclare.AICheckAudio;
         Tags = modDeclare.Tags ?? new List<string>();
+        SteamId = modDeclare.SteamId;
 
         Dependencies ??= Array.Empty<string>();
         OptionalDependencies ??= Array.Empty<string>();
@@ -154,6 +155,10 @@ public class ModDeclare
         Regex regex = new(@"^\d+$");
         if (!regex.IsMatch(pathSegments[++currentSearchIndex])) return;
         IsWorkshopLoaded = true;
+        if (SteamId == 0 && ulong.TryParse(pathSegments[currentSearchIndex], out ulong parsedId))
+        {
+            SteamId = parsedId;
+        }
     }
 
     /// <summary>
@@ -345,6 +350,9 @@ public class ModDeclare
         };
     }
 
+    [JsonProperty("steam_id")]
+    public ulong SteamId { get; internal set; }
+
     private List<string> _tags = new();
 
     [JsonProperty("tags")]
@@ -375,11 +383,9 @@ public class ModDeclare
     {
         try
         {
+            if (string.IsNullOrEmpty(FolderPath) || !Directory.Exists(FolderPath)) return;
             string jsonPath = Path.Combine(FolderPath, "mod.json");
-            if (File.Exists(jsonPath))
-            {
-                File.WriteAllText(jsonPath, JsonConvert.SerializeObject(this, Formatting.Indented));
-            }
+            File.WriteAllText(jsonPath, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
         catch (Exception e)
         {

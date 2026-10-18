@@ -22,7 +22,7 @@ internal static class ModInfoUtils
     private static Queue<ModDeclare> link_request_mods = new();
     private static bool to_install_bepinex;
 
-    private static Dictionary<string, ModCompilationCache> mod_compilation_caches;
+    private static ConcurrentDictionary<string, ModCompilationCache> mod_compilation_caches;
 
     private static readonly ConcurrentDictionary<string, long> mod_last_update_timestamps = new();
 
@@ -37,17 +37,18 @@ internal static class ModInfoUtils
         };
         try
         {
-            mod_compilation_caches =
-                JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings) ??
-                new Dictionary<string, ModCompilationCache>();
+            var dict = JsonConvert.DeserializeObject<Dictionary<string, ModCompilationCache>>(json, json_settings);
+            mod_compilation_caches = dict != null
+                ? new ConcurrentDictionary<string, ModCompilationCache>(dict)
+                : new ConcurrentDictionary<string, ModCompilationCache>();
         }
         catch (Exception)
         {
-            mod_compilation_caches = new Dictionary<string, ModCompilationCache>();
+            mod_compilation_caches = new ConcurrentDictionary<string, ModCompilationCache>();
         }
         finally
         {
-            mod_compilation_caches ??= new Dictionary<string, ModCompilationCache>();
+            mod_compilation_caches ??= new ConcurrentDictionary<string, ModCompilationCache>();
         }
 
         if (File.Exists(Paths.ModsDisabledRecordPath))
@@ -218,6 +219,7 @@ internal static class ModInfoUtils
             var mod = recogMod(mod_folder, false);
             if (mod != null)
             {
+                DisablePendingDownload(mod, mod_folder);
                 if (mod.ModType == ModTypeEnum.NEOMOD)
                 {
                     if (findModsIDs.Contains(mod.UID))
@@ -234,8 +236,9 @@ internal static class ModInfoUtils
                     mods.Add(mod);
                     findModsIDs.Add(mod.UID);
                 }
-                else if (mod.ModType == ModTypeEnum.BEPINEX)
+                else if (mod.ModType == ModTypeEnum.BEPINEX && !isModDisabled(mod.UID))
                 {
+                    // Linking runs an elevated mklink; a disabled mod (e.g. a new download) is left alone.
                     LinkBepInExModToLocalRequest(mod);
                 }
             }
@@ -262,6 +265,23 @@ internal static class ModInfoUtils
         }
 
         return recognized_mods;
+    }
+
+    /// <summary>
+    ///     Download Mods saves new downloads as disabled when it sees them finish. If Steam finished one while the
+    ///     game was closed, it has no record yet, which would make it enabled: save it as disabled here.
+    /// </summary>
+    private static void DisablePendingDownload(ModDeclare pMod, string pWorkshopFolder)
+    {
+        if (!ulong.TryParse(Path.GetFileName(pWorkshopFolder), out ulong file_id) ||
+            !ModHubSettings.Instance.PendingDownloads.Remove(file_id))
+        {
+            return;
+        }
+
+        setModDisabled(pMod.UID, true, false);
+        ModHubSettings.Instance.Save();
+        LogService.LogInfo($"Workshop item {file_id} ({pMod.Name}) finished downloading while the game was closed; saved as disabled");
     }
 
     internal static void DealWithBepInExModLinkRequests()

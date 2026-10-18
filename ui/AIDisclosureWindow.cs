@@ -174,28 +174,28 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         Text check_title = check_title_obj.GetComponent<Text>();
         OT.InitializeCommonText(check_title);
         check_title.alignment = TextAnchor.MiddleCenter;
-        check_title.text = "AI Components:";
+        check_title.text = LM.Get("AIDisclosure Components Title");
         check_title.fontSize = 10;
 
-        (toggle_code_bg, toggle_code_text) = createChecklistToggle("ToggleCode", "Code / Logic", () =>
+        (toggle_code_bg, toggle_code_text) = createChecklistToggle("ToggleCode", LM.Get("AIDisclosure Check Code"), () =>
         {
             check_code = !check_code;
             updateChecklistUI();
         });
 
-        (toggle_art_bg, toggle_art_text) = createChecklistToggle("ToggleArt", "Textures / Sprites", () =>
+        (toggle_art_bg, toggle_art_text) = createChecklistToggle("ToggleArt", LM.Get("AIDisclosure Check Art"), () =>
         {
             check_art = !check_art;
             updateChecklistUI();
         });
 
-        (toggle_trans_bg, toggle_trans_text) = createChecklistToggle("ToggleTrans", "Translations / Text", () =>
+        (toggle_trans_bg, toggle_trans_text) = createChecklistToggle("ToggleTrans", LM.Get("AIDisclosure Check Translation"), () =>
         {
             check_translation = !check_translation;
             updateChecklistUI();
         });
 
-        (toggle_audio_bg, toggle_audio_text) = createChecklistToggle("ToggleAudio", "Audio / Music", () =>
+        (toggle_audio_bg, toggle_audio_text) = createChecklistToggle("ToggleAudio", LM.Get("AIDisclosure Check Audio"), () =>
         {
             check_audio = !check_audio;
             updateChecklistUI();
@@ -211,7 +211,7 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         warning_text.resizeTextForBestFit = true;
         warning_text.resizeTextMinSize = 6;
         warning_text.resizeTextMaxSize = 9;
-        warning_text.text = "Steam Workshop requires accurate AI disclosure.";
+        warning_text.text = LM.Get("AIDisclosure Hint");
 
         GameObject buttonGroup = new GameObject("Buttons", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         buttonGroup.transform.SetParent(ContentTransform);
@@ -236,7 +236,7 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         backText.GetComponent<RectTransform>().sizeDelta = new Vector2(85, 25);
         OT.InitializeCommonText(backText);
         backText.alignment = TextAnchor.MiddleCenter;
-        backText.text = "Back";
+        backText.text = LM.Get("AIDisclosure Back");
 
         backButtonObj.GetComponent<Button>().onClick.AddListener(() =>
         {
@@ -257,7 +257,7 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         continueText.GetComponent<RectTransform>().sizeDelta = new Vector2(85, 25);
         OT.InitializeCommonText(continueText);
         continueText.alignment = TextAnchor.MiddleCenter;
-        continueText.text = "Continue";
+        continueText.text = LM.Get("AIDisclosure Continue");
 
         continueButtonObj.GetComponent<Button>().onClick.AddListener(confirmAndContinue);
     }
@@ -307,14 +307,21 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         var activeTags = selected_mod?.GetDeclaration().Tags;
         if (activeTags != null && activeTags.Count > 0)
         {
-            tagsSummary = $"\nTags: {string.Join(", ", activeTags)}\n";
+            tagsSummary = "\n" + LM.Get("AIDisclosure Confirm Tags").Replace("{0}", string.Join(", ", activeTags)) + "\n";
         }
 
-        string warning = $"Warning: Steam Workshop policy requires accurate AI disclosure.\n\n" +
-                         $"This mod will be published with '{selected_mod?.GetDeclaration().GetAIAttributionDisplay()}' tag." +
+        var ai_steam_tag = selected_mod?.GetDeclaration() is { } upload_declaration
+            ? NeoModLoader.services.ModWorkshopService.GetAISteamTag(upload_declaration)
+            : null;
+        var tag_sentence = ai_steam_tag != null
+            ? LM.Get("AIDisclosure Confirm With Tag").Replace("{0}", ai_steam_tag) + "\n"
+            : LM.Get("AIDisclosure Confirm Without Tag") + "\n";
+
+        string warning = LM.Get("AIDisclosure Confirm Warning") + "\n\n" +
+                         tag_sentence +
                          $"{tagsSummary}\n" +
-                         $"Misrepresenting AI content may lead to mod removal by Workshop moderators.\n\n" +
-                         $"Do you wish to continue?";
+                         LM.Get("AIDisclosure Confirm Removal Warning") + "\n\n" +
+                         LM.Get("AIDisclosure Confirm Continue");
 
         AIConfirmWindow.ShowWindow(warning, onConfirmAction);
     }
@@ -327,8 +334,11 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
             "ai_assisted" => "ai_made",
             _ => "not_ai"
         };
+        // The None style is exclusive to Human Authored mods.
+        if (current_attribution != "not_ai" && current_style == "none") current_style = "standard";
         updateAttributionText();
         updateChecklistUI();
+        updateStyleText();
         updateLivePreview();
     }
 
@@ -351,6 +361,9 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         {
             "standard" => "icon_only",
             "icon_only" => "watermark",
+            // The None style is exclusive to Human Authored mods.
+            "watermark" when current_attribution == "not_ai" => "none",
+            "none" => "standard",
             _ => "standard"
         };
         updateStyleText();
@@ -362,17 +375,17 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         if (ai_disclosure_text == null) return;
         string display = current_attribution switch
         {
-            "ai_made" => "AI-Made",
-            "ai_assisted" => "AI-Assisted",
-            _ => "Human Authored"
+            "ai_made" => LM.Get("AIDisclosure Attr AI Made"),
+            "ai_assisted" => LM.Get("AIDisclosure Attr AI Assisted"),
+            _ => LM.Get("AIDisclosure Attr Human")
         };
-        ai_disclosure_text.text = "AI Disclosure: " + display;
+        ai_disclosure_text.text = LM.Get("AIDisclosure Attr Label") + " " + display;
 
         if (warning_text != null)
         {
             warning_text.text = current_attribution == "not_ai"
-                ? "Handcrafted mod disclosure."
-                : "Steam Workshop requires accurate AI disclosure.";
+                ? LM.Get("AIDisclosure Hint Human")
+                : LM.Get("AIDisclosure Hint");
         }
     }
 
@@ -381,12 +394,12 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         if (ai_corner_text == null) return;
         string display = current_corner switch
         {
-            "top_right" => "Top Right",
-            "top_left" => "Top Left",
-            "bottom_left" => "Bottom Left",
-            _ => "Bottom Right"
+            "top_right" => LM.Get("AIDisclosure Corner Top Right"),
+            "top_left" => LM.Get("AIDisclosure Corner Top Left"),
+            "bottom_left" => LM.Get("AIDisclosure Corner Bottom Left"),
+            _ => LM.Get("AIDisclosure Corner Bottom Right")
         };
-        ai_corner_text.text = "Badge Corner: " + display;
+        ai_corner_text.text = LM.Get("AIDisclosure Corner Label") + " " + display;
     }
 
     private void updateStyleText()
@@ -394,11 +407,12 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         if (ai_style_text == null) return;
         string display = current_style switch
         {
-            "icon_only" => "Icon Stamp",
-            "watermark" => "Watermark",
-            _ => "Standard"
+            "icon_only" => LM.Get("AIDisclosure Style Icon"),
+            "watermark" => LM.Get("AIDisclosure Style Watermark"),
+            "none" => LM.Get("AIDisclosure Style None"),
+            _ => LM.Get("AIDisclosure Style Standard")
         };
-        ai_style_text.text = "Badge Style: " + display;
+        ai_style_text.text = LM.Get("AIDisclosure Style Label") + " " + display;
     }
 
     private void updateLivePreview()
@@ -406,6 +420,12 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
         if (preview_badge_image == null || preview_badge_rect == null) return;
 
         if (!CoreConstants.EnableBadges)
+        {
+            preview_badge_image.gameObject.SetActive(false);
+            return;
+        }
+
+        if (string.Equals(current_style, "none", StringComparison.OrdinalIgnoreCase))
         {
             preview_badge_image.gameObject.SetActive(false);
             return;
@@ -484,10 +504,10 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
             checklist_container.SetActive(showChecklist);
         }
 
-        setToggleVisual(toggle_code_bg, toggle_code_text, "Code / Logic", check_code);
-        setToggleVisual(toggle_art_bg, toggle_art_text, "Textures / Sprites", check_art);
-        setToggleVisual(toggle_trans_bg, toggle_trans_text, "Translations / Text", check_translation);
-        setToggleVisual(toggle_audio_bg, toggle_audio_text, "Audio / Music", check_audio);
+        setToggleVisual(toggle_code_bg, toggle_code_text, LM.Get("AIDisclosure Check Code"), check_code);
+        setToggleVisual(toggle_art_bg, toggle_art_text, LM.Get("AIDisclosure Check Art"), check_art);
+        setToggleVisual(toggle_trans_bg, toggle_trans_text, LM.Get("AIDisclosure Check Translation"), check_translation);
+        setToggleVisual(toggle_audio_bg, toggle_audio_text, LM.Get("AIDisclosure Check Audio"), check_audio);
     }
 
     private void setToggleVisual(Image bg, Text text, string label, bool active)
@@ -520,7 +540,8 @@ internal class AIDisclosureWindow : AbstractWindow<AIDisclosureWindow>
             Instance.check_translation = decl.AICheckTranslation;
             Instance.check_audio = decl.AICheckAudio;
 
-            if (string.IsNullOrEmpty(decl.IconPath))
+            if (string.IsNullOrEmpty(decl.IconPath) ||
+                !File.Exists(Path.Combine(decl.FolderPath, decl.IconPath)))
             {
                 Instance.preview_icon_image.sprite = InternalResourcesGetter.GetIcon();
             }

@@ -11,21 +11,27 @@ namespace NeoModLoader.ui;
 
 internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
 {
+    private static bool is_update_mode;
     private Text changelog_text;
     private Text mod_author_text;
     private Text mod_description_text;
     private Text mod_fileid_text;
+    private InputField mod_fileid_inputfield;
+    private NameInput mod_fileid_name_input;
     private Image mod_icon_image;
     private Text mod_name_text;
     private Text mod_version_text;
     private IMod selected_mod;
     private readonly Dictionary<string, (Image bg, Text text)> tag_buttons = new();
+    private LocalizedText upload_button_text_localized;
 
-    public static void ShowWindow(IMod mod)
+    public static void ShowWindow(IMod mod, bool isUpdate = false)
     {
+        is_update_mode = isUpdate;
         Instance.selected_mod = mod;
         ModDeclare mod_decl = mod.GetDeclaration();
-        if (string.IsNullOrEmpty(mod_decl.IconPath))
+        if (string.IsNullOrEmpty(mod_decl.IconPath) ||
+            !File.Exists(Path.Combine(mod_decl.FolderPath, mod_decl.IconPath)))
         {
             Instance.mod_icon_image.sprite = InternalResourcesGetter.GetIcon();
         }
@@ -41,7 +47,26 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         Instance.mod_version_text.text = mod_decl.Version;
         Instance.mod_description_text.text = mod_decl.Description;
 
+        if (is_update_mode && mod_decl.SteamId == 0)
+        {
+            Instance.mod_fileid_text.text = "";
+            if (Instance.mod_fileid_inputfield != null) Instance.mod_fileid_inputfield.text = "";
+            if (Instance.mod_fileid_name_input != null) Instance.mod_fileid_name_input.setText("");
+        }
+        else
+        {
+            Instance.mod_fileid_text.text = mod_decl.Name;
+            if (Instance.mod_fileid_inputfield != null) Instance.mod_fileid_inputfield.text = mod_decl.Name;
+            if (Instance.mod_fileid_name_input != null) Instance.mod_fileid_name_input.setText(mod_decl.Name);
+        }
+
         Instance.updateTagButtonsUI();
+
+        if (Instance.upload_button_text_localized != null)
+        {
+            Instance.upload_button_text_localized.key = is_update_mode ? "ModUpdate Title" : "ModUpload Title";
+            Instance.upload_button_text_localized.updateText();
+        }
 
         ScrollWindow.showWindow(WindowId);
     }
@@ -103,7 +128,20 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         NameInput input_fileid_input = input_fileid.AddComponent<NameInput>();
         input_fileid_input.inputField = input_fileid_inputfield.GetComponent<InputField>();
         input_fileid_input.textField = input_fileid_inputfield_text;
-        input_fileid_input.addListener((fileid) => { });
+        mod_fileid_inputfield = input_fileid_input.inputField;
+        mod_fileid_name_input = input_fileid_input;
+        input_fileid_input.addListener((fileid) =>
+        {
+            if (is_update_mode && ulong.TryParse(fileid, out ulong parsedId) && parsedId > 0)
+            {
+                if (selected_mod != null)
+                {
+                    var decl = selected_mod.GetDeclaration();
+                    decl.SteamId = parsedId;
+                    decl.Save();
+                }
+            }
+        });
 
         RectTransform input_fileid_inputfield_rect = input_fileid_inputfield.GetComponent<RectTransform>();
         input_fileid_inputfield_rect.sizeDelta = new(170, 15);
@@ -219,7 +257,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             btn_txt.resizeTextForBestFit = true;
             btn_txt.resizeTextMinSize = 6;
             btn_txt.resizeTextMaxSize = 9;
-            btn_txt.text = currentTag;
+            btn_txt.text = LM.Get("ModTag_" + currentTag);
 
             btn_obj.GetComponent<Button>().onClick.AddListener(() =>
             {
@@ -294,7 +332,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         Text upload_button_text_text = upload_button_text.GetComponent<Text>();
         OT.InitializeCommonText(upload_button_text_text);
         upload_button_text_text.alignment = TextAnchor.MiddleCenter;
-        LocalizedText upload_button_text_localized = upload_button_text.GetComponent<LocalizedText>();
+        upload_button_text_localized = upload_button_text.GetComponent<LocalizedText>();
         upload_button_text_localized.key = "ModUpload Title";
 
         upload_button.GetComponent<Button>().onClick.AddListener(uploadSelectedMod);
@@ -307,26 +345,90 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         AIDisclosureWindow.ShowWindow(selected_mod, executeUpload);
     }
 
+    public static void ExecuteDirectUpload(IMod mod)
+    {
+        if (mod == null) return;
+        Instance.selected_mod = mod;
+        is_update_mode = true;
+        var decl = mod.GetDeclaration();
+        if (decl.SteamId > 0)
+        {
+            Instance.executeUpload();
+        }
+        else
+        {
+            ShowWindow(mod, true);
+        }
+    }
+
+    private string GetInputFileIdText()
+    {
+        if (Instance.mod_fileid_inputfield != null && !string.IsNullOrEmpty(Instance.mod_fileid_inputfield.text))
+        {
+            return Instance.mod_fileid_inputfield.text;
+        }
+        return mod_fileid_text.text;
+    }
+
+    private ulong ResolveTargetWorkshopId(string inputText)
+    {
+        if (!string.IsNullOrEmpty(inputText) && ulong.TryParse(inputText, out ulong parsedId) && parsedId > 0)
+        {
+            return parsedId;
+        }
+        return selected_mod != null ? selected_mod.GetDeclaration().SteamId : 0;
+    }
+
+    private void SaveModWorkshopId(ulong fileId)
+    {
+        if (selected_mod == null) return;
+        var decl = selected_mod.GetDeclaration();
+        decl.SteamId = fileId;
+        decl.Save();
+    }
+
+    private void ExecuteUpdateMod(ulong fileIdLong)
+    {
+        ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
+            .Then(() =>
+            {
+                SaveModWorkshopId(fileIdLong);
+                ModUploadingProgressWindow.FinishUpload();
+            }, ModUploadingProgressWindow.ErrorUpload).Done();
+    }
+
+    private void ExecuteNewUpload(string uploadName)
+    {
+        ModUploadAuthenticationService.Authenticate().Then(
+            () => ModWorkshopService.UploadMod(selected_mod, changelog_text.text,
+                ModUploadAuthenticationService.Authed, uploadName)).Then(() =>
+            {
+                if (ModUploadingProgressWindow.Instance.fileId > 0)
+                {
+                    SaveModWorkshopId(ModUploadingProgressWindow.Instance.fileId);
+                }
+                ModUploadingProgressWindow.FinishUpload();
+            },
+            ModUploadingProgressWindow.ErrorUpload);
+    }
+
     private void executeUpload()
     {
-        string fileId = mod_fileid_text.text;
-        if (fileId.Any(c => !char.IsDigit(c)))
+        string inputText = GetInputFileIdText();
+        if (is_update_mode)
         {
-            fileId = null;
+            ulong fileIdLong = ResolveTargetWorkshopId(inputText);
+            if (fileIdLong > 0)
+            {
+                ExecuteUpdateMod(fileIdLong);
+                return;
+            }
         }
 
-        if (string.IsNullOrEmpty(fileId))
-        {
-            ModUploadAuthenticationService.Authenticate().Then(
-                () => ModWorkshopService.UploadMod(selected_mod, changelog_text.text,
-                    ModUploadAuthenticationService.Authed)).Then(ModUploadingProgressWindow.FinishUpload,
-                ModUploadingProgressWindow.ErrorUpload);
-            return;
-        }
-
-        ulong fileIdLong = ulong.Parse(fileId);
-        ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
-            .Then(ModUploadingProgressWindow.FinishUpload, ModUploadingProgressWindow.ErrorUpload).Done();
+        string uploadName = (!string.IsNullOrEmpty(inputText) && !ulong.TryParse(inputText, out _))
+            ? inputText
+            : null;
+        ExecuteNewUpload(uploadName);
     }
 
     private void updateTagButtonsUI()
@@ -341,12 +443,12 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             if (active)
             {
                 bg.color = new Color(0.2f, 0.65f, 0.25f, 0.85f);
-                txt.text = $"<color=#A0FFA0>✓</color> {tag}";
+                txt.text = $"<color=#A0FFA0>✓</color> {LM.Get("ModTag_" + tag)}";
             }
             else
             {
                 bg.color = new Color(0.18f, 0.18f, 0.18f, 0.7f);
-                txt.text = $"<color=#888888>{tag}</color>";
+                txt.text = $"<color=#888888>{LM.Get("ModTag_" + tag)}</color>";
             }
         }
     }

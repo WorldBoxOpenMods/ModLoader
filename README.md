@@ -42,32 +42,22 @@ It is recommended to subscribe to the NML item on the Steam Workshop to receive 
 3. enable experimental mode and start the game
 
 
-### Automatic Installation
-
-The installer is available for both Linux and Windows.  
-Click the links below to download:
-* [Linux Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-linux)
-* [Windows Installer](https://github.com/gmBlahaj/nml-installer/releases/download/nml/nml-setup-win.exe)
-
-</br>
-
-### Downgrade Tool
-
-If you're trying to play mods that aren't compatible with the latest version of Worldbox, you can use **Worldbox Rewind** to downgrade to an older version:
-* [Download Worldbox Rewind](https://gmblahaj.xyz/pages/rewind)
-
 
 <h2 align="center">Others</h2>
 <h3 align="center">
 <a href="https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-en.yaml&title=%5BBug%5D%3A+">
 Report BUG</a>
 </h3>
+
+<h2 align="center">New to Modding?</h2>
 <h3 align="center">
-<a href="https://markamibox.github.io/worldbox-modding-box/#/index">Make mod</a>
+  <a href="https://markamibox.github.io/worldbox-modding-box/#/index">
+    Check out the Modding Documentation
+  </a>
 </h3>
-<p align="center">
-    You can contribute to accelerate the <a href="https://github.com/WorldBoxOpenMods/Documentation-en">English Version</a>
-</p>
+
+<hr/>
+
 <h3 align="center">
     How to compile NML
 </h3>

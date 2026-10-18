@@ -25,7 +25,7 @@ public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
 /// You should create a subclass of this class, and call CreateAndInit to create a window.
 /// <para>In addition, you need to create a subclass of <see cref="AbstractListWindowItem{TItem}"/> for setup each item of the list </para>
 /// </remarks>
-/// <example><see cref="ui.ModListWindow"/></example>
+/// <example><see cref="ui.ModManagerWindow"/></example>
 /// <typeparam name="T">The type of the class which inherits this class </typeparam>
 /// <typeparam name="TItem">The type of object passed into AbstractListWindowItem.Setup as parameter </typeparam>
 public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
