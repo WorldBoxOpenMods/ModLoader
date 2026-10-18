@@ -18,6 +18,11 @@ internal static class ModWorkshopService
     internal static Promise steamWorkshopPromise;
     private static IPlatformSpecificModWorkshopService workshopServiceBackend;
 
+    /// <summary>
+    ///     The platform backend, used to browse and download mods.
+    /// </summary>
+    internal static IPlatformSpecificModWorkshopService Backend => workshopServiceBackend;
+
     public static void Init()
     {
         steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
