@@ -33,7 +33,7 @@ for short. Detailed introduction look [Gitbook](https://markamibox.github.io/wor
 2. Delete NCMS_memload.dll (They can be installed together but not suggested)
 3. Start the game with experimental mode enabled
 
-It is recommended to subscribe to the NML item on the Steam Workshop to receive automatic updates
+<strong><mark>It is recommended to subscribe to the NML item on the Steam Workshop to receive automatic updates</mark></strong>
 
 ### Android Installation
 
@@ -47,6 +47,9 @@ It is recommended to subscribe to the NML item on the Steam Workshop to receive 
 <h3 align="center">
 <a href="https://github.com/WorldBoxOpenMods/ModLoader/issues/new?assignees=&labels=bug&projects=&template=bug-report-en.yaml&title=%5BBug%5D%3A+">
 Report BUG</a>
+
+<hr/>
+  
 </h3>
 
 <h2 align="center">New to Modding?</h2>
