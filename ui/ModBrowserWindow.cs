@@ -210,7 +210,7 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
             ((ModBrowserRow)row).UpdateStatus();
         }
 
-        vb if (pEntry.State is DownloadState.Completed or DownloadState.Failed or DownloadState.Cancelled &&
+        if (pEntry.State is DownloadState.Completed or DownloadState.Failed or DownloadState.Cancelled &&
             query.Install != InstallFilter.All)
         {
             if (IsOpened) Refresh();
