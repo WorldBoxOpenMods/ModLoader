@@ -107,6 +107,7 @@ internal class ModBrowserPage : ModHubListPage<ModBrowserPage, ModListing>
 
     private void StartLoading()
     {
+        ModDownloadService.ClearItemStates();
         CatalogStatus steam = ModDownloadService.CheckSteam();
         if (steam != CatalogStatus.Ready)
         {
@@ -127,6 +128,7 @@ internal class ModBrowserPage : ModHubListPage<ModBrowserPage, ModListing>
 
     internal override void Refresh()
     {
+        needs_refresh = false;
         WorkshopCatalog catalog = ModDownloadService.Catalog;
         query.SearchText = search_text;
         List<ModListing> listings = query.Apply(catalog.Items, DateTime.UtcNow, ModDownloadService.GetStatus,

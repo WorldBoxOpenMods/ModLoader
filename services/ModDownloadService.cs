@@ -21,6 +21,9 @@ internal static class ModDownloadService
     // Mods whose files changed on disk this session in a way only a restart applies.
     private static readonly HashSet<string> restart_pending = new();
     private static readonly Dictionary<ulong, string> descriptions = new();
+    private static readonly WorkshopItemStateCache item_states = new(file_id => Steam.GetItemState(file_id),
+        () => DateTime.UtcNow);
+    private static CatalogStatus cached_steam_status = CatalogStatus.Empty;
     private static WorkshopCatalog catalog;
     private static WorkshopDownloadQueue queue;
     private static WorkshopAuthorNames authors;
@@ -67,15 +70,36 @@ internal static class ModDownloadService
 
     public static ListingStatus GetStatus(ModListing pListing)
     {
-        WorkshopItemState state = CheckSteam() == CatalogStatus.Ready ? Steam.GetItemState(pListing.Id) : default;
-        return ModListingQuery.ResolveStatus(Queue.Find(pListing.Id), state);
+        DownloadEntry entry = Queue.Find(pListing.Id);
+        if (entry?.State is DownloadState.Queued or DownloadState.Downloading or DownloadState.Installing
+            or DownloadState.Failed)
+        {
+            return ModListingQuery.ResolveStatus(entry, default);
+        }
+
+        return ModListingQuery.ResolveStatus(entry, GetItemState(pListing.Id));
     }
+
+    private static WorkshopItemState GetItemState(ulong pFileId)
+    {
+        CatalogStatus steam = CheckSteam();
+        if (steam != cached_steam_status)
+        {
+            ClearItemStates();
+            cached_steam_status = steam;
+        }
+
+        return steam == CatalogStatus.Ready ? item_states.Get(pFileId) : default;
+    }
+
+    internal static void ClearItemStates() => item_states.Clear();
 
     /// <summary>
     ///     Queue every listed mod that Steam has an update for. Returns how many were queued.
     /// </summary>
     public static int UpdateAll()
     {
+        ClearItemStates();
         List<ModListing> outdated = Catalog.Items.Where(listing => GetStatus(listing) == ListingStatus.UpdateAvailable)
             .ToList();
         foreach (ModListing listing in outdated) Queue.Enqueue(listing);
@@ -87,9 +111,9 @@ internal static class ModDownloadService
     /// </summary>
     public static bool HasUpdate(ModDeclare pMod)
     {
-        return pMod.IsWorkshopLoaded && CheckSteam() == CatalogStatus.Ready &&
+        return pMod.IsWorkshopLoaded &&
                InstalledMod.TryGetWorkshopId(pMod.FolderPath, CoreConstants.GameId, out ulong file_id) &&
-               Steam.GetItemState(file_id).NeedsUpdate;
+               GetItemState(file_id).NeedsUpdate;
     }
 
     /// <summary>
@@ -110,6 +134,7 @@ internal static class ModDownloadService
         if (!InstalledMod.TryGetWorkshopId(pMod.FolderPath, CoreConstants.GameId, out ulong file_id)) return false;
 
         bool unsubscribed = await Steam.UnsubscribeAsync(file_id);
+        item_states.Invalidate(file_id);
         if (unsubscribed) restart_pending.Add(pMod.UID);
         else LogService.LogWarning($"Steam refused to unsubscribe Workshop item {file_id} ({pMod.Name})");
         return unsubscribed;
@@ -156,6 +181,7 @@ internal static class ModDownloadService
         var download_queue = new WorkshopDownloadQueue(Steam, Install, Task.Delay, () => DateTime.UtcNow);
         download_queue.Changed += entry =>
         {
+            item_states.Invalidate(entry.Listing.Id);
             if (entry.State is DownloadState.Cancelled or DownloadState.Failed) SetPending(entry.Listing.Id, false);
         };
         return download_queue;

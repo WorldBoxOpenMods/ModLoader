@@ -92,8 +92,9 @@ internal sealed class ModListingQuery
         IReadOnlyDictionary<ulong, int> pTrendingRank)
     {
         IEnumerable<ModListing> matches = pListings.Where(listing =>
-            IsRecentEnough(listing, pNow) && MatchesInstall(pStatus(listing)) && MatchesAIContent(listing) &&
-            MatchesCategories(listing) && MatchesSearch(listing, pAuthorName));
+            IsRecentEnough(listing, pNow) && MatchesAIContent(listing) &&
+            MatchesCategories(listing) && MatchesSearch(listing, pAuthorName) &&
+            (Install == InstallFilter.All || MatchesInstall(pStatus(listing))));
         return Order(matches, pTrendingRank).ToList();
     }
 
