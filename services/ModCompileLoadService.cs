@@ -700,6 +700,13 @@ public static class ModCompileLoadService
     private static void SeedAvailableModReferencesRecursive(ModDependencyNode pNode, CompileSessionContext pContext,
         ISet<string> pSelectedNodeUids, ISet<string> pVisited)
     {
+        // A cached DLL does not make a disabled mod available. Keep references for the current
+        // session's loaded mods and for dependencies being enabled by this compilation plan.
+        if (!pNode.Loaded && !pNode.DesiredEnabled && !pSelectedNodeUids.Contains(pNode.mod_decl.UID))
+        {
+            return;
+        }
+
         if (!pVisited.Add(pNode.mod_decl.UID))
         {
             return;
@@ -772,8 +779,8 @@ public static class ModCompileLoadService
         bool has_available_optional_depen =
             pNode.mod_decl.OptionalDependencies.Any(pAvailableModReferences.ContainsKey);
         CompileNodeResult compile_result =
-            CompileModFromSource(pNode, pNode.GetAdditionReferences().ToArray(), pAvailableModReferences, pContext,
-                pForce);
+            CompileModFromSource(pNode, pNode.GetAdditionReferences(pAvailableModReferences.ContainsKey).ToArray(),
+                pAvailableModReferences, pContext, pForce);
         if (compile_result.Success)
         {
             return compile_result;

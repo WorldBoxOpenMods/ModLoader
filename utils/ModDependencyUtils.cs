@@ -67,8 +67,15 @@ public class ModDependencyNode
         return references;
     }
 
+    internal List<string> GetAdditionReferences(Func<string, bool> pIsAvailable)
+    {
+        List<string> references = new();
+        collectAdditionReferences(this, true, references, new HashSet<string>(), pIsAvailable);
+        return references;
+    }
+
     private static void collectAdditionReferences(ModDependencyNode pNode, bool pRecursive, List<string> pReferences,
-        HashSet<string> pVisited)
+        HashSet<string> pVisited, Func<string, bool> pIsAvailable = null)
     {
         if (!pVisited.Add(pNode.mod_decl.UID))
         {
@@ -88,7 +95,10 @@ public class ModDependencyNode
 
         foreach (ModDependencyNode dependency in pNode.depend_on)
         {
-            collectAdditionReferences(dependency, true, pReferences, pVisited);
+            if (pIsAvailable == null || pIsAvailable(dependency.mod_decl.UID))
+            {
+                collectAdditionReferences(dependency, true, pReferences, pVisited, pIsAvailable);
+            }
         }
     }
 }
