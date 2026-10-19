@@ -74,10 +74,10 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
     }
 
     public Promise UploadMod(string name, string description, string previewImagePath, string workshopPath,
-        string changelog, bool verified, string aiTag = null, List<string> extraTags = null)
+        string changelog, string aiTag = null, List<string> extraTags = null)
     {
         // Create Upload Files Descriptor
-        Editor editor = Editor.NewCommunityFile.WithTag(verified ? "Mod" : "Unverified Mod")
+        Editor editor = Editor.NewCommunityFile.WithTag(WorkshopTags.Mod)
             .WithTitle(name).WithDescription(description).WithPreviewFile(previewImagePath)
             .WithContent(workshopPath).WithChangeLog(changelog);
         if (!string.IsNullOrEmpty(aiTag))
@@ -97,21 +97,17 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
 
         Promise promise = new();
         ModUploadingProgressWindow.UploadProgress uploadProgress = ModUploadingProgressWindow.ShowWindow();
-        editor.SubmitAsync(uploadProgress).ContinueWith(delegate(Task<PublishResult> taskResult)
+        ExecuteUpload(editor, promise, uploadProgress);
+        return promise;
+    }
+
+    private async void ExecuteUpload(Editor pEditor, Promise pPromise,
+        ModUploadingProgressWindow.UploadProgress pProgress)
+    {
+        try
         {
-            if (taskResult.Status != TaskStatus.RanToCompletion)
-            {
-                promise.Reject(taskResult.Exception.GetBaseException());
-                return;
-            }
-
-            PublishResult result = taskResult.Result;
-            // Result process refer to: https://partner.steamgames.com/doc/api/steam_api#EResult
-            if (!result.Success)
-            {
-                LogService.LogError("!result.Success");
-            }
-
+            // Resume on Unity's context before updating the upload window or resolving UI callbacks.
+            PublishResult result = await pEditor.SubmitAsync(pProgress);
             if (result.NeedsWorkshopAgreement)
             {
                 Application.OpenURL("steam://url/CommunityFilePage/" + result.FileId);
@@ -119,15 +115,17 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
 
             if (result.Result != Result.OK)
             {
-                promise.Reject(new Exception("Something went wrong: " + result.Result.ToString()));
+                pPromise.Reject(new Exception(result.Result.ToString()));
                 return;
             }
 
             ModUploadingProgressWindow.Instance.fileId = result.FileId;
-            promise.Resolve();
-        }, TaskScheduler.Default);
-
-        return promise;
+            pPromise.Resolve();
+        }
+        catch (Exception exception)
+        {
+            pPromise.Reject(exception);
+        }
     }
 
     public Promise EditMod(ulong fileID, string previewImagePath, string workshopPath, string changelog, ModDeclare mod_decl)
@@ -170,7 +168,7 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
             .WithPreviewFile(previewImagePath)
             .WithContent(workshopPath)
             .WithChangeLog(changelog)
-            .WithTag("Mod");
+            .WithTag(WorkshopTags.Mod);
 
         if (!string.IsNullOrEmpty(desc))
         {
@@ -255,12 +253,9 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
 
     static async Task<List<winsteamwork::Steamworks.Ugc.Item>> GetSubscribedItems()
     {
-        bool available(winsteamwork::Steamworks.Ugc.Item item)
-        {
-            return true;
-        }
-
-        Query q = Query.ItemsReadyToUse.WhereUserSubscribed().WithTag("Mod");
+        Query q = Query.ItemsReadyToUse.WhereUserSubscribed()
+            .WithTag(WorkshopTags.Mod).WithTag(WorkshopTags.UnverifiedMod)
+            .MatchAnyTag().WithoutTag(WorkshopTags.ModLoader);
         q = q.SortByCreationDateAsc();
         subscribedItems.Clear();
         int count = 1;
@@ -272,21 +267,16 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
             ResultPage? resultPage = await q.GetPageAsync(page++);
             if (!resultPage.HasValue) break;
 
-            count = resultPage.Value.TotalCount;
-            curr += resultPage.Value.ResultCount;
+            using ResultPage result = resultPage.Value;
+            count = result.TotalCount;
+            curr += result.ResultCount;
+            if (result.ResultCount == 0) break;
 
-            foreach (var entry in resultPage.Value.Entries)
+            foreach (var entry in result.Entries)
             {
                 if (entry.IsInstalled && !entry.IsDownloadPending && !entry.IsDownloading)
                 {
-                    if (!available(entry))
-                    {
-                        LogService.LogWarning($"Incomplete mod {entry.Title} found, skip");
-                    }
-                    else
-                    {
-                        subscribedItems.Add(entry);
-                    }
+                    subscribedItems.Add(entry);
                 }
             }
         }

@@ -353,7 +353,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         var decl = mod.GetDeclaration();
         if (decl.SteamId > 0)
         {
-            Instance.executeUpload();
+            Instance.ExecuteUpload(decl.SteamId);
         }
         else
         {
@@ -399,9 +399,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
 
     private void ExecuteNewUpload(string uploadName)
     {
-        ModUploadAuthenticationService.Authenticate().Then(
-            () => ModWorkshopService.UploadMod(selected_mod, changelog_text.text,
-                ModUploadAuthenticationService.Authed, uploadName)).Then(() =>
+        ModWorkshopService.UploadMod(selected_mod, changelog_text.text, uploadName).Then(() =>
             {
                 if (ModUploadingProgressWindow.Instance.fileId > 0)
                 {
@@ -412,23 +410,34 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             ModUploadingProgressWindow.ErrorUpload);
     }
 
-    private void executeUpload()
-    {
-        string inputText = GetInputFileIdText();
-        if (is_update_mode)
-        {
-            ulong fileIdLong = ResolveTargetWorkshopId(inputText);
-            if (fileIdLong > 0)
-            {
-                ExecuteUpdateMod(fileIdLong);
-                return;
-            }
-        }
+    private void executeUpload() => ExecuteUpload(null);
 
-        string uploadName = (!string.IsNullOrEmpty(inputText) && !ulong.TryParse(inputText, out _))
-            ? inputText
-            : null;
-        ExecuteNewUpload(uploadName);
+    private void ExecuteUpload(ulong? pTargetFileId)
+    {
+        try
+        {
+            string inputText = GetInputFileIdText();
+            if (is_update_mode)
+            {
+                ulong fileIdLong = pTargetFileId ?? ResolveTargetWorkshopId(inputText);
+                if (fileIdLong > 0)
+                {
+                    ExecuteUpdateMod(fileIdLong);
+                    return;
+                }
+            }
+
+            string uploadName = (!string.IsNullOrEmpty(inputText) && !ulong.TryParse(inputText, out _))
+                ? inputText
+                : null;
+            ExecuteNewUpload(uploadName);
+        }
+        catch (Exception exception)
+        {
+            // File preparation can fail before the backend has opened the progress window.
+            ModUploadingProgressWindow.ShowWindow();
+            ModUploadingProgressWindow.ErrorUpload(exception);
+        }
     }
 
     private void updateTagButtonsUI()

@@ -11,7 +11,6 @@ internal static class UIManager
         InformationWindow.CreateWindow("Information", "Information Title");
         ModUploadWindow.CreateAndInit("ModUpload");
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
-        ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         ModConfigureWindow.CreateAndInit("ModConfigure");
         AIDisclosureWindow.CreateAndInit("AIDisclosureWindow");
         AIConfirmWindow.CreateAndInit("AIConfirmWindow");

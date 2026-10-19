@@ -6,12 +6,12 @@ namespace NeoModLoader.services;
 internal static class WorkshopTags
 {
     /// <summary>
-    ///     Every upload since the upload check was removed (ModUploadAuthenticationService.Authed is always true).
+    ///     All new mod uploads.
     /// </summary>
     public const string Mod = "Mod";
 
     /// <summary>
-    ///     Uploads that skipped the old check. Treated like <see cref="Mod" />: the check never reviewed code.
+    ///     Legacy tag, kept only to discover existing Workshop items. New uploads use <see cref="Mod" />.
     /// </summary>
     public const string UnverifiedMod = "Unverified Mod";
 

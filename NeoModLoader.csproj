@@ -22,7 +22,7 @@
         <AssemblyOriginatorKeyFile>wbopenmods.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
-  <!-- Used for HarmonyPatch, Authentication, Auto-update, Hotfix, Steam workshop-->
+  <!-- Used for HarmonyPatch, Auto-update, Hotfix, Steam workshop-->
     <ItemGroup>
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>
