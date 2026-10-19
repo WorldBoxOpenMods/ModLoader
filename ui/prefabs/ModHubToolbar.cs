@@ -39,11 +39,34 @@ internal class ModHubToolbar : MonoBehaviour
         return button;
     }
 
+    /// <summary>Cycle through enum choices and keep the icon and localized description in sync.</summary>
+    internal SimpleButton AddChoice<T>(string pName, string pTooltipKey, Func<T> pGetValue, Action<T> pOnChanged,
+        Func<T, string> pIconName, string pDescriptionPrefix = null) where T : Enum
+    {
+        var values = (T[])Enum.GetValues(typeof(T));
+        SimpleButton button = AddIcon(pName, null, () =>
+        {
+            int next = (Array.IndexOf(values, pGetValue()) + 1) % values.Length;
+            pOnChanged(values[next]);
+        }, pTooltipKey);
+        void UpdateChoice()
+        {
+            T value = pGetValue();
+            button.Icon.sprite = SpriteTextureLoader.getSprite("ui/icons/" + pIconName(value));
+            // Native tooltips normalize keys to lower case before looking them up.
+            button.TipButton.textOnClickDescription =
+                (pDescriptionPrefix ?? pTooltipKey) + "_" + value.ToString().ToLowerInvariant();
+        }
+        button.Button.onClick.AddListener(UpdateChoice);
+        UpdateChoice();
+        return button;
+    }
+
     internal SimpleButton AddText(string pName, string pTextKey, UnityAction pOnClick, bool pPrimary = false)
     {
         SimpleButton button = SimpleButton.Instantiate(transform, pName: pName);
         button.Setup(pOnClick, null, LM.Get(pTextKey), new Vector2(60, 20));
-        ModHubUI.SetLocaleKey(button.Text, pTextKey);
+        button.Text.gameObject.AddComponent<LocalizedText>().setKeyAndUpdate(pTextKey);
         button.Background.sprite = SpriteTextureLoader.getSprite(pPrimary
             ? "ui/special/special_buttonRed" : "ui/special/special_buttonGray");
         button.Text.resizeTextMinSize = 7;
@@ -83,7 +106,7 @@ internal class ModHubToolbar : MonoBehaviour
         Text placeholder = OT.CreateText(search.transform, "Placeholder", 8, pColor: new Color(0.7f, 0.72f, 0.66f));
         placeholder.rectTransform.Stretch(4, 2);
         placeholder.rectTransform.offsetMax = new Vector2(-20, -2);
-        ModHubUI.SetLocaleKey(placeholder, "mod_hub_search_placeholder");
+        placeholder.gameObject.AddComponent<LocalizedText>().setKeyAndUpdate("mod_hub_search_placeholder");
         search.input.placeholder = placeholder;
         placeholder.gameObject.SetActive(string.IsNullOrEmpty(pText));
         return search;

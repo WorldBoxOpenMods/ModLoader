@@ -57,7 +57,7 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
         bool from_workshop = InstalledMod.TryGetWorkshopId(mod.FolderPath, CoreConstants.GameId, out workshop_id);
 
         icon.sprite = ModManagerService.GetIcon(mod);
-        title.text = $"{installed.Name}  {ModHubUI.FormatVersion(mod.Version)}".TrimEnd();
+        title.text = $"{installed.Name}  {mod.GetDisplayVersion()}".TrimEnd();
         author.text = string.Format(LM.Get("mod_hub_by_author"), installed.Author);
         string fail_reason = mod.FailReason.ToString().Trim();
         notice.gameObject.SetActive(installed.HasProblem && fail_reason.Length > 0);

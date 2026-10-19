@@ -11,7 +11,7 @@ using UnityEngine.UI;
 namespace NeoModLoader.ui.prefabs;
 
 /// <summary>
-///     One Workshop mod in <see cref="ModBrowserWindow" />: thumbnail, title with details on hover, status,
+///     One Workshop mod in <see cref="ModBrowserPage" />: thumbnail, title with details on hover, status,
 ///     when it was updated, and its buttons.
 /// </summary>
 /// <remarks>
@@ -31,7 +31,7 @@ internal class ModBrowserRow : ModHubRow<ModListing>
         info.Button.onClick.AddListener(() => Application.OpenURL($"steam://url/CommunityFilePage/{listing.Id}"));
         download.Button.onClick.AddListener(OnDownloadClicked);
         Title.GetComponent<Button>().onClick.AddListener(() => info.Button.onClick.Invoke());
-        ModHubUI.SetTextTooltip(Title.GetComponent<TipButton>(), () => listing.Title, DescribeListing);
+        Title.GetComponent<TipButton>().SetTextTooltip(() => listing.Title, DescribeListing);
     }
 
     public override void Setup(ModListing pListing)
@@ -60,12 +60,12 @@ internal class ModBrowserRow : ModHubRow<ModListing>
             ListingStatus.Downloading => string.Format(LM.Get("mod_hub_listing_downloading"),
                 Mathf.RoundToInt((entry?.Progress ?? 0) * 100)),
             ListingStatus.Failed => LM.Get(entry.Error),
-            _ => LM.Get(ModHubUI.LocaleKey("mod_hub_listing", listing_status))
+            _ => LM.Get("mod_hub_listing_" + listing_status.ToString().ToLowerInvariant())
         };
 
         bool busy = listing_status is ListingStatus.Queued or ListingStatus.Downloading;
         download.gameObject.SetActive(listing_status != ListingStatus.Installed);
-        download.Icon.sprite = ModHubUI.GameIcon(busy ? "iconClose" : "iconArrowDOWN");
+        download.Icon.sprite = SpriteTextureLoader.getSprite(busy ? "ui/icons/iconClose" : "ui/icons/iconArrowDOWN");
         download.TipButton.textOnClick = busy ? "mod_hub_cancel_download" : "mod_hub_download";
     }
 
@@ -78,7 +78,7 @@ internal class ModBrowserRow : ModHubRow<ModListing>
             return;
         }
 
-        ModBrowserWindow.Instance.Download(listing);
+        ModBrowserPage.Instance.Download(listing);
     }
 
     private string DescribeListing()
@@ -87,7 +87,7 @@ internal class ModBrowserRow : ModHubRow<ModListing>
         string rating = votes == 0
             ? LM.Get("mod_hub_no_rating")
             : string.Format(LM.Get("mod_hub_rating"), Mathf.RoundToInt(listing.Score * 100), votes);
-        string categories = string.Join(", ", listing.Categories);
+        string categories = string.Join(", ", listing.Categories.Select(category => LM.Get("ModTag_" + category)));
         return string.Join("\n",
             string.Format(LM.Get("mod_hub_by_author"), ModDownloadService.Authors.Get(listing.AuthorId) ?? "..."),
             string.Format(LM.Get("mod_hub_subscribers"),
@@ -96,7 +96,7 @@ internal class ModBrowserRow : ModHubRow<ModListing>
             string.Format(LM.Get("mod_hub_dates"), FormatDate(listing.Updated), FormatDate(listing.Created)),
             string.Format(LM.Get("mod_hub_categories"),
                 categories.Length > 0 ? categories : LM.Get("mod_hub_categories_none")),
-            string.Format(LM.Get("mod_hub_ai_content"), LM.Get(ModHubUI.LocaleKey("mod_hub_ai", listing.AIContent))));
+            string.Format(LM.Get("mod_hub_ai_content"), LM.Get("mod_hub_ai_" + listing.AIContent.ToString().ToLowerInvariant())));
     }
 
     private static string FormatDate(DateTime pDate)
@@ -155,9 +155,9 @@ internal class ModBrowserRow : ModHubRow<ModListing>
         age.SetLayoutSize(48, 16);
         pRow.age = OT.CreateText(age.transform, "Text", 7, TextAnchor.MiddleCenter, Color.gray);
         pRow.age.rectTransform.Stretch();
-        pRow.download = pRow.AddAction("Download", ModHubUI.GameIcon("iconArrowDOWN"),
+        pRow.download = pRow.AddAction("Download", SpriteTextureLoader.getSprite("ui/icons/iconArrowDOWN"),
             "mod_hub_download");
-        pRow.info = pRow.AddAction("Info", ModHubUI.GameIcon("iconQuestionMark"),
+        pRow.info = pRow.AddAction("Info", SpriteTextureLoader.getSprite("ui/icons/iconQuestionMark"),
             "mod_hub_workshop_page");
     }
 }

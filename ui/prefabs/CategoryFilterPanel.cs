@@ -1,4 +1,5 @@
 using NeoModLoader.constants;
+using NeoModLoader.General;
 using NeoModLoader.General.UI;
 using NeoModLoader.General.UI.Prefabs;
 using UnityEngine;
@@ -70,8 +71,10 @@ internal class CategoryFilterPanel : MonoBehaviour
         foreach (string category in CoreConstants.ModCategories)
         {
             SimpleButton toggle = SimpleButton.Instantiate(grid.transform, pName: category);
-            // Category names are Workshop tags, shown as uploaders chose them.
-            toggle.Setup(() => panel.Toggle(category), null, category);
+            // Keep the Workshop tag for filtering and use its ModTag locale key for display.
+            string locale_key = "ModTag_" + category;
+            toggle.Setup(() => panel.Toggle(category), null, LM.Get(locale_key));
+            toggle.Text.gameObject.AddComponent<LocalizedText>().setKeyAndUpdate(locale_key);
             toggle.Background.sprite = SpriteTextureLoader.getSprite("ui/special/special_buttonGray");
             toggle.Text.resizeTextForBestFit = false;
             toggle.Text.fontSize = 8;
@@ -83,8 +86,9 @@ internal class CategoryFilterPanel : MonoBehaviour
         }
 
         ModHubToolbar footer = ModHubToolbar.Create(obj.transform, "Actions");
-        footer.AddText("Any", "mod_hub_category_any", panel.Clear);
-        footer.AddText("Done", "mod_hub_done", () => obj.SetActive(false), true);
+        Sprite action_background = ResourcesFinder.FindResource<PowerButton>("world_laws").GetComponent<Image>().sprite;
+        footer.AddText("Any", "mod_hub_category_any", panel.Clear).Background.sprite = action_background;
+        footer.AddText("Done", "mod_hub_done", () => obj.SetActive(false)).Background.sprite = action_background;
         panel.ShowSelection();
         obj.SetActive(false);
         return panel;

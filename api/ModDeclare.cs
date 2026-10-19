@@ -300,6 +300,14 @@ public class ModDeclare
         if (LocalizedTextManager.stringExists(multilang_mod_author_key)) display_author = LM.Get(multilang_mod_author_key);
         return display_author;
     }
+    /// <summary>Version for display, with one leading "v" and no surrounding whitespace.</summary>
+    public string GetDisplayVersion()
+    {
+        if (string.IsNullOrWhiteSpace(Version)) return "";
+        string version = Version.Trim();
+        return version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : "v" + version;
+    }
+
     public string GetDisplayDesc()
     {
         var display_desc = Description;

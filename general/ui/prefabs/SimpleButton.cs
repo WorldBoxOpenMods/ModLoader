@@ -111,6 +111,13 @@ public class SimpleButton : APrefab<SimpleButton>
         }
     }
 
+    /// <summary>Enable an action, or grey it out when it is unavailable.</summary>
+    public void SetInteractable(bool pInteractable)
+    {
+        Button.interactable = pInteractable;
+        Background.color = pInteractable ? Color.white : Color.gray;
+    }
+
     /// <inheritdoc cref="APrefab{T}.SetSize" />
     public override void SetSize(Vector2 pSize)
     {

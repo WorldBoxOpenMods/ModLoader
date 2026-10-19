@@ -14,7 +14,7 @@ namespace NeoModLoader.ui;
 /// <summary>
 ///     Browse the mods offered for NML on the Steam Workshop and download them.
 /// </summary>
-internal class ModBrowserWindow : ModHubListWindow<ModBrowserWindow, ModListing>
+internal class ModBrowserPage : ModHubListPage<ModBrowserPage, ModListing>
 {
     /// <summary>
     ///     Kept for this game session only, see <see cref="ModHubSettings" />.
@@ -22,12 +22,6 @@ internal class ModBrowserWindow : ModHubListWindow<ModBrowserWindow, ModListing>
     private static string search_text = "";
 
     private readonly ModListingQuery query = new();
-    private SimpleButton sort_button;
-    private SimpleButton updated_button;
-    private SimpleButton install_button;
-    private SimpleButton category_button;
-    private SimpleButton ai_button;
-    private SimpleButton search_mode_button;
     private SimpleButton update_all_button;
     private SimpleButton cancel_button;
     private SimpleButton retry_button;
@@ -55,7 +49,7 @@ internal class ModBrowserWindow : ModHubListWindow<ModBrowserWindow, ModListing>
         CreateBottomBar(Frame.Footer);
 
         // Drawn over the list, in this order.
-        Transform scroll_view = ContentTransform.parent.parent;
+        Transform scroll_view = Frame.Overlays;
         message_label = CreateEmptyMessage();
         CreateProgressBar(scroll_view);
         category_panel = CategoryFilterPanel.Create(scroll_view, query.Categories, OnCategoriesChanged);
@@ -140,7 +134,6 @@ internal class ModBrowserWindow : ModHubListWindow<ModBrowserWindow, ModListing>
         ShowItems(listings);
 
         shown_count = listings.Count;
-        UpdateToolbar();
         UpdateMessage();
         UpdateBottomBar();
     }
@@ -184,8 +177,8 @@ internal class ModBrowserWindow : ModHubListWindow<ModBrowserWindow, ModListing>
         if (catalog.TotalCount > 0) progress.anchorMax = new Vector2(
             Mathf.Clamp01((float)catalog.Items.Count / catalog.TotalCount), 1);
 
-        ModHubUI.SetInteractable(update_all_button, catalog.Status == CatalogStatus.Ready);
-        ModHubUI.SetInteractable(cancel_button, catalog.IsLoading);
+        update_all_button.SetInteractable(catalog.Status == CatalogStatus.Ready);
+        cancel_button.SetInteractable(catalog.IsLoading);
         // Retry takes the place of Cancel loading, which has nothing to stop after an error.
         cancel_button.gameObject.SetActive(!retry_button.gameObject.activeSelf);
     }
@@ -217,25 +210,44 @@ internal class ModBrowserWindow : ModHubListWindow<ModBrowserWindow, ModListing>
 
     private void CreateToolbar(ModHubToolbar pFilters, ModHubToolbar pSearchLine)
     {
-        sort_button = pFilters.AddIcon("Sort", null,
-            () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
-        updated_button = pFilters.AddIcon("Updated", ModHubUI.GameIcon("iconClock"),
-            () => ChangeQuery(() => query.UpdatedWithin = ModHubUI.NextValue(query.UpdatedWithin)),
-            "mod_hub_updated_within");
-        install_button = pFilters.AddIcon("Install", null,
-            () => ChangeQuery(() => query.Install = ModHubUI.NextValue(query.Install)), "mod_hub_install");
-        category_button = pFilters.AddIcon("Category", null,
+        pFilters.AddChoice("Sort", "mod_hub_sort", () => query.Sort,
+            value => ChangeQuery(() => query.Sort = value), value => value switch
+            {
+                ListingSort.MostSubscribed => "iconPopulation",
+                ListingSort.Trending => "iconFavoriteStar",
+                ListingSort.TopRated => "iconRenown",
+                ListingSort.Newest => "iconNewWorld",
+                ListingSort.Name => "iconArrowDOWN",
+                _ => "iconAges"
+            });
+        pFilters.AddChoice("Updated", "mod_hub_updated_within", () => query.UpdatedWithin,
+            value => ChangeQuery(() => query.UpdatedWithin = value), _ => "iconClock");
+        pFilters.AddChoice("Install", "mod_hub_install", () => query.Install,
+            value => ChangeQuery(() => query.Install = value), value => value switch
+            {
+                InstallFilter.NotInstalled => "iconArrowDOWN",
+                InstallFilter.Installed => "iconOn",
+                InstallFilter.UpdateAvailable => "iconSaveCloud",
+                _ => "iconBooks"
+            });
+        SimpleButton category_button = pFilters.AddIcon("Category",
+            SpriteTextureLoader.getSprite("ui/icons/iconFavoritesList"),
             () => category_panel.gameObject.SetActive(!category_panel.gameObject.activeSelf), "mod_hub_category");
-        ai_button = pFilters.AddIcon("AIContent", null,
-            () => ChangeQuery(() => query.AIContent = ModHubUI.NextValue(query.AIContent)), "mod_hub_ai");
+        category_button.TipButton.SetTextTooltip(() => LM.Get("mod_hub_category"), () => query.Categories.Count == 0
+            ? LM.Get("mod_hub_category_any")
+            : string.Join(", ", query.Categories.Select(category => LM.Get("ModTag_" + category))), false);
+        pFilters.AddChoice("AIContent", "mod_hub_ai", () => query.AIContent,
+            value => ChangeQuery(() => query.AIContent = value),
+            value => value == AIContentFilter.Any ? "iconBrain" : "iconWarning", "mod_hub_ai_filter");
         pFilters.AddSpacer();
         pFilters.AddIcon("Refresh", InternalResourcesGetter.GetReloadIcon(), StartLoading,
             "mod_hub_refresh");
 
-        search_mode_button = pSearchLine.AddIcon("SearchMode", null,
-            () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
+        pSearchLine.AddChoice("SearchMode", "mod_hub_search_mode", () => query.SearchMode,
+            value => ChangeQuery(() => query.SearchMode = value),
+            value => value == ModSearchMode.Author ? "iconInterestingPeople" : "iconCityName", "mod_hub_browser_search_mode");
         TextInput search = pSearchLine.AddSearch(search_text, SetSearchText);
-        pSearchLine.AddIcon("ClearSearch", ModHubUI.GameIcon("iconClose"),
+        pSearchLine.AddIcon("ClearSearch", SpriteTextureLoader.getSprite("ui/icons/iconClose"),
             () => search.input.text = "", "mod_hub_clear_search");
     }
 
@@ -325,36 +337,4 @@ internal class ModBrowserWindow : ModHubListWindow<ModBrowserWindow, ModListing>
         settings.BrowserCategories = query.Categories.ToList();
         settings.Save();
     }
-
-    private void UpdateToolbar()
-    {
-        ModHubUI.ShowChoice(sort_button, ModHubUI.LocaleKey("mod_hub_sort", query.Sort), query.Sort switch
-        {
-            ListingSort.MostSubscribed => "iconPopulation",
-            ListingSort.Trending => "iconFavoriteStar",
-            ListingSort.TopRated => "iconRenown",
-            ListingSort.Newest => "iconNewWorld",
-            ListingSort.Name => "iconArrowDOWN",
-            _ => "iconAges"
-        });
-        updated_button.TipButton.textOnClickDescription =
-            ModHubUI.LocaleKey("mod_hub_updated_within", query.UpdatedWithin);
-        ModHubUI.ShowChoice(install_button, ModHubUI.LocaleKey("mod_hub_install", query.Install), query.Install switch
-        {
-            InstallFilter.NotInstalled => "iconArrowDOWN",
-            InstallFilter.Installed => "iconOn",
-            InstallFilter.UpdateAvailable => "iconSaveCloud",
-            _ => "iconBooks"
-        });
-        // The selected categories are not a fixed text, so they go through a locale key set here.
-        LM.AddToCurrentLocale("mod_hub_category_selected", query.Categories.Count == 0
-            ? LM.Get("mod_hub_category_any")
-            : string.Join(", ", query.Categories));
-        ModHubUI.ShowChoice(category_button, "mod_hub_category_selected", "iconFavoritesList");
-        ModHubUI.ShowChoice(ai_button, ModHubUI.LocaleKey("mod_hub_ai_filter", query.AIContent),
-            query.AIContent == AIContentFilter.Any ? "iconBrain" : "iconWarning");
-        ModHubUI.ShowChoice(search_mode_button, ModHubUI.LocaleKey("mod_hub_browser_search_mode", query.SearchMode),
-            query.SearchMode == ModSearchMode.Author ? "iconInterestingPeople" : "iconCityName");
-    }
-
 }

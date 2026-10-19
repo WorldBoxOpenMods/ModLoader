@@ -11,7 +11,7 @@ using UnityEngine.UI;
 namespace NeoModLoader.ui.prefabs;
 
 /// <summary>
-///     One mod in <see cref="ModManagerWindow" />: icon, title with the author on hover, a status pill that
+///     One mod in <see cref="ModManagerPage" />: icon, title with the author on hover, a status pill that
 ///     toggles the mod, and its buttons.
 /// </summary>
 /// <remarks>
@@ -46,11 +46,11 @@ internal class ModManagerRow : ModHubRow<InstalledMod>
         reload.Button.onClick.AddListener(Reload);
         delete.Button.onClick.AddListener(ConfirmDelete);
         Title.GetComponent<Button>().onClick.AddListener(() => ModInfoWindow.ShowWindow(mod.Declaration));
-        ModHubUI.SetTextTooltip(Title.GetComponent<TipButton>(), () => mod.Name,
+        Title.GetComponent<TipButton>().SetTextTooltip(() => mod.Name,
             () => $"{string.Format(LM.Get("mod_hub_by_author"), mod.Author)}\n{version.text}");
-        ModHubUI.SetTextTooltip(status, () => status.Text.text, StatusTooltip);
-        ModHubUI.SetTextTooltip(source, () => string.Format(LM.Get("mod_hub_loaded_from"),
-            LM.Get(ModHubUI.LocaleKey("mod_hub_source", mod.Source))), () => null);
+        status.TipButton.SetTextTooltip(() => status.Text.text, StatusTooltip);
+        source.TipButton.SetTextTooltip(() => string.Format(LM.Get("mod_hub_loaded_from"),
+            LM.Get("mod_hub_source_" + mod.Source.ToString().ToLowerInvariant())), () => null);
     }
 
     public override void Setup(InstalledMod pMod)
@@ -61,7 +61,7 @@ internal class ModManagerRow : ModHubRow<InstalledMod>
 
         Icon.sprite = ModManagerService.GetIcon(declaration);
         Title.text = pMod.Name;
-        version.text = ModHubUI.FormatVersion(declaration.Version);
+        version.text = declaration.GetDisplayVersion();
         version.gameObject.SetActive(version.text.Length > 0);
         status.Text.text = LM.Get(StatusKey(pMod.Status));
         status.Text.color = StatusColor(pMod.Status);
@@ -76,7 +76,7 @@ internal class ModManagerRow : ModHubRow<InstalledMod>
     private void Toggle()
     {
         ModManagerService.Toggle(mod.Declaration);
-        ModManagerWindow.Instance.Refresh();
+        ModManagerPage.Instance.Refresh();
     }
 
     private void Reload()
@@ -104,7 +104,7 @@ internal class ModManagerRow : ModHubRow<InstalledMod>
             return;
         }
 
-        ModManagerWindow.Instance.Refresh();
+        ModManagerPage.Instance.Refresh();
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ internal class ModManagerRow : ModHubRow<InstalledMod>
 
     private static string StatusKey(InstalledModStatus pStatus)
     {
-        return ModHubUI.LocaleKey("mod_hub_status", pStatus);
+        return "mod_hub_status_" + pStatus.ToString().ToLowerInvariant();
     }
 
     private static Color StatusColor(InstalledModStatus pStatus)
@@ -171,9 +171,9 @@ internal class ModManagerRow : ModHubRow<InstalledMod>
     {
         return pSource switch
         {
-            ModSource.Workshop => ModHubUI.GameIcon("iconSteam"),
-            ModSource.BepInEx => ModHubUI.GameIcon("iconOptions"),
-            _ => ModHubUI.GameIcon("iconSaveLocal")
+            ModSource.Workshop => SpriteTextureLoader.getSprite("ui/icons/iconSteam"),
+            ModSource.BepInEx => SpriteTextureLoader.getSprite("ui/icons/iconOptions"),
+            _ => SpriteTextureLoader.getSprite("ui/icons/iconSaveLocal")
         };
     }
 
@@ -210,13 +210,13 @@ internal class ModManagerRow : ModHubRow<InstalledMod>
         var spacer = new GameObject("Spacer", typeof(RectTransform));
         spacer.transform.SetParent(pBody, false);
         spacer.SetLayoutSize(pFlexibleWidth: 1);
-        pRow.configure = pRow.AddAction("Configure", ModHubUI.GameIcon("iconOptions"),
+        pRow.configure = pRow.AddAction("Configure", SpriteTextureLoader.getSprite("ui/icons/iconOptions"),
             "mod_hub_configure");
         pRow.reload = pRow.AddAction("Reload", InternalResourcesGetter.GetReloadIcon(),
             "mod_hub_reload");
-        pRow.delete = pRow.AddAction("Delete", ModHubUI.GameIcon("iconDeleteWorld"),
+        pRow.delete = pRow.AddAction("Delete", SpriteTextureLoader.getSprite("ui/icons/iconDeleteWorld"),
             "mod_hub_delete");
-        pRow.info = pRow.AddAction("Info", ModHubUI.GameIcon("iconQuestionMark"),
+        pRow.info = pRow.AddAction("Info", SpriteTextureLoader.getSprite("ui/icons/iconQuestionMark"),
             "mod_hub_info");
     }
 }

@@ -14,7 +14,7 @@ namespace NeoModLoader.ui;
 /// <summary>
 ///     Lists every recognized mod with its state, and lets the player enable, disable, configure and inspect them.
 /// </summary>
-internal class ModManagerWindow : ModHubListWindow<ModManagerWindow, InstalledMod>
+internal class ModManagerPage : ModHubListPage<ModManagerPage, InstalledMod>
 {
     private const float version_line_height = 10;
 
@@ -24,9 +24,6 @@ internal class ModManagerWindow : ModHubListWindow<ModManagerWindow, InstalledMo
     private static string search_text = "";
 
     private readonly InstalledModQuery query = new();
-    private SimpleButton filter_button;
-    private SimpleButton sort_button;
-    private SimpleButton search_mode_button;
     private SimpleButton enable_all_button;
     private SimpleButton disable_all_button;
     private Text empty_label;
@@ -55,9 +52,8 @@ internal class ModManagerWindow : ModHubListWindow<ModManagerWindow, InstalledMo
 
         empty_label.gameObject.SetActive(mods.Count == 0);
 
-        UpdateToolbar();
-        ModHubUI.SetInteractable(enable_all_button, ModManagerService.CountDisabled() > 0);
-        ModHubUI.SetInteractable(disable_all_button, ModManagerService.CountEnabled() > 0);
+        enable_all_button.SetInteractable(ModManagerService.CountDisabled() > 0);
+        disable_all_button.SetInteractable(ModManagerService.CountEnabled() > 0);
     }
 
     protected override AbstractListWindowItem<InstalledMod> CreateItemPrefab()
@@ -67,15 +63,28 @@ internal class ModManagerWindow : ModHubListWindow<ModManagerWindow, InstalledMo
 
     private void CreateToolbar(ModHubToolbar pHeader)
     {
-        filter_button = pHeader.AddIcon("Filter", null,
-            () => ChangeQuery(() => query.Filter = ModHubUI.NextValue(query.Filter)), "mod_hub_filter");
-        sort_button = pHeader.AddIcon("Sort", null,
-            () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
-        search_mode_button = pHeader.AddIcon("SearchMode", null,
-            () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
+        pHeader.AddChoice("Filter", "mod_hub_filter", () => query.Filter,
+            value => ChangeQuery(() => query.Filter = value), value => value switch
+            {
+                InstalledModFilter.Enabled => "iconOn",
+                InstalledModFilter.Disabled => "iconOff",
+                InstalledModFilter.Problems => "iconWarning",
+                InstalledModFilter.Updates => "iconSaveCloud",
+                _ => "iconBooks"
+            });
+        pHeader.AddChoice("Sort", "mod_hub_sort", () => query.Sort,
+            value => ChangeQuery(() => query.Sort = value), value => value switch
+            {
+                InstalledModSort.NameDescending => "iconArrowUP",
+                InstalledModSort.RecentlyChanged => "iconClock",
+                _ => "iconArrowDOWN"
+            });
+        pHeader.AddChoice("SearchMode", "mod_hub_search_mode", () => query.SearchMode,
+            value => ChangeQuery(() => query.SearchMode = value),
+            value => value == ModSearchMode.Author ? "iconInterestingPeople" : "iconCityName");
 
         TextInput search = pHeader.AddSearch(search_text, SetSearchText);
-        pHeader.AddIcon("ClearSearch", ModHubUI.GameIcon("iconClose"), () => search.input.text = "",
+        pHeader.AddIcon("ClearSearch", SpriteTextureLoader.getSprite("ui/icons/iconClose"), () => search.input.text = "",
             "mod_hub_clear_search");
     }
 
@@ -108,8 +117,7 @@ internal class ModManagerWindow : ModHubListWindow<ModManagerWindow, InstalledMo
         var tip = line.AddComponent<TipButton>();
         tip.override_click_scale_animation = true;
         tip.overridden_click_scale_animation = 1;
-        tip.setHoverAction(() =>
-            ModHubUI.ShowTextTooltip(line, version, LM.Get("NeoModLoader Report")));
+        tip.SetTextTooltip(() => version, () => LM.Get("NeoModLoader Report"));
         line.SetLayoutSize(pHeight: version_line_height);
         var layout = line.AddComponent<HorizontalLayoutGroup>();
         layout.spacing = 4;
@@ -146,25 +154,4 @@ internal class ModManagerWindow : ModHubListWindow<ModManagerWindow, InstalledMo
         Refresh();
         ResetScroll();
     }
-
-    private void UpdateToolbar()
-    {
-        ModHubUI.ShowChoice(filter_button, ModHubUI.LocaleKey("mod_hub_filter", query.Filter), query.Filter switch
-        {
-            InstalledModFilter.Enabled => "iconOn",
-            InstalledModFilter.Disabled => "iconOff",
-            InstalledModFilter.Problems => "iconWarning",
-            InstalledModFilter.Updates => "iconSaveCloud",
-            _ => "iconBooks"
-        });
-        ModHubUI.ShowChoice(sort_button, ModHubUI.LocaleKey("mod_hub_sort", query.Sort), query.Sort switch
-        {
-            InstalledModSort.NameDescending => "iconArrowUP",
-            InstalledModSort.RecentlyChanged => "iconClock",
-            _ => "iconArrowDOWN"
-        });
-        ModHubUI.ShowChoice(search_mode_button, ModHubUI.LocaleKey("mod_hub_search_mode", query.SearchMode),
-            query.SearchMode == ModSearchMode.Author ? "iconInterestingPeople" : "iconCityName");
-    }
-
 }
