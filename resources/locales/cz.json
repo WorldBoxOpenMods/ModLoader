@@ -219,5 +219,8 @@
   "mod_hub_unsubscribe_failed": "Steam 拒绝取消订阅。你可以在该模组的创意工坊页面取消订阅。",
   "mod_hub_delete": "删除模组",
   "mod_hub_delete_confirm": "删除 {0}？\n\n它的文件夹会从 Mods 文件夹中删除。此操作无法撤销。",
-  "mod_hub_delete_failed": "无法删除该模组。请关闭正在使用其文件的程序后重试。"
+  "mod_hub_delete_failed": "无法删除该模组。请关闭正在使用其文件的程序后重试。",
+  "mod_hub_search_placeholder": "搜索模组…",
+  "mod_hub_done": "完成",
+  "mod_hub_download_error_start": "Steam 无法开始下载。"
 }
