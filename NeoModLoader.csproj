@@ -10,9 +10,9 @@
         <PackageProjectUrl>https://github.com/WorldBoxOpenMods</PackageProjectUrl>
         <RepositoryUrl>https://github.com/WorldBoxOpenMods/ModLoader</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-        <Version>1.2.1</Version>
-        <AssemblyVersion>1.2.1.0</AssemblyVersion>
-        <FileVersion>1.2.1.0</FileVersion>
+        <Version>1.2.1.1</Version>
+        <AssemblyVersion>1.2.1.1</AssemblyVersion>
+        <FileVersion>1.2.1.1</FileVersion>
         <DebugType>portable</DebugType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
