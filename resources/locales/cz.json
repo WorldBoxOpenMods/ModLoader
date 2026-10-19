@@ -4,6 +4,7 @@
   "NeoModLoader Update Title": "NeoModLoader 更新",
   "NeoModLoader Update Complete": "NeoModLoader 更新至{0},\n 重启游戏以应用更新。",
   "ModUpload Title": "上传模组",
+  "mod_upload_changelog": "变更说明（可选）",
   "ModUpdate Title": "更新模组",
   "ModUploadModeWindow Title": "Steam 创意工坊",
   "ModUploadMode_Upload": "上传",
