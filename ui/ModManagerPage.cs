@@ -16,7 +16,7 @@ namespace NeoModLoader.ui;
 /// </summary>
 internal class ModManagerPage : ModHubListPage<ModManagerPage, InstalledMod>
 {
-    private const float version_line_height = 10;
+    private const float version_line_height = 12;
 
     /// <summary>
     ///     Kept for this game session only, see <see cref="ModHubSettings" />.
@@ -146,7 +146,10 @@ internal class ModManagerPage : ModHubListPage<ModManagerPage, InstalledMod>
         icon.transform.SetParent(line.transform, false);
         icon.GetComponent<Image>().sprite = InternalResourcesGetter.GetIcon();
         icon.SetLayoutSize(version_line_height, version_line_height);
-        OT.CreateText(line.transform, "Text", 7, pColor: Color.gray).text = version;
+        Text text = OT.CreateText(line.transform, "Text", 7, pColor: Color.gray);
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.text = version;
     }
 
     private void ConfirmEnableAll()
