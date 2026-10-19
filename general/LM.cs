@@ -301,7 +301,7 @@ public static class LM
                              .ContainsKey(key)))
             LocalizedTextManager.instance._localized_text[key] = locales[CoreConstants.DefaultLocaleID][key];
 
-        LocalizedTextManager.updateTexts();
+        if (pUpdateTexts) LocalizedTextManager.updateTexts();
     }
 
     /// <summary>
@@ -329,6 +329,16 @@ public static class LM
             LocalizedTextManager.instance._localized_text[key] = locales[CoreConstants.DefaultLocaleID][key];
 
         if (pUpdateTexts) LocalizedTextManager.updateTexts();
+    }
+
+    /// <summary>
+    /// Restore mod translations before the game's language switch refreshes registered text fields.
+    /// </summary>
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(LocalizedTextManager), nameof(LocalizedTextManager.loadLocalizedText))]
+    internal static void loadLocalizedTextPostfix(string pLocaleID)
+    {
+        ApplyLocale(pLocaleID, false);
     }
 
     /// <summary>
