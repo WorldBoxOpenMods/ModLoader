@@ -122,7 +122,7 @@ internal class ModBrowserPage : ModHubListPage<ModBrowserPage, ModListing>
     {
         WorkshopCatalog catalog = ModDownloadService.Catalog;
         await catalog.LoadAsync();
-        if (query.Sort == ListingSort.Trending) await catalog.LoadTrendingAsync();
+        if (catalog.Status == CatalogStatus.Ready && query.Sort == ListingSort.Trending) await catalog.LoadTrendingAsync();
         await ModDownloadService.Authors.RequestAsync(catalog.Items.Select(listing => listing.AuthorId));
     }
 
@@ -187,14 +187,19 @@ internal class ModBrowserPage : ModHubListPage<ModBrowserPage, ModListing>
 
     private void OnDownloadChanged(DownloadEntry pEntry)
     {
-        if (ItemMap.TryGetValue(pEntry.Listing, out AbstractListWindowItem<ModListing> row))
+        if (!ItemMap.TryGetValue(pEntry.Listing, out AbstractListWindowItem<ModListing> row))
+        {
+            row = ItemMap.FirstOrDefault(pair => pair.Key.Id == pEntry.Listing.Id).Value;
+        }
+
+        if (row != null)
         {
             ((ModBrowserRow)row).UpdateStatus();
         }
 
         if (IsOpened) UpdateBottomBar();
         // Installing changes whether an item matches the selected install filter.
-        if (pEntry.IsFinished) needs_refresh = true;
+        if (pEntry.IsFinished && query.Install != InstallFilter.All) needs_refresh = true;
     }
 
     private void OnAuthorsChanged()

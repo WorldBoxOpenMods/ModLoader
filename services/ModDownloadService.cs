@@ -205,20 +205,23 @@ internal static class ModDownloadService
     {
         if (ulong.TryParse(Path.GetFileName(pDirectory), out ulong file_id)) SetPending(file_id, false);
         ModDeclare mod = ModInfoUtils.recogMod(pDirectory, false);
-        if (mod == null) return ErrorNotAMod;
+        if (mod == null || mod.ModType != ModTypeEnum.NEOMOD) return ErrorNotAMod;
+        if (string.IsNullOrEmpty(mod.RepoUrl)) mod.SetRepoUrlToWorkshopPage(Path.GetFileName(pDirectory));
 
-        if (ModInfoUtils.TryGetRecognizedMod(mod.UID, out _))
+        if (ModInfoUtils.TryGetRecognizedMod(mod.UID, out ModDeclare recognized))
         {
             if (ModCompileLoadService.IsModLoaded(mod.UID)) restart_pending.Add(mod.UID);
+            else
+            {
+                recognized.UpdateFrom(mod);
+                ModDepenSolveService.EnsureNode(recognized);
+            }
             return null;
         }
 
         // New to this computer: saved as disabled, so neither this session nor the next start loads it.
         ModInfoUtils.setModDisabled(mod.UID, true);
 
-        // The startup scan only lists NeoModLoader-type Workshop mods; do the same here.
-        if (mod.ModType != ModTypeEnum.NEOMOD) return null;
-        if (string.IsNullOrEmpty(mod.RepoUrl)) mod.SetRepoUrlToWorkshopPage(Path.GetFileName(pDirectory));
         ModInfoUtils.EnsureRecognizedMod(mod);
         return null;
     }

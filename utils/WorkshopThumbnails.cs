@@ -25,7 +25,9 @@ internal static class WorkshopThumbnails
 
     private static readonly Dictionary<string, Sprite> sprites = new();
     private static readonly Queue<string> load_order = new();
-    private static readonly Dictionary<string, List<Action<Sprite>>> waiting = new();
+    private static readonly Dictionary<string, Dictionary<object, Action<Sprite>>> waiting = new();
+    private static readonly Dictionary<string, HashSet<object>> owners_by_key = new();
+    private static readonly Dictionary<object, string> key_by_owner = new();
     private static readonly SemaphoreSlim download_slots = new(max_parallel_downloads);
     private static HttpClient http_client;
 
@@ -35,25 +37,38 @@ internal static class WorkshopThumbnails
     ///     Call <paramref name="pOnLoaded" /> with the preview at <paramref name="pUrl" />: at once when it is
     ///     cached, otherwise once it has loaded. It is not called when the image cannot be loaded.
     /// </summary>
-    public static void Request(string pUrl, Action<Sprite> pOnLoaded)
+    public static void Request(string pUrl, object pOwner, Action<Sprite> pOnLoaded)
     {
-        if (string.IsNullOrEmpty(pUrl)) return;
+        if (string.IsNullOrEmpty(pUrl))
+        {
+            Release(pOwner);
+            return;
+        }
 
         string key = UrlKey(pUrl);
+        AssignOwner(pOwner, key);
         if (sprites.TryGetValue(key, out Sprite sprite))
         {
             pOnLoaded(sprite);
+            Trim();
             return;
         }
 
-        if (waiting.TryGetValue(key, out List<Action<Sprite>> callbacks))
+        if (waiting.TryGetValue(key, out Dictionary<object, Action<Sprite>> callbacks))
         {
-            callbacks.Add(pOnLoaded);
+            callbacks[pOwner] = pOnLoaded;
             return;
         }
 
-        waiting[key] = new List<Action<Sprite>> { pOnLoaded };
+        waiting[key] = new Dictionary<object, Action<Sprite>> { [pOwner] = pOnLoaded };
         _ = LoadAsync(pUrl, key);
+    }
+
+    /// <summary>Stop retaining a row's preview and any pending callback when it leaves the list.</summary>
+    public static void Release(object pOwner)
+    {
+        RemoveOwner(pOwner);
+        Trim();
     }
 
     private static async Task LoadAsync(string pUrl, string pKey)
@@ -78,12 +93,15 @@ internal static class WorkshopThumbnails
             LogService.LogWarning($"Cannot load the Workshop preview {pUrl}: {e.Message}");
         }
 
-        List<Action<Sprite>> callbacks = waiting[pKey];
+        Dictionary<object, Action<Sprite>> callbacks = waiting[pKey];
         waiting.Remove(pKey);
         if (sprite == null) return;
 
         Store(pKey, sprite);
-        foreach (Action<Sprite> callback in callbacks) callback(sprite);
+        foreach (var callback in callbacks)
+        {
+            if (key_by_owner.TryGetValue(callback.Key, out string key) && key == pKey) callback.Value(sprite);
+        }
     }
 
     private static async Task<byte[]> DownloadAsync(string pUrl)
@@ -146,19 +164,37 @@ internal static class WorkshopThumbnails
     }
 
     /// <summary>
-    ///     Keep at most <see cref="memory_limit" /> sprites, dropping the oldest. A row still showing a dropped
-    ///     sprite requests it again the next time the list refreshes.
+    ///     Drop the oldest unowned previews. Visible rows retain their images until released.
     /// </summary>
     private static void Store(string pKey, Sprite pSprite)
     {
         sprites[pKey] = pSprite;
         load_order.Enqueue(pKey);
-        if (load_order.Count <= memory_limit) return;
+        Trim();
+    }
 
-        string oldest = load_order.Dequeue();
-        UnityEngine.Object.Destroy(sprites[oldest].texture);
-        UnityEngine.Object.Destroy(sprites[oldest]);
-        sprites.Remove(oldest);
+    private static void Trim()
+    {
+        int remaining = load_order.Count;
+        while (sprites.Count > memory_limit && remaining-- > 0)
+        {
+            string oldest = load_order.Dequeue();
+            if (!sprites.TryGetValue(oldest, out Sprite oldest_sprite))
+            {
+                continue;
+            }
+
+            if (owners_by_key.TryGetValue(oldest, out HashSet<object> owners) && owners.Count > 0)
+            {
+                load_order.Enqueue(oldest);
+                continue;
+            }
+
+            UnityEngine.Object.Destroy(oldest_sprite.texture);
+            UnityEngine.Object.Destroy(oldest_sprite);
+            sprites.Remove(oldest);
+            owners_by_key.Remove(oldest);
+        }
     }
 
     /// <summary>
@@ -175,5 +211,31 @@ internal static class WorkshopThumbnails
         }
 
         return hash.ToString("x16");
+    }
+
+    private static void AssignOwner(object pOwner, string pKey)
+    {
+        if (key_by_owner.TryGetValue(pOwner, out string current) && current == pKey) return;
+        RemoveOwner(pOwner);
+        key_by_owner[pOwner] = pKey;
+        if (!owners_by_key.TryGetValue(pKey, out HashSet<object> owners))
+        {
+            owners = new HashSet<object>();
+            owners_by_key[pKey] = owners;
+        }
+
+        owners.Add(pOwner);
+    }
+
+    private static void RemoveOwner(object pOwner)
+    {
+        if (!key_by_owner.TryGetValue(pOwner, out string key)) return;
+        key_by_owner.Remove(pOwner);
+        if (owners_by_key.TryGetValue(key, out HashSet<object> owners))
+        {
+            owners.Remove(pOwner);
+            if (owners.Count == 0) owners_by_key.Remove(key);
+        }
+        if (waiting.TryGetValue(key, out Dictionary<object, Action<Sprite>> callbacks)) callbacks.Remove(pOwner);
     }
 }

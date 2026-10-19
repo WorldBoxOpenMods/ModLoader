@@ -27,6 +27,22 @@ internal class ModManagerPage : ModHubListPage<ModManagerPage, InstalledMod>
     private SimpleButton enable_all_button;
     private SimpleButton disable_all_button;
     private Text empty_label;
+    private bool needs_refresh;
+
+    private void Update()
+    {
+        if (IsOpened && needs_refresh) Refresh();
+    }
+
+    private void OnDownloadChanged(DownloadEntry pEntry)
+    {
+        if (pEntry.IsFinished) needs_refresh = true;
+    }
+
+    private void OnDestroy()
+    {
+        ModDownloadService.Queue.Changed -= OnDownloadChanged;
+    }
 
     protected override void InitHub()
     {
@@ -39,6 +55,7 @@ internal class ModManagerPage : ModHubListPage<ModManagerPage, InstalledMod>
         CreateBottomButtons(Frame.Footer);
         CreateVersionLine(Frame.transform);
         empty_label = CreateEmptyMessage("mod_hub_no_match");
+        ModDownloadService.Queue.Changed += OnDownloadChanged;
     }
 
     /// <summary>
@@ -46,6 +63,7 @@ internal class ModManagerPage : ModHubListPage<ModManagerPage, InstalledMod>
     /// </summary>
     internal override void Refresh()
     {
+        needs_refresh = false;
         query.SearchText = search_text;
         List<InstalledMod> mods = query.Apply(ModManagerService.GetInstalledMods());
         ShowItems(mods);

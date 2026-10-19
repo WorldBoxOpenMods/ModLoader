@@ -40,12 +40,26 @@ internal class ModBrowserRow : ModHubRow<ModListing>
         Title.text = pListing.Title;
         age.text = DescribeAge(DateTime.UtcNow - pListing.Updated);
         Icon.sprite = InternalResourcesGetter.GetIcon();
-        WorkshopThumbnails.Request(pListing.PreviewUrl, sprite =>
+        RequestPreview();
+        UpdateStatus();
+    }
+
+    private void OnEnable() => RequestPreview();
+
+    private void OnDisable() => WorkshopThumbnails.Release(this);
+
+    private void OnDestroy() => WorkshopThumbnails.Release(this);
+
+    private void RequestPreview()
+    {
+        if (listing == null || !isActiveAndEnabled) return;
+        ModListing current = listing;
+        Icon.sprite = InternalResourcesGetter.GetIcon();
+        WorkshopThumbnails.Request(current.PreviewUrl, this, sprite =>
         {
             // The pooled row may show another listing by the time the image arrives.
-            if (listing == pListing) Icon.sprite = sprite;
+            if (this != null && isActiveAndEnabled && listing == current) Icon.sprite = sprite;
         });
-        UpdateStatus();
     }
 
     public void UpdateStatus()
