@@ -1,6 +1,7 @@
 using System.Globalization;
 using NeoModLoader.api;
 using NeoModLoader.General;
+using NeoModLoader.General.UI;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.services;
 using NeoModLoader.utils;
@@ -16,12 +17,8 @@ namespace NeoModLoader.ui.prefabs;
 /// <remarks>
 ///     Like <see cref="ModManagerRow" />, the prefab holds the visuals and <see cref="Awake" /> adds the handlers.
 /// </remarks>
-internal class ModBrowserRow : AbstractListWindowItem<ModListing>
+internal class ModBrowserRow : ModHubRow<ModListing>
 {
-    private const float height = 44;
-
-    [SerializeField] private Image thumbnail;
-    [SerializeField] private Text title;
     [SerializeField] private Text status;
     [SerializeField] private Text age;
     [SerializeField] private SimpleButton info;
@@ -33,19 +30,20 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
     {
         info.Button.onClick.AddListener(() => Application.OpenURL($"steam://url/CommunityFilePage/{listing.Id}"));
         download.Button.onClick.AddListener(OnDownloadClicked);
-        ModHubUI.SetTextTooltip(title.GetComponent<TipButton>(), () => listing.Title, DescribeListing);
+        Title.GetComponent<Button>().onClick.AddListener(() => info.Button.onClick.Invoke());
+        ModHubUI.SetTextTooltip(Title.GetComponent<TipButton>(), () => listing.Title, DescribeListing);
     }
 
     public override void Setup(ModListing pListing)
     {
         listing = pListing;
-        title.text = pListing.Title;
+        Title.text = pListing.Title;
         age.text = DescribeAge(DateTime.UtcNow - pListing.Updated);
-        thumbnail.sprite = InternalResourcesGetter.GetIcon();
+        Icon.sprite = InternalResourcesGetter.GetIcon();
         WorkshopThumbnails.Request(pListing.PreviewUrl, sprite =>
         {
             // The pooled row may show another listing by the time the image arrives.
-            if (listing == pListing) thumbnail.sprite = sprite;
+            if (listing == pListing) Icon.sprite = sprite;
         });
         UpdateStatus();
     }
@@ -127,11 +125,11 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
     {
         return pStatus switch
         {
-            ListingStatus.Installed => ModHubStyle.Positive,
-            ListingStatus.UpdateAvailable => ModHubStyle.Warning,
+            ListingStatus.Installed => new Color(0.45f, 0.9f, 0.45f),
+            ListingStatus.UpdateAvailable => new Color(1f, 0.72f, 0.25f),
             ListingStatus.Queued or ListingStatus.Downloading => new Color(0.35f, 0.85f, 1f),
-            ListingStatus.Failed => ModHubStyle.Negative,
-            _ => ModHubStyle.TextMuted
+            ListingStatus.Failed => new Color(1f, 0.42f, 0.36f),
+            _ => Color.gray
         };
     }
 
@@ -140,46 +138,26 @@ internal class ModBrowserRow : AbstractListWindowItem<ModListing>
     /// </summary>
     internal static ModBrowserRow CreatePrefab()
     {
-        GameObject obj = ModHubStyle.Box(WorldBoxMod.Transform, nameof(ModBrowserRow), ModHubStyle.Card);
-        obj.SetActive(false);
-        obj.GetComponent<RectTransform>().sizeDelta = new Vector2(0, height);
-        ModHubStyle.Horizontal(obj, ModHubStyle.SpaceM, ModHubStyle.SpaceS).padding.left = ModHubStyle.SpaceM;
-
-        ModBrowserRow row = obj.AddComponent<ModBrowserRow>();
-        row.thumbnail = ModHubStyle.Icon(obj.transform, "Thumbnail", null, 32);
-
-        var body = new GameObject("Body", typeof(RectTransform));
-        body.transform.SetParent(obj.transform, false);
-        ModHubStyle.Vertical(body, 2).childForceExpandWidth = true;
-        ModHubStyle.Size(body, pFlexibleWidth: 1);
-
-        row.title = ModHubStyle.Label(body.transform, "Title", ModHubStyle.FontBody, ModHubStyle.TextBright);
-        // Hovering the title shows the author and the item's details.
-        row.title.raycastTarget = true;
-        row.title.gameObject.AddComponent<Button>();
-        ModHubStyle.HoverTip(row.title.gameObject);
-        ModHubStyle.PassScroll(row.title.gameObject);
-        ModHubStyle.Size(row.title.gameObject, pHeight: 12);
-        ModHubStyle.Divider(body.transform);
-        CreateControlLine(row, body.transform);
+        ModBrowserRow row = CreateRow<ModBrowserRow>();
+        CreateControlLine(row, row.Controls);
         return row;
     }
 
     private static void CreateControlLine(ModBrowserRow pRow, Transform pBody)
     {
-        var line = new GameObject("ControlLine", typeof(RectTransform));
-        line.transform.SetParent(pBody, false);
-        ModHubStyle.Horizontal(line, ModHubStyle.SpaceS);
-        ModHubStyle.Size(line, pHeight: ModHubStyle.IconButtonSize);
-
-        pRow.status = ModHubStyle.Label(line.transform, "Status", ModHubStyle.FontSmall, ModHubStyle.TextMuted);
-        ModHubStyle.Size(pRow.status.gameObject, 0, pFlexibleWidth: 1);
-        pRow.age = ModHubStyle.PillLabel(line.transform, "Age", 48);
-        pRow.download = ModHubStyle.IconButton(line.transform, "Download", ModHubUI.GameIcon("iconArrowDOWN"), null,
+        pRow.status = OT.CreateText(pBody, "Status", 7, pColor: Color.gray);
+        pRow.status.gameObject.SetLayoutSize(pFlexibleWidth: 1);
+        var age = new GameObject("Age", typeof(Image));
+        age.transform.SetParent(pBody, false);
+        age.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
+        age.GetComponent<Image>().type = Image.Type.Sliced;
+        age.GetComponent<Image>().raycastTarget = false;
+        age.SetLayoutSize(48, 16);
+        pRow.age = OT.CreateText(age.transform, "Text", 7, TextAnchor.MiddleCenter, Color.gray);
+        pRow.age.rectTransform.Stretch();
+        pRow.download = pRow.AddAction("Download", ModHubUI.GameIcon("iconArrowDOWN"),
             "mod_hub_download");
-        pRow.info = ModHubStyle.IconButton(line.transform, "Info", ModHubUI.GameIcon("iconQuestionMark"), null,
+        pRow.info = pRow.AddAction("Info", ModHubUI.GameIcon("iconQuestionMark"),
             "mod_hub_workshop_page");
-        ModHubStyle.PassScroll(pRow.download.gameObject);
-        ModHubStyle.PassScroll(pRow.info.gameObject);
     }
 }

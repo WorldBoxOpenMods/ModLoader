@@ -1,6 +1,7 @@
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.General.UI;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.services;
 using NeoModLoader.ui.prefabs;
@@ -13,10 +14,8 @@ namespace NeoModLoader.ui;
 /// <summary>
 ///     Lists every recognized mod with its state, and lets the player enable, disable, configure and inspect them.
 /// </summary>
-internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, InstalledMod>
+internal class ModManagerWindow : ModHubListWindow<ModManagerWindow, InstalledMod>
 {
-    // Fills the search line, so its clear button lines up with the end of the strip.
-    private const float search_width = 120;
     private const float version_line_height = 10;
 
     /// <summary>
@@ -31,48 +30,28 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
     private SimpleButton enable_all_button;
     private SimpleButton disable_all_button;
     private Text empty_label;
-    private float scroll_position;
 
-    protected override void Init()
+    protected override void InitHub()
     {
         ModHubSettings settings = ModHubSettings.Instance;
         query.Filter = settings.ManagerFilter;
         query.Sort = settings.ManagerSort;
         query.SearchMode = settings.ManagerSearchMode;
 
-        RectTransform content = ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header,
-            out Transform footer);
-        ModHubStyle.StyleList(ContentTransform);
-        ModHubUI.AddHubTabs(BackgroundTransform.parent, WindowId);
-        CreateToolbar(header);
-        CreateBottomButtons(footer);
-        CreateVersionLine(content);
-        empty_label = ModHubStyle.EmptyListLabel(ContentTransform, "mod_hub_no_match");
-    }
-
-    public override void OnNormalEnable()
-    {
-        Refresh();
-        StartCoroutine(ModHubUI.RestoreScrollPosition(ContentTransform, scroll_position));
-    }
-
-    public override void OnNormalDisable()
-    {
-        scroll_position = ContentTransform.localPosition.y;
+        CreateToolbar(Frame.Header);
+        CreateBottomButtons(Frame.Footer);
+        CreateVersionLine(Frame.transform);
+        empty_label = CreateEmptyMessage("mod_hub_no_match");
     }
 
     /// <summary>
     ///     Read the mods again and rebuild the list.
     /// </summary>
-    internal void Refresh()
+    internal override void Refresh()
     {
         query.SearchText = search_text;
-        ClearList();
         List<InstalledMod> mods = query.Apply(ModManagerService.GetInstalledMods());
-        foreach (InstalledMod mod in mods)
-        {
-            AddItemToList(mod);
-        }
+        ShowItems(mods);
 
         empty_label.gameObject.SetActive(mods.Count == 0);
 
@@ -86,17 +65,17 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         return ModManagerRow.CreatePrefab();
     }
 
-    private void CreateToolbar(Transform pHeader)
+    private void CreateToolbar(ModHubToolbar pHeader)
     {
-        filter_button = ModHubStyle.ToolbarButton(pHeader, "Filter", null,
+        filter_button = pHeader.AddIcon("Filter", null,
             () => ChangeQuery(() => query.Filter = ModHubUI.NextValue(query.Filter)), "mod_hub_filter");
-        sort_button = ModHubStyle.ToolbarButton(pHeader, "Sort", null,
+        sort_button = pHeader.AddIcon("Sort", null,
             () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
-        search_mode_button = ModHubStyle.ToolbarButton(pHeader, "SearchMode", null,
+        search_mode_button = pHeader.AddIcon("SearchMode", null,
             () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
 
-        TextInput search = ModHubStyle.SearchBox(pHeader, search_text, search_width, SetSearchText);
-        ModHubStyle.ToolbarButton(pHeader, "ClearSearch", ModHubUI.GameIcon("iconClose"), () => search.input.text = "",
+        TextInput search = pHeader.AddSearch(search_text, SetSearchText);
+        pHeader.AddIcon("ClearSearch", ModHubUI.GameIcon("iconClose"), () => search.input.text = "",
             "mod_hub_clear_search");
     }
 
@@ -105,13 +84,14 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         if (pText == search_text) return;
         search_text = pText;
         Refresh();
+        ResetScroll();
     }
 
-    private void CreateBottomButtons(Transform pFooter)
+    private void CreateBottomButtons(ModHubToolbar pFooter)
     {
-        enable_all_button = ModHubStyle.TextButton(pFooter, "EnableAll", "mod_hub_enable_all", ConfirmEnableAll);
-        disable_all_button = ModHubStyle.TextButton(pFooter, "DisableAll", "mod_hub_disable_all", ConfirmDisableAll);
-        ModHubStyle.TextButton(pFooter, "OpenModsFolder", "mod_hub_open_mods_folder",
+        enable_all_button = pFooter.AddText("EnableAll", "mod_hub_enable_all", ConfirmEnableAll);
+        disable_all_button = pFooter.AddText("DisableAll", "mod_hub_disable_all", ConfirmDisableAll);
+        pFooter.AddText("OpenModsFolder", "mod_hub_open_mods_folder",
             () => ModManagerService.OpenFolder(Paths.ModsPath));
     }
 
@@ -125,13 +105,22 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         line.transform.SetParent(pContent, false);
         line.GetComponent<Image>().color = Color.clear;
         line.GetComponent<Button>().onClick.AddListener(() => Application.OpenURL(CoreConstants.RepoURL));
-        ModHubStyle.HoverTip(line).setHoverAction(() =>
+        var tip = line.AddComponent<TipButton>();
+        tip.override_click_scale_animation = true;
+        tip.overridden_click_scale_animation = 1;
+        tip.setHoverAction(() =>
             ModHubUI.ShowTextTooltip(line, version, LM.Get("NeoModLoader Report")));
-        ModHubStyle.Size(line, pHeight: version_line_height);
-        ModHubStyle.Horizontal(line, ModHubStyle.SpaceS).childAlignment = TextAnchor.MiddleCenter;
-
-        ModHubStyle.Icon(line.transform, "Icon", InternalResourcesGetter.GetIcon(), version_line_height);
-        ModHubStyle.Label(line.transform, "Text", ModHubStyle.FontSmall, ModHubStyle.TextMuted).text = version;
+        line.SetLayoutSize(pHeight: version_line_height);
+        var layout = line.AddComponent<HorizontalLayoutGroup>();
+        layout.spacing = 4;
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlWidth = layout.childControlHeight = true;
+        layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+        var icon = new GameObject("Icon", typeof(Image));
+        icon.transform.SetParent(line.transform, false);
+        icon.GetComponent<Image>().sprite = InternalResourcesGetter.GetIcon();
+        icon.SetLayoutSize(version_line_height, version_line_height);
+        OT.CreateText(line.transform, "Text", 7, pColor: Color.gray).text = version;
     }
 
     private void ConfirmEnableAll()
@@ -155,6 +144,7 @@ internal class ModManagerWindow : AbstractListWindow<ModManagerWindow, Installed
         settings.ManagerSearchMode = query.SearchMode;
         settings.Save();
         Refresh();
+        ResetScroll();
     }
 
     private void UpdateToolbar()

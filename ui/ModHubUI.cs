@@ -1,9 +1,7 @@
-using System.Collections;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
@@ -34,10 +32,26 @@ internal static class ModHubUI
         foreach ((string window_id, Func<Sprite> icon) in hub_windows)
         {
             bool current = window_id == pCurrentId;
-            TipButton tip = ModHubStyle.SideTab(pWindow, window_id + "Tab", icon(), current, () =>
+            var tab = new GameObject(window_id + "Tab", typeof(Image), typeof(Button), typeof(TipButton));
+            tab.transform.SetParent(pWindow.Find("Background/Tabs"), false);
+            Image background = tab.GetComponent<Image>();
+            background.sprite = pWindow.Find("BackButtonContainer/BackButtonBackground").GetComponent<Image>().sprite;
+            background.type = Image.Type.Sliced;
+            background.color = current ? Color.white : new Color(0.6f, 0.6f, 0.6f);
+            tab.GetComponent<Button>().onClick.AddListener(() =>
             {
                 if (!current) SwitchTo(window_id);
             });
+            TipButton tip = tab.GetComponent<TipButton>();
+            tip.type = "normal";
+            tip.override_click_scale_animation = true;
+            tip.overridden_click_scale_animation = 1;
+            var image = new GameObject("Icon", typeof(Image));
+            image.transform.SetParent(tab.transform, false);
+            image.GetComponent<Image>().sprite = icon();
+            image.GetComponent<Image>().preserveAspect = true;
+            image.GetComponent<Image>().raycastTarget = false;
+            image.GetComponent<RectTransform>().sizeDelta = new Vector2(18, 18);
             SetTextTooltip(tip, () => LM.Get(window_id + " Title"), () => LM.Get(window_id + " Description"));
         }
     }
@@ -48,6 +62,8 @@ internal static class ModHubUI
     /// </summary>
     private static void SwitchTo(string pWindowId)
     {
+        // The game ignores window changes during its transition. Keep history intact in that case too.
+        if (ScrollWindow.isAnimationActive()) return;
         List<WindowHistoryData> history = WindowHistory.list;
         if (history.Count > 0 && history[history.Count - 1].window == ScrollWindow.getCurrentWindow())
         {
@@ -74,28 +90,6 @@ internal static class ModHubUI
     }
 
     /// <summary>
-    ///     A plain text. Rich text is off because names, authors and descriptions come from mods.
-    /// </summary>
-    public static Text CreateText(Transform pParent, string pName, Vector2 pSize, Vector2 pPosition, int pFontSize,
-        TextAnchor pAlignment)
-    {
-        var obj = new GameObject(pName, typeof(Text));
-        obj.transform.SetParent(pParent, false);
-        obj.transform.localPosition = pPosition;
-        obj.GetComponent<RectTransform>().sizeDelta = pSize;
-
-        Text text = obj.GetComponent<Text>();
-        OT.InitializeCommonText(text);
-        text.supportRichText = false;
-        text.fontSize = pFontSize;
-        text.alignment = pAlignment;
-        text.horizontalOverflow = HorizontalWrapMode.Wrap;
-        text.verticalOverflow = VerticalWrapMode.Truncate;
-        text.raycastTarget = false;
-        return text;
-    }
-
-    /// <summary>
     ///     Show the locale key <paramref name="pKey" /> in <paramref name="pText" /> and follow language changes.
     /// </summary>
     public static void SetLocaleKey(Text pText, string pKey)
@@ -104,43 +98,6 @@ internal static class ModHubUI
         if (localized == null) localized = pText.gameObject.AddComponent<LocalizedText>();
         // It registers itself for language changes when it starts.
         localized.setKeyAndUpdate(pKey);
-    }
-
-    /// <summary>
-    ///     An icon button with an optional tooltip, given as the locale key of its title.
-    /// </summary>
-    /// <remarks>
-    ///     Pass a null click action when building a prefab: Unity does not copy listeners added in code to clones.
-    /// </remarks>
-    public static SimpleButton CreateIconButton(Transform pParent, string pName, Sprite pIcon, Vector2 pSize,
-        Vector2 pPosition, UnityAction pOnClick, string pTooltipKey)
-    {
-        SimpleButton button = SimpleButton.Instantiate(pParent, pName: pName);
-        button.Setup(pOnClick, pIcon, pSize: pSize);
-        button.transform.localPosition = pPosition;
-        if (pTooltipKey != null)
-        {
-            // Stored in serialized fields, so the tooltip also works on clones of a prefab.
-            button.TipButton.enabled = true;
-            button.TipButton.type = "normal";
-            button.TipButton.textOnClick = pTooltipKey;
-            button.TipButton.hoverAction = button.TipButton.showTooltipDefault;
-        }
-
-        return button;
-    }
-
-    /// <summary>
-    ///     A text button whose label is the locale key <paramref name="pTextKey" />.
-    /// </summary>
-    public static SimpleButton CreateTextButton(Transform pParent, string pName, string pTextKey, Vector2 pSize,
-        Vector2 pPosition, UnityAction pOnClick)
-    {
-        SimpleButton button = SimpleButton.Instantiate(pParent, pName: pName);
-        button.Setup(pOnClick, null, LM.Get(pTextKey), pSize);
-        SetLocaleKey(button.Text, pTextKey);
-        button.transform.localPosition = pPosition;
-        return button;
     }
 
     /// <summary>
@@ -212,15 +169,4 @@ internal static class ModHubUI
         return values[(Array.IndexOf(values, pValue) + 1) % values.Length];
     }
 
-    /// <summary>
-    ///     The game scrolls every window back to the top when it is shown. Coming back from a mod's page should
-    ///     keep the player's place in a long list, so the list windows restore their position one frame later.
-    /// </summary>
-    public static IEnumerator RestoreScrollPosition(Transform pContent, float pY)
-    {
-        yield return null;
-        Vector3 position = pContent.localPosition;
-        position.y = pY;
-        pContent.localPosition = position;
-    }
 }

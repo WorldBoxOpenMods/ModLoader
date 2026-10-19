@@ -54,6 +54,12 @@ internal static class ModDownloadService
     /// </summary>
     public static void Download(ModListing pListing)
     {
+        CatalogStatus status = CheckSteam();
+        if (status != CatalogStatus.Ready)
+        {
+            Catalog.SetUnavailable(status);
+            return;
+        }
         WorkshopItemState state = Steam.GetItemState(pListing.Id);
         if (!state.Subscribed || !state.Installed) SetPending(pListing.Id, true);
         Queue.Enqueue(pListing);
@@ -61,7 +67,8 @@ internal static class ModDownloadService
 
     public static ListingStatus GetStatus(ModListing pListing)
     {
-        return ModListingQuery.ResolveStatus(Queue.Find(pListing.Id), Steam.GetItemState(pListing.Id));
+        WorkshopItemState state = CheckSteam() == CatalogStatus.Ready ? Steam.GetItemState(pListing.Id) : default;
+        return ModListingQuery.ResolveStatus(Queue.Find(pListing.Id), state);
     }
 
     /// <summary>
@@ -99,6 +106,7 @@ internal static class ModDownloadService
     /// </summary>
     public static async Task<bool> UnsubscribeAsync(ModDeclare pMod)
     {
+        if (CheckSteam() != CatalogStatus.Ready) return false;
         if (!InstalledMod.TryGetWorkshopId(pMod.FolderPath, CoreConstants.GameId, out ulong file_id)) return false;
 
         bool unsubscribed = await Steam.UnsubscribeAsync(file_id);
