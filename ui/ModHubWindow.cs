@@ -58,7 +58,9 @@ internal class ModHubWindow : AbstractWindow<ModHubWindow>
         var tab = obj.AddComponent<WindowMetaTab>();
         tab._canvas_group = obj.GetComponent<CanvasGroup>();
         tab.tab_action = new WindowMetaTabEvent();
-        tab.tab_action.AddListener(selected => tabs.startTabAction(selected, true));
+        // The native container invokes this action again after hiding all pages on close.
+        // Only skip a repeated click while the selected page is still shown.
+        tab.tab_action.AddListener(selected => tabs.startTabAction(selected, pContent.gameObject.activeSelf));
         tab.tab_elements.Add(pContent);
         obj.SetActive(true);
         return tab;
