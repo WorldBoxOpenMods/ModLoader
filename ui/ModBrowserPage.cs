@@ -1,12 +1,12 @@
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.General.UI;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.services;
 using NeoModLoader.ui.prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace NeoModLoader.ui;
@@ -14,24 +14,14 @@ namespace NeoModLoader.ui;
 /// <summary>
 ///     Browse the mods offered for NML on the Steam Workshop and download them.
 /// </summary>
-internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListing>
+internal class ModBrowserPage : ModHubListPage<ModBrowserPage, ModListing>
 {
-    // Fills the search line, so its clear button lines up with the end of the strip.
-    private const float search_width = 168;
-    private const float footer_button_width = 56;
-
     /// <summary>
     ///     Kept for this game session only, see <see cref="ModHubSettings" />.
     /// </summary>
     private static string search_text = "";
 
     private readonly ModListingQuery query = new();
-    private SimpleButton sort_button;
-    private SimpleButton updated_button;
-    private SimpleButton install_button;
-    private SimpleButton category_button;
-    private SimpleButton ai_button;
-    private SimpleButton search_mode_button;
     private SimpleButton update_all_button;
     private SimpleButton cancel_button;
     private SimpleButton retry_button;
@@ -39,7 +29,6 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
     private Text status_label;
     private Text message_label;
     private RectTransform progress;
-    private float scroll_position;
     private int shown_count;
 
     // Set while hidden or when author names arrive; the list is rebuilt once instead of on every change.
@@ -52,39 +41,43 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         Refresh();
     }
 
-    protected override void Init()
+    protected override void InitHub()
     {
         LoadSettings();
 
-        RectTransform content = ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header,
-            out Transform footer);
-        ModHubStyle.StyleList(ContentTransform);
-        ModHubUI.AddHubTabs(BackgroundTransform.parent, WindowId);
-        CreateToolbar(header, ModHubStyle.InsertStrip(content, 1, "SearchLine"));
-        CreateBottomBar(footer);
+        CreateToolbar(Frame.Header, Frame.InsertToolbar("SearchLine", 1));
+        CreateBottomBar(Frame.Footer);
 
         // Drawn over the list, in this order.
-        Transform scroll_view = ContentTransform.parent.parent;
-        message_label = ModHubStyle.EmptyListLabel(ContentTransform, null);
-        progress = ModHubStyle.ProgressBar(scroll_view);
+        Transform scroll_view = Frame.Overlays;
+        message_label = CreateEmptyMessage();
+        CreateProgressBar(scroll_view);
         category_panel = CategoryFilterPanel.Create(scroll_view, query.Categories, OnCategoriesChanged);
 
-        ModDownloadService.Catalog.Changed += () => needs_refresh = true;
+        ModDownloadService.Catalog.Changed += OnCatalogChanged;
         ModDownloadService.Authors.Changed += OnAuthorsChanged;
         ModDownloadService.Queue.Changed += OnDownloadChanged;
     }
 
     public override void OnNormalEnable()
     {
-        Refresh();
-        StartCoroutine(ModHubUI.RestoreScrollPosition(ContentTransform, scroll_position));
+        base.OnNormalEnable();
         if (ModDownloadService.Catalog.Status is not (CatalogStatus.Ready or CatalogStatus.Loading)) StartLoading();
     }
 
     public override void OnNormalDisable()
     {
-        scroll_position = ContentTransform.localPosition.y;
+        base.OnNormalDisable();
         category_panel.gameObject.SetActive(false);
+    }
+
+    private void OnCatalogChanged() => needs_refresh = true;
+
+    private void OnDestroy()
+    {
+        ModDownloadService.Catalog.Changed -= OnCatalogChanged;
+        ModDownloadService.Authors.Changed -= OnAuthorsChanged;
+        ModDownloadService.Queue.Changed -= OnDownloadChanged;
     }
 
     /// <summary>
@@ -114,6 +107,7 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
 
     private void StartLoading()
     {
+        ModDownloadService.ClearItemStates();
         CatalogStatus steam = ModDownloadService.CheckSteam();
         if (steam != CatalogStatus.Ready)
         {
@@ -128,27 +122,20 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
     {
         WorkshopCatalog catalog = ModDownloadService.Catalog;
         await catalog.LoadAsync();
-        if (query.Sort == ListingSort.Trending) await catalog.LoadTrendingAsync();
+        if (catalog.Status == CatalogStatus.Ready && query.Sort == ListingSort.Trending) await catalog.LoadTrendingAsync();
         await ModDownloadService.Authors.RequestAsync(catalog.Items.Select(listing => listing.AuthorId));
     }
 
-    private void Refresh()
+    internal override void Refresh()
     {
-        if (!IsOpened)
-        {
-            needs_refresh = true;
-            return;
-        }
-
+        needs_refresh = false;
         WorkshopCatalog catalog = ModDownloadService.Catalog;
         query.SearchText = search_text;
         List<ModListing> listings = query.Apply(catalog.Items, DateTime.UtcNow, ModDownloadService.GetStatus,
             ModDownloadService.Authors.Get, catalog.TrendingRank);
-        ClearList();
-        foreach (ModListing listing in listings) AddItemToList(listing);
+        ShowItems(listings);
 
         shown_count = listings.Count;
-        UpdateToolbar();
         UpdateMessage();
         UpdateBottomBar();
     }
@@ -189,22 +176,30 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         status_label.text = text;
 
         progress.parent.gameObject.SetActive(catalog.IsLoading && catalog.TotalCount > 0);
-        if (catalog.TotalCount > 0) ModHubStyle.SetProgress(progress, (float)catalog.Items.Count / catalog.TotalCount);
+        if (catalog.TotalCount > 0) progress.anchorMax = new Vector2(
+            Mathf.Clamp01((float)catalog.Items.Count / catalog.TotalCount), 1);
 
-        ModHubUI.SetInteractable(update_all_button, catalog.Status == CatalogStatus.Ready);
-        ModHubUI.SetInteractable(cancel_button, catalog.IsLoading);
+        update_all_button.SetInteractable(catalog.Status == CatalogStatus.Ready);
+        cancel_button.SetInteractable(catalog.IsLoading);
         // Retry takes the place of Cancel loading, which has nothing to stop after an error.
         cancel_button.gameObject.SetActive(!retry_button.gameObject.activeSelf);
     }
 
     private void OnDownloadChanged(DownloadEntry pEntry)
     {
-        if (ItemMap.TryGetValue(pEntry.Listing, out AbstractListWindowItem<ModListing> row))
+        if (!ItemMap.TryGetValue(pEntry.Listing, out AbstractListWindowItem<ModListing> row))
+        {
+            row = ItemMap.FirstOrDefault(pair => pair.Key.Id == pEntry.Listing.Id).Value;
+        }
+
+        if (row != null)
         {
             ((ModBrowserRow)row).UpdateStatus();
         }
 
         if (IsOpened) UpdateBottomBar();
+        // Installing changes whether an item matches the selected install filter.
+        if (pEntry.IsFinished && query.Install != InstallFilter.All) needs_refresh = true;
     }
 
     private void OnAuthorsChanged()
@@ -217,55 +212,90 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
     {
         SaveSettings();
         Refresh();
+        ResetScroll();
     }
 
-    private void CreateToolbar(Transform pFilters, Transform pSearchLine)
+    private void CreateToolbar(ModHubToolbar pFilters, ModHubToolbar pSearchLine)
     {
-        sort_button = ModHubStyle.ToolbarButton(pFilters, "Sort", null,
-            () => ChangeQuery(() => query.Sort = ModHubUI.NextValue(query.Sort)), "mod_hub_sort");
-        updated_button = ModHubStyle.ToolbarButton(pFilters, "Updated", ModHubUI.GameIcon("iconClock"),
-            () => ChangeQuery(() => query.UpdatedWithin = ModHubUI.NextValue(query.UpdatedWithin)),
-            "mod_hub_updated_within");
-        install_button = ModHubStyle.ToolbarButton(pFilters, "Install", null,
-            () => ChangeQuery(() => query.Install = ModHubUI.NextValue(query.Install)), "mod_hub_install");
-        category_button = ModHubStyle.ToolbarButton(pFilters, "Category", null,
+        pFilters.AddChoice("Sort", "mod_hub_sort", () => query.Sort,
+            value => ChangeQuery(() => query.Sort = value), value => value switch
+            {
+                ListingSort.MostSubscribed => "iconPopulation",
+                ListingSort.Trending => "iconFavoriteStar",
+                ListingSort.TopRated => "iconRenown",
+                ListingSort.Newest => "iconNewWorld",
+                ListingSort.Name => "iconArrowDOWN",
+                _ => "iconAges"
+            });
+        pFilters.AddChoice("Updated", "mod_hub_updated_within", () => query.UpdatedWithin,
+            value => ChangeQuery(() => query.UpdatedWithin = value), _ => "iconClock");
+        pFilters.AddChoice("Install", "mod_hub_install", () => query.Install,
+            value => ChangeQuery(() => query.Install = value), value => value switch
+            {
+                InstallFilter.NotInstalled => "iconArrowDOWN",
+                InstallFilter.Installed => "iconOn",
+                InstallFilter.UpdateAvailable => "iconSaveCloud",
+                _ => "iconBooks"
+            });
+        SimpleButton category_button = pFilters.AddIcon("Category",
+            SpriteTextureLoader.getSprite("ui/icons/iconFavoritesList"),
             () => category_panel.gameObject.SetActive(!category_panel.gameObject.activeSelf), "mod_hub_category");
-        ai_button = ModHubStyle.ToolbarButton(pFilters, "AIContent", null,
-            () => ChangeQuery(() => query.AIContent = ModHubUI.NextValue(query.AIContent)), "mod_hub_ai");
-        ModHubStyle.Spacer(pFilters);
-        ModHubStyle.ToolbarButton(pFilters, "Refresh", InternalResourcesGetter.GetReloadIcon(), StartLoading,
+        category_button.TipButton.SetTextTooltip(() => LM.Get("mod_hub_category"), () => query.Categories.Count == 0
+            ? LM.Get("mod_hub_category_any")
+            : string.Join(", ", query.Categories.Select(category => LM.Get("ModTag_" + category))), false);
+        pFilters.AddChoice("AIContent", "mod_hub_ai", () => query.AIContent,
+            value => ChangeQuery(() => query.AIContent = value),
+            value => value == AIContentFilter.Any ? "iconBrain" : "iconWarning", "mod_hub_ai_filter");
+        pFilters.AddSpacer();
+        pFilters.AddIcon("Refresh", InternalResourcesGetter.GetReloadIcon(), StartLoading,
             "mod_hub_refresh");
 
-        search_mode_button = ModHubStyle.ToolbarButton(pSearchLine, "SearchMode", null,
-            () => ChangeQuery(() => query.SearchMode = ModHubUI.NextValue(query.SearchMode)), "mod_hub_search_mode");
-        TextInput search = ModHubStyle.SearchBox(pSearchLine, search_text, search_width, SetSearchText);
-        ModHubStyle.ToolbarButton(pSearchLine, "ClearSearch", ModHubUI.GameIcon("iconClose"),
+        pSearchLine.AddChoice("SearchMode", "mod_hub_search_mode", () => query.SearchMode,
+            value => ChangeQuery(() => query.SearchMode = value),
+            value => value == ModSearchMode.Author ? "iconInterestingPeople" : "iconCityName", "mod_hub_browser_search_mode");
+        TextInput search = pSearchLine.AddSearch(search_text, SetSearchText);
+        pSearchLine.AddIcon("ClearSearch", SpriteTextureLoader.getSprite("ui/icons/iconClose"),
             () => search.input.text = "", "mod_hub_clear_search");
     }
 
-    private void CreateBottomBar(Transform pFooter)
+    private void CreateBottomBar(ModHubToolbar pFooter)
     {
-        status_label = ModHubStyle.Label(pFooter, "Status", ModHubStyle.FontSmall, ModHubStyle.TextMuted);
-        // Up to three short lines: the count, waiting downloads and the page limit.
-        status_label.resizeTextForBestFit = true;
-        status_label.resizeTextMinSize = 4;
-        status_label.resizeTextMaxSize = ModHubStyle.FontSmall;
-        ModHubStyle.Size(status_label.gameObject, 0, ModHubStyle.ButtonHeight, 1);
+        ModHubToolbar status_line = Frame.InsertToolbar("StatusLine", pFooter.transform.GetSiblingIndex(), 24);
+        status_label = OT.CreateText(status_line.transform, "Status", 7, pColor: Color.gray);
+        status_label.gameObject.SetLayoutSize(pFlexibleWidth: 1, pFlexibleHeight: 1);
 
-        retry_button = FooterButton("Retry", "mod_hub_retry", StartLoading);
-        update_all_button = FooterButton("UpdateAll", "mod_hub_update_all", UpdateAll, true);
-        cancel_button = FooterButton("CancelLoading", "mod_hub_cancel_loading", ModDownloadService.Catalog.Cancel);
+        retry_button = pFooter.AddText("Retry", "mod_hub_retry", StartLoading);
+        update_all_button = pFooter.AddText("UpdateAll", "mod_hub_update_all", UpdateAll, true);
+        cancel_button = pFooter.AddText("CancelLoading", "mod_hub_cancel_loading", ModDownloadService.Catalog.Cancel);
+    }
 
-        SimpleButton FooterButton(string pName, string pTextKey, UnityAction pOnClick, bool pPrimary = false)
-        {
-            SimpleButton button = ModHubStyle.TextButton(pFooter, pName, pTextKey, pOnClick, pPrimary);
-            ModHubStyle.Size(button.gameObject, footer_button_width, ModHubStyle.ButtonHeight);
-            return button;
-        }
+    private void CreateProgressBar(Transform pParent)
+    {
+        var bar = new GameObject("Progress", typeof(Image));
+        bar.transform.SetParent(pParent, false);
+        bar.GetComponent<Image>().color = new Color(0, 0, 0, 0.35f);
+        bar.GetComponent<Image>().raycastTarget = false;
+        var rect = (RectTransform)bar.transform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = new Vector2(1, 0);
+        rect.pivot = new Vector2(0.5f, 0);
+        rect.sizeDelta = new Vector2(0, 2);
+        var fill = new GameObject("Fill", typeof(Image));
+        fill.transform.SetParent(bar.transform, false);
+        fill.GetComponent<Image>().color = new Color(0.45f, 0.9f, 0.45f);
+        fill.GetComponent<Image>().raycastTarget = false;
+        progress = (RectTransform)fill.transform;
+        progress.Stretch();
     }
 
     private void UpdateAll()
     {
+        CatalogStatus status = ModDownloadService.CheckSteam();
+        if (status != CatalogStatus.Ready)
+        {
+            ModDownloadService.Catalog.SetUnavailable(status);
+            return;
+        }
         if (ModDownloadService.UpdateAll() == 0)
         {
             InformationWindow.ShowWindow(LM.Get("mod_hub_all_up_to_date"));
@@ -277,6 +307,7 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         if (pText == search_text) return;
         search_text = pText;
         Refresh();
+        ResetScroll();
     }
 
     private void ChangeQuery(Action pChange)
@@ -285,6 +316,7 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         SaveSettings();
         if (query.Sort == ListingSort.Trending) _ = ModDownloadService.Catalog.LoadTrendingAsync();
         Refresh();
+        ResetScroll();
     }
 
     private void LoadSettings()
@@ -312,36 +344,4 @@ internal class ModBrowserWindow : AbstractListWindow<ModBrowserWindow, ModListin
         settings.BrowserCategories = query.Categories.ToList();
         settings.Save();
     }
-
-    private void UpdateToolbar()
-    {
-        ModHubUI.ShowChoice(sort_button, ModHubUI.LocaleKey("mod_hub_sort", query.Sort), query.Sort switch
-        {
-            ListingSort.MostSubscribed => "iconPopulation",
-            ListingSort.Trending => "iconFavoriteStar",
-            ListingSort.TopRated => "iconRenown",
-            ListingSort.Newest => "iconNewWorld",
-            ListingSort.Name => "iconArrowDOWN",
-            _ => "iconAges"
-        });
-        updated_button.TipButton.textOnClickDescription =
-            ModHubUI.LocaleKey("mod_hub_updated_within", query.UpdatedWithin);
-        ModHubUI.ShowChoice(install_button, ModHubUI.LocaleKey("mod_hub_install", query.Install), query.Install switch
-        {
-            InstallFilter.NotInstalled => "iconArrowDOWN",
-            InstallFilter.Installed => "iconOn",
-            InstallFilter.UpdateAvailable => "iconSaveCloud",
-            _ => "iconBooks"
-        });
-        // The selected categories are not a fixed text, so they go through a locale key set here.
-        LM.AddToCurrentLocale("mod_hub_category_selected", query.Categories.Count == 0
-            ? LM.Get("mod_hub_category_any")
-            : string.Join(", ", query.Categories));
-        ModHubUI.ShowChoice(category_button, "mod_hub_category_selected", "iconFavoritesList");
-        ModHubUI.ShowChoice(ai_button, ModHubUI.LocaleKey("mod_hub_ai_filter", query.AIContent),
-            query.AIContent == AIContentFilter.Any ? "iconBrain" : "iconWarning");
-        ModHubUI.ShowChoice(search_mode_button, ModHubUI.LocaleKey("mod_hub_browser_search_mode", query.SearchMode),
-            query.SearchMode == ModSearchMode.Author ? "iconInterestingPeople" : "iconCityName");
-    }
-
 }

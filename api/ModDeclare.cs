@@ -108,32 +108,8 @@ public class ModDeclare
             throw new Exception($"Mod Config file at \"{pFilePath}\" is invalid");
         }
 
-        Name = modDeclare.Name;
-        Author = modDeclare.Author;
-        Version = modDeclare.Version;
-        IconPath = modDeclare.IconPath;
-        Description = modDeclare.Description;
-        Dependencies = modDeclare.Dependencies;
-        OptionalDependencies = modDeclare.OptionalDependencies;
-        IncompatibleWith = modDeclare.IncompatibleWith;
-        ModType = modDeclare.ModType;
-        UsePublicizedAssembly = modDeclare.UsePublicizedAssembly;
-        RepoUrl = modDeclare.RepoUrl;
-        AIAttribution = modDeclare.AIAttribution ?? "not_ai";
-        AIBadgeCorner = modDeclare.AIBadgeCorner ?? "bottom_right";
-        AIBadgeStyle = modDeclare.AIBadgeStyle ?? "standard";
-        AICheckCode = modDeclare.AICheckCode;
-        AICheckArt = modDeclare.AICheckArt;
-        AICheckTranslation = modDeclare.AICheckTranslation;
-        AICheckAudio = modDeclare.AICheckAudio;
-        Tags = modDeclare.Tags ?? new List<string>();
-        SteamId = modDeclare.SteamId;
+        UpdateFrom(modDeclare);
 
-        Dependencies ??= Array.Empty<string>();
-        OptionalDependencies ??= Array.Empty<string>();
-        IncompatibleWith ??= Array.Empty<string>();
-
-        UID = modDeclare.UID;
         if (string.IsNullOrEmpty(UID)) UID = $"{Author}.{Name}";
         UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(UID);
 
@@ -159,6 +135,41 @@ public class ModDeclare
         {
             SteamId = parsedId;
         }
+    }
+
+    /// <summary>Refresh metadata while retaining references held by rows and dependency nodes.</summary>
+    internal void UpdateFrom(ModDeclare pModDeclare)
+    {
+        Name = pModDeclare.Name;
+        Author = pModDeclare.Author;
+        Version = pModDeclare.Version;
+        IconPath = pModDeclare.IconPath;
+        Description = pModDeclare.Description;
+        Dependencies = pModDeclare.Dependencies;
+        OptionalDependencies = pModDeclare.OptionalDependencies;
+        IncompatibleWith = pModDeclare.IncompatibleWith;
+        ModType = pModDeclare.ModType;
+        UsePublicizedAssembly = pModDeclare.UsePublicizedAssembly;
+        RepoUrl = pModDeclare.RepoUrl;
+        AIAttribution = pModDeclare.AIAttribution ?? "not_ai";
+        AIBadgeCorner = pModDeclare.AIBadgeCorner ?? "bottom_right";
+        AIBadgeStyle = pModDeclare.AIBadgeStyle ?? "standard";
+        AICheckCode = pModDeclare.AICheckCode;
+        AICheckArt = pModDeclare.AICheckArt;
+        AICheckTranslation = pModDeclare.AICheckTranslation;
+        AICheckAudio = pModDeclare.AICheckAudio;
+        Tags = pModDeclare.Tags ?? new List<string>();
+        SteamId = pModDeclare.SteamId;
+
+        Dependencies ??= Array.Empty<string>();
+        OptionalDependencies ??= Array.Empty<string>();
+        IncompatibleWith ??= Array.Empty<string>();
+
+        UID = pModDeclare.UID;
+        FolderPath = pModDeclare.FolderPath;
+        IsWorkshopLoaded = pModDeclare.IsWorkshopLoaded;
+        IsNCMSMod = pModDeclare.IsNCMSMod;
+        TargetGameBuild = pModDeclare.TargetGameBuild;
     }
 
     /// <summary>
@@ -300,6 +311,14 @@ public class ModDeclare
         if (LocalizedTextManager.stringExists(multilang_mod_author_key)) display_author = LM.Get(multilang_mod_author_key);
         return display_author;
     }
+    /// <summary>Version for display, with one leading "v" and no surrounding whitespace.</summary>
+    public string GetDisplayVersion()
+    {
+        if (string.IsNullOrWhiteSpace(Version)) return "";
+        string version = Version.Trim();
+        return version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : "v" + version;
+    }
+
     public string GetDisplayDesc()
     {
         var display_desc = Description;

@@ -44,7 +44,7 @@ internal static class ModWorkshopService
     /// <summary>
     /// Try to Upload a mod to Steam Workshop
     /// </summary>
-    public static Promise UploadMod(IMod mod, string changelog, bool verified = false, string uploadName = null)
+    public static Promise UploadMod(IMod mod, string changelog, string uploadName = null)
     {
         ModDeclare mod_decl = mod.GetDeclaration();
         string name = string.IsNullOrEmpty(uploadName) ? mod_decl.Name : uploadName;
@@ -58,7 +58,8 @@ internal static class ModWorkshopService
 
         File.WriteAllText(Path.Combine(workshopPath, "mod.json"), JsonConvert.SerializeObject(mod_decl, Formatting.Indented));
 
-        return workshopServiceBackend.UploadMod(name, description, previewImagePath, workshopPath, changelog, verified, GetAISteamTag(mod_decl), mod_decl.Tags);
+        return workshopServiceBackend.UploadMod(name, description, previewImagePath, workshopPath, changelog,
+            GetAISteamTag(mod_decl), mod_decl.Tags);
     }
 
     public static Promise TryEditMod(ulong fileID, IMod mod, string changelog)

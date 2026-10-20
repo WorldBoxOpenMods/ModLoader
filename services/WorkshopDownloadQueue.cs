@@ -69,6 +69,7 @@ internal sealed class DownloadEntry
 internal sealed class WorkshopDownloadQueue
 {
     public const string ErrorSubscribe = "mod_hub_download_error_subscribe";
+    public const string ErrorStart = "mod_hub_download_error_start";
     public const string ErrorNoProgress = "mod_hub_download_error_no_progress";
     public const string ErrorUnexpected = "mod_hub_download_error_unexpected";
 
@@ -199,7 +200,11 @@ internal sealed class WorkshopDownloadQueue
                 pEntry.SubscribedByQueue = true;
             }
 
-            steam.StartDownload(id);
+            if (!steam.StartDownload(id) && !steam.GetItemState(id).IsUpToDate)
+            {
+                await FailAsync(pEntry, ErrorStart);
+                return;
+            }
             string directory = await WaitUntilInstalledAsync(pEntry);
             if (directory == null) return;
 
@@ -289,6 +294,7 @@ internal sealed class WorkshopDownloadQueue
 
     private void SetState(DownloadEntry pEntry, DownloadState pState)
     {
+        if (pState == DownloadState.Completed) pEntry.Progress = 1;
         pEntry.State = pState;
         Changed?.Invoke(pEntry);
     }

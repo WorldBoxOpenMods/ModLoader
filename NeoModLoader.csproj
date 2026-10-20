@@ -10,7 +10,9 @@
         <PackageProjectUrl>https://github.com/WorldBoxOpenMods</PackageProjectUrl>
         <RepositoryUrl>https://github.com/WorldBoxOpenMods/ModLoader</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-        <AssemblyVersion>1.2.0.1</AssemblyVersion>
+        <Version>1.2.1.1</Version>
+        <AssemblyVersion>1.2.1.1</AssemblyVersion>
+        <FileVersion>1.2.1.1</FileVersion>
         <DebugType>portable</DebugType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
@@ -20,7 +22,7 @@
         <AssemblyOriginatorKeyFile>wbopenmods.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
-  <!-- Used for HarmonyPatch, Authentication, Auto-update, Hotfix, Steam workshop-->
+  <!-- Used for HarmonyPatch, Auto-update, Hotfix, Steam workshop-->
     <ItemGroup>
       <Reference Include="0Harmony">
         <HintPath>resources\assemblies\0Harmony.dll</HintPath>

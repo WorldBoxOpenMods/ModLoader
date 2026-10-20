@@ -119,7 +119,8 @@ internal class ModUploadingProgressWindow : AbstractWindow<ModUploadingProgressW
     public static void ErrorUpload(Exception obj)
     {
         Instance.uploading = false;
-        Instance.percent.text = LM.Get("NML_" + obj.Message);
+        string key = "NML_" + obj.Message;
+        Instance.percent.text = LM.Has(key) ? LM.Get(key) : obj.Message;
         Instance.percent.color = Color.red;
     }
 

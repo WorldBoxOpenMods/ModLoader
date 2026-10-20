@@ -8,6 +8,24 @@ namespace NeoModLoader.General;
 /// </summary>
 public static class OT
 {
+    /// <summary>Create plain text using the game's current font.</summary>
+    public static Text CreateText(Transform pParent, string pName, int pFontSize,
+        TextAnchor pAlignment = TextAnchor.MiddleLeft, Color? pColor = null)
+    {
+        var obj = new GameObject(pName, typeof(Text));
+        obj.transform.SetParent(pParent, false);
+        Text text = obj.GetComponent<Text>();
+        InitializeCommonText(text);
+        text.supportRichText = false;
+        text.fontSize = pFontSize;
+        text.color = pColor ?? Color.white;
+        text.alignment = pAlignment;
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Truncate;
+        text.raycastTarget = false;
+        return text;
+    }
+
     /// <summary>
     /// Initialize common text(with font and rich text support)
     /// </summary>

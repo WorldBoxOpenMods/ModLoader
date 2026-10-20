@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.General.UI;
 using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace NeoModLoader.ui;
 internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
 {
     private static bool is_update_mode;
-    private Text changelog_text;
+    private InputField changelog_inputfield;
     private Text mod_author_text;
     private Text mod_description_text;
     private Text mod_fileid_text;
@@ -28,7 +29,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
     public static void ShowWindow(IMod mod, bool isUpdate = false)
     {
         is_update_mode = isUpdate;
-        Instance.selected_mod = mod;
+        Instance.SelectMod(mod);
         ModDeclare mod_decl = mod.GetDeclaration();
         if (string.IsNullOrEmpty(mod_decl.IconPath) ||
             !File.Exists(Path.Combine(mod_decl.FolderPath, mod_decl.IconPath)))
@@ -284,15 +285,21 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
         input_changelog_inputfield.transform.localScale = Vector3.one;
         input_changelog_inputfield.transform.localPosition = Vector3.zero;
         Text input_changelog_inputfield_text = input_changelog_inputfield.GetComponent<Text>();
-        input_changelog_inputfield.GetComponent<InputField>().textComponent = input_changelog_inputfield_text;
-        input_changelog_inputfield_text.text = "#CHANGELOG";
-        changelog_text = input_changelog_inputfield_text;
+        changelog_inputfield = input_changelog_inputfield.GetComponent<InputField>();
+        changelog_inputfield.textComponent = input_changelog_inputfield_text;
         OT.InitializeCommonText(input_changelog_inputfield_text);
         input_changelog_inputfield_text.alignment = TextAnchor.UpperLeft;
         input_changelog_inputfield_text.resizeTextForBestFit = true;
         input_changelog_inputfield_text.resizeTextMinSize = 6;
         input_changelog_inputfield_text.resizeTextMaxSize = 10;
         input_changelog_inputfield.GetComponent<InputField>().lineType = InputField.LineType.MultiLineNewline;
+
+        Text placeholder = OT.CreateText(changelog_inputfield.transform, "Placeholder", 10,
+            TextAnchor.UpperLeft, Color.gray);
+        placeholder.raycastTarget = false;
+        placeholder.rectTransform.Stretch();
+        placeholder.gameObject.AddComponent<LocalizedText>().setKeyAndUpdate("mod_upload_changelog");
+        changelog_inputfield.placeholder = placeholder;
 
         NameInput input_changelog_input = input_changelog.AddComponent<NameInput>();
         input_changelog_input.inputField = input_changelog_inputfield.GetComponent<InputField>();
@@ -348,12 +355,12 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
     public static void ExecuteDirectUpload(IMod mod)
     {
         if (mod == null) return;
-        Instance.selected_mod = mod;
+        Instance.SelectMod(mod);
         is_update_mode = true;
         var decl = mod.GetDeclaration();
         if (decl.SteamId > 0)
         {
-            Instance.executeUpload();
+            Instance.ExecuteUpload(decl.SteamId);
         }
         else
         {
@@ -368,6 +375,16 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             return Instance.mod_fileid_inputfield.text;
         }
         return mod_fileid_text.text;
+    }
+
+    private void SelectMod(IMod pMod)
+    {
+        if (selected_mod?.GetDeclaration().UID != pMod.GetDeclaration().UID)
+        {
+            changelog_inputfield.text = "";
+        }
+
+        selected_mod = pMod;
     }
 
     private ulong ResolveTargetWorkshopId(string inputText)
@@ -389,7 +406,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
 
     private void ExecuteUpdateMod(ulong fileIdLong)
     {
-        ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_text.text)
+        ModWorkshopService.TryEditMod(fileIdLong, selected_mod, changelog_inputfield.text)
             .Then(() =>
             {
                 SaveModWorkshopId(fileIdLong);
@@ -399,9 +416,7 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
 
     private void ExecuteNewUpload(string uploadName)
     {
-        ModUploadAuthenticationService.Authenticate().Then(
-            () => ModWorkshopService.UploadMod(selected_mod, changelog_text.text,
-                ModUploadAuthenticationService.Authed, uploadName)).Then(() =>
+        ModWorkshopService.UploadMod(selected_mod, changelog_inputfield.text, uploadName).Then(() =>
             {
                 if (ModUploadingProgressWindow.Instance.fileId > 0)
                 {
@@ -412,23 +427,34 @@ internal class ModUploadWindow : AbstractWindow<ModUploadWindow>
             ModUploadingProgressWindow.ErrorUpload);
     }
 
-    private void executeUpload()
-    {
-        string inputText = GetInputFileIdText();
-        if (is_update_mode)
-        {
-            ulong fileIdLong = ResolveTargetWorkshopId(inputText);
-            if (fileIdLong > 0)
-            {
-                ExecuteUpdateMod(fileIdLong);
-                return;
-            }
-        }
+    private void executeUpload() => ExecuteUpload(null);
 
-        string uploadName = (!string.IsNullOrEmpty(inputText) && !ulong.TryParse(inputText, out _))
-            ? inputText
-            : null;
-        ExecuteNewUpload(uploadName);
+    private void ExecuteUpload(ulong? pTargetFileId)
+    {
+        try
+        {
+            string inputText = GetInputFileIdText();
+            if (is_update_mode)
+            {
+                ulong fileIdLong = pTargetFileId ?? ResolveTargetWorkshopId(inputText);
+                if (fileIdLong > 0)
+                {
+                    ExecuteUpdateMod(fileIdLong);
+                    return;
+                }
+            }
+
+            string uploadName = (!string.IsNullOrEmpty(inputText) && !ulong.TryParse(inputText, out _))
+                ? inputText
+                : null;
+            ExecuteNewUpload(uploadName);
+        }
+        catch (Exception exception)
+        {
+            // File preparation can fail before the backend has opened the progress window.
+            ModUploadingProgressWindow.ShowWindow();
+            ModUploadingProgressWindow.ErrorUpload(exception);
+        }
     }
 
     private void updateTagButtonsUI()

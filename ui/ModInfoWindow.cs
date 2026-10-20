@@ -1,8 +1,10 @@
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
+using NeoModLoader.General.UI;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.services;
+using NeoModLoader.ui.prefabs;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +15,7 @@ namespace NeoModLoader.ui;
 /// </summary>
 internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
 {
-    private const float header_height = 32;
+    private const float header_height = 48;
 
     // Unity's Text cannot draw much more than 16k characters.
     private const int max_description_length = 8000;
@@ -37,10 +39,10 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
 
     protected override void Init()
     {
-        ModHubStyle.SetUpListWindow(BackgroundTransform, out Transform header, out Transform footer);
-        CreateHeader(header);
+        ModHubFrame frame = ModHubFrame.Create(BackgroundTransform, true);
+        CreateHeader(frame.Header.transform);
         CreateBody();
-        CreateButtons(footer);
+        CreateButtons(frame.Footer);
     }
 
     public override void OnNormalEnable()
@@ -55,7 +57,7 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
         bool from_workshop = InstalledMod.TryGetWorkshopId(mod.FolderPath, CoreConstants.GameId, out workshop_id);
 
         icon.sprite = ModManagerService.GetIcon(mod);
-        title.text = $"{installed.Name}  {ModHubUI.FormatVersion(mod.Version)}".TrimEnd();
+        title.text = $"{installed.Name}  {mod.GetDisplayVersion()}".TrimEnd();
         author.text = string.Format(LM.Get("mod_hub_by_author"), installed.Author);
         string fail_reason = mod.FailReason.ToString().Trim();
         notice.gameObject.SetActive(installed.HasProblem && fail_reason.Length > 0);
@@ -108,40 +110,48 @@ internal class ModInfoWindow : AbstractWindow<ModInfoWindow>
 
     private void CreateHeader(Transform pHeader)
     {
-        ModHubStyle.Size(pHeader.gameObject, pHeight: header_height);
-        icon = ModHubStyle.Icon(pHeader, "Icon", null, header_height);
+        pHeader.gameObject.SetLayoutSize(pHeight: header_height);
+        var image = new GameObject("Icon", typeof(Image));
+        image.transform.SetParent(pHeader, false);
+        icon = image.GetComponent<Image>();
+        icon.preserveAspect = true;
+        image.SetLayoutSize(header_height, header_height);
 
         var texts = new GameObject("Texts", typeof(RectTransform));
         texts.transform.SetParent(pHeader, false);
-        ModHubStyle.Vertical(texts, 2).childAlignment = TextAnchor.MiddleLeft;
-        ModHubStyle.Size(texts, pFlexibleWidth: 1);
-        title = ModHubStyle.Label(texts.transform, "Title", ModHubStyle.FontTitle, ModHubStyle.TextBright);
-        author = ModHubStyle.Label(texts.transform, "Author", ModHubStyle.FontSmall, ModHubStyle.TextMuted);
+        var layout = texts.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 2;
+        layout.childAlignment = TextAnchor.MiddleLeft;
+        layout.childControlWidth = layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+        texts.SetLayoutSize(pFlexibleWidth: 1);
+        title = OT.CreateText(texts.transform, "Title", 10);
+        title.gameObject.SetLayoutSize(pHeight: 28);
+        author = OT.CreateText(texts.transform, "Author", 7, pColor: Color.gray);
+        author.gameObject.SetLayoutSize(pHeight: 16);
     }
 
     private void CreateBody()
     {
-        ModHubStyle.Vertical(ContentTransform.gameObject, ModHubStyle.SpaceM).childForceExpandWidth = true;
-        ContentTransform.gameObject.AddComponent<ContentSizeFitter>().verticalFit =
-            ContentSizeFitter.FitMode.PreferredSize;
-        notice = Paragraph("Notice", ModHubStyle.Warning);
-        description = Paragraph("Description", ModHubStyle.TextBright);
+        notice = Paragraph("Notice", new Color(1f, 0.72f, 0.25f));
+        description = Paragraph("Description", Color.white);
     }
 
     private Text Paragraph(string pName, Color pColor)
     {
-        Text text = ModHubStyle.Label(ContentTransform, pName, ModHubStyle.FontBody, pColor, TextAnchor.UpperLeft);
+        Text text = OT.CreateText(ContentTransform, pName, 8, TextAnchor.UpperLeft, pColor);
         text.verticalOverflow = VerticalWrapMode.Overflow;
         return text;
     }
 
-    private void CreateButtons(Transform pFooter)
+    private void CreateButtons(ModHubToolbar pFooter)
     {
-        workshop_button = ModHubStyle.TextButton(pFooter, "WorkshopPage", "mod_hub_workshop_page",
+        workshop_button = pFooter.AddText("WorkshopPage", "mod_hub_workshop_page",
             () => Application.OpenURL($"steam://url/CommunityFilePage/{workshop_id}"));
-        ModHubStyle.TextButton(pFooter, "OpenFolder", "mod_hub_open_folder",
+        pFooter.AddText("OpenFolder", "mod_hub_open_folder",
             () => ModManagerService.OpenFolder(mod.FolderPath));
-        unsubscribe_button = ModHubStyle.TextButton(pFooter, "Unsubscribe", "mod_hub_unsubscribe",
+        unsubscribe_button = pFooter.AddText("Unsubscribe", "mod_hub_unsubscribe",
             ConfirmUnsubscribe, true);
     }
 }

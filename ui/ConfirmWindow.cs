@@ -1,4 +1,6 @@
 using NeoModLoader.api;
+using NeoModLoader.General;
+using NeoModLoader.ui.prefabs;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,26 +25,31 @@ internal class ConfirmWindow : AbstractWindow<ConfirmWindow>
 
     protected override void Init()
     {
-        BackgroundTransform.Find("Scroll View").gameObject.SetActive(false);
-        message = ModHubUI.CreateText(BackgroundTransform, "Message", new Vector2(200, 170), new Vector2(0, 25), 9,
-            TextAnchor.MiddleCenter);
-        ModHubUI.CreateTextButton(BackgroundTransform, "Confirm", "mod_hub_confirm", new Vector2(80, 24),
-            new Vector2(-45, -100), Confirm);
-        ModHubUI.CreateTextButton(BackgroundTransform, "Cancel", "mod_hub_cancel", new Vector2(80, 24),
-            new Vector2(45, -100), Close);
+        ModHubFrame frame = ModHubFrame.Create(BackgroundTransform, true);
+        frame.Header.gameObject.SetActive(false);
+        message = OT.CreateText(ContentTransform, "Message", 10, TextAnchor.UpperLeft);
+        message.verticalOverflow = VerticalWrapMode.Overflow;
+        frame.Footer.AddText("Cancel", "mod_hub_cancel", Close);
+        frame.Footer.AddText("Confirm", "mod_hub_confirm", Confirm, true);
     }
+
+    public override void OnNormalEnable() => GetComponent<ScrollWindow>().resetScroll();
+
+    public override void OnNormalDisable() => on_confirm = null;
 
     private void Confirm()
     {
+        if (ScrollWindow.isAnimationActive()) return;
         Action action = on_confirm;
         on_confirm = null;
         // Run first, so the previous window shows the result when it is enabled again.
         action?.Invoke();
-        Close();
+        if (ScrollWindow.getCurrentWindow() == GetComponent<ScrollWindow>()) Close();
     }
 
     private void Close()
     {
+        if (ScrollWindow.isAnimationActive()) return;
         on_confirm = null;
         GetComponent<ScrollWindow>().clickBack();
     }

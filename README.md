@@ -38,7 +38,7 @@ It is recommended to subscribe to the NML item on the Steam Workshop to receive 
 ### Android Installation
 
 1. Use a suitable Mono mod loader for worldbox, like FusionCore
-2. Move NeoModLoader.dll to <Persistentdata>/mods
+2. Move NeoModLoader.dll to `<Persistentdata>/mods`
 3. enable experimental mode and start the game
 
 ### IOS Installation

@@ -87,7 +87,7 @@ static class PCInputPatches
         __result = PCInputSystem.GetState(name) == KeyState.LetGo;
         return false;
     }
-   
+
     [HarmonyPatch(typeof(MoveCamera), nameof(MoveCamera.updateMobileCamera))]
     [HarmonyPrefix]
     public static bool CanMoveCamera()

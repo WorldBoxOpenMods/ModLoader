@@ -63,14 +63,9 @@ internal static class ModManagerService
 
     public static Sprite GetIcon(ModDeclare pMod)
     {
-        if (!string.IsNullOrEmpty(pMod.IconPath))
-        {
-            string icon_path = Path.Combine(pMod.FolderPath, pMod.IconPath);
-            Sprite icon = File.Exists(icon_path) ? SpriteLoadUtils.LoadSingleSprite(icon_path) : null;
-            if (icon != null) return icon;
-        }
-
-        return InternalResourcesGetter.GetIcon();
+        if (string.IsNullOrEmpty(pMod.IconPath)) return InternalResourcesGetter.GetIcon();
+        string path = Path.Combine(pMod.FolderPath, pMod.IconPath);
+        return File.Exists(path) ? pMod.GetIcon() : InternalResourcesGetter.GetIcon();
     }
 
     /// <summary>
@@ -151,7 +146,8 @@ internal static class ModManagerService
     /// </summary>
     public static bool CanDelete(InstalledMod pMod)
     {
-        if (pMod.Status is not (InstalledModStatus.Disabled or InstalledModStatus.Failed)) return false;
+        if (ModCompileLoadService.IsModLoaded(pMod.Declaration.UID)) return false;
+        if (pMod.Enabled && !pMod.HasProblem) return false;
         return pMod.Source switch
         {
             ModSource.ModsFolder => IsModsFolderEntry(pMod.Declaration.FolderPath),
@@ -167,6 +163,8 @@ internal static class ModManagerService
     public static async Task<bool> DeleteAsync(InstalledMod pMod)
     {
         ModDeclare declaration = pMod.Declaration;
+        // The row may have changed while the confirmation window was open.
+        if (!WorldBoxMod.AllRecognizedMods.ContainsKey(declaration) || !CanDelete(Describe(declaration))) return false;
         if (pMod.Source == ModSource.Workshop) return await ModDownloadService.UnsubscribeAsync(declaration);
         if (!IsModsFolderEntry(declaration.FolderPath)) return false;
 
@@ -181,6 +179,7 @@ internal static class ModManagerService
         }
 
         WorldBoxMod.AllRecognizedMods.Remove(declaration);
+        ModDepenSolveService.InitializeGraph(WorldBoxMod.AllRecognizedMods.Keys);
         return true;
     }
 

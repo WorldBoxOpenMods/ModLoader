@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -699,6 +700,13 @@ public static class ModCompileLoadService
     private static void SeedAvailableModReferencesRecursive(ModDependencyNode pNode, CompileSessionContext pContext,
         ISet<string> pSelectedNodeUids, ISet<string> pVisited)
     {
+        // A cached DLL does not make a disabled mod available. Keep references for the current
+        // session's loaded mods and for dependencies being enabled by this compilation plan.
+        if (!pNode.Loaded && !pNode.DesiredEnabled && !pSelectedNodeUids.Contains(pNode.mod_decl.UID))
+        {
+            return;
+        }
+
         if (!pVisited.Add(pNode.mod_decl.UID))
         {
             return;
@@ -771,8 +779,8 @@ public static class ModCompileLoadService
         bool has_available_optional_depen =
             pNode.mod_decl.OptionalDependencies.Any(pAvailableModReferences.ContainsKey);
         CompileNodeResult compile_result =
-            CompileModFromSource(pNode, pNode.GetAdditionReferences().ToArray(), pAvailableModReferences, pContext,
-                pForce);
+            CompileModFromSource(pNode, pNode.GetAdditionReferences(pAvailableModReferences.ContainsKey).ToArray(),
+                pAvailableModReferences, pContext, pForce);
         if (compile_result.Success)
         {
             return compile_result;
@@ -836,13 +844,29 @@ public static class ModCompileLoadService
                 break;
         }
 
-        string game_version = NormalizeGameVersion(Application.version);
+        symbols.AddRange(GetGameVersionPreprocessorSymbols(Application.version));
+        return symbols;
+    }
+
+    private static IEnumerable<string> GetGameVersionPreprocessorSymbols(string pVersion)
+    {
+        string game_version = NormalizeGameVersion(pVersion);
         if (!string.IsNullOrEmpty(game_version))
         {
-            symbols.Add($"NML_GAME_VERSION_{game_version}");
+            yield return $"NML_GAME_VERSION_{game_version}";
         }
 
-        return symbols;
+        if (string.IsNullOrWhiteSpace(pVersion)) yield break;
+
+        // A family symbol covers every patch release, e.g. 0.51.* including preview builds.
+        Match family = Regex.Match(pVersion.Trim(), @"^([0-9]+)\.([0-9]+)(?=\.|$|[-+])");
+        if (!family.Success) yield break;
+
+        string family_version = $"{family.Groups[1].Value}_{family.Groups[2].Value}";
+        if (family_version != game_version)
+        {
+            yield return $"NML_GAME_VERSION_{family_version}";
+        }
     }
 
     private static string NormalizeGameVersion(string pVersion)

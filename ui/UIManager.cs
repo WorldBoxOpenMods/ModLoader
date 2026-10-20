@@ -11,13 +11,11 @@ internal static class UIManager
         InformationWindow.CreateWindow("Information", "Information Title");
         ModUploadWindow.CreateAndInit("ModUpload");
         ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
-        ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         ModConfigureWindow.CreateAndInit("ModConfigure");
         AIDisclosureWindow.CreateAndInit("AIDisclosureWindow");
         AIConfirmWindow.CreateAndInit("AIConfirmWindow");
         ModUploadModeWindow.CreateAndInit("ModUploadModeWindow");
-        ModManagerWindow.CreateAndInit("ModManager");
-        ModBrowserWindow.CreateAndInit("ModBrowser");
+        ModHubWindow.CreateAndInit("ModManager");
         ModInfoWindow.CreateAndInit("ModInfo");
         ConfirmWindow.CreateAndInit("NMLConfirm");
         PowerButtonCreator.AddButtonToTab(

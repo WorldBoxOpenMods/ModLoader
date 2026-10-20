@@ -25,7 +25,7 @@ public abstract class AbstractListWindowItem<TItem> : MonoBehaviour
 /// You should create a subclass of this class, and call CreateAndInit to create a window.
 /// <para>In addition, you need to create a subclass of <see cref="AbstractListWindowItem{TItem}"/> for setup each item of the list </para>
 /// </remarks>
-/// <example><see cref="ui.ModManagerWindow"/></example>
+/// <example><see cref="ui.ModManagerPage"/></example>
 /// <typeparam name="T">The type of the class which inherits this class </typeparam>
 /// <typeparam name="TItem">The type of object passed into AbstractListWindowItem.Setup as parameter </typeparam>
 public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
@@ -98,6 +98,7 @@ public abstract class AbstractListWindow<T, TItem> : AbstractWindow<T>
     /// <returns></returns>
     public static new T CreateAndInit(string pWindowId)
     {
+        WindowId = pWindowId;
         ScrollWindow scroll_window = WindowCreator.CreateEmptyWindow(pWindowId, pWindowId + " Title");
 
         GameObject window_object = scroll_window.gameObject;
