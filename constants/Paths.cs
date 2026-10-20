@@ -177,6 +177,7 @@ public static class Paths
         RuntimePlatform.LinuxPlayer   => Combine(StreamingAssetsPath, "..", ".."),
         RuntimePlatform.OSXPlayer     => Combine(StreamingAssetsPath, "..", "..", "..", "..", ".."),
         RuntimePlatform.Android       => Combine(PersistentDataPath, ".."),
+        RuntimePlatform.IPhonePlayer =>  Combine(PersistentDataPath, ".."),
         _                             => Combine(StreamingAssetsPath, "..", "..")
     };
 
