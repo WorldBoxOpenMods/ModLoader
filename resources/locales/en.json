@@ -135,6 +135,7 @@
   "mod_hub_refresh": "Reload the list from Steam",
   "mod_hub_security_notice": "Workshop mods are programs made by other players. They run with your permissions, and NeoModLoader does not review or sandbox them.\n\nDownloading subscribes your Steam account to the mod. New downloads are saved as disabled: enable them in Manage Mods when you trust them.",
   "mod_hub_steam_unavailable": "Steam is not available. Start Steam, then restart the game to browse the Workshop.",
+  "mod_hub_steam_unavailable_mobile": "Steam is not available on mobile.",
   "mod_hub_steam_offline": "Steam is offline. Download Mods needs a connection to Steam.",
   "mod_hub_query_failed": "The Steam Workshop did not answer. Try again in a moment.",
   "mod_hub_loading": "Loading mods... {0} of {1}",
