@@ -145,7 +145,7 @@ internal class ModBrowserPage : ModHubListPage<ModBrowserPage, ModListing>
         CatalogStatus status = ModDownloadService.Catalog.Status;
         string key = status switch
         {
-            CatalogStatus.SteamUnavailable => "mod_hub_steam_unavailable",
+            CatalogStatus.SteamUnavailable => Others.IsMobile ? "mod_hub_steam_unavailable_mobile" : "mod_hub_steam_unavailable",
             CatalogStatus.Offline => "mod_hub_steam_offline",
             CatalogStatus.Failed => "mod_hub_query_failed",
             _ when shown_count == 0 && status != CatalogStatus.Loading => "mod_hub_no_match",
