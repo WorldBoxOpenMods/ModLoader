@@ -18,10 +18,6 @@ public static class Paths
     /// </summary>
     public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
     /// <summary>
-    /// path to special folder. on PC its just the Users home directory. on Mobile its app-specific directories. 
-    /// </summary>
-    public static string SpecialFolderPath => System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-    /// <summary>
     /// Path to folder StreamingAssets
     /// </summary>
     public static readonly string StreamingAssetsPath = Combine(Application.streamingAssetsPath);

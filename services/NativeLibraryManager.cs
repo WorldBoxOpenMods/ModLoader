@@ -1,26 +1,16 @@
-using System.Collections.Concurrent;
-using System.Data;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using NeoModLoader.constants;
 using Newtonsoft.Json;
-using UnityEngine;
-
 namespace NeoModLoader.services;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using UnityEngine;
 
 public static class NativeLibraryManager
 {
-    
     // Windows
     [DllImport("kernel32.dll", EntryPoint = "LoadLibraryW",
         SetLastError = true, CharSet = CharSet.Unicode)]
@@ -120,8 +110,7 @@ public static class NativeLibraryManager
 
             case RuntimePlatform.Android:
                 PlatformFolder = "android";
-                SpecialPath = Path.Combine(
-                    Paths.SpecialFolderPath, "NML");
+                SpecialPath = Path.Combine(IL2CPP2MONO.App.InternalPath, "NML");
                 GetAddress = AndroidDlSym;
                 Loadlib = (path, out error) =>
                 {
@@ -205,7 +194,7 @@ public static class NativeLibraryManager
         string Name, string Symbol) where T : Delegate
     {
         if (!Libraries.TryGetValue(Name, out var lib))
-            return null;
+            throw new DllNotFoundException($"native library {Name} was not found!");
         IntPtr function = GetAddress(lib.Handle, Symbol);
         if (function == IntPtr.Zero)
         {
@@ -236,5 +225,27 @@ public static class NativeLibraryManager
             throw new InvalidDataException(
                 "Failed to read order.json.", ex);
         }
+    }
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    delegate bool NativeModEntry (IntPtr NMLAPI);
+
+    static IntPtr NMLAPI(string type, string method)
+    {
+        Assembly NML = typeof(WorldBoxMod).Assembly;
+        Type Type = NML.GetType(type);
+        if (Type == null)
+        {
+            return IntPtr.Zero;
+        }
+        MethodInfo Method = Type.GetMethod(method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        return Method == null ? IntPtr.Zero : Method.MethodHandle.GetFunctionPointer();
+    }
+    /// <summary>
+    /// native libraries which act as mods may use the NML API for assistance. the entry point is always bool ModEntry(IntPtr NMLAPIFUNC) where NMLAPIFUNC is IntPtr (string type, string method). this returns a neomodloader function which may be used
+    /// </summary>
+    public static bool LoadNativeMod(string Name)
+    {
+        NativeModEntry EntryPoint = GetNativeFunction<NativeModEntry>(Name, "ModEntry");
+        return EntryPoint(Marshal.GetFunctionPointerForDelegate(NMLAPI));
     }
 }
