@@ -14,6 +14,7 @@ public static class NativeLibraryManager
     private static extern IntPtr WinGetAddress(IntPtr hModule, string procName);
 
     private const int RTLD_NOW = 2;
+    private const int RTLD_GLOBAL = 8;
     [DllImport("libdl.so.2", EntryPoint = "dlopen", CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr UnixDlOpen(string filename, int flags);
     [DllImport("libdl", EntryPoint = "dlsym", CallingConvention = CallingConvention.Cdecl)]
@@ -23,6 +24,7 @@ public static class NativeLibraryManager
     {
         public void LoadNativeLibraries(string path)
         {
+            
             string Folder = Path.Combine(path, FolderName);
             if (!Directory.Exists(Folder))
             {
@@ -36,11 +38,11 @@ public static class NativeLibraryManager
                 {
                     string newfile = Path.Combine(SpecialPath, Path.GetFileName(file));
                     File.Copy(file, newfile, true);
-                    handle = UnixDlOpen(newfile, RTLD_NOW);
+                    handle = UnixDlOpen(newfile, RTLD_NOW | RTLD_GLOBAL);
                 }
                 else
                 {
-                    handle = UnixDlOpen(file, RTLD_NOW);
+                    handle = UnixDlOpen(file, RTLD_NOW | RTLD_GLOBAL);
                 }
                 if (handle == IntPtr.Zero)
                 {
@@ -131,4 +133,5 @@ public static class NativeLibraryManager
         IntPtr Function = Handler.GetFunction(Handle, Name);
         return Marshal.GetDelegateForFunctionPointer(Function, typeof(T)) as T;
     }
+    
 }
