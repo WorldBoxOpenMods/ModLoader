@@ -1,137 +1,240 @@
 using System.Collections.Concurrent;
+using System.Data;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using NeoModLoader.constants;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace NeoModLoader.services;
+using System;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Text;
+using UnityEngine;
 
 public static class NativeLibraryManager
 {
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi, EntryPoint = "LoadLibrary")]
-    private static extern IntPtr WinLoadLibrary(string lpFileName);
-    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, EntryPoint = "GetProcAddress", SetLastError = true)]
-    private static extern IntPtr WinGetAddress(IntPtr hModule, string procName);
-
-    private const int RTLD_NOW = 2;
-    private const int RTLD_GLOBAL = 8;
-    [DllImport("libdl.so.2", EntryPoint = "dlopen", CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr UnixDlOpen(string filename, int flags);
-    [DllImport("libdl", EntryPoint = "dlsym", CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr UnixDlSym(IntPtr handle, string symbol);
     
-    class UnixHandler(string FolderName, string SpecialPath) : PlatformNativeHandler
-    {
-        public void LoadNativeLibraries(string path)
-        {
-            
-            string Folder = Path.Combine(path, FolderName);
-            if (!Directory.Exists(Folder))
-            {
-                LogService.LogWarning($"Warning: {path} doesn't contain any native libraries for the current platform!");
-                return;
-            }
-            foreach (var file in Directory.GetFiles(Folder))
-            {
-                IntPtr handle;
-                if (SpecialPath != null) //android requires libraries in data/user
-                {
-                    string newfile = Path.Combine(SpecialPath, Path.GetFileName(file));
-                    File.Copy(file, newfile, true);
-                    handle = UnixDlOpen(newfile, RTLD_NOW | RTLD_GLOBAL);
-                }
-                else
-                {
-                    handle = UnixDlOpen(file, RTLD_NOW | RTLD_GLOBAL);
-                }
-                if (handle == IntPtr.Zero)
-                {
-                    throw new BadImageFormatException($"Failed to load native library {file}");
-                }
-                LibraryHandles.TryAdd(Path.GetFileNameWithoutExtension(file), handle);
-            }
-        }
+    // Windows
+    [DllImport("kernel32.dll", EntryPoint = "LoadLibraryW",
+        SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern IntPtr WinLoadLibrary(string fileName);
 
-        public IntPtr GetFunction(IntPtr Handle, string Name)
-        {
-          return UnixDlSym(Handle, Name);
-        }
-    }
+    [DllImport("kernel32.dll", EntryPoint = "GetProcAddress",
+        SetLastError = true, CharSet = CharSet.Ansi)]
+    private static extern IntPtr WinGetAddress(IntPtr handle, string symbol);
 
-    class NotSupportedHandler : PlatformNativeHandler
-    {
-        public void LoadNativeLibraries(string Folder)
-        {
-            throw new PlatformNotSupportedException("Native libraries are not supported on this platform!");
-        }
+    // Linux
+    [DllImport("libdl.so.2", EntryPoint = "dlopen",
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr LinuxDlOpen(string filename, int flags);
 
-        public IntPtr GetFunction(IntPtr Handle, string Name)
-        {
-            throw new PlatformNotSupportedException("Native libraries are not supported on this platform!");
-        }
-    }
-    class WinHandler(string FolderName) : PlatformNativeHandler
-    {
-        public void LoadNativeLibraries(string path)
-        {
-            string Folder = Path.Combine(path, FolderName);
-            if (!Directory.Exists(Folder))
-            {
-                LogService.LogWarning($"Warning: {path} doesn't contain any native libraries for the current platform!");
-                return;
-            }
-            foreach (var file in Directory.GetFiles(Folder))
-            {
-                IntPtr handle = WinLoadLibrary(file);
-                if (handle == IntPtr.Zero)
-                {
-                    throw new BadImageFormatException($"Failed to load native library {file}");
-                }
-                LibraryHandles.TryAdd(Path.GetFileNameWithoutExtension(file), handle);
-            }
-        }
-        public IntPtr GetFunction(IntPtr Handle, string Name)
-        {
-           return WinGetAddress(Handle, Name);
-        }
-    }
-    interface PlatformNativeHandler
-    {
-        void LoadNativeLibraries(string Folder);
-        IntPtr GetFunction(IntPtr Handle, string Name);
-    }
+    [DllImport("libdl.so.2", EntryPoint = "dlsym",
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr LinuxDlSym(IntPtr handle, string symbol);
 
-    private static ConcurrentDictionary<string, IntPtr> LibraryHandles = new ConcurrentDictionary<string, IntPtr>();
-    private static PlatformNativeHandler Handler;
+    [DllImport("libdl.so.2", EntryPoint = "dlerror",
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr LinuxDlError();
+
+    // Android
+    [DllImport("libdl.so", EntryPoint = "dlopen",
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr AndroidDlOpen(string filename, int flags);
+
+    [DllImport("libdl.so", EntryPoint = "dlsym",
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr AndroidDlSym(IntPtr handle, string symbol);
+
+    [DllImport("libdl.so", EntryPoint = "dlerror",
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr AndroidDlError();
+
+    private const int OPEN_FLAGS = 2 | 0x100;
+    
+    delegate IntPtr loadlib(string Path, out string Error);
+    delegate IntPtr getaddress(IntPtr Handle, string symbol);
+
+    static getaddress GetAddress;
+    static loadlib Loadlib;
+    struct NativeLibrary(IntPtr Handle, string Path)
+    {
+        public IntPtr Handle = Handle;
+        public string Path = Path;
+    }
+    private static readonly ConcurrentDictionary<string, NativeLibrary>
+        Libraries = new();
+    
+    private static string PlatformFolder;
+    private static string SpecialPath;
+    
+    [Serializable]
+    private class LoadOrder
+    {
+        public List<string> Order { get; set; }
+    }
 
     static NativeLibraryManager()
     {
-        Handler = Application.platform switch
+        switch (Application.platform)
         {
-            RuntimePlatform.OSXEditor => new UnixHandler("osx", null),
-            RuntimePlatform.OSXPlayer => new NotSupportedHandler(),
-            RuntimePlatform.WindowsPlayer => new WinHandler("win"),
-            RuntimePlatform.WindowsEditor => new WinHandler("win"),
-            RuntimePlatform.IPhonePlayer => new NotSupportedHandler(),
-            RuntimePlatform.Android => new UnixHandler("android", Path.Combine(Paths.SpecialFolderPath, "NML")),
-            RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor => new UnixHandler("linux", null),
-            _ => new NotSupportedHandler()
-        };
+            case RuntimePlatform.WindowsEditor:
+            case RuntimePlatform.WindowsPlayer:
+                GetAddress = WinGetAddress;
+                Loadlib = (path, out error) =>
+                {
+                    error = null;
+                    IntPtr handle = WinLoadLibrary(path);
+                    if (handle == IntPtr.Zero)
+                    {
+                        error = new System.ComponentModel.Win32Exception(
+                            Marshal.GetLastWin32Error()).Message;
+                    }
+
+                    return handle;
+                };
+                PlatformFolder = "win";
+                break;
+
+            case RuntimePlatform.LinuxEditor:
+            case RuntimePlatform.LinuxPlayer:
+                GetAddress = LinuxDlSym;
+                Loadlib = (path, out error) =>
+                {
+                    error = null;
+                    IntPtr handle = LinuxDlOpen(path, OPEN_FLAGS);
+                    if (handle == IntPtr.Zero)
+                    {
+                        error = Marshal.PtrToStringAnsi(LinuxDlError());
+                    }
+                    return handle;
+                };
+                PlatformFolder = "linux";
+                break;
+
+            case RuntimePlatform.Android:
+                PlatformFolder = "android";
+                SpecialPath = Path.Combine(
+                    Paths.SpecialFolderPath, "NML");
+                GetAddress = AndroidDlSym;
+                Loadlib = (path, out error) =>
+                {
+                    error = null;
+                    IntPtr handle = AndroidDlOpen(path, OPEN_FLAGS);
+                    if (handle == IntPtr.Zero)
+                    {
+                        error = Marshal.PtrToStringAnsi(AndroidDlError());
+                    }
+                    return handle;
+                };
+                break;
+            
+            default:
+                PlatformFolder = null;
+                break;
+        }
     }
 
     public static void LoadLibraries(string Folder)
     {
-        Handler.LoadNativeLibraries(Folder);
+        if (PlatformFolder == null)
+        {
+            throw new PlatformNotSupportedException("Native libraries are not supported on this platform!");
+        }
+        string nativeFolder = Path.Combine(Folder, PlatformFolder);
+        if (!Directory.Exists(nativeFolder))
+        {
+            LogService.LogWarning(
+                $"Warning: {Folder} doesn't contain any native libraries for the current platform!");
+            return;
+        }
+        string[] files = Directory.GetFiles(nativeFolder);
+
+        Dictionary<string, string> available =
+            new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (string file in files)
+        {
+            string name = Path.GetFileNameWithoutExtension(file);
+
+            available.Add(name, file);
+        }
+
+        List<string> loadOrder = GetOrder(
+            Folder) ?? [..available.Keys];
+
+        foreach (string name in loadOrder)
+        {
+            string file = available[name];
+
+            if (Libraries.TryGetValue(name, out var lib))
+            {
+                if (string.Equals(lib.Path, file,
+                        StringComparison.Ordinal))
+                    continue;
+
+                throw new InvalidOperationException(
+                    $"Native library '{name}' has already been loaded from '{lib.Path}'. " +
+                    $"Cannot load it again from '{file}'.");
+            }
+
+            string loadPath = file;
+            if (SpecialPath != null)
+            {
+                Directory.CreateDirectory(SpecialPath);
+                loadPath = Path.Combine(SpecialPath, Path.GetFileName(file));
+                File.Copy(file, loadPath, true);
+            }
+            IntPtr handle = Loadlib(loadPath, out string error);
+            if (handle == IntPtr.Zero)
+            {
+                throw new BadImageFormatException(
+                    $"Failed to load native library '{file}': {error}");
+            }
+            Libraries[name] = new NativeLibrary(handle, file);
+        }
     }
 
-    public static T GetNativeFunction<T>(string Name, string Symbol) where T : Delegate
+    public static T GetNativeFunction<T>(
+        string Name, string Symbol) where T : Delegate
     {
-        if (!LibraryHandles.TryGetValue(Name, out IntPtr Handle))
-        {
+        if (!Libraries.TryGetValue(Name, out var lib))
             return null;
+        IntPtr function = GetAddress(lib.Handle, Symbol);
+        if (function == IntPtr.Zero)
+        {
+            throw new EntryPointNotFoundException(
+                $"Could not find symbol '{Symbol}' in native library '{Name}'.");
         }
-        IntPtr Function = Handler.GetFunction(Handle, Name);
-        return Marshal.GetDelegateForFunctionPointer(Function, typeof(T)) as T;
+        return Marshal.GetDelegateForFunctionPointer(
+            function, typeof(T)) as T;
     }
-    
+
+    // Dependency handling
+
+    private static List<string> GetOrder(
+        string root)
+    {
+        string manifestPath = Path.Combine(
+            root, "order.json");
+        if (!File.Exists(manifestPath))
+            return null;
+        try
+        {
+            string Json = File.ReadAllText(manifestPath);
+            LoadOrder order = JsonConvert.DeserializeObject<LoadOrder>(Json);
+            return order?.Order;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidDataException(
+                "Failed to read order.json.", ex);
+        }
+    }
 }
