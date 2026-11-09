@@ -33,8 +33,8 @@ for short. Detailed introduction look [Gitbook](https://markamibox.github.io/wor
 2. Delete NCMS_memload.dll (They can be installed together but not suggested)
 3. Start the game with experimental mode enabled
 
-It is recommended to subscribe to the NML item on the Steam Workshop to receive automatic updates
-
+It is recommended to subscribe to the NML item on the Steam Workshop to receive automatic updates 
+note: standard mobile apps are IL2CPP and cant be modded normally. so you need a Mono version. NeoModLoader is not affiliated with these. these may also be outdated for the latest version.
 ### Android Installation
 
 1. Use a suitable Mono mod loader for worldbox
