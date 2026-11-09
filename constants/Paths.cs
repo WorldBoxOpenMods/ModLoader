@@ -17,7 +17,10 @@ public static class Paths
     /// Path to persistent data
     /// </summary>
     public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
-
+    /// <summary>
+    /// path to special folder. on PC its just the Users home directory. on Mobile its app-specific directories. 
+    /// </summary>
+    public static string SpecialFolderPath => System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
     /// <summary>
     /// Path to folder StreamingAssets
     /// </summary>
@@ -109,6 +112,10 @@ public static class Paths
     /// </summary>
     public static readonly string ModDefaultConfigFileName = "default_config.json";
 
+    /// <summary>
+    /// Folder name of a mod's resource folder which will be patched to <see cref="Resources"/>
+    /// </summary>
+    public static readonly string NativeLibrariesFolder = "Native";
     /// <summary>
     /// Folder name of a mod's resource folder which will be patched to <see cref="Resources"/>
     /// </summary>
