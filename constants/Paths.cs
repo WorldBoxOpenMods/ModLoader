@@ -109,7 +109,7 @@ public static class Paths
     public static readonly string ModDefaultConfigFileName = "default_config.json";
 
     /// <summary>
-    /// Folder name of a mod's resource folder which will be patched to <see cref="Resources"/>
+    /// Folder name of a mods native libraries
     /// </summary>
     public static readonly string NativeLibrariesFolder = "Native";
     /// <summary>
