@@ -226,7 +226,7 @@ public static class NativeLibraryManager
     );
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    delegate bool NativeModEntry( [MarshalAs(UnmanagedType.FunctionPtr)] NMLAPIFunc NMLAPI, [MarshalAs(UnmanagedType.U8)] ModDeclare Declare);
+    delegate bool NativeModEntry( [MarshalAs(UnmanagedType.FunctionPtr)] NMLAPIFunc NMLAPI,  [MarshalAs(UnmanagedType.LPUTF8Str)] string DeclareID);
 
     static ConcurrentDictionary<Delegate, IntPtr> Delegates = new();
     static IntPtr NMLAPI(string signature)
@@ -256,6 +256,6 @@ public static class NativeLibraryManager
     public static bool LoadNativeMod(string Name, ModDeclare Mod)
     {
         NativeModEntry EntryPoint = GetNativeFunction<NativeModEntry>(Name, "ModEntry");
-        return EntryPoint(NMLAPICallback, Mod);
+        return EntryPoint(NMLAPICallback, Mod.UID);
     }
 }
