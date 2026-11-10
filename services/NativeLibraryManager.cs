@@ -1,4 +1,5 @@
 using System.Reflection;
+using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using Newtonsoft.Json;
@@ -225,7 +226,7 @@ public static class NativeLibraryManager
     );
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    delegate bool NativeModEntry( [MarshalAs(UnmanagedType.FunctionPtr)] NMLAPIFunc NMLAPI);
+    delegate bool NativeModEntry( [MarshalAs(UnmanagedType.FunctionPtr)] NMLAPIFunc NMLAPI, [MarshalAs(UnmanagedType.U8)] ModDeclare Declare);
 
     static ConcurrentDictionary<Delegate, IntPtr> Delegates = new();
     static IntPtr NMLAPI(string signature)
@@ -249,11 +250,12 @@ public static class NativeLibraryManager
     }
     static readonly NMLAPIFunc NMLAPICallback = NMLAPI;
     /// <summary>
-    /// native libraries which act as mods may use the NML API for assistance. the entry point is always bool ModEntry(IntPtr NMLAPIFUNC) where NMLAPIFUNC is IntPtr (string type, string method). this returns a neomodloader static function which may be used
+    /// native libraries which act as mods may use the NML API for assistance. the entry point is always bool ModEntry(IntPtr NMLAPIFUNC) 
     /// </summary>
-    public static bool LoadNativeMod(string Name)
+    /// <remarks>NMLAPIFUNC is IntPtr (string signature). this returns a neomodloader static function which may be used</remarks>
+    public static bool LoadNativeMod(string Name, ModDeclare Mod)
     {
         NativeModEntry EntryPoint = GetNativeFunction<NativeModEntry>(Name, "ModEntry");
-        return EntryPoint(NMLAPICallback);
+        return EntryPoint(NMLAPICallback, Mod);
     }
 }
