@@ -34,17 +34,13 @@ public static class NativeLibraryManager
     private static extern IntPtr LinuxDlError();
 
     // Android
-    [DllImport("libdl.so", EntryPoint = "dlopen",
+    [DllImport("libmain.so", EntryPoint = "load_library",
         CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr AndroidDlOpen(string filename, int flags);
+    private static extern IntPtr AndroidDlOpen(string filename);
 
     [DllImport("libdl.so", EntryPoint = "dlsym",
         CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr AndroidDlSym(IntPtr handle, string symbol);
-
-    [DllImport("libdl.so", EntryPoint = "dlerror",
-        CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr AndroidDlError();
 
     private const int OPEN_FLAGS = 2 | 0x100;
     
@@ -114,12 +110,8 @@ public static class NativeLibraryManager
                 GetAddress = AndroidDlSym;
                 Loadlib = (path, out error) =>
                 {
-                    error = null;
-                    IntPtr handle = AndroidDlOpen(path, OPEN_FLAGS);
-                    if (handle == IntPtr.Zero)
-                    {
-                        error = Marshal.PtrToStringAnsi(AndroidDlError());
-                    }
+                    error = ""; //it already logs the error inside libmain
+                    IntPtr handle = AndroidDlOpen(path);
                     return handle;
                 };
                 break;
