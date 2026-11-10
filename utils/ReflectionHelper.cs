@@ -21,7 +21,7 @@ internal static class ReflectionHelper
     internal static Delegate GetMethod(Type type, string method_name, bool is_static = false)
     {
         return createMethodDelegate(is_static
-            ? type.GetMethod(method_name, BindingFlags.Static | BindingFlags.NonPublic)
+            ? type.GetMethod(method_name, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             : AccessTools.Method(type, method_name));
     }
 
@@ -138,6 +138,10 @@ internal static class ReflectionHelper
 
     private static Delegate createMethodDelegate(MethodInfo method_info)
     {
+        if (method_info == null)
+        {
+            return null;
+        }
         List<ParameterExpression> paramExpressions = method_info.GetParameters()
             .Select((p, i) => Expression.Parameter(p.ParameterType, p.Name)).ToList();
 

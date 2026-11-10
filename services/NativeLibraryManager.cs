@@ -1,5 +1,6 @@
 using System.Reflection;
 using NeoModLoader.constants;
+using NeoModLoader.General;
 using Newtonsoft.Json;
 namespace NeoModLoader.services;
 using System;
@@ -219,25 +220,40 @@ public static class NativeLibraryManager
         }
     }
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    delegate bool NativeModEntry (IntPtr NMLAPI);
+    delegate IntPtr NMLAPIFunc(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string signature
+    );
 
-    static IntPtr NMLAPI(string type, string method)
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    delegate bool NativeModEntry( [MarshalAs(UnmanagedType.FunctionPtr)] NMLAPIFunc NMLAPI);
+
+    static ConcurrentDictionary<Delegate, IntPtr> Delegates = new();
+    static IntPtr NMLAPI(string signature)
     {
-        Assembly NML = typeof(WorldBoxMod).Assembly;
-        Type Type = NML.GetType(type);
-        if (Type == null)
+        Assembly NML = WorldBoxMod.NeoModLoaderAssembly;
+        string[] args = signature.Split(':');
+        Type Type = NML.GetType(args[0]);
+        Delegate Method = Type?.GetMethodDelegate(args[1], true);
+        if (Method == null)
         {
             return IntPtr.Zero;
         }
-        MethodInfo Method = Type.GetMethod(method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-        return Method == null ? IntPtr.Zero : Method.MethodHandle.GetFunctionPointer();
+        if (Delegates.TryGetValue(Method, out var lib))
+        {
+            return lib;
+        }
+
+        IntPtr ptr = Marshal.GetFunctionPointerForDelegate(Method);
+        Delegates.TryAdd(Method, ptr);
+        return ptr;
     }
+    static readonly NMLAPIFunc NMLAPICallback = NMLAPI;
     /// <summary>
-    /// native libraries which act as mods may use the NML API for assistance. the entry point is always bool ModEntry(IntPtr NMLAPIFUNC) where NMLAPIFUNC is IntPtr (string type, string method). this returns a neomodloader function which may be used
+    /// native libraries which act as mods may use the NML API for assistance. the entry point is always bool ModEntry(IntPtr NMLAPIFUNC) where NMLAPIFUNC is IntPtr (string type, string method). this returns a neomodloader static function which may be used
     /// </summary>
     public static bool LoadNativeMod(string Name)
     {
         NativeModEntry EntryPoint = GetNativeFunction<NativeModEntry>(Name, "ModEntry");
-        return EntryPoint(Marshal.GetFunctionPointerForDelegate(NMLAPI));
+        return EntryPoint(NMLAPICallback);
     }
 }
