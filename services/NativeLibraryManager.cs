@@ -220,42 +220,4 @@ public static class NativeLibraryManager
                 "Failed to read order.json.", ex);
         }
     }
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    delegate IntPtr NMLAPIFunc(
-        [MarshalAs(UnmanagedType.LPUTF8Str)] string signature
-    );
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    delegate bool NativeModEntry( [MarshalAs(UnmanagedType.FunctionPtr)] NMLAPIFunc NMLAPI,  [MarshalAs(UnmanagedType.LPUTF8Str)] string DeclareID);
-
-    static ConcurrentDictionary<Delegate, IntPtr> Delegates = new();
-    static IntPtr NMLAPI(string signature)
-    {
-        Assembly NML = WorldBoxMod.NeoModLoaderAssembly;
-        string[] args = signature.Split(':');
-        Type Type = NML.GetType(args[0]);
-        Delegate Method = Type?.GetMethodDelegate(args[1], true);
-        if (Method == null)
-        {
-            return IntPtr.Zero;
-        }
-        if (Delegates.TryGetValue(Method, out var lib))
-        {
-            return lib;
-        }
-
-        IntPtr ptr = Marshal.GetFunctionPointerForDelegate(Method);
-        Delegates.TryAdd(Method, ptr);
-        return ptr;
-    }
-    static readonly NMLAPIFunc NMLAPICallback = NMLAPI;
-    /// <summary>
-    /// native libraries which act as mods may use the NML API for assistance. the entry point is always bool ModEntry(IntPtr NMLAPIFUNC) 
-    /// </summary>
-    /// <remarks>NMLAPIFUNC is IntPtr (string signature). this returns a neomodloader static function which may be used</remarks>
-    public static bool LoadNativeMod(string Name, ModDeclare Mod)
-    {
-        NativeModEntry EntryPoint = GetNativeFunction<NativeModEntry>(Name, "ModEntry");
-        return EntryPoint(NMLAPICallback, Mod.UID);
-    }
 }
