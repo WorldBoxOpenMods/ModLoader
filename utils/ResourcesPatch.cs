@@ -111,7 +111,11 @@ public static class ResourcesPatch
         textAsset.name = Path.GetFileNameWithoutExtension(path);
         return textAsset;
     }
-
+    internal static void LoadNativeLibrariesFromFolder(string pFolder)
+    {
+        if (!Directory.Exists(pFolder)) return;
+        NativeLibraryManager.LoadLibraries(pFolder);
+    }
     internal static void LoadResourceFromFolder(string pFolder, AssetLinker Linker)
     {
         if (!Directory.Exists(pFolder)) return;
@@ -131,16 +135,20 @@ public static class ResourcesPatch
         {
             RuntimePlatform.WindowsPlayer => "win",
             RuntimePlatform.WindowsEditor => "win",
-            RuntimePlatform.Android => "and",
+            RuntimePlatform.Android => "android",
             RuntimePlatform.IPhonePlayer => "ios",
             RuntimePlatform.OSXPlayer => "osx",
             RuntimePlatform.OSXEditor => "osx",
             RuntimePlatform.LinuxPlayer => "linux",
             RuntimePlatform.LinuxEditor => "linux",
-            _ => "win"
+            _ => throw new PlatformNotSupportedException()
         };
         string platform_folder = Path.Combine(pFolder, platform_subfolder_name);
-        if (!Directory.Exists(platform_folder)) return;
+        if (!Directory.Exists(platform_folder))
+        {
+            LogService.LogWarning($"Warning: {pFolder} doesn't contain any asset bundles for the current platform!");
+            return;
+        }
 
         AssetBundleUtils.LoadFromFolder(platform_folder);
     }

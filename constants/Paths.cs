@@ -17,7 +17,6 @@ public static class Paths
     /// Path to persistent data
     /// </summary>
     public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
-
     /// <summary>
     /// Path to folder StreamingAssets
     /// </summary>
@@ -109,6 +108,10 @@ public static class Paths
     /// </summary>
     public static readonly string ModDefaultConfigFileName = "default_config.json";
 
+    /// <summary>
+    /// Folder name of a mods native libraries
+    /// </summary>
+    public static readonly string NativeLibrariesFolder = "Native";
     /// <summary>
     /// Folder name of a mod's resource folder which will be patched to <see cref="Resources"/>
     /// </summary>
