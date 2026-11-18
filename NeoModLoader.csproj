@@ -180,12 +180,8 @@
       <EmbeddedResource Include="resources\assemblies\Facepunch.Steamworks.Win64.dll" />
       <None Remove="resources\logo.png" />
       <EmbeddedResource Include="resources\logo.png" />
-      <None Remove="resources\locales\cz.json" />
-      <EmbeddedResource Include="resources\locales\cz.json" />
-      <None Remove="resources\locales\en.json" />
-      <EmbeddedResource Include="resources\locales\en.json" />
-      <None Remove="resources\locales\ch.json" />
-      <EmbeddedResource Include="resources\locales\ch.json" />
+      <None Remove="resources\locales\*.json" />
+      <EmbeddedResource Include="resources\locales\*.json" />
       <None Remove="resources\square_frame_only.png" />
       <EmbeddedResource Include="resources\square_frame_only.png" />
       <None Remove="resources\commit" />
