@@ -133,18 +133,23 @@ public class WorldBoxMod : MonoBehaviour
         {
             compiled_mod_uids = ModCompileLoadService.CompileModNodes(mod_nodes);
             AssetLinker Linker = new();
+            HashSet<string> failed_resource_mod_uids = new();
             foreach (var mod in mod_nodes)
             {
                 SmoothLoader.add(() =>
                 {
-                    if (!mod.Loaded && compiled_mod_uids.Contains(mod.mod_decl.UID))
+                    if (mod.Loaded || !compiled_mod_uids.Contains(mod.mod_decl.UID)) return;
+
+                    string failed_dependency = mod.mod_decl.Dependencies.FirstOrDefault(failed_resource_mod_uids.Contains);
+                    if (failed_dependency != null)
                     {
-                        ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                            Paths.ModResourceFolderName), Linker);
-                        ResourcesPatch.LoadResourceFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                            Paths.NCMSAdditionModResourceFolderName), Linker);
-                        ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(mod.mod_decl.FolderPath,
-                            Paths.ModAssetBundleFolderName));
+                        ModCompileLoadService.RecordModLoadFailure(mod.mod_decl,
+                            $"Required mod '{failed_dependency}' failed to load its resources.");
+                        failed_resource_mod_uids.Add(mod.mod_decl.UID);
+                    }
+                    else if (!ModCompileLoadService.TryLoadModResources(mod.mod_decl, Linker))
+                    {
+                        failed_resource_mod_uids.Add(mod.mod_decl.UID);
                     }
                 }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
@@ -152,7 +157,8 @@ public class WorldBoxMod : MonoBehaviour
             SmoothLoader.add(() =>
             {
                 ModCompileLoadService.loadMods(mod_nodes
-                    .Where(mod => !mod.Loaded && compiled_mod_uids.Contains(mod.mod_decl.UID))
+                    .Where(mod => !mod.Loaded && compiled_mod_uids.Contains(mod.mod_decl.UID) &&
+                                  !failed_resource_mod_uids.Contains(mod.mod_decl.UID))
                     .Select(mod => mod.mod_decl)
                     .ToList());
                 Linker.AddAssets();

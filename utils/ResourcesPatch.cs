@@ -131,7 +131,7 @@ public static class ResourcesPatch
         {
             RuntimePlatform.WindowsPlayer => "win",
             RuntimePlatform.WindowsEditor => "win",
-            RuntimePlatform.Android => "and",
+            RuntimePlatform.Android => "android",
             RuntimePlatform.IPhonePlayer => "ios",
             RuntimePlatform.OSXPlayer => "osx",
             RuntimePlatform.OSXEditor => "osx",
@@ -140,7 +140,16 @@ public static class ResourcesPatch
             _ => "win"
         };
         string platform_folder = Path.Combine(pFolder, platform_subfolder_name);
-        if (!Directory.Exists(platform_folder)) return;
+        if (platform_subfolder_name == "android" && !Directory.Exists(platform_folder))
+        {
+            platform_folder = Path.Combine(pFolder, "and");
+        }
+
+        if (!Directory.Exists(platform_folder))
+        {
+            LogService.LogWarning($"Warning: {pFolder} doesn't contain any asset bundles for the current platform!");
+            return;
+        }
 
         AssetBundleUtils.LoadFromFolder(platform_folder);
     }

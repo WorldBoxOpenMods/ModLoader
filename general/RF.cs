@@ -45,11 +45,19 @@ public static class RF
                 return method;
             }
             var newMethod1 = ReflectionHelper.GetMethod(type, name, is_static);
+            if (newMethod1 == null)
+            {
+                return null;
+            }
             methods.Add(name, newMethod1);
             
             return newMethod1;
         }
         var newMethod = ReflectionHelper.GetMethod(type, name, is_static);
+        if (newMethod == null)
+        {
+            return null;
+        }
         _method_cache.Add(type, new Dictionary<string, Delegate> { { name, newMethod } });
         return newMethod;
     }

@@ -394,14 +394,41 @@ public static class ModCompileLoadService
         ScrollWindow.get("error_with_reason").clickShow();
     }
 
+    internal static void RecordModLoadFailure(ModDeclare pModDeclare, string pReason)
+    {
+        pModDeclare.FailReason.AppendLine(pReason);
+        WorldBoxMod.AllRecognizedMods[pModDeclare] = ModState.FAILED;
+        LogService.LogError($"Failed to load mod {pModDeclare.UID}: {pReason}");
+    }
+
+    internal static bool TryLoadModResources(ModDeclare pModDeclare, AssetLinker pLinker)
+    {
+        try
+        {
+            string native_folder = Path.Combine(pModDeclare.FolderPath, Paths.NativeLibrariesFolder);
+            if (Directory.Exists(native_folder))
+            {
+                NativeLibraryManager.LoadLibraries(native_folder);
+            }
+        }
+        catch (Exception exception)
+        {
+            RecordModLoadFailure(pModDeclare, $"Failed to load native libraries: {exception.GetBaseException().Message}");
+            return false;
+        }
+
+        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModResourceFolderName),
+            pLinker);
+        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath,
+            Paths.NCMSAdditionModResourceFolderName), pLinker);
+        ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModAssetBundleFolderName));
+        return true;
+    }
+
     private static bool TryLoadCompiledModAtRuntime(ModDeclare pModDeclare)
     {
         AssetLinker linker = new AssetLinker();
-        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModResourceFolderName),
-            linker);
-        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pModDeclare.FolderPath,
-            Paths.NCMSAdditionModResourceFolderName), linker);
-        ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModAssetBundleFolderName));
+        if (!TryLoadModResources(pModDeclare, linker)) return false;
 
         LoadMod(pModDeclare);
      
@@ -503,8 +530,11 @@ public static class ModCompileLoadService
             if (!TryLoadCompiledModAtRuntime(node.mod_decl))
             {
                 ModDepenSolveService.RollbackEnablePlan(plan);
-                mod_declare.FailReason.Clear();
-                mod_declare.FailReason.Append(node.mod_decl.FailReason);
+                if (!ReferenceEquals(mod_declare, node.mod_decl))
+                {
+                    mod_declare.FailReason.Clear();
+                    mod_declare.FailReason.Append(node.mod_decl.FailReason);
+                }
                 WorldBoxMod.AllRecognizedMods[mod_declare] = ModState.FAILED;
                 ShowRuntimeLoadError(node.mod_decl, "Failed to load mod. Check the log for details.");
                 return false;
