@@ -20,6 +20,10 @@ for short. Detailed introduction look [Gitbook](https://markamibox.github.io/wor
 
 <h2 align="center"> Overview </h2>
 
+### Translation Sources
+
+NeoModLoader supports 38 languages. Of these, 35 use machine-translated drafts that have not yet been reviewed by humans line by line.
+
 <h3 align="center">
     How to install
 </h3>
